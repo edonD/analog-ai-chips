@@ -1,0 +1,36 @@
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+Vinp vinp 0 dc 0.9
+
+* DC: inductor is short → vinn=vout
+Lfb vout vinn 1T
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.op
+.control
+  run
+  echo "Vout=$&v(vout) Vinn=$&v(vinn)"
+  echo "M1: Id=$&@m.xota.m1[id] Vds=$&@m.xota.m1[vds] gm=$&@m.xota.m1[gm]"
+  echo "M2: Id=$&@m.xota.m2[id] Vds=$&@m.xota.m2[vds] gm=$&@m.xota.m2[gm]"
+  echo "M4: Id=$&@m.xota.m4[id] Vds=$&@m.xota.m4[vds] Vdsat=$&@m.xota.m4[vdsat] gds=$&@m.xota.m4[gds]"
+  echo "M6: Id=$&@m.xota.m6[id] Vds=$&@m.xota.m6[vds] Vdsat=$&@m.xota.m6[vdsat] gm=$&@m.xota.m6[gm] gds=$&@m.xota.m6[gds]"
+  echo "M8: Id=$&@m.xota.m8[id] Vds=$&@m.xota.m8[vds] gm=$&@m.xota.m8[gm] gds=$&@m.xota.m8[gds]"
+  echo "M10: Id=$&@m.xota.m10[id] Vds=$&@m.xota.m10[vds] gds=$&@m.xota.m10[gds]"
+  echo "M11: Id=$&@m.xota.m11[id]"
+  echo ""
+  echo "Estimated Rout_p = gm6*ro6*ro4 = $&@m.xota.m6[gm] * (1/$&@m.xota.m6[gds]) * (1/$&@m.xota.m4[gds])"
+  echo "Estimated Rout_n = gm8*ro8*ro10 = $&@m.xota.m8[gm] * (1/$&@m.xota.m8[gds]) * (1/$&@m.xota.m10[gds])"
+  quit
+.endc
+.end

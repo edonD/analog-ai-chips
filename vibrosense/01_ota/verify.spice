@@ -1,0 +1,33 @@
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+Vinp vinp 0 dc 0.9
+Lfb vout vinn 1T
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+.tf v(vout) Vinp
+.control
+  run
+  let cl = transfer_function
+  let A = cl / (1 - cl)
+  let A_db = 20*log(abs(A))/log(10)
+  echo "CL gain=$&cl OL gain=$&A ($&A_db dB)"
+  op
+  echo "Vout=$&v(vout) M11=$&@m.xota.m11[id]"
+  echo "M1 Id=$&@m.xota.m1[id] gm=$&@m.xota.m1[gm] gds=$&@m.xota.m1[gds]"
+  echo "M2 Id=$&@m.xota.m2[id] gm=$&@m.xota.m2[gm] gds=$&@m.xota.m2[gds]"
+  echo "M4 Vds=$&@m.xota.m4[vds] Vdsat=$&@m.xota.m4[vdsat]"
+  echo "M6 Vds=$&@m.xota.m6[vds] M8 Vds=$&@m.xota.m8[vds]"
+  echo "M10 Vds=$&@m.xota.m10[vds] M9 Vds=$&@m.xota.m9[vds]"
+  echo "M11 Vds=$&@m.xota.m11[vds] Vdsat=$&@m.xota.m11[vdsat]"
+  echo "Supply: I=$&-i(Vdd)"
+  quit
+.endc
+.end

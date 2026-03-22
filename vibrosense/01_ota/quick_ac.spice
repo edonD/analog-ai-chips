@@ -1,0 +1,44 @@
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+
+* All ideal voltage sources for maximum control
+Vbn  vbn  0 dc 0.58
+Vbcn vbcn 0 dc 0.80
+Vbp  vbp  0 dc 0.855
+Vbcp vbcp 0 dc 0.65
+
+Vcm cm 0 dc 0.9
+Vac vinp cm dc 0 ac 1
+
+* DC feedback
+Lfb vout fb 1G
+Rfb fb vinn 1
+Rbias vinn cm 1G
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.ac dec 100 1 100Meg
+
+.control
+  run
+  meas ac gain_db MAX vdb(vout)
+  meas ac ugb WHEN vdb(vout)=0 FALL=1
+  meas ac phase_at_ugb FIND vp(vout) AT=ugb
+  let pm = phase_at_ugb + 180
+  echo "Gain(dB): $&gain_db  UGB(Hz): $&ugb  PM(deg): $&pm"
+
+  echo ""
+  echo "OP check:"
+  print v(vout)
+  print @m.xota.m4[vds] @m.xota.m4[vdsat] @m.xota.m4[id]
+  print @m.xota.m6[vds] @m.xota.m6[vdsat]
+  print @m.xota.m8[vds] @m.xota.m8[vdsat]
+  print @m.xota.m10[vds] @m.xota.m10[vdsat]
+  print @m.xota.m1[gm] @m.xota.m2[gm]
+  quit
+.endc
+.end

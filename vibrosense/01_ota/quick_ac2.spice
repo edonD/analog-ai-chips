@@ -1,0 +1,38 @@
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+
+Vbn  vbn  0 dc 0.58
+Vbcn vbcn 0 dc 0.80
+Vbp  vbp  0 dc 0.855
+Vbcp vbcp 0 dc 0.65
+
+Vcm cm 0 dc 0.9
+Vac vinp cm dc 0 ac 1
+
+* Simple approach: connect vinn to vcm for DC bias, open-loop
+Vinn_bias vinn cm dc 0
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.ac dec 100 1 100Meg
+
+.control
+  run
+  * Check gain at a few frequencies
+  meas ac gain_1hz FIND vdb(vout) AT=1
+  meas ac gain_1k  FIND vdb(vout) AT=1000
+  meas ac gain_10k FIND vdb(vout) AT=10000
+  meas ac phase_1hz FIND vp(vout) AT=1
+  echo "Gain at 1Hz: $&gain_1hz dB, phase: $&phase_1hz deg"
+  echo "Gain at 1kHz: $&gain_1k dB"
+  echo "Gain at 10kHz: $&gain_10k dB"
+
+  meas ac gain_db MAX vdb(vout)
+  meas ac ugb WHEN vdb(vout)=0 FALL=1
+  quit
+.endc
+.end

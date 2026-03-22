@@ -1,0 +1,43 @@
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+Vinp vinp 0 dc 0.9
+Lfb vout vinn 1T
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.tf v(vout) Vinp
+
+.control
+  run
+  print transfer_function output_impedance_at_v(vout)
+  echo "Gain = $&transfer_function"
+  echo "Rout_cl = $&output_impedance_at_v(vout)"
+  
+  * Compute open-loop gain from closed-loop
+  * CL gain = A/(1+A), CL Rout = Rout_OL/(1+A)
+  * A = CL_gain/(1-CL_gain)
+  let cl_gain = transfer_function
+  let A = cl_gain / (1 - cl_gain)
+  let gain_db_est = 20*log(abs(A))/log(10)
+  echo "Estimated OL Gain = $&A"
+  echo "Estimated OL Gain (dB) = $&gain_db_est"
+  
+  * Also get device params
+  op
+  echo "M2 gds=$&@m.xota.m2[gds] gm=$&@m.xota.m2[gm] Id=$&@m.xota.m2[id]"
+  echo "M4 Vds=$&@m.xota.m4[vds] Vdsat=$&@m.xota.m4[vdsat]"
+  echo "M6 Vds=$&@m.xota.m6[vds] M8 Vds=$&@m.xota.m8[vds]"
+  echo "Vout=$&v(vout)"
+  quit
+.endc
+.end
