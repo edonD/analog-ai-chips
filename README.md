@@ -2,46 +2,94 @@
 
 A deep-dive engineering reference on analog, neuromorphic, and mixed-signal AI chips. The core question: **can analog compute challenge digital for AI inference?**
 
+**Short answer: yes, but only narrowly, and digital is closing the gap fast.**
+
 ---
 
-## What Has Been Found
+## The Verdict (Updated After 16 Deep Dives)
 
-**IBM** has the strongest analog AI research program. Their HERMES chip (14nm, 64-core PCM-based) achieves 92.81% on CIFAR-10, 12.4 TOPS/W, and 14x energy efficiency over digital for speech tasks. But it holds only ~4M weights -- orders of magnitude from LLM scale. Their NorthPole chip (digital near-memory, not analog) is more mature: 72.7x more energy-efficient than GPUs on a 3B-parameter LLM. The gap between IBM's analog research prototypes and production hardware remains enormous. PCM drift is manageable but not solved. Scaling from millions to billions of weights is the central unsolved challenge.
+### Where Analog Wins
+
+1. **Always-on sensor edge (<1 mW):** Analog preprocessing before the ADC saves 90%+ power by keeping digital systems asleep. Aspinity AML200 achieves 300 TOPS/W at <100 uW. POLYN runs voice activity detection at 34 uW with zero clock. This is the one domain where analog has a structural, physics-based advantage that digital cannot match — because the signal is already analog.
+
+2. **Moderate edge inference (1-10W):** Capacitor-based CIM (EnCharge EN100: ~24 TOPS/W system-level) and flash CIM (Mythic Gen 1: ~8 TOPS/W) deliver real, measured efficiency gains of 2-7x over conventional digital NPUs. Not 100x. But real.
+
+### Where Analog Loses
+
+1. **LLMs and large models:** The capacity gap (4M weights on-chip vs billions needed) is 250-1000x. No analog chip has run a real LLM. Digital quantization (1-4 bit) is solving the same efficiency problem with standard tooling. Analog LLM inference is a 2030+ prospect at best.
+
+2. **Datacenter scale:** Digital CIM (d-Matrix: 38 TOPS/W, $2B valuation; Axelera: 214 TOPS, $450M raised) achieves comparable efficiency with deterministic accuracy and CUDA-like toolchains. Analog's 2-10x advantage evaporates against the software ecosystem gap.
+
+3. **ISSCC 2025 signal:** Zero analog CIM papers in the dedicated CIM session. Digital SRAM CIM hit 192.3 TFLOPS/W. The academic community is voting with its submissions.
+
+### The Three Killers
+
+1. **ADC/DAC overhead:** Consumes 40-85% of system power. This single factor collapses "100x" claims to 2-10x reality. ([research/adc-dac-bottleneck.md](research/adc-dac-bottleneck.md))
+2. **Precision ceiling:** Analog achieves 3-6 effective bits (PCM/RRAM) to 6-8 bits (capacitor). Each extra bit costs 4x signal power. Analog "4-bit" is stochastic, not deterministic like INT4. ([research/precision-noise-challenges.md](research/precision-noise-challenges.md))
+3. **Software ecosystem:** No analog equivalent of CUDA/TensorRT. Mythic nearly died from underinvesting here. Budget 40-50% of engineering on software. ([research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthesis.md))
+
+### If You're Designing a Chip
+
+Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthesis.md)** first. The recommended architecture ranking:
+
+1. **Charge-domain CIM (capacitor/SRAM)** — best precision, no drift, standard CMOS process. EnCharge's approach.
+2. **Digital CIM** — deterministic, proven, shipping. d-Matrix and Axelera's approach.
+3. **Flash CIM** — non-volatile, mature foundry support, moderate drift. Mythic/Sagence's approach.
+4. **Avoid for new designs:** RRAM (variability), PCM (drift), pure neuromorphic (no killer app), photonic compute (2028+), analog training (commercially impossible).
 
 ---
 
 ## Research Files
 
-| File | Topic | Key Finding |
-|------|-------|-------------|
-| **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthesis.md)** | **Analog AI Chip Design Guide** | **Practical engineering guide covering all 10 major design decisions: memory tech, ADC architecture, precision, process node, digital vs analog CIM, software stack, calibration, business case, failure lessons, and recommended architectures. The file to read before designing a chip.** |
-| **[research/analog-for-llms.md](research/analog-for-llms.md)** | **Can Analog CIM Run LLMs?** | **The frontier question. IBM's ALBERT on HERMES is the first transformer on analog silicon (7.1M params, 1.8% accuracy loss). Analog Foundation Models match W4A8 digital for Phi-3-mini and Llama-3.2-1B in simulation. Jülich gain-cell attention achieves 100x speedup in simulation. But no analog chip has run a real LLM. The 250x capacity gap (4M to 1B weights), missing KV cache solution, software ecosystem gap, and rapidly improving digital quantization (1-4 bit) make analog LLMs a 2030+ prospect. Most likely outcome: specialized decode-phase accelerator for edge LLMs, not GPU replacement.** |
-| [research/ibm-analog-ai.md](research/ibm-analog-ai.md) | IBM Analog AI (HERMES, NorthPole, aihwkit) | Strongest analog AI research program; 14x efficiency proven in silicon but scaling to LLM-class workloads undemonstrated |
-| [research/tsetlin-machines.md](research/tsetlin-machines.md) | Tsetlin Machines: Logic-Based AI Hardware | 65nm ASIC achieves 8.6 nJ/frame MNIST (lowest digital ASIC); purely bitwise inference; not applicable to generative AI or LLMs |
-| [research/intel-loihi.md](research/intel-loihi.md) | Intel Loihi Neuromorphic Processor | Most technically ambitious neuromorphic chip; Loihi 2 (Intel 4, 1M neurons, 31mm²) powers Hala Point (1,152 chips, 1.15B neurons, 15 TOPS/W sparse); 70-5,600x efficiency on favorable workloads; but 8+ years with zero revenue, no commercial product, restricted access; "Loihi 3" claims are AI-generated misinformation |
-| [research/brainchip-akida.md](research/brainchip-akida.md) | BrainChip Akida Neuromorphic Processor | Event-driven digital neuromorphic chip; 76.9 FPS/W (50x vs embedded GPU) on small models; but ~$400K revenue on $274M market cap; no volume customers after 4 years shipping |
-| [research/mythic-ai.md](research/mythic-ai.md) | Mythic AI: Flash-Based Analog Compute-in-Memory | Best-funded analog CIM startup ($300M+ raised); Gen 1 delivers ~8 TOPS/W (40nm, real silicon); Gen 2 claims 120 TOPS/W (unverified); nearly died in 2022 pre-revenue; $125M raised Dec 2025; Honda and Lockheed partnerships; headline 100x claims need independent validation |
-| [research/photonic-ai-chips.md](research/photonic-ai-chips.md) | Photonic AI Chips: Optical Computing for Neural Networks | Photonic interconnect is real and shipping (NVIDIA, Lightmatter, Ayar Labs, Celestial AI/Marvell $5.5B). Photonic compute remains pre-commercial: best measured result is 8.19 TOPS at 2.38 TOPS/W; claims of 160-300 TOPS/W exclude system overhead. DAC/ADC bottleneck, lack of optical nonlinearity, and no optical memory are fundamental barriers. Timeline: interconnect now, hybrid compute 2028+, all-optical 2032+ if ever. |
-| [research/edge-analog-ai.md](research/edge-analog-ai.md) | Analog/Mixed-Signal Edge AI (Aspinity, Syntiant, POLYN, Innatera, et al.) | Analog strongest at sensor edge (30-100 uW always-on); Syntiant most successful (10M+ shipped, ~$300M rev) but uses digital near-memory, not analog; Aspinity pure analog ML (AML100 shipping, AML200 at 300 TOPS/W); market ~$250M growing to $2.5B by 2035 |
-| [research/analog-cim-landscape-2025.md](research/analog-cim-landscape-2025.md) | Full Analog CIM Landscape 2025-2026 | Broadest overview: 6 memory technologies (SRAM, Flash, RRAM, PCM, MRAM, FeRAM), 10+ companies with silicon or near-silicon, ISSCC 2025 papers, performance comparisons. EnCharge AI (200 TOPS, capacitor CIM) and Mythic (25 TOPS, flash CIM) are the two commercial analog CIM products. Digital CIM (Axelera 214 TOPS) is closing the efficiency gap. "Power, speed, or accuracy -- pick two" remains the fundamental law. |
-| [research/adc-dac-bottleneck.md](research/adc-dac-bottleneck.md) | The ADC/DAC Bottleneck in Analog CIM | ADC/DAC conversion consumes 40-85% of system power and up to 80% of area -- the primary reason analog CIM's 100x claims collapse to 2-10x at system level. Covers all ADC architectures (SAR, flash, CCO, TDC, sigma-delta, in-memory), ADC-free approaches (FANCH, HCiM, PWM inter-array), CSNR-optimal design (40-64x ADC energy savings), charge/time-domain alternatives, and the 100 fJ/Op theoretical floor. |
-| [research/encharge-ai.md](research/encharge-ai.md) | EnCharge AI: Capacitor-Based Compute-in-Memory | Most technically credible analog CIM startup; capacitor-based charge-domain CIM eliminates RRAM/PCM drift/noise problems; EN100 claims 200 TOPS at 8.25W (~24 TOPS/W system) on TSMC 16nm with 30 TOPS/mm²; $144M+ raised (Tiger Global, DARPA); Princeton origin (Naveen Verma); no independent benchmarks yet; SRAM volatility requires weight tiling from DRAM; if claims verified, would be 5-7x better than existing NPUs |
-| [research/precision-noise-challenges.md](research/precision-noise-challenges.md) | Precision and Noise Challenges in Analog CIM | The core technical challenge: raw analog MVM precision is 3-6 effective bits (IBM HERMES: 3-4, NeuRRAM: ~4, EnCharge: 6-8). Analog "4-bit" is fundamentally different from digital INT4 (stochastic vs deterministic). 8+ noise sources compound in every MAC. PCM drift v=0.1-0.15 (SiSbTe: 0.04). ADCs consume up to 60% of energy. Noise-aware training essential but creates HW-SW coupling. Capacitor CIM has best precision. No automotive temp range demonstrated. |
-| [research/isscc-2025-ai-chips.md](research/isscc-2025-ai-chips.md) | ISSCC 2025: AI Chips, CIM, and Accelerators | Comprehensive survey of all AI-related papers at the premier chip conference. **Critical finding for analog AI:** zero analog CIM papers in the dedicated CIM session -- all 4 confirmed papers are digital/hybrid SRAM CIM (best: 192.3 TFLOPS/W). Session 23 dominated by generative AI hardware (transformers, diffusion, LLMs). KAIST's Slim-Llama runs 3B-param Llama at 4.69mW via 1-bit quantization. Industry: SambaNova SN40L (688 FP16 TFLOPS), FuriosaAI RNGD (512 FP8 TFLOPS, 3x H100 perf/W). Algorithmic EMA reduction (31-65x) outperforming analog CIM for energy savings. |
-| [research/emerging-startups.md](research/emerging-startups.md) | Emerging Analog/Mixed-Signal AI Startups | Ceremorphic (5nm HLP chip, $50M self-funded, no benchmarks after 3.5 years -- likely vaporware); Sagence AI (NOR flash deep subthreshold, 8-bit/cell, $58M, Khosla-backed); TetraMem (RRAM 11-bit/cell in Nature/Science, SK hynix partnership); Blumind (<1uW analog KWD, $20M CAD); Anaflash (logic-compatible flash CIM, Samsung 28nm); d-Matrix (digital SRAM CIM, 38 TOPS/W, $2B valuation, shipping); Axelera (digital CIM, 214 TOPS Metis shipping, $450M raised). **Digital CIM (d-Matrix, Axelera) is better funded and further ahead than analog alternatives.** |
-| [research/rram-memristor-chips.md](research/rram-memristor-chips.md) | RRAM/Memristor-Based AI Chips Deep Dive | Most actively researched analog CIM technology. NeuRRAM (UCSD/Stanford, 48-core, 130nm, 3M synapses) proved software-comparable accuracy at 2x SOTA efficiency. Tsinghua STELLAR (Science 2023) first on-chip learning at 3% ASIC energy. Tsinghua 28nm macro: 2.82 TOPS/mm², 35.6 TOPS/W. Peking Univ 24-bit precision solver (Nature Electronics 2025) on 40nm -- 1000x faster than GPU for MIMO. Huawei-ByteDance-Tsinghua RRAM chip at ISSCC 2026 (66x CPU). TetraMem 11-bit/device is multi-cell composite, not single-cell. UCSD bulk RRAM (IEDM 2025) eliminates filaments, 6-bit/cell, 8-layer 3D stack. GlobalFoundries 22FDX+ RRAM production in 2026. But: 3-4 effective bits/cell in arrays, variability is the core challenge, 0.1-5% stuck-at fault rates, programming takes minutes-hours, no software ecosystem. Strongest case is always-on edge AI <1mW; weakest is competing with digital CIM at 192 TFLOPS/W. |
+### Synthesis & Design
+
+| File | What It Covers |
+|------|---------------|
+| **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthesis.md)** | **The practical engineering guide.** Memory tech selection, ADC architecture, precision strategy, process node economics ($2-5M at 28nm vs $100M+ at 3nm), digital vs analog CIM, software stack, calibration, business case, 6 failure patterns from Mythic/Rain/BrainChip/Loihi, recommended architecture decision tree. |
+| **[research/analog-for-llms.md](research/analog-for-llms.md)** | **Can analog run LLMs?** IBM's ALBERT on HERMES (first transformer on analog silicon, 7.1M params). Analog Foundation Models match W4A8 in simulation. But 250x capacity gap, no KV cache solution, digital quantization closing fast. Timeline: 2030+ if ever. |
+| [research/adc-dac-bottleneck.md](research/adc-dac-bottleneck.md) | **THE bottleneck.** ADC/DAC eats 40-85% of power. 6 ADC architectures compared. CSNR-optimal design (40-64x savings). 100 fJ/Op theoretical floor. Why "100x" becomes "2-10x." |
+| [research/precision-noise-challenges.md](research/precision-noise-challenges.md) | **The physics limits.** 8 noise sources, PCM drift (v=0.1-0.15), RRAM variability, temperature sensitivity. Memory tech ranking: Capacitor > Flash > SRAM > RRAM > PCM > MRAM. Noise-aware training essential but creates HW-SW coupling. |
+
+### Company Deep Dives
+
+| File | Company | Key Number | Status |
+|------|---------|-----------|--------|
+| [research/encharge-ai.md](research/encharge-ai.md) | EnCharge AI | ~24 TOPS/W (system), 200 TOPS | Most promising analog CIM. Capacitor physics. $144M raised. No independent benchmarks. |
+| [research/mythic-ai.md](research/mythic-ai.md) | Mythic AI | ~8 TOPS/W (measured Gen 1) | Best-funded ($300M+). Flash CIM. Nearly died 2022. Gen 2 unverified. Honda/Lockheed. |
+| [research/ibm-analog-ai.md](research/ibm-analog-ai.md) | IBM Research | 12.4 TOPS/W (HERMES), 14x over digital | Strongest research program. PCM-based. 4M weights. Years from production. |
+| [research/brainchip-akida.md](research/brainchip-akida.md) | BrainChip | 76.9 FPS/W (50x vs embedded GPU) | Neuromorphic. Tech works, business failing ($398K revenue). |
+| [research/intel-loihi.md](research/intel-loihi.md) | Intel Loihi | 1.15B neurons (Hala Point) | Groundbreaking research, commercial dead end. 8+ years, zero revenue. |
+| [research/edge-analog-ai.md](research/edge-analog-ai.md) | Aspinity, Syntiant, POLYN, Innatera | 300 TOPS/W (Aspinity AML200) | Syntiant most successful (10M+ shipped) but is digital. Aspinity purest analog. |
+| [research/emerging-startups.md](research/emerging-startups.md) | Sagence, TetraMem, Blumind, d-Matrix, Axelera, Ceremorphic | 38 TOPS/W (d-Matrix) | Digital CIM (d-Matrix $2B, Axelera $450M) far ahead of analog commercially. |
+| [research/photonic-ai-chips.md](research/photonic-ai-chips.md) | Lightmatter, Ayar Labs, etc. | 8.19 TOPS best measured | Interconnect real and shipping. Compute pre-commercial (2028+). |
+| [research/tsetlin-machines.md](research/tsetlin-machines.md) | Literal Labs, Anzyz | 8.6 nJ/frame (65nm ASIC) | Logic-based (AND/OR/NOT). Efficient for tiny tasks. Can't do LLMs. |
+
+### Landscape Overviews
+
+| File | What It Covers |
+|------|---------------|
+| [research/analog-cim-landscape-2025.md](research/analog-cim-landscape-2025.md) | Full landscape: 6 memory technologies, 10+ companies, performance comparison table, DARPA programs, academic highlights. |
+| [research/isscc-2025-ai-chips.md](research/isscc-2025-ai-chips.md) | Every AI paper at ISSCC 2025. CIM session (all digital), AI accelerators, LLM chips (Slim-Llama at 4.69mW), industry track. |
+| [research/rram-memristor-chips.md](research/rram-memristor-chips.md) | RRAM physics (HfO2 filaments), NeuRRAM, Tsinghua STELLAR, Peking U solver, TetraMem 11-bit, Huawei-ByteDance collab. |
 
 ---
 
-## Key Verdict
+## The Numbers That Matter
 
-IBM proves analog CIM works for real neural networks with real energy savings, but the path from 4M-weight research chips to billion-parameter production systems is years long. NorthPole (digital near-memory) is closer to production and arguably more impactful in the near term. The 100x efficiency claims in press are aspirational; 14x is the measured reality. **The LLM question** ([research/analog-for-llms.md](research/analog-for-llms.md)) is now the central challenge: IBM demonstrated the first transformer (ALBERT, 7.1M params) on analog silicon at 1.8% accuracy loss, and their Analog Foundation Models show Phi-3-mini and Llama-3.2-1B matching W4A8 digital quality in simulation. But no analog chip has run a real LLM. The 250x capacity gap, missing KV cache solution, and rapidly improving digital quantization (1-4 bit) make competitive analog LLM inference a 2030+ prospect.
+| Metric | Analog CIM (Best Measured) | Digital CIM (Best) | Conventional GPU/NPU |
+|--------|---------------------------|-------------------|---------------------|
+| System TOPS/W (INT8) | ~24 (EnCharge, unverified) | 38 (d-Matrix) | 3-5 (Qualcomm/Apple NPU) |
+| Macro TOPS/W | 150+ (various claims) | 192.3 (ISSCC 2025) | N/A |
+| Effective precision | 3-8 bits (memory dependent) | 8-16 bits (deterministic) | 4-16 bits (deterministic) |
+| Largest model on-chip | 80M params (Mythic) | Billions (d-Matrix, external DRAM) | Billions |
+| Edge always-on power | 30-100 uW (Aspinity) | ~500 uW (Syntiant) | >1 mW |
+| Commercial traction | $6.4M (Mythic 2025) | Shipping (d-Matrix, Axelera) | Dominant |
 
+---
 
-At the sensor edge, analog makes its strongest case. Aspinity's AML100 (pure analog ML, shipping since Q1 2024) and AML200 (22nm, 300 TOPS/W, sampling Q1 2025) process raw sensor data before the ADC at 30-100 uW -- enabling always-on sensing impossible with digital power budgets. But model capacity is tiny (125K params max), limiting workloads to keyword spotting and event detection. Syntiant, the most commercially successful edge AI chip company (10M+ shipped, ~$300M projected 2025 revenue after Knowles acquisition), achieved this with digital near-memory architecture -- proving extreme efficiency is possible without going analog. The real power savings from analog preprocessing come from keeping digital systems asleep, not from analog compute being fundamentally faster.
-Mythic AI is the best-funded commercial attempt at flash-based analog CIM. Gen 1 silicon delivered ~8 TOPS/W at 40nm -- genuinely good, but not the claimed 100x over GPUs. Gen 2 claims 120 TOPS/W but lacks independent verification. The pattern across all analog AI: headline claims of 100x efficiency, measured reality of 2-14x at the system level. The ADC/DAC overhead and software ecosystem gap remain the dominant unsolved problems. **Deep analysis of the ADC/DAC bottleneck** ([research/adc-dac-bottleneck.md](research/adc-dac-bottleneck.md)) reveals this is not merely an engineering challenge but a fundamental architectural tax: converters consume 40-85% of system power, and at INT8 precision the theoretical floor is ~100 fJ/Op (10 TOPS/W). The most promising mitigations -- CSNR-optimal ADC design (40-64x savings), charge-domain CIM (15-18% overhead), and in-memory ADCs (0.01x conventional energy) -- can narrow but not eliminate the gap. At production-relevant INT8 precision, analog CIM's system-level advantage over digital is 2-10x.
+## Key Pattern
 
-**Photonic AI chips** tell a split story. For **interconnect** (moving data with light), photonics is commercially real: NVIDIA ships CPO switches, Lightmatter's Passage M1000 delivers 114 Tbps, Ayar Labs has UCIe optical chiplets, and Marvell acquired Celestial AI for $5.5B. For **compute** (doing matrix math with light), the best peer-reviewed result is 8.19 TOPS at 2.38 TOPS/W. Claims of 160-300 TOPS/W invariably exclude laser power, DAC/ADC, and system overhead, and are measured on narrow tasks at low precision. The DAC/ADC conversion bottleneck, absence of efficient optical nonlinearity, and lack of optical memory are not just engineering problems -- they may be fundamental physical constraints. The smartest photonic companies (Lightmatter, Ayar Labs) pivoted to interconnect-first strategies that generate revenue now while compute matures.
+**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 16 research files.
 
 ---
 
@@ -49,20 +97,5 @@ Mythic AI is the best-funded commercial attempt at flash-based analog CIM. Gen 1
 
 | Date | What |
 |------|------|
-| 2026-03-22 | RRAM/memristor chips deep dive: HfO2 filament physics, 1T1R crossbar MAC operation, all non-idealities (sneak paths, IR drop, D2D/C2C variability, RTN, read disturb). NeuRRAM (48-core 130nm, 99% MNIST, 85.7% CIFAR-10, 2x SOTA EDP). Tsinghua STELLAR (Science 2023, first on-chip learning, 3% ASIC energy). Tsinghua 28nm 576K macro (2.82 TOPS/mm², 35.6 TOPS/W). Peking Univ 24-bit solver (40nm, Nature Electronics 2025, iterative refinement from 3-bit cells). Huawei-ByteDance-Tsinghua ISSCC 2026 (66x CPU). TetraMem 11-bit claim analyzed (multi-device composite, not single cell). UCSD bulk RRAM (IEDM 2025, no filament, 6-bit/cell, 8-layer 3D). Weebit (GF 22FDX+ RRAM 2026 production, TI/onsemi licenses). Full RRAM vs Flash vs PCM vs Capacitor CIM comparison. Stuck-at fault tolerance (DNN robust to 30% SAF with fault-aware training). Path to production analysis. |
-| 2026-03-22 | **Design tradeoffs synthesis**: comprehensive practical engineering guide -- memory tech selection, ADC architecture, precision strategy, process node economics, digital vs analog CIM, software stack, calibration, business case, failure lessons (Mythic/Rain/BrainChip), recommended architecture decision tree |
-| 2026-03-22 | Emerging startups deep dive: Ceremorphic (5nm tapeout 2022, zero benchmarks, self-funded $50M, 2.6/5 Glassdoor, pivoted to drug discovery -- likely vaporware); Sagence AI (NOR flash deep subthreshold analog CIM, 8-bit/cell, $58M from Khosla/Bechtolsheim, vision chip 2025); TetraMem (RRAM 11-bit/cell Nature+Science papers, MX100 eval SoC, SK hynix partnership); Blumind (<1uW always-on KWD, $20M CAD Series A Apr 2025, production H2 2025); Anaflash (logic-compatible flash CIM, Samsung 28nm, $7.2M, acquired Legato Logic); d-Matrix (digital SRAM CIM, Corsair 2.4 PFLOPS INT8 at 38 TOPS/W, $275M Series C at $2B valuation, shipping); Axelera (digital CIM, Metis 214 TOPS shipping, Europa 629 TOPS announced, $450M total) |
-| 2026-03-22 | Analog CIM for LLMs: comprehensive analysis of the frontier question -- IBM ALBERT on HERMES (first transformer on analog silicon, 7.1M params, 1.8% accuracy loss), IBM Analog Foundation Models (Phi-3-mini and Llama-3.2-1B match W4A8 in simulation), Jülich gain-cell attention (100x speedup, 70,000x energy reduction in simulation), IBM 3D MoE architecture, weight tiling analysis, KV cache challenge, Mythic LLM claims scrutinized (750x unverified), multi-chip scaling (3D-CIMlet, PICNIC, CHIME), digital quantization competition (1-4 bit), honest timeline (2030+ for competitive analog LLM inference) |
-| 2026-03-22 | Precision and noise challenges: comprehensive analysis of analog CIM's core technical barrier; 3-6 effective bits measured in silicon; 8+ noise sources (D2D, C2C, thermal, shot, 1/f, RTN, programming, drift); PCM drift physics (v=0.1-0.15, SiSbTe 0.04); analog vs digital INT4 (stochastic vs deterministic); ADC 60% energy overhead; noise-aware training (IBM 5/11 workloads, NeuRRAM 25%->86%); temperature sensitivity; 6 memory technologies compared; fundamental kT/SNR limits; precision-boosting techniques (bit slicing, RNS, multi-phase) |
-| 2026-03-22 | ISSCC 2025 comprehensive survey: all AI papers cataloged -- CIM session (digital SRAM CIM only, no analog), AI accelerators (transformers, diffusion, LLMs, 3DGS), Slim-Llama (4.69mW LLM), industry (SambaNova, FuriosaAI, IBM Telum II), Intel 20-chiplet demo; analog CIM conspicuously absent from premier chip venue |
-| 2026-03-22 | EnCharge AI deep dive: capacitor-based charge-domain CIM (Q=CV physics), EN100 specs (200 TOPS, 8.25W, 16nm TSMC, 30 TOPS/mm²), $144M+ funding, DARPA OPTIMA $18.6M, Princeton origin, 5 generations of silicon, team (Verma/Gopalakrishnan/Iroaga), SRAM volatility tradeoff analysis, honest assessment of unverified claims |
-| 2026-03-22 | Intel Loihi neuromorphic processor: Loihi 2 architecture (Intel 4, 2.3B transistors, 1M neurons), Hala Point system (1,152 chips, 1.15B neurons, 15 TOPS/W, 20 petaops), Lava framework, comparison to BrainChip Akida; "Loihi 3" debunked as AI-generated misinformation; groundbreaking research but commercial dead end after 8+ years |
-| 2026-03-22 | ADC/DAC bottleneck deep dive: conversion overhead consumes 40-85% of analog CIM power; 6 ADC architectures compared; ADC-free approaches (FANCH, HCiM, PWM); CSNR-optimal design saves 40-64x ADC energy; 100 fJ/Op theoretical floor; system-level analog advantage is 2-10x not 100x |
-| 2026-03-22 | Photonic AI chips: comprehensive survey of optical computing for neural networks -- Lightmatter, Ayar Labs, Celestial AI, NVIDIA CPO, Neurophos, Q.ANT, Lightelligence, LightGen, Taichi, MIT; interconnect shipping, compute pre-commercial |
-| 2026-03-22 | Analog CIM landscape: comprehensive overview of 6 memory techs, 10+ companies, ISSCC 2025 papers, EnCharge EN100 (200 TOPS), Mythic M1076, Axelera Metis (digital CIM), IBM HERMES, Peking/Nanjing precision records, Sagence/TetraMem/Rain AI status |
-| 2026-03-22 | Edge analog AI: Aspinity (pure analog ML, AML100 shipping, AML200 at 300 TOPS/W), Syntiant (10M+ digital near-memory chips shipped, $300M rev), POLYN (34uW analog neurons), Innatera (spiking neuromorphic MCU), plus AONDevices, Ambient Scientific, TDK reservoir computing, SemiQa |
-| 2026-03-22 | Mythic AI deep dive: flash-based analog CIM, $300M+ raised, near-death in 2022, Gen 1 at ~8 TOPS/W, Gen 2 claims 120 TOPS/W unverified, Honda/Lockheed partnerships |
-| 2026-03-22 | BrainChip Akida: neuromorphic edge AI chip with real silicon but near-zero revenue; technology works, business case unproven |
-| 2026-03-22 | Tsetlin machines: logic-based AI with silicon-proven 8.6 nJ/frame efficiency; Literal Labs (UK) and Anzyz (Norway) commercializing |
-| 2026-03-22 | IBM analog AI deep dive: HERMES chips, NorthPole, aihwkit, drift mitigation, LLM scaling |
+| 2026-03-22 | **16 research files completed.** Full coverage: IBM, Mythic, EnCharge, BrainChip, Intel Loihi, Aspinity/Syntiant/POLYN, photonics, Tsetlin machines, RRAM, emerging startups (Sagence/TetraMem/Blumind/d-Matrix/Axelera/Ceremorphic), ISSCC 2025, ADC/DAC bottleneck, precision/noise, analog for LLMs, design tradeoffs synthesis. |
 | 2026-03-22 | Project initialized |
