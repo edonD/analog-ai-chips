@@ -103,6 +103,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 |------|---------------|
 | **[research/novel-unconventional-approaches.md](research/novel-unconventional-approaches.md)** | **The weird stuff.** 12 unconventional computing approaches ranked by readiness. Thermodynamic computing (Extropic X0/Z1 TSU, Normal Computing CN101 tape-out, Unconventional AI $475M/$4.5B seed). Probabilistic p-bit computing (UCSB/Tohoku DAC-free design at IEDM 2025, Northwestern ASIC). Reservoir computing (TDK 80µW prototype, 200 TOPS photonic RC). Spintronic CIM (lossless 112.3 TOPS/W STT-MRAM macro). FeFET/FeRAM CIM (FMC €100M raise, building fab). Coupled oscillator Ising machines (1440-node 28nm chip). In-sensor computing (PixArt/OmniVision shipping). Superconducting neural nets (80x efficiency incl. cooling). Electrochemical/ionic neurons. CNT 3D integration. Diffractive optical NNs. DNA computing. |
 
+### Energy Harvesting & Self-Powered Sensing
+
+| File | What It Covers |
+|------|---------------|
+| **[research/energy-harvesting-sensors.md](research/energy-harvesting-sensors.md)** | **Can VibroSense-1 run forever without batteries?** Yes. Thermoelectric harvesting from motor bearing surfaces delivers 1-20 mW continuous — 3x to 60x the 300 uW budget. Full comparison of 5 harvesting sources (TEG, piezo, EM vibration, indoor PV, RF). Energy harvesting ICs (LTC3108, e-peas AEM30940, Nowi NH2, BQ25570). Everactive PKS3000 SoC (2.19 uW idle, Hot Chips 2025). Perpetua Power Puck (400 mW from 1 in³). Motor bearing dT = 15-40°C guarantees harvesting. BOM cost $22-50 per node, break-even vs batteries in 2-3 years. The 300 uW analog design point crosses a threshold: it enables install-and-forget industrial sensing that MCU+FFT competitors at 3-10 mW cannot match. |
+
 ### Process & Fabrication
 
 | File | What It Covers |
@@ -148,6 +154,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **27 research files.** Added energy harvesting for always-on vibration sensors. TEG harvesting from motor bearings delivers 1-20 mW continuous — 3x to 60x VibroSense-1's 300 uW budget. Compared 5 sources (TEG, piezo, EM vibration, indoor PV, RF). Surveyed ICs (LTC3108, e-peas AEM30940, Nowi NH2). Everactive PKS3000 reference (2.19 uW idle). Motor bearing dT=15-40°C guarantees harvesting. BOM $22-50/node, 2-3 year payback. 300 uW analog design point enables install-and-forget sensing that 3-10 mW digital competitors cannot achieve. |
 | 2026-03-22 | **26 research files.** Deep dive on STMicroelectronics ISM330DHCX Machine Learning Core — primary digital competitor to VibroSense-1. MLC runs 8 decision trees (512 nodes) on-sensor at ~300 uW but limited to 104 Hz classification rate. Cannot do FFT, envelope analysis, or frequency decomposition. At full bandwidth (~1 mW sensor + 5-10 mW MCU for FFT). ISM330BX successor 3x lower power. ST's own reference design (STEVAL-STWINKT1B) uses MCU for real vibration analysis, not MLC alone. "Good enough" for 80% (vibration level/threshold), VibroSense-1 wins on 20% needing always-on diagnostics. |
 | 2026-03-22 | **25 research files.** Added DARPA N-ZERO deep dive: the US government's $30M validation of always-on analog sensing (2015-2020). 0-10 nW standby power (1,000x improvement). Battery life 4 weeks→4 years. 6 performers: Northeastern (zero-power IR, Nature Nanotech), UC Davis (5.4 nW piezoelectric accelerometer), Sandia (6 nW MEMS+CMOS), Draper (zero-power RF), Arm (M0N0 10 nW processor), UVA. Generator vibration classification demonstrated. Directly validates VibroSense-1 analog-first architecture. |
 | 2026-03-22 | **24 research files.** Added process node comparison for VibroSense-1 commercialization: open PDK comparison (sky130/GF180/IHP SG13G2), commercial analog AI chip process nodes, NRE costs $10K-$400M by node, FD-SOI physics advantages for analog, GF 22FDX recommended for production (BrainChip validated at $2.3M NRE), foundry access for startups, MEMS integration options, full migration roadmap. |
