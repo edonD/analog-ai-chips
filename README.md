@@ -6,7 +6,7 @@ A deep-dive engineering reference on analog, neuromorphic, and mixed-signal AI c
 
 ---
 
-## The Verdict (Updated After 22 Deep Dives)
+## The Verdict (Updated After 23 Deep Dives)
 
 ### Where Analog Wins
 
@@ -70,6 +70,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 | [research/photonic-ai-chips.md](research/photonic-ai-chips.md) | Lightmatter, Ayar Labs, etc. | 8.19 TOPS best measured | Interconnect real and shipping. Compute pre-commercial (2028+). |
 | [research/tsetlin-machines.md](research/tsetlin-machines.md) | Literal Labs, Anzyz | 8.6 nJ/frame (65nm ASIC) | Logic-based (AND/OR/NOT). Efficient for tiny tasks. Can't do LLMs. |
 | **[research/rain-ai.md](research/rain-ai.md)** | **Rain AI** | **$67M raised, $3M bridge** | **Cautionary tale. Memristor NPU vision failed. Pivoted to digital CIM too late. $150M Series B collapsed. Exploring sale. Altman conflict of interest. Key lessons for analog startups.** |
+| **[research/everactive-batteryless.md](research/everactive-batteryless.md)** | **Everactive** | **2.19 uW idle (PKS3000), $161M raised** | **Batteryless vibration sensors via energy harvesting. Fluke 3562 product shipping. 1 kHz bandwidth = screening only, cannot detect bearing faults. IMS division sold to Shoplogix Feb 2025. Complementary to VibroSense-1, not competitive — different market segment (screening vs. diagnosis).** |
 
 ### Academic Research Ecosystem
 
@@ -134,6 +135,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **23 research files.** Added Everactive deep dive: batteryless vibration sensors via energy harvesting (TEG + PV). PKS3000 SoC at 2.19 uW idle (Hot Chips 2025). Fluke 3562 product shipping with 1 kHz bandwidth (screening only). $161M raised, IMS division sold. VibroSense-1's 20 kHz bandwidth is insurmountable advantage for bearing fault detection. |
 | 2026-03-22 | **22 research files.** Added novel & unconventional approaches: 12 approaches ranked. Thermodynamic computing (Extropic TSU, Normal CN101, Unconventional AI $475M). P-bit computing (DAC-free IEDM 2025). Reservoir computing (TDK 80µW). Spintronic CIM (lossless 112.3 TOPS/W). FeFET CIM (FMC €100M). Ising machines. In-sensor computing (shipping). Superconducting, electrochemical, CNT, diffractive, DNA. |
 | 2026-03-22 | **21 research files.** Added history and lessons: three waves of analog AI chips (1989-1997, 2012-2022, 2022-present), Intel ETANN, AT&T ANNA, Carver Mead, Synaptics pivot, AI winter, memristor revival, why digital always won, 7 lessons for today's startups, hype cycle analysis. |
 | 2026-03-22 | **20 research files.** Added practitioner opinions: chip designer skepticism, HN/community recurring arguments, Mythic postmortem, VC-vs-engineering gap, ML practitioner toolchain frustrations, bull vs bear case. Engineering community significantly more skeptical than VCs. |
