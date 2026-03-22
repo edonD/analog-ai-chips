@@ -64,6 +64,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 | [research/photonic-ai-chips.md](research/photonic-ai-chips.md) | Lightmatter, Ayar Labs, etc. | 8.19 TOPS best measured | Interconnect real and shipping. Compute pre-commercial (2028+). |
 | [research/tsetlin-machines.md](research/tsetlin-machines.md) | Literal Labs, Anzyz | 8.6 nJ/frame (65nm ASIC) | Logic-based (AND/OR/NOT). Efficient for tiny tasks. Can't do LLMs. |
 
+### Academic Research Ecosystem
+
+| File | What It Covers |
+|------|---------------|
+| **[research/academic-research-labs.md](research/academic-research-labs.md)** | **The research map.** Top 10 academic groups: Princeton (Verma → EnCharge), IBM/ETH Zurich (PCM + Analog Foundation Models), Tsinghua (Wu/Gao → Huawei-ByteDance RRAM), Julich (gain cell attention for LLMs — 70,000x energy claim), Stanford (Wong/Raina → NeuRRAM + 3D), Peking U (24-bit precision from 3-bit RRAM), UCSD (Cauwenberghs), Georgia Tech (Yu → NeuroSim benchmarking), Michigan (Lu → Mythic/Crossbar/MemryX), KU Leuven/imec (Verhelst → DIANA hybrid). University-to-startup pipeline. DARPA OPTIMA $78M, China $47.5B IC fund, EU Chips JU. |
+
 ### Market & Business
 
 | File | What It Covers |
@@ -104,5 +110,6 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 | Date | What |
 |------|------|
 | 2026-03-22 | **17 research files completed.** Added market & investment analysis: $251M analog CIM market, ~$1.5-2B VC invested vs ~$8M revenue, DARPA OPTIMA $78M, Unconventional AI $475M seed anomaly, defense as most receptive segment. |
+| 2026-03-22 | **17 research files.** Added academic research labs ecosystem map: top 10 groups, university-to-startup pipeline (Princeton→EnCharge, Michigan→Mythic/Crossbar/MemryX, IBM/ETH→Axelera, Delft→Innatera, Stanford/MIT→Unconventional AI), government funding (DARPA OPTIMA $78M, China $47.5B IC fund, EU Chips JU), imec benchmarking. |
 | 2026-03-22 | **16 research files completed.** Full coverage: IBM, Mythic, EnCharge, BrainChip, Intel Loihi, Aspinity/Syntiant/POLYN, photonics, Tsetlin machines, RRAM, emerging startups (Sagence/TetraMem/Blumind/d-Matrix/Axelera/Ceremorphic), ISSCC 2025, ADC/DAC bottleneck, precision/noise, analog for LLMs, design tradeoffs synthesis. |
 | 2026-03-22 | Project initialized |
