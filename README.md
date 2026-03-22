@@ -94,6 +94,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 |------|---------------|
 | **[research/china-analog-ai.md](research/china-analog-ai.md)** | **China's analog CIM ecosystem.** World's most active RRAM CIM research. Tsinghua LEMON lab (STELLAR on-chip learning, 28nm 576K macro, memCS 11x speedup), Peking U (24-bit precision RRAM solver, "1000x faster than GPU" for MIMO), Nanjing U (0.101% RMSE precision record via geometry-ratio encoding), ZJU Darwin Monkey (2.1B neuron neuromorphic computer), Tianjic (unified SNN+ANN), ACCEL/LightGen (optical analog). Huawei-ByteDance-Tsinghua ISSCC 2026 alliance. Big Fund III $47.5B. Export control implications. China leads in research, lags in commercialization (zero startups vs 5+ US). |
 
+### Novel & Unconventional Approaches
+
+| File | What It Covers |
+|------|---------------|
+| **[research/novel-unconventional-approaches.md](research/novel-unconventional-approaches.md)** | **The weird stuff.** 12 unconventional computing approaches ranked by readiness. Thermodynamic computing (Extropic X0/Z1 TSU, Normal Computing CN101 tape-out, Unconventional AI $475M/$4.5B seed). Probabilistic p-bit computing (UCSB/Tohoku DAC-free design at IEDM 2025, Northwestern ASIC). Reservoir computing (TDK 80µW prototype, 200 TOPS photonic RC). Spintronic CIM (lossless 112.3 TOPS/W STT-MRAM macro). FeFET/FeRAM CIM (FMC €100M raise, building fab). Coupled oscillator Ising machines (1440-node 28nm chip). In-sensor computing (PixArt/OmniVision shipping). Superconducting neural nets (80x efficiency incl. cooling). Electrochemical/ionic neurons. CNT 3D integration. Diffractive optical NNs. DNA computing. |
+
 ### Landscape Overviews
 
 | File | What It Covers |
@@ -119,7 +125,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 ## Key Pattern
 
-**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 21 research files.
+**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 22 research files.
 
 ---
 
@@ -127,6 +133,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **22 research files.** Added novel & unconventional approaches: 12 approaches ranked. Thermodynamic computing (Extropic TSU, Normal CN101, Unconventional AI $475M). P-bit computing (DAC-free IEDM 2025). Reservoir computing (TDK 80µW). Spintronic CIM (lossless 112.3 TOPS/W). FeFET CIM (FMC €100M). Ising machines. In-sensor computing (shipping). Superconducting, electrochemical, CNT, diffractive, DNA. |
 | 2026-03-22 | **21 research files.** Added history and lessons: three waves of analog AI chips (1989-1997, 2012-2022, 2022-present), Intel ETANN, AT&T ANNA, Carver Mead, Synaptics pivot, AI winter, memristor revival, why digital always won, 7 lessons for today's startups, hype cycle analysis. |
 | 2026-03-22 | **20 research files.** Added practitioner opinions: chip designer skepticism, HN/community recurring arguments, Mythic postmortem, VC-vs-engineering gap, ML practitioner toolchain frustrations, bull vs bear case. Engineering community significantly more skeptical than VCs. |
 | 2026-03-22 | **19 research files.** Added China analog AI deep dive: Tsinghua LEMON lab (STELLAR, 28nm macro, memCS), Peking U (24-bit RRAM solver), Nanjing U (0.101% RMSE precision record), ZJU Darwin Monkey (2.1B neurons), Huawei-ByteDance-Tsinghua ISSCC 2026 alliance, export control analysis, Big Fund III. China leads research, zero commercial products. |
