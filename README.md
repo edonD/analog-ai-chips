@@ -6,7 +6,7 @@ A deep-dive engineering reference on analog, neuromorphic, and mixed-signal AI c
 
 ---
 
-## The Verdict (Updated After 16 Deep Dives)
+## The Verdict (Updated After 19 Deep Dives)
 
 ### Where Analog Wins
 
@@ -76,6 +76,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 |------|---------------|
 | **[research/market-and-investment.md](research/market-and-investment.md)** | **The money story.** $251M analog CIM market vs $200B+ total AI chips. ~$1.5-2B VC invested, ~$8M total revenue. Unconventional AI $475M seed. DARPA OPTIMA $78M. Defense most receptive segment. Mythic $6.4M revenue is sector leader. Revenue-to-investment ratio: 0.5%. Honest timeline: $1B market by 2030-2031. |
 
+### Regional Deep Dives
+
+| File | What It Covers |
+|------|---------------|
+| **[research/china-analog-ai.md](research/china-analog-ai.md)** | **China's analog CIM ecosystem.** World's most active RRAM CIM research. Tsinghua LEMON lab (STELLAR on-chip learning, 28nm 576K macro, memCS 11x speedup), Peking U (24-bit precision RRAM solver, "1000x faster than GPU" for MIMO), Nanjing U (0.101% RMSE precision record via geometry-ratio encoding), ZJU Darwin Monkey (2.1B neuron neuromorphic computer), Tianjic (unified SNN+ANN), ACCEL/LightGen (optical analog). Huawei-ByteDance-Tsinghua ISSCC 2026 alliance. Big Fund III $47.5B. Export control implications. China leads in research, lags in commercialization (zero startups vs 5+ US). |
+
 ### Landscape Overviews
 
 | File | What It Covers |
@@ -101,7 +107,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 ## Key Pattern
 
-**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 16 research files.
+**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 19 research files.
 
 ---
 
@@ -109,6 +115,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **19 research files.** Added China analog AI deep dive: Tsinghua LEMON lab (STELLAR, 28nm macro, memCS), Peking U (24-bit RRAM solver), Nanjing U (0.101% RMSE precision record), ZJU Darwin Monkey (2.1B neurons), Huawei-ByteDance-Tsinghua ISSCC 2026 alliance, export control analysis, Big Fund III. China leads research, zero commercial products. |
 | 2026-03-22 | **17 research files completed.** Added market & investment analysis: $251M analog CIM market, ~$1.5-2B VC invested vs ~$8M revenue, DARPA OPTIMA $78M, Unconventional AI $475M seed anomaly, defense as most receptive segment. |
 | 2026-03-22 | **17 research files.** Added academic research labs ecosystem map: top 10 groups, university-to-startup pipeline (Princeton→EnCharge, Michigan→Mythic/Crossbar/MemryX, IBM/ETH→Axelera, Delft→Innatera, Stanford/MIT→Unconventional AI), government funding (DARPA OPTIMA $78M, China $47.5B IC fund, EU Chips JU), imec benchmarking. |
 | 2026-03-22 | **16 research files completed.** Full coverage: IBM, Mythic, EnCharge, BrainChip, Intel Loihi, Aspinity/Syntiant/POLYN, photonics, Tsetlin machines, RRAM, emerging startups (Sagence/TetraMem/Blumind/d-Matrix/Axelera/Ceremorphic), ISSCC 2025, ADC/DAC bottleneck, precision/noise, analog for LLMs, design tradeoffs synthesis. |
