@@ -1,0 +1,35 @@
+* PFET model verification
+.lib "sky130_minimal.lib.spice" tt
+
+Vdd vdd 0 dc 1.8
+Vds drain 0 dc 0.9
+
+* PMOS: source=VDD, gate swept, drain at 0.9V
+M1 drain gate vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+
+* Sweep gate from 1.8 (off) down to 0 (fully on)
+Vgs gate 0 dc 0.9
+
+.op
+
+.control
+  run
+  echo "PFET at Vg=0.9V (Vsg=0.9V):"
+  print @m1[id] @m1[vgs] @m1[vth] @m1[vds] @m1[vdsat] @m1[gm]
+
+  * Now try at Vg=0.5V (Vsg=1.3V)
+  alter Vgs dc = 0.5
+  op
+  echo "PFET at Vg=0.5V (Vsg=1.3V):"
+  print @m1[id] @m1[vgs] @m1[vth] @m1[vds] @m1[vdsat] @m1[gm]
+
+  * And Vg=0 (Vsg=1.8V)
+  alter Vgs dc = 0.0
+  op
+  echo "PFET at Vg=0V (Vsg=1.8V):"
+  print @m1[id] @m1[vgs] @m1[vth] @m1[vds] @m1[vdsat] @m1[gm]
+
+  quit
+.endc
+
+.end

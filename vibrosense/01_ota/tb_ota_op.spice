@@ -1,0 +1,104 @@
+* ============================================================
+* TB07: Operating Point Verification — VibroSense OTA
+* Unity-gain feedback to establish mid-rail operating point
+* ============================================================
+
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+.param vdd_val = 1.8
+.param vcm_val = 0.9
+
+* Supply
+Vdd vdd 0 dc {vdd_val}
+Vss vss 0 dc 0
+
+* Bias: diode-connected NMOS for Vbn (matches M11: W=4u L=4u)
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+
+* Vbcn: NMOS cascode bias (ideal source, tuned)
+Vbcn vbcn 0 dc 0.80
+
+* Vbp: diode-connected PMOS (W=8u L=1u nf=2 matching M3)
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+
+* Vbcp: PMOS cascode bias (ideal source, tuned)
+Vbcp vbcp 0 dc 0.70
+
+* Input at common-mode, OUTPUT FEEDS BACK TO INVERTING INPUT
+Vinp vinp 0 dc {vcm_val}
+* Unity-gain feedback: vout -> vinn
+* Use a large resistor to ensure DC feedback
+Rfb vout vinn 1
+
+* Instantiate OTA
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* Load capacitor
+CL vout 0 10p
+
+.op
+.save all
+
+.control
+  run
+
+  echo ""
+  echo "======================================================"
+  echo "  OPERATING POINT (Unity-Gain Feedback)"
+  echo "======================================================"
+
+  echo "--- Bias Voltages ---"
+  print v(vbn) v(vbcn) v(vbp) v(vbcp) v(vout) v(vinp) v(vinn)
+
+  echo "--- M1 (NMOS input +) ---"
+  print @m.xota.m1[id] @m.xota.m1[vgs] @m.xota.m1[vth] @m.xota.m1[vds] @m.xota.m1[vdsat] @m.xota.m1[gm] @m.xota.m1[gds]
+
+  echo "--- M2 (NMOS input -) ---"
+  print @m.xota.m2[id] @m.xota.m2[vgs] @m.xota.m2[vth] @m.xota.m2[vds] @m.xota.m2[vdsat] @m.xota.m2[gm] @m.xota.m2[gds]
+
+  echo "--- M3 (PMOS fold +) ---"
+  print @m.xota.m3[id] @m.xota.m3[vgs] @m.xota.m3[vth] @m.xota.m3[vds] @m.xota.m3[vdsat] @m.xota.m3[gm] @m.xota.m3[gds]
+
+  echo "--- M4 (PMOS fold -) ---"
+  print @m.xota.m4[id] @m.xota.m4[vgs] @m.xota.m4[vth] @m.xota.m4[vds] @m.xota.m4[vdsat] @m.xota.m4[gm] @m.xota.m4[gds]
+
+  echo "--- M5 (PMOS cascode +) ---"
+  print @m.xota.m5[id] @m.xota.m5[vgs] @m.xota.m5[vth] @m.xota.m5[vds] @m.xota.m5[vdsat] @m.xota.m5[gm] @m.xota.m5[gds]
+
+  echo "--- M6 (PMOS cascode -) ---"
+  print @m.xota.m6[id] @m.xota.m6[vgs] @m.xota.m6[vth] @m.xota.m6[vds] @m.xota.m6[vdsat] @m.xota.m6[gm] @m.xota.m6[gds]
+
+  echo "--- M7 (NMOS cascode +) ---"
+  print @m.xota.m7[id] @m.xota.m7[vgs] @m.xota.m7[vth] @m.xota.m7[vds] @m.xota.m7[vdsat] @m.xota.m7[gm] @m.xota.m7[gds]
+
+  echo "--- M8 (NMOS cascode -) ---"
+  print @m.xota.m8[id] @m.xota.m8[vgs] @m.xota.m8[vth] @m.xota.m8[vds] @m.xota.m8[vdsat] @m.xota.m8[gm] @m.xota.m8[gds]
+
+  echo "--- M9 (NMOS current src +) ---"
+  print @m.xota.m9[id] @m.xota.m9[vgs] @m.xota.m9[vth] @m.xota.m9[vds] @m.xota.m9[vdsat] @m.xota.m9[gm] @m.xota.m9[gds]
+
+  echo "--- M10 (NMOS current src -) ---"
+  print @m.xota.m10[id] @m.xota.m10[vgs] @m.xota.m10[vth] @m.xota.m10[vds] @m.xota.m10[vdsat] @m.xota.m10[gm] @m.xota.m10[gds]
+
+  echo "--- M11 (NMOS tail) ---"
+  print @m.xota.m11[id] @m.xota.m11[vgs] @m.xota.m11[vth] @m.xota.m11[vds] @m.xota.m11[vdsat] @m.xota.m11[gm] @m.xota.m11[gds]
+
+  echo "--- M12 (PMOS bias mirror +) ---"
+  print @m.xota.m12[id] @m.xota.m12[vgs] @m.xota.m12[vth] @m.xota.m12[vds] @m.xota.m12[vdsat] @m.xota.m12[gm] @m.xota.m12[gds]
+
+  echo "--- M13 (PMOS bias mirror -) ---"
+  print @m.xota.m13[id] @m.xota.m13[vgs] @m.xota.m13[vth] @m.xota.m13[vds] @m.xota.m13[vdsat] @m.xota.m13[gm] @m.xota.m13[gds]
+
+  echo "======================================================"
+
+  echo ""
+  echo "--- Supply Current ---"
+  print -i(Vdd)
+
+  quit
+.endc
+
+.end
