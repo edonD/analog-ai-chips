@@ -71,6 +71,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 | [research/tsetlin-machines.md](research/tsetlin-machines.md) | Literal Labs, Anzyz | 8.6 nJ/frame (65nm ASIC) | Logic-based (AND/OR/NOT). Efficient for tiny tasks. Can't do LLMs. |
 | **[research/rain-ai.md](research/rain-ai.md)** | **Rain AI** | **$67M raised, $3M bridge** | **Cautionary tale. Memristor NPU vision failed. Pivoted to digital CIM too late. $150M Series B collapsed. Exploring sale. Altman conflict of interest. Key lessons for analog startups.** |
 | **[research/everactive-batteryless.md](research/everactive-batteryless.md)** | **Everactive** | **2.19 uW idle (PKS3000), $161M raised** | **Batteryless vibration sensors via energy harvesting. Fluke 3562 product shipping. 1 kHz bandwidth = screening only, cannot detect bearing faults. IMS division sold to Shoplogix Feb 2025. Complementary to VibroSense-1, not competitive — different market segment (screening vs. diagnosis).** |
+| **[research/stm-ism330-ml-core.md](research/stm-ism330-ml-core.md)** | **STMicroelectronics ISM330DHCX** | **$6.80, 512-node MLC, ~300 uW** | **Primary digital competitor. On-sensor decision trees (8 trees, 512 nodes) but MLC limited to 104 Hz classification rate — cannot do FFT, envelope analysis, or frequency decomposition. At 26 Hz ODR (~300 uW), only detects vibration intensity. Full bandwidth requires ~1 mW + MCU for real analysis. ISM330BX successor 3x lower power. "Good enough" for 80% of use cases; VibroSense-1 wins on diagnostic depth for the remaining 20%.** |
 
 ### Academic Research Ecosystem
 
@@ -139,7 +140,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 ## Key Pattern
 
-**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 25 research files.
+**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 26 research files.
 
 ---
 
@@ -147,6 +148,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **26 research files.** Deep dive on STMicroelectronics ISM330DHCX Machine Learning Core — primary digital competitor to VibroSense-1. MLC runs 8 decision trees (512 nodes) on-sensor at ~300 uW but limited to 104 Hz classification rate. Cannot do FFT, envelope analysis, or frequency decomposition. At full bandwidth (~1 mW sensor + 5-10 mW MCU for FFT). ISM330BX successor 3x lower power. ST's own reference design (STEVAL-STWINKT1B) uses MCU for real vibration analysis, not MLC alone. "Good enough" for 80% (vibration level/threshold), VibroSense-1 wins on 20% needing always-on diagnostics. |
 | 2026-03-22 | **25 research files.** Added DARPA N-ZERO deep dive: the US government's $30M validation of always-on analog sensing (2015-2020). 0-10 nW standby power (1,000x improvement). Battery life 4 weeks→4 years. 6 performers: Northeastern (zero-power IR, Nature Nanotech), UC Davis (5.4 nW piezoelectric accelerometer), Sandia (6 nW MEMS+CMOS), Draper (zero-power RF), Arm (M0N0 10 nW processor), UVA. Generator vibration classification demonstrated. Directly validates VibroSense-1 analog-first architecture. |
 | 2026-03-22 | **24 research files.** Added process node comparison for VibroSense-1 commercialization: open PDK comparison (sky130/GF180/IHP SG13G2), commercial analog AI chip process nodes, NRE costs $10K-$400M by node, FD-SOI physics advantages for analog, GF 22FDX recommended for production (BrainChip validated at $2.3M NRE), foundry access for startups, MEMS integration options, full migration roadmap. |
 | 2026-03-22 | **23 research files.** Added Everactive deep dive: batteryless vibration sensors via energy harvesting (TEG + PV). PKS3000 SoC at 2.19 uW idle (Hot Chips 2025). Fluke 3562 product shipping with 1 kHz bandwidth (screening only). $161M raised, IMS division sold. VibroSense-1's 20 kHz bandwidth is insurmountable advantage for bearing fault detection. |
