@@ -16,6 +16,7 @@ A deep-dive engineering reference on analog, neuromorphic, and mixed-signal AI c
 |------|-------|-------------|
 | [research/ibm-analog-ai.md](research/ibm-analog-ai.md) | IBM Analog AI (HERMES, NorthPole, aihwkit) | Strongest analog AI research program; 14x efficiency proven in silicon but scaling to LLM-class workloads undemonstrated |
 | [research/tsetlin-machines.md](research/tsetlin-machines.md) | Tsetlin Machines: Logic-Based AI Hardware | 65nm ASIC achieves 8.6 nJ/frame MNIST (lowest digital ASIC); purely bitwise inference; not applicable to generative AI or LLMs |
+| [research/brainchip-akida.md](research/brainchip-akida.md) | BrainChip Akida Neuromorphic Processor | Event-driven digital neuromorphic chip; 76.9 FPS/W (50x vs embedded GPU) on small models; but ~$400K revenue on $274M market cap; no volume customers after 4 years shipping |
 
 ---
 
@@ -29,6 +30,7 @@ IBM proves analog CIM works for real neural networks with real energy savings, b
 
 | Date | What |
 |------|------|
+| 2026-03-22 | BrainChip Akida: neuromorphic edge AI chip with real silicon but near-zero revenue; technology works, business case unproven |
 | 2026-03-22 | Tsetlin machines: logic-based AI with silicon-proven 8.6 nJ/frame efficiency; Literal Labs (UK) and Anzyz (Norway) commercializing |
 | 2026-03-22 | IBM analog AI deep dive: HERMES chips, NorthPole, aihwkit, drift mitigation, LLM scaling |
 | 2026-03-22 | Project initialized |
