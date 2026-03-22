@@ -1,0 +1,44 @@
+{
+  "name": "VibroSense Folded-Cascode OTA",
+  "description": "Core building block reused by PGA, all 5 BPFs, and envelope detectors. Folded-cascode topology for >60dB gain. All PMOS must stay out of weak inversion (Vgs-Vth > 150mV).",
+  "supply_v": 1.8,
+  "margin_rule": "Every spec must pass in all 5 corners and at -40/27/85C",
+  "measurements": {
+    "dc_gain_db": {
+      "target": ">65",
+      "weight": 20,
+      "unit": "dB",
+      "description": "Open-loop DC gain"
+    },
+    "ugb_hz": {
+      "target": "30000 to 150000",
+      "weight": 20,
+      "unit": "Hz",
+      "description": "Unity-gain bandwidth with 10pF load"
+    },
+    "phase_margin_deg": {
+      "target": ">60",
+      "weight": 20,
+      "unit": "deg",
+      "description": "Phase margin with 10pF load"
+    },
+    "input_noise_nv_sqrthz_1k": {
+      "target": "<200",
+      "weight": 15,
+      "unit": "nV/sqrt(Hz)",
+      "description": "Input-referred noise at 1kHz (CAVEAT: ngspice noise may differ 2-5x from silicon)"
+    },
+    "cmrr_db": {
+      "target": ">60",
+      "weight": 10,
+      "unit": "dB",
+      "description": "Common-mode rejection ratio at DC"
+    },
+    "power_uw": {
+      "target": "<3.6",
+      "weight": 15,
+      "unit": "uW",
+      "description": "Total OTA power at 1.8V (Itail x Vdd)"
+    }
+  }
+}
