@@ -102,6 +102,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 |------|---------------|
 | **[research/novel-unconventional-approaches.md](research/novel-unconventional-approaches.md)** | **The weird stuff.** 12 unconventional computing approaches ranked by readiness. Thermodynamic computing (Extropic X0/Z1 TSU, Normal Computing CN101 tape-out, Unconventional AI $475M/$4.5B seed). Probabilistic p-bit computing (UCSB/Tohoku DAC-free design at IEDM 2025, Northwestern ASIC). Reservoir computing (TDK 80µW prototype, 200 TOPS photonic RC). Spintronic CIM (lossless 112.3 TOPS/W STT-MRAM macro). FeFET/FeRAM CIM (FMC €100M raise, building fab). Coupled oscillator Ising machines (1440-node 28nm chip). In-sensor computing (PixArt/OmniVision shipping). Superconducting neural nets (80x efficiency incl. cooling). Electrochemical/ionic neurons. CNT 3D integration. Diffractive optical NNs. DNA computing. |
 
+### Process & Fabrication
+
+| File | What It Covers |
+|------|---------------|
+| **[research/process-node-comparison.md](research/process-node-comparison.md)** | **Commercialization roadmap: which process node for VibroSense-1 production?** Open PDK comparison (sky130 vs GF180 vs IHP SG13G2). Commercial analog AI chip process choices (Aspinity 22nm, Mythic 40nm, EnCharge 16nm, BrainChip 22FDX). NRE costs by node ($10K at 130nm shuttle to $100M+ at 3nm). FD-SOI vs bulk CMOS for analog (body biasing, subthreshold, matching). GF 22FDX recommended for production ($2-4M NRE, 3-5x power reduction). Foundry access for startups (Tower, X-FAB, Europractice, Muse/GSME). MEMS+CMOS integration options. Full migration timeline: sky130 prototype → 22FDX production. |
+
 ### Landscape Overviews
 
 | File | What It Covers |
@@ -127,7 +133,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 ## Key Pattern
 
-**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 22 research files.
+**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 24 research files.
 
 ---
 
@@ -135,6 +141,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **24 research files.** Added process node comparison for VibroSense-1 commercialization: open PDK comparison (sky130/GF180/IHP SG13G2), commercial analog AI chip process nodes, NRE costs $10K-$400M by node, FD-SOI physics advantages for analog, GF 22FDX recommended for production (BrainChip validated at $2.3M NRE), foundry access for startups, MEMS integration options, full migration roadmap. |
 | 2026-03-22 | **23 research files.** Added Everactive deep dive: batteryless vibration sensors via energy harvesting (TEG + PV). PKS3000 SoC at 2.19 uW idle (Hot Chips 2025). Fluke 3562 product shipping with 1 kHz bandwidth (screening only). $161M raised, IMS division sold. VibroSense-1's 20 kHz bandwidth is insurmountable advantage for bearing fault detection. |
 | 2026-03-22 | **22 research files.** Added novel & unconventional approaches: 12 approaches ranked. Thermodynamic computing (Extropic TSU, Normal CN101, Unconventional AI $475M). P-bit computing (DAC-free IEDM 2025). Reservoir computing (TDK 80µW). Spintronic CIM (lossless 112.3 TOPS/W). FeFET CIM (FMC €100M). Ising machines. In-sensor computing (shipping). Superconducting, electrochemical, CNT, diffractive, DNA. |
 | 2026-03-22 | **21 research files.** Added history and lessons: three waves of analog AI chips (1989-1997, 2012-2022, 2022-present), Intel ETANN, AT&T ANNA, Carver Mead, Synaptics pivot, AI winter, memristor revival, why digital always won, 7 lessons for today's startups, hype cycle analysis. |
