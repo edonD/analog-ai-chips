@@ -6,7 +6,7 @@ A deep-dive engineering reference on analog, neuromorphic, and mixed-signal AI c
 
 ---
 
-## The Verdict (Updated After 21 Deep Dives)
+## The Verdict (Updated After 22 Deep Dives)
 
 ### Where Analog Wins
 
@@ -69,6 +69,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 | [research/emerging-startups.md](research/emerging-startups.md) | Sagence, TetraMem, Blumind, d-Matrix, Axelera, Ceremorphic | 38 TOPS/W (d-Matrix) | Digital CIM (d-Matrix $2B, Axelera $450M) far ahead of analog commercially. |
 | [research/photonic-ai-chips.md](research/photonic-ai-chips.md) | Lightmatter, Ayar Labs, etc. | 8.19 TOPS best measured | Interconnect real and shipping. Compute pre-commercial (2028+). |
 | [research/tsetlin-machines.md](research/tsetlin-machines.md) | Literal Labs, Anzyz | 8.6 nJ/frame (65nm ASIC) | Logic-based (AND/OR/NOT). Efficient for tiny tasks. Can't do LLMs. |
+| **[research/rain-ai.md](research/rain-ai.md)** | **Rain AI** | **$67M raised, $3M bridge** | **Cautionary tale. Memristor NPU vision failed. Pivoted to digital CIM too late. $150M Series B collapsed. Exploring sale. Altman conflict of interest. Key lessons for analog startups.** |
 
 ### Academic Research Ecosystem
 
