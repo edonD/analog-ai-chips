@@ -64,6 +64,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 | [research/photonic-ai-chips.md](research/photonic-ai-chips.md) | Lightmatter, Ayar Labs, etc. | 8.19 TOPS best measured | Interconnect real and shipping. Compute pre-commercial (2028+). |
 | [research/tsetlin-machines.md](research/tsetlin-machines.md) | Literal Labs, Anzyz | 8.6 nJ/frame (65nm ASIC) | Logic-based (AND/OR/NOT). Efficient for tiny tasks. Can't do LLMs. |
 
+### Market & Business
+
+| File | What It Covers |
+|------|---------------|
+| **[research/market-and-investment.md](research/market-and-investment.md)** | **The money story.** $251M analog CIM market vs $200B+ total AI chips. ~$1.5-2B VC invested, ~$8M total revenue. Unconventional AI $475M seed. DARPA OPTIMA $78M. Defense most receptive segment. Mythic $6.4M revenue is sector leader. Revenue-to-investment ratio: 0.5%. Honest timeline: $1B market by 2030-2031. |
+
 ### Landscape Overviews
 
 | File | What It Covers |
@@ -97,5 +103,6 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **17 research files completed.** Added market & investment analysis: $251M analog CIM market, ~$1.5-2B VC invested vs ~$8M revenue, DARPA OPTIMA $78M, Unconventional AI $475M seed anomaly, defense as most receptive segment. |
 | 2026-03-22 | **16 research files completed.** Full coverage: IBM, Mythic, EnCharge, BrainChip, Intel Loihi, Aspinity/Syntiant/POLYN, photonics, Tsetlin machines, RRAM, emerging startups (Sagence/TetraMem/Blumind/d-Matrix/Axelera/Ceremorphic), ISSCC 2025, ADC/DAC bottleneck, precision/noise, analog for LLMs, design tradeoffs synthesis. |
 | 2026-03-22 | Project initialized |
