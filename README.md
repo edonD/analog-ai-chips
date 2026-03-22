@@ -108,6 +108,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 |------|---------------|
 | **[research/process-node-comparison.md](research/process-node-comparison.md)** | **Commercialization roadmap: which process node for VibroSense-1 production?** Open PDK comparison (sky130 vs GF180 vs IHP SG13G2). Commercial analog AI chip process choices (Aspinity 22nm, Mythic 40nm, EnCharge 16nm, BrainChip 22FDX). NRE costs by node ($10K at 130nm shuttle to $100M+ at 3nm). FD-SOI vs bulk CMOS for analog (body biasing, subthreshold, matching). GF 22FDX recommended for production ($2-4M NRE, 3-5x power reduction). Foundry access for startups (Tower, X-FAB, Europractice, Muse/GSME). MEMS+CMOS integration options. Full migration timeline: sky130 prototype → 22FDX production. |
 
+### Government Programs & Validation
+
+| File | What It Covers |
+|------|---------------|
+| **[research/darpa-nzero-sensors.md](research/darpa-nzero-sensors.md)** | **DARPA N-ZERO: the US government program that validated always-on analog sensing.** $30M, 5 years (2015-2020). Proved analog/MEMS sensors operate at 0-10 nW standby (1,000x improvement). Battery life: 4 weeks to 4 years. Performers: Northeastern (zero-power IR, Nature Nanotech), UC Davis/Horsley ($1.8M piezoelectric MEMS accelerometer at 5.4 nW), Sandia (6 nW acoustic+vibration MEMS+CMOS), Draper (zero-power RF receiver <-70 dBm), Arm (M0N0 processor 10 nW sleep), UVA. Generator vibration classification demonstrated. Direct validation of VibroSense-1 analog-first architecture. Commercial influence: Vesper VM1010, Aspinity AML100, TDK InvenSense. |
+
 ### Landscape Overviews
 
 | File | What It Covers |
@@ -133,7 +139,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 ## Key Pattern
 
-**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 24 research files.
+**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 25 research files.
 
 ---
 
@@ -141,6 +147,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **25 research files.** Added DARPA N-ZERO deep dive: the US government's $30M validation of always-on analog sensing (2015-2020). 0-10 nW standby power (1,000x improvement). Battery life 4 weeks→4 years. 6 performers: Northeastern (zero-power IR, Nature Nanotech), UC Davis (5.4 nW piezoelectric accelerometer), Sandia (6 nW MEMS+CMOS), Draper (zero-power RF), Arm (M0N0 10 nW processor), UVA. Generator vibration classification demonstrated. Directly validates VibroSense-1 analog-first architecture. |
 | 2026-03-22 | **24 research files.** Added process node comparison for VibroSense-1 commercialization: open PDK comparison (sky130/GF180/IHP SG13G2), commercial analog AI chip process nodes, NRE costs $10K-$400M by node, FD-SOI physics advantages for analog, GF 22FDX recommended for production (BrainChip validated at $2.3M NRE), foundry access for startups, MEMS integration options, full migration roadmap. |
 | 2026-03-22 | **23 research files.** Added Everactive deep dive: batteryless vibration sensors via energy harvesting (TEG + PV). PKS3000 SoC at 2.19 uW idle (Hot Chips 2025). Fluke 3562 product shipping with 1 kHz bandwidth (screening only). $161M raised, IMS division sold. VibroSense-1's 20 kHz bandwidth is insurmountable advantage for bearing fault detection. |
 | 2026-03-22 | **22 research files.** Added novel & unconventional approaches: 12 approaches ranked. Thermodynamic computing (Extropic TSU, Normal CN101, Unconventional AI $475M). P-bit computing (DAC-free IEDM 2025). Reservoir computing (TDK 80µW). Spintronic CIM (lossless 112.3 TOPS/W). FeFET CIM (FMC €100M). Ising machines. In-sensor computing (shipping). Superconducting, electrochemical, CNT, diffractive, DNA. |
