@@ -6,7 +6,7 @@ A deep-dive engineering reference on analog, neuromorphic, and mixed-signal AI c
 
 ---
 
-## The Verdict (Updated After 20 Deep Dives)
+## The Verdict (Updated After 21 Deep Dives)
 
 ### Where Analog Wins
 
@@ -40,6 +40,12 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 ---
 
 ## Research Files
+
+### History & Context
+
+| File | What It Covers |
+|------|---------------|
+| **[research/history-and-lessons.md](research/history-and-lessons.md)** | **Why analog failed before and what's different now.** Three waves of analog AI chips (1989-1997, 2012-2022, 2022-present). Intel ETANN (1989), AT&T ANNA chip, Carver Mead's neuromorphic vision, Synaptics pivot to touchpads, AI winter, memristor revival, DARPA SyNAPSE. Why digital always won (Moore's Law exponential vs analog constant-factor). 7 lessons for today's startups. Hype cycle pattern analysis. Syntiant's analog-to-digital pivot as key signal. |
 
 ### Synthesis & Design
 
@@ -113,7 +119,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 ## Key Pattern
 
-**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 20 research files.
+**Every analog AI company claims 100x efficiency over GPUs. Every independent measurement shows 2-14x at the system level.** The gap is explained by ADC/DAC overhead (40-85%), precision degradation, calibration costs, and comparison to outdated digital baselines. This is the single most important finding across 21 research files.
 
 ---
 
@@ -121,6 +127,7 @@ Read **[research/design-tradeoffs-synthesis.md](research/design-tradeoffs-synthe
 
 | Date | What |
 |------|------|
+| 2026-03-22 | **21 research files.** Added history and lessons: three waves of analog AI chips (1989-1997, 2012-2022, 2022-present), Intel ETANN, AT&T ANNA, Carver Mead, Synaptics pivot, AI winter, memristor revival, why digital always won, 7 lessons for today's startups, hype cycle analysis. |
 | 2026-03-22 | **20 research files.** Added practitioner opinions: chip designer skepticism, HN/community recurring arguments, Mythic postmortem, VC-vs-engineering gap, ML practitioner toolchain frustrations, bull vs bear case. Engineering community significantly more skeptical than VCs. |
 | 2026-03-22 | **19 research files.** Added China analog AI deep dive: Tsinghua LEMON lab (STELLAR, 28nm macro, memCS), Peking U (24-bit RRAM solver), Nanjing U (0.101% RMSE precision record), ZJU Darwin Monkey (2.1B neurons), Huawei-ByteDance-Tsinghua ISSCC 2026 alliance, export control analysis, Big Fund III. China leads research, zero commercial products. |
 | 2026-03-22 | **17 research files completed.** Added market & investment analysis: $251M analog CIM market, ~$1.5-2B VC invested vs ~$8M revenue, DARPA OPTIMA $78M, Unconventional AI $475M seed anomaly, defense as most receptive segment. |
