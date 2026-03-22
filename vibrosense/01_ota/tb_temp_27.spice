@@ -1,0 +1,36 @@
+* Corner Analysis - VibroSense OTA
+* Run AC analysis at TT corner (others need separate lib calls)
+* This file measures at TT. Corner script sweeps all 5.
+
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+
+Vcm cm 0 dc 0.9
+Vac vinp cm dc 0 ac 1
+Lfb vout vinn 1T
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.temp 27
+.ac dec 100 0.001 100Meg
+
+.control
+  run
+  meas ac gain_peak MAX vdb(vout)
+  meas ac ugb WHEN vdb(vout)=0 FALL=1
+  meas ac phase_ugb FIND vp(vout) AT=ugb
+  let pm = phase_ugb + 180
+  echo "TEMP=27C: Gain=$&gain_peak dB UGB=$&ugb Hz PM=$&pm deg"
+  quit
+.endc
+.end
