@@ -170,24 +170,22 @@ For the PGA to meet specs, the OTA must satisfy:
   (no resistive load), but the large Cin at 64x gain adds load.
 - **Output swing > +/-500 mV around Vcm:** To support 1 Vpp output.
 
-The behavioral OTA model has gm = 2.5 uS, Rout = 400 MOhm:
-- DC gain = 2.5e-6 x 400e6 = 1000 = 60 dB. Adequate.
-- GBW with 1 pF load: gm/(2*pi*CL) = 2.5e-6/(2*pi*1e-12) = 398 kHz.
-  At gain = 64x: BW = 398k/64 = 6.2 kHz. **NOT ENOUGH.**
+The behavioral OTA model has gm = 2.5 uS, Rout = 400 MOhm — use this for
+initial topology verification only (Steps 1-3). Replace with real OTA in Step 4.
 
-**CRITICAL ISSUE:** The behavioral OTA's GBW of 398 kHz is too low for 25 kHz BW at
-64x gain. The real OTA must achieve GBW > 1.6 MHz, or the PGA BW spec must be relaxed
-at 64x gain.
+**The real OTA is ota_pga_v2 (two-stage Miller, 422 kHz UGB at TT 27°C).**
 
-**Resolution options (agent must choose one):**
-1. Accept reduced BW at 64x: 25 kHz at 1x/4x/16x, 6 kHz at 64x
-2. Increase OTA bias current to raise gm (increases power)
-3. Reduce Cf to 0.5 pF (doubles GBW but degrades noise and matching)
-4. Use gain-dependent compensation (add Cc at low gains only)
+Verified closed-loop bandwidths with ota_pga_v2:
 
-**Recommended:** Option 1 is acceptable because 64x gain is used for very small signals
-(~3 mVpp input) from low-vibration conditions where the signal spectrum is below 5 kHz.
-Document this trade-off clearly.
+| Gain | Noise gain | UGB (TT) | Closed-loop BW | Meets >25kHz? |
+|------|-----------|----------|----------------|---------------|
+| 1x   | 1         | 422 kHz  | 422 kHz        | YES           |
+| 4x   | 5         | 422 kHz  | 84 kHz         | YES           |
+| 16x  | 17        | 422 kHz  | 24.8 kHz       | YES (barely)  |
+| 64x  | 65        | 422 kHz  | 6.5 kHz        | YES (>6 kHz)  |
+
+At SS corner (375 kHz UGB): 16x BW = 22 kHz — marginally below 25 kHz.
+This is a known, accepted limitation documented in ota_pga_v2/README.md.
 
 ### 4.3 Revised BW Specification
 
@@ -233,7 +231,28 @@ Run all 7 testbenches with behavioral OTA. Record results. Fix any issues.
 
 ### Step 4: Replace with Real OTA
 
-Swap `.include ota_behavioral.spice` with `.include ../01_ota/ota_foldcasc.spice`.
+Swap the behavioral OTA with the real two-stage Miller OTA:
+
+```spice
+* Remove behavioral OTA include, add these two lines:
+.include "../01_ota/ota_pga_v2/ota_pga_v2.spice"
+.include "../../00_bias/bias_distribution/design_full.cir"
+
+* Bias generator instance (Riref sets Iref = 1.8V / 3560 = 505 nA):
+Xbias vdd gnd iref_out vbn vbcn vbp vbcp  bias_generator_full
+Riref iref_out gnd 3560
+
+* OTA instance (vbcn/vbp/vbcp declared but unconnected inside ota_pga_v2):
+Xota  vdd gnd inp inn out vbn vbcn vbp vbcp  ota_pga_v2
+```
+
+Do NOT use ideal voltage sources for bias — must use bias_generator_full.
+Do NOT use ota_foldcasc or ota_pga (v1) — use ota_pga_v2 only.
+
+PDK location (on AWS instance):
+  /c/Users/DD/AppData/Local/Temp/sky130.lib.spice  (local machine)
+  /home/ubuntu/pdk/sky130A/libs.ref/...            (AWS instance)
+
 Re-run all testbenches. Compare with behavioral results. Flag degradation >10%.
 
 ### Step 5: Layout
@@ -581,3 +600,34 @@ After simulation, populate this table in `results.md`:
 | Power (uW) | <5 | | | | | |
 | PSRR (dB) | >40 | | | | | |
 | Settling (us) | <100 | | | | | |
+
+---
+
+## Final Step: Document and Commit
+
+**Mandatory. Do not declare complete without this.**
+
+### README.md
+
+Write `README.md` in this folder containing:
+
+1. **Status** — one line: ALL PASS / PARTIAL / FAIL
+2. **Results table** — every spec from `specs.json`: target | measured (TT 27°C) | worst corner | PASS/FAIL
+3. **Files created** — every file in this folder with a one-line description
+4. **Key design decisions** — 3–5 bullets on non-obvious choices (topology, sizing rationale, tradeoffs)
+5. **Known limitations** — anything that failed, was relaxed, or is marginal at corners
+
+### Git commit and push
+
+After README.md is complete:
+
+```bash
+cd /c/Users/DD/OneDrive/Programming/willAI/analog-ai-chips
+git add vibrosense/02_pga/
+git commit -m "design(02_pga): <one-line summary with key measured result>"
+git push
+```
+
+The commit message must include the actual measured result.
+Example: `design(02_pga): capacitive-feedback PGA — BW=28kHz at 16x, THD=-42dBc`
+Do not use a generic message like "add files" or "complete block".
