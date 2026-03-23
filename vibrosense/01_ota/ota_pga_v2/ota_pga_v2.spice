@@ -21,7 +21,7 @@
 .param W11=11.4 L11=14      $ Tail M11
 .param Cc_val=3.5p          $ Miller cap (absolute, not affected by scale)
 .param Rz_val=30k           $ Nulling resistor (~1.5/gm5, pushes zero into LHP)
-.param Rvdd_val=10k          $ VDD supply filter R for PSRR
+.param Rvdd_val=10k         $ VDD supply filter R for PSRR
 .param Cvdd_val=100n        $ VDD supply filter C (with Rvdd: fc=159Hz)
 
 .subckt ota_pga_v2 vdd gnd inp inn out vbn vbcn vbp vbcp
@@ -39,7 +39,7 @@ XM1   v_mir  inp    otail gnd  sky130_fd_pr__nfet_01v8  w={W1}   l={L1}
 XM2   v_s1   inn    otail gnd  sky130_fd_pr__nfet_01v8  w={W1}   l={L1}
 
 ** Internal VDD rail with RC filter for PSRR improvement
-** fc = 1/(2pi*Rvdd*Cvdd) = 159 kHz, drops 5.5mV at 5.5uA
+** fc = 1/(2pi*Rvdd*Cvdd) = 159 Hz, drops 5.5mV at 5.5uA
 Rvdd  vdd  vdd_int  {Rvdd_val}
 Cvdd  vdd_int  gnd  {Cvdd_val}
 
