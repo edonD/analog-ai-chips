@@ -1,0 +1,20 @@
+* VibroSense Block 03 — Parameterized Behavioral OTA
+* Non-inverting transconductor: Iout = gm_val * V(vip, vim)
+* Current sourced into vout when Vip > Vim
+*
+* Parameters:
+*   gm_val  : transconductance (S)
+*   rout_val: output resistance (Ohm), default 10T to avoid DC bias shift
+*
+* Usage: Xota1 vip vim vout vdd vss ota_gmc gm_val=63n
+
+.subckt ota_gmc vip vim vout vdd vss
++ params: gm_val=63n rout_val=10T
+
+* Linear VCCS — current from vss into vout = gm * V(vip,vim)
+G1 vss vout vip vim {gm_val}
+
+* Very high output resistance (DC path to ground, negligible loading)
+Rout vout vss {rout_val}
+
+.ends ota_gmc

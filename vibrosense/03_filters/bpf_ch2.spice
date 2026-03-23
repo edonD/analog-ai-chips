@@ -1,0 +1,33 @@
+* VibroSense Block 03 — Channel 2 Band-Pass Filter
+* Tow-Thomas Biquad: f0=1000 Hz, Q=0.67, BW=1500 Hz (500-2000 Hz)
+* Detects: Gear mesh faults, bearing harmonics
+*
+* Design parameters:
+*   gm1 = gm2 = 2*pi*1000*10p = 62.83 nS
+*   gm3 = gm/Q = 62.83n/0.67 = 93.78 nS
+*   C1 = C2 = 10 pF
+*   Peak gain G0 = Q = 0.67 → -3.5 dB
+
+.include ota_behavioral.spice
+
+.subckt bpf_ch2 vin bp_out vdd vss vcm
++ params: gm_scale=1.0
+
+.param gm_nom = 62.83n
+.param gm1_val = {gm_nom * gm_scale}
+.param gm2_val = {gm_nom * gm_scale}
+.param gm3_val = {93.78n * gm_scale}
+
+Xota1 vin int2 int1 vdd vss ota_gmc gm_val={gm1_val}
+C1 int1 vss 10p
+Rbias1 int1 vcm 10G
+
+Xota2 int1 vcm int2 vdd vss ota_gmc gm_val={gm2_val}
+C2 int2 vss 10p
+Rbias2 int2 vcm 10G
+
+Xota3 vcm int1 int1 vdd vss ota_gmc gm_val={gm3_val}
+
+Rout_tap bp_out int1 1m
+
+.ends bpf_ch2

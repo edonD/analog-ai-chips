@@ -1,0 +1,55 @@
+* VibroSense Block 03 — Channel 1 Band-Pass Filter
+* Tow-Thomas Biquad: f0=224 Hz, Q=0.75, BW=300 Hz (100-500 Hz)
+* Detects: Shaft imbalance, bearing BPFO/BPFI
+*
+* Design parameters:
+*   gm1 = gm2 = 2*pi*224*10p = 14.07 nS
+*   gm3 = gm/Q = 14.07n/0.75 = 18.76 nS
+*   C1 = C2 = 10 pF
+*   Peak gain G0 = Q = 0.75 → -2.5 dB
+*
+* Topology (pure BPF output at V1 node):
+*   OTA1: vip=Vin, vim=V2 → output into V1 (input + feedback)
+*   OTA2: vip=V1, vim=Vcm → output into V2 (forward integrator)
+*   OTA3: vip=Vcm, vim=V1 → output into V1 (shunt damping)
+*   BP output = V1 (first integrator output)
+
+.include ota_behavioral.spice
+
+.subckt bpf_ch1 vin bp_out vdd vss vcm
++ params: gm_scale=1.0
+
+.param gm_nom = 14.07n
+.param gm1_val = {gm_nom * gm_scale}
+.param gm2_val = {gm_nom * gm_scale}
+.param gm3_val = {18.76n * gm_scale}
+
+* OTA1: Input transconductor with feedback from V2
+* vip=vin, vim=int2 (V2), vout=int1 (V1)
+Xota1 vin int2 int1 vdd vss ota_gmc gm_val={gm1_val}
+
+* Integrating capacitor C1 at V1 node
+C1 int1 vss 10p
+
+* DC bias path for V1 (pseudo-resistor to Vcm)
+Rbias1 int1 vcm 10G
+
+* OTA2: Second integrator (forward path V1→V2)
+* vip=int1 (V1), vim=vcm, vout=int2 (V2)
+Xota2 int1 vcm int2 vdd vss ota_gmc gm_val={gm2_val}
+
+* Integrating capacitor C2 at V2 node
+C2 int2 vss 10p
+
+* DC bias path for V2
+Rbias2 int2 vcm 10G
+
+* OTA3: Damping (shunt conductance at V1)
+* vip=vcm, vim=int1 (V1), vout=int1 (V1)
+* Provides gm3 conductance: I = gm3*(Vcm-V1) into V1
+Xota3 vcm int1 int1 vdd vss ota_gmc gm_val={gm3_val}
+
+* Band-pass output tap
+Rout_tap bp_out int1 1m
+
+.ends bpf_ch1
