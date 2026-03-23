@@ -1,0 +1,38 @@
+* UGB vs tail current — individual runs at different Vbn
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+.param vbn_val = 0.65
+Vbn  vbn  0 dc {vbn_val}
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+Vinp vinp 0 dc 0.9 ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.control
+* Run at different Vbn values
+foreach vbn 0.65 0.66 0.67 0.68 0.69 0.70 0.71 0.72
+  alterparam vbn_val = $vbn
+  reset
+
+  * First get tail current via OP
+  op
+  print @m.xota.xm11[id]
+
+  * Then AC
+  ac dec 100 0.1 1G
+  meas ac gain_pk MAX vdb(vout)
+  meas ac ugb_val WHEN vdb(vout)=0 FALL=1
+  meas ac ph_ugb FIND vp(vout) WHEN vdb(vout)=0 FALL=1
+  let pm_val = ph_ugb * 180 / 3.14159265 + 180
+  echo "VBN=$vbn GAIN=$&gain_pk UGB=$&ugb_val PM=$&pm_val"
+end
+quit
+.endc
+.end

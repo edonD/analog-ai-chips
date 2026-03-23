@@ -351,4 +351,157 @@ FOM = (33.7e3 * 10e-12) / (0.501e-6) = 674 MHz*pF/mA — **above the survey medi
 
 ---
 
+---
+
+## 9. Open Questions and Investigations
+
+### 9.1 Where is the flicker noise corner?
+
+Measured from noise simulation (input-referred, open-loop):
+
+| Frequency | Input-Referred Noise (nV/sqrt(Hz)) |
+|-----------|-----------------------------------|
+| 10 Hz | 2650 |
+| 50 Hz | 1349 |
+| 100 Hz | 1019 |
+| 200 Hz | 778 |
+| 500 Hz | 557 |
+| 1 kHz | 448 |
+| 2 kHz | 374 |
+| 5 kHz | 313 |
+| 10 kHz | 287 |
+
+**1/f corner frequency: ~417 Hz.** Below 417 Hz, 1/f noise dominates. Above, thermal.
+
+**Impact on the classifier:** Band 1 (100-500 Hz) noise is 557-1019 nV/sqrt(Hz), substantially worse than the 287 nV/sqrt(Hz) thermal floor. For the vibration classifier, this means the lowest frequency band has 2-3.5x worse SNR than the higher bands. Long-channel NMOS (L=14u) helps — without it the 1/f corner would be 5-10x higher — but it doesn't eliminate it.
+
+**Thermal floor: 413 nV/sqrt(Hz)** at 10 MHz (pure thermal). In the signal band (above 1/f corner), noise is ~287-313 nV/sqrt(Hz) at 5-10 kHz.
+
+**Mitigation options:**
+- Chopper stabilization would eliminate 1/f entirely but adds complexity and a chopping clock
+- Increasing W*L of the input pair further (currently 70 um^2) would push the corner lower
+- PMOS input pair has lower 1/f coefficient in SKY130 but worse gm/Id
+
+### 9.2 How are the four bias voltages generated?
+
+The OTA needs four bias voltages from Block 00:
+
+| Bias | Value | Generation method |
+|------|-------|------------------|
+| Vbn | 0.65 V | Diode-connected NMOS (same W/L as M11) with 500 nA forced through it |
+| Vbcn | 0.88 V | Cascoded NMOS diode or voltage divider from Vbn |
+| Vbp | VDD - 0.73 V = 1.07 V | Diode-connected PMOS (W=0.42u L=20u) with mirrored current |
+| Vbcp | VDD - 1.325 V = 0.475 V | PMOS cascode bias, VDD-referred for PSRR |
+
+**Current status:** All four bias voltages are ideal voltage sources in the testbenches. Block 00 has not been designed yet.
+
+**Interface agreement needed before Block 02:**
+1. Vbn and Vbcn are ground-referred — straightforward NMOS mirror + cascode
+2. Vbp and Vbcp are **VDD-referred** (critical for PSRR). The bias generator must output these as VDD-tracking voltages, not fixed-to-ground
+3. The bias distribution circuit should live in **Block 00** and distribute to all OTA instances via shared bias lines
+4. The OTA's gate current is negligible (< 1 fA), so a single bias generator can drive all 20+ OTA instances
+
+**Risk:** If Vbp/Vbcp are generated as ground-referenced voltages instead of VDD-tracking, PSRR will degrade from 70.5 dB to approximately 30-40 dB.
+
+### 9.3 Phase margin and UGB across load capacitance
+
+Measured via AC simulation at different CL values:
+
+| CL (pF) | DC Gain (dB) | UGB (kHz) | Phase Margin (deg) |
+|---------|-------------|-----------|-------------------|
+| 2 | 66.8 | 168.3 | 86.0 |
+| 5 | 66.8 | 67.4 | 88.4 |
+| **10** | **66.8** | **33.7** | **89.2** |
+| 20 | 66.8 | 16.9 | 89.6 |
+| 30 | 66.8 | 11.2 | 89.8 |
+| 50 | 66.8 | 6.7 | 89.9 |
+
+**Key observations:**
+- DC gain is **independent of load** (as expected — set by gm*Rout)
+- UGB scales inversely with CL: UGB = gm1/(2*pi*CL)
+- PM is **very stable** across all loads (86-90 deg) because the non-dominant pole is far above the UGB at all CL values
+- **No compensation cap is needed.** The OTA is unconditionally stable from 2 pF to 50+ pF
+- At 2 pF: UGB = 168 kHz — check if this exceeds the non-dominant pole (could cause peaking in a fast PGA configuration)
+
+**For the PGA:** The feedback network capacitance adds to CL. A 10x gain with 1 pF feedback cap and 10 pF load gives effective CL ~ 11 pF. UGB ~ 30 kHz, PM ~ 89 deg. No stability concern.
+
+### 9.4 Monte Carlo offset
+
+**Not yet simulated.** The SKY130 PDK's Monte Carlo mismatch models required preprocessing that was not completed in this design cycle.
+
+**Estimated offset (hand calculation):**
+- Input pair M1/M2: W=5u, L=14u, W*L = 70 um^2
+- SKY130 NMOS AVT ~ 5 mV*um
+- sigma_Vth = AVT / sqrt(W*L) = 5e-3 / sqrt(70e-12) = 0.6 mV per transistor
+- Differential offset sigma = 0.6 * sqrt(2) = 0.85 mV
+- **3-sigma offset ~ 2.5 mV**
+
+This is well below the 10 mV spec. The large input pair area (70 um^2) is a direct benefit of the L=14u choice.
+
+**For the 20 parallel PMOS (M3/M4):** Each instance contributes mismatch, but parallel averaging reduces the net mismatch by sqrt(20) = 4.5x. The PMOS fold mismatch contribution to offset is gm3/gm1 * sigma_Vth_M3 / sqrt(20), which is negligible compared to the input pair.
+
+### 9.5 Output DC offset in PGA configuration
+
+With the estimated 3-sigma offset of 2.5 mV:
+
+| PGA Gain | Output Offset (3-sigma) | Headroom consumed |
+|----------|------------------------|-------------------|
+| 1x | 2.5 mV | 0.5% of swing |
+| 4x | 10 mV | 1.9% of swing |
+| 16x | 40 mV | 7.6% of swing |
+| 64x | 160 mV | 30.5% of swing |
+
+**At 64x gain, 160 mV of the 525 mV usable swing (half of 1.05 Vpp) is consumed by offset.** This is a real concern.
+
+**Mitigation options:**
+1. **DC servo loop** — a low-frequency feedback path that nulls the DC offset at the PGA output. Standard technique for high-gain amplifiers.
+2. **Input offset storage (auto-zero)** — sample the offset in a calibration phase, subtract it during operation.
+3. **Reduce PGA gain** — use 16x max gain with post-ADC digital gain for the remaining 4x. Reduces offset to 40 mV.
+4. **Accept it** — if the ADC has sufficient dynamic range, the offset can be subtracted digitally.
+
+**Recommendation:** A DC servo loop is the most practical for this application. It adds one capacitor and one switch per PGA stage.
+
+### 9.6 Closed-loop bandwidth at each PGA gain
+
+Simulated with resistive feedback (R1=100k base) and 10 pF load:
+
+| Gain | Closed-loop BW | Signal band coverage |
+|------|---------------|---------------------|
+| 1x | 47.0 kHz | Full band (100 Hz - 10 kHz) |
+| 4x | ~8.4 kHz (est: UGB/4) | Covers to ~8.4 kHz |
+| 16x | ~2.1 kHz (est: UGB/16) | Covers to ~2.1 kHz |
+| 64x | ~530 Hz (est: UGB/64) | Covers 100-530 Hz only |
+
+**Note:** The 4x/16x/64x simulations had loading issues from the feedback resistors (high-impedance OTA output loaded by 100k divider). In practice, the PGA will use switched-capacitor feedback, not resistive, which presents only capacitive load.
+
+**At 64x, the closed-loop BW is only ~530 Hz** — this only covers the lowest vibration band. Higher bands at 64x gain would be attenuated. This is a system-level constraint that needs discussion.
+
+### 9.7 What would it cost to push UGB from 33.7 kHz to 50 kHz?
+
+**Answer: It requires a structural redesign, not just a parameter tweak.**
+
+Measured Itail vs UGB:
+
+| Vbn (V) | Isupply (nA) | UGB (kHz) | Gain (dB) | Notes |
+|---------|-------------|-----------|-----------|-------|
+| 0.650 | 1020 | 33.7 | 66.8 | Current design |
+| 0.660 | 1023 | 34.2 | 64.2 | Gain drops 2.6 dB |
+| 0.670 | 1022 | 30.5 | 60.4 | Gain drops below target |
+| 0.680 | 1030 | — | <0 dB | Output collapses |
+
+**The problem:** Increasing Vbn above 0.65V pushes more current through the NMOS (M9/M10/M11), but the PMOS fold current (set by Vbp) is already at its limit. The excess NMOS current has nowhere to go — it drives the output into the rails and collapses the gain.
+
+**To get 50 kHz UGB would require:**
+1. Increasing gm1 by 50% → need ~750 nA per input device → 1.5 uA tail
+2. Simultaneously increasing PMOS fold current to match → need ~750 nA per fold branch
+3. Total supply current: ~3 uA (vs current 1 uA) — **3x power increase**
+4. Re-verify all Vov constraints at the new operating point
+5. Re-check noise, PSRR, CMRR at the new bias point
+
+**This is NOT a parameter tweak.** It requires re-biasing the entire circuit, re-checking all operating points, and likely resizing several transistors. The 20 parallel PMOS instances may need to become 30+ to maintain Vov > 150 mV at the higher current.
+
+**Alternative:** Keep the current OTA for the Gm-C filters (which don't need closed-loop gain), and design a **separate, higher-current OTA variant** for the PGA only. The PGA needs just 1 OTA instance, so 3x power for that one instance is 2 uA extra — acceptable in the system budget.
+
+---
+
 *Design completed 2026-03-23. SkyWater SKY130A process. ngspice 42. All results from automated verification.*
