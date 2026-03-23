@@ -1,0 +1,34 @@
+* Temperature: 27C — AC Open-Loop Analysis
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+.param vdd_val = 1.8
+.param vcm_val = 0.9
+
+.temp 27
+
+Vdd vdd 0 dc {vdd_val}
+Vbn  vbn  0 dc 0.59
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+Vinp vinp 0 dc {vcm_val} ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.ac dec 100 0.1 1G
+
+.control
+run
+meas ac gain_peak MAX vdb(vout)
+meas ac ugb WHEN vdb(vout)=0 FALL=1
+
+echo "gain_peak = $&gain_peak"
+echo "ugb = $&ugb"
+quit
+.endc
+.end

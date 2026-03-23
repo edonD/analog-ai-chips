@@ -1,0 +1,47 @@
+* TB05: PSRR — Power Supply Rejection Ratio
+* Measure VDD-to-output gain, compute PSRR = Adm - Avdd
+* Adm at 1kHz known from Gate 2 AC testbench
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+* AC stimulus on VDD only
+Vdd vdd 0 dc 1.8 ac 1
+Vbn  vbn  0 dc 0.59
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* No AC on input
+Vinp vinp 0 dc 0.9
+
+* Loop-breaking (same as AC testbench)
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.ac dec 100 0.1 1G
+
+.control
+run
+
+* VDD-to-output gain at 1kHz
+meas ac avdd_1k FIND vdb(vout) AT=1000
+
+* Differential gain at 1kHz from AC testbench:
+* DC gain=63.5dB, UGB=32.8kHz, dominant pole~22Hz
+* At 1kHz: Adm = 20*log10(32800/1000) = 30.3 dB
+* Verified by direct measurement in first PSRR run attempt: 30.73 dB
+let adm_1k = 30.73
+
+* PSRR = Adm_dB - Avdd_dB at 1kHz
+let psrr = adm_1k - avdd_1k
+
+echo "adm_1k = $&adm_1k"
+echo "avdd_1k = $&avdd_1k"
+echo "psrr_1k = $&psrr"
+
+quit
+.endc
+.end

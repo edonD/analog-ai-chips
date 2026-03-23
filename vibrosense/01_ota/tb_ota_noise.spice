@@ -1,0 +1,37 @@
+* TB04: Input-Referred Noise Analysis
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.59
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* AC stimulus on Vinp for noise reference
+Vinp vinp 0 dc 0.9 ac 1
+
+* Loop-breaking for open-loop measurement
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+* Noise analysis: 50 pts/decade, 1Hz to 1MHz (6 decades = 300 pts)
+* Index 150 = 1kHz, Index 200 = 10kHz
+.noise v(vout) Vinp dec 50 1 1e6
+
+.control
+run
+
+setplot noise1
+let n1k = inoise_spectrum[150]
+let n10k = inoise_spectrum[200]
+
+echo "noise_1k = $&n1k"
+echo "noise_10k = $&n10k"
+
+quit
+.endc
+.end

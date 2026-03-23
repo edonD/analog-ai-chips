@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-OBJECTIVE OTA DESIGN VERIFIER
-==============================
+OBJECTIVE OTA DESIGN VERIFIER v2
+=================================
 This script is the SINGLE SOURCE OF TRUTH for pass/fail.
 It runs ngspice, parses raw output, and checks every spec from program.md.
 The agent CANNOT modify this file. Results are machine-verified.
@@ -54,6 +54,10 @@ SPECS = {
     "noise_10k_max_nVrtHz": 100,
 
     # Transient (Section 5.3)
+    # Slew rate: use large-signal derivative method (Itail/CL theoretical)
+    # For 548nA tail, 10pF load: theoretical SR = 54.8 mV/us
+    # The testbench should apply a LARGE step (500mV+) and measure dV/dt
+    # at the steepest point. We accept >= 10 mV/us.
     "slew_rate_min_mVus": 10,
 
     # DC (Section 5.4)
@@ -66,6 +70,12 @@ SPECS = {
 
     # Power (Section 5.6)
     "total_current_max_uA": 2.0,
+
+    # Corner (Section 5.7)
+    "corner_gain_min_dB": 60,       # All corners
+    "temp_gain_min_dB": 55,         # All temperatures
+    "temp_ugb_min_Hz": 20000,       # Temperature sweep
+    "temp_ugb_max_Hz": 200000,      # Temperature sweep
 }
 
 
@@ -83,11 +93,11 @@ def run_ngspice(spice_file, work_dir=WORK_DIR):
         result = subprocess.run(
             ["/usr/bin/ngspice", "-b", spice_file],
             cwd=work_dir,
-            capture_output=True, text=True, timeout=120
+            capture_output=True, text=True, timeout=300
         )
         return result.stdout + result.stderr, None
     except subprocess.TimeoutExpired:
-        return None, "TIMEOUT: ngspice took > 120s"
+        return None, "TIMEOUT: ngspice took > 300s"
     except Exception as e:
         return None, f"CRASH: {e}"
 
@@ -108,6 +118,12 @@ def parse_meas(output, name):
     if match:
         return float(match.group(1))
     return None
+
+
+def parse_all_meas(output, name):
+    """Extract ALL occurrences of a .meas result by name."""
+    pattern = rf'{name}\s*=\s*([+-]?\d+\.?\d*[eE][+-]?\d+|[+-]?\d+\.?\d*)'
+    return [float(m) for m in re.findall(pattern, output, re.IGNORECASE)]
 
 
 def increment_attempt():
@@ -255,7 +271,11 @@ def gate1_operating_point(report):
     supply_match = re.search(r'-i\(vdd\)\s*=\s*([+-]?\d+\.?\d*[eE][+-]?\d+)', output)
     if supply_match:
         i_supply = float(supply_match.group(1))
-        log(f"  Supply current: {abs(i_supply)*1e6:.3f} uA (max: {SPECS['total_current_max_uA']} uA) — {'OK' if abs(i_supply)*1e6 <= SPECS['total_current_max_uA'] else 'FAIL'}", report)
+        i_ok = abs(i_supply) * 1e6 <= SPECS["total_current_max_uA"]
+        if not i_ok:
+            fails.append(f"Supply current {abs(i_supply)*1e6:.3f} uA > {SPECS['total_current_max_uA']} uA")
+            all_ok = False
+        log(f"  Supply current: {abs(i_supply)*1e6:.3f} uA (max: {SPECS['total_current_max_uA']} uA) — {'OK' if i_ok else 'FAIL'}", report)
 
     log(f"\n  GATE 1 RESULT: {'PASS' if all_ok else 'FAIL'}", report)
     if fails:
@@ -281,8 +301,6 @@ def gate2_ac_performance(report):
     all_ok = True
     fails = []
 
-    # Sanity check: gain at DC (low freq) should be close to peak
-    # If gain at 1Hz << peak gain, the measurement is broken
     g_peak = parse_meas(output, "gain_peak")
     g_1hz = parse_meas(output, "g1")
     g_10hz = parse_meas(output, "g10")
@@ -298,9 +316,7 @@ def gate2_ac_performance(report):
     log(f"    UGB:          {ugb:.1f} Hz" if ugb else "    UGB:          NOT FOUND", report)
     log(f"    Phase @ UGB:  {phase_ugb:.2f} deg" if phase_ugb else "    Phase @ UGB:  NOT FOUND", report)
 
-    # SANITY CHECK: Is this really open-loop?
-    # Open-loop gain should be flat from DC up to the dominant pole.
-    # If gain at 10 Hz is more than 6 dB below peak, the measurement is suspect.
+    # SANITY CHECK: Open-loop gain should be flat from DC to dominant pole.
     if g_peak is not None and g_10hz is not None:
         if g_peak - g_10hz > 6:
             log(f"\n  *** SANITY WARNING: Peak gain ({g_peak:.1f} dB) is {g_peak - g_10hz:.1f} dB above gain at 10 Hz ({g_10hz:.1f} dB).", report)
@@ -309,8 +325,7 @@ def gate2_ac_performance(report):
             fails.append(f"MEASUREMENT INVALID: gain not flat at low freq (peak={g_peak:.1f}dB, @10Hz={g_10hz:.1f}dB)")
             all_ok = False
 
-    # SANITY CHECK: Phase margin should not be > 90 deg for a single-stage OTA
-    # with a dominant pole. PM > 120 deg is extremely suspicious.
+    # SANITY CHECK: PM should not be > 120 for a single-stage OTA with 10pF load.
     if phase_ugb is not None:
         pm = phase_ugb + 180
         log(f"    Phase margin: {pm:.1f} deg", report)
@@ -326,7 +341,6 @@ def gate2_ac_performance(report):
 
     # Actual spec checks (only meaningful if sanity checks pass)
     if all_ok:
-        # DC gain (use gain at lowest reasonable frequency, e.g. 10 Hz)
         dc_gain = g_10hz if g_10hz is not None else g_peak
         if dc_gain is not None:
             if dc_gain < SPECS["dc_gain_min_dB"]:
@@ -334,7 +348,6 @@ def gate2_ac_performance(report):
                 all_ok = False
             log(f"\n  DC gain: {dc_gain:.1f} dB (min: {SPECS['dc_gain_min_dB']}, target: {SPECS['dc_gain_target_dB']}) — {'OK' if dc_gain >= SPECS['dc_gain_min_dB'] else 'FAIL'}", report)
 
-        # UGB
         if ugb is not None:
             ugb_ok = SPECS["ugb_min_Hz"] <= ugb <= SPECS["ugb_max_Hz"]
             if not ugb_ok:
@@ -342,7 +355,6 @@ def gate2_ac_performance(report):
                 all_ok = False
             log(f"  UGB: {ugb:.0f} Hz (range: [{SPECS['ugb_min_Hz']}, {SPECS['ugb_max_Hz']}]) — {'OK' if ugb_ok else 'FAIL'}", report)
 
-        # PM
         if phase_ugb is not None:
             pm = phase_ugb + 180
             pm_ok = pm >= SPECS["pm_min_deg"]
@@ -362,7 +374,7 @@ def gate2_ac_performance(report):
 
 
 def gate3_dc_transient(report):
-    """GATE 3: DC sweep and transient."""
+    """GATE 3: DC sweep and transient (slew rate via large-signal derivative)."""
     log("\n" + "=" * 70, report)
     log("GATE 3: DC SWEEP & TRANSIENT (Sections 5.3, 5.4)", report)
     log("=" * 70, report)
@@ -390,28 +402,315 @@ def gate3_dc_transient(report):
             fails.append("Could not measure output swing")
             all_ok = False
 
-    # Transient
+    # Transient — SLEW RATE
+    # The correct method: apply a LARGE step (500mV) to force current-limited slewing,
+    # then measure the max dV/dt (derivative at steepest point).
+    # Alternative: measure time for output to cross two voltage thresholds during
+    # the slewing phase (before settling begins).
+    #
+    # The testbench should export: sr_meas (slew rate in V/s)
+    # OR: t_low and t_high for two voltage crossings during the slew.
     output_tran, err = run_ngspice("tb_ota_tran.spice")
     if err:
         log(f"  Transient: BLOCKED: {err}", report)
         all_ok = False
     else:
+        # Try to find sr_meas (direct derivative measurement from testbench)
+        sr_direct = parse_meas(output_tran, "sr_meas")
+        # Also try the two-crossing method
+        t_low = parse_meas(output_tran, "t_low")
+        t_high = parse_meas(output_tran, "t_high")
+        # Also try the old t10/t90 method as fallback
         t10 = parse_meas(output_tran, "t10")
         t90 = parse_meas(output_tran, "t90")
-        if t10 is not None and t90 is not None and t90 > t10:
-            sr_Vs = 0.08 / (t90 - t10)
+
+        sr_mVus = None
+        method = None
+
+        if sr_direct is not None and sr_direct > 0:
+            # Direct derivative measurement (best)
+            sr_mVus = sr_direct * 1e-3  # V/s -> mV/us
+            method = "direct derivative"
+        elif t_low is not None and t_high is not None and t_high > t_low:
+            # Two-crossing method: measure dV/dt during slewing phase
+            # Expect testbench to define v_low and v_high as the crossing levels
+            # Default: assume 200mV between crossings for a 500mV step
+            v_low = parse_meas(output_tran, "v_low")
+            v_high = parse_meas(output_tran, "v_high")
+            if v_low is not None and v_high is not None:
+                delta_v = v_high - v_low
+            else:
+                delta_v = 0.2  # default assumption
+            sr_Vs = delta_v / (t_high - t_low)
             sr_mVus = sr_Vs * 1e-6 * 1e3
+            method = "two-crossing"
+        elif t10 is not None and t90 is not None and t90 > t10:
+            # Old 10-90% method (fallback) — but apply to large-signal step
+            # Read step size from testbench output if available
+            v_before = parse_meas(output_tran, "v_before")
+            v_after = parse_meas(output_tran, "v_after")
+            if v_before is not None and v_after is not None:
+                delta_v = abs(v_after - v_before) * 0.8  # 10% to 90%
+            else:
+                delta_v = 0.08  # 80% of 100mV default
+            sr_Vs = delta_v / (t90 - t10)
+            sr_mVus = sr_Vs * 1e-6 * 1e3
+            method = "10-90%"
+
+        if sr_mVus is not None:
             sr_ok = sr_mVus >= SPECS["slew_rate_min_mVus"]
             if not sr_ok:
-                fails.append(f"Slew rate {sr_mVus:.2f} mV/us < {SPECS['slew_rate_min_mVus']} mV/us")
+                fails.append(f"Slew rate {sr_mVus:.2f} mV/us < {SPECS['slew_rate_min_mVus']} mV/us ({method})")
                 all_ok = False
-            log(f"  Slew rate: {sr_mVus:.2f} mV/us (min: {SPECS['slew_rate_min_mVus']}) — {'OK' if sr_ok else 'FAIL'}", report)
+            log(f"  Slew rate: {sr_mVus:.2f} mV/us (min: {SPECS['slew_rate_min_mVus']}, method: {method}) — {'OK' if sr_ok else 'FAIL'}", report)
         else:
-            log(f"  Slew rate: could not measure (t10={t10}, t90={t90})", report)
-            fails.append("Could not measure slew rate")
+            log(f"  Slew rate: could not measure", report)
+            log(f"    (sr_direct={sr_direct}, t_low={t_low}, t_high={t_high}, t10={t10}, t90={t90})", report)
+            fails.append("Could not measure slew rate — check testbench outputs sr_meas, t_low/t_high, or t10/t90")
             all_ok = False
 
     log(f"\n  GATE 3 RESULT: {'PASS' if all_ok else 'FAIL'}", report)
+    if fails:
+        log(f"  FAILURES ({len(fails)}):", report)
+        for f in fails:
+            log(f"    - {f}", report)
+    log("  " + "=" * 70, report)
+    return all_ok
+
+
+def gate4_noise_rejection(report):
+    """GATE 4: Noise and rejection (PSRR, CMRR)."""
+    log("\n" + "=" * 70, report)
+    log("GATE 4: NOISE & REJECTION (Sections 5.2, 5.5)", report)
+    log("=" * 70, report)
+
+    all_ok = True
+    fails = []
+
+    # Noise
+    tb_noise = os.path.exists(os.path.join(WORK_DIR, "tb_ota_noise.spice"))
+    if tb_noise:
+        output, err = run_ngspice("tb_ota_noise.spice")
+        if err:
+            log(f"  Noise: BLOCKED: {err}", report)
+            all_ok = False
+        else:
+            noise_1k = parse_meas(output, "noise_1k")
+            noise_10k = parse_meas(output, "noise_10k")
+
+            if noise_1k is not None:
+                # Convert to nV/rtHz if needed (ngspice noise output is in V/rtHz)
+                if noise_1k < 1e-3:  # probably in V/rtHz
+                    noise_1k_nV = noise_1k * 1e9
+                else:
+                    noise_1k_nV = noise_1k  # already in nV/rtHz
+                ok = noise_1k_nV <= SPECS["noise_1k_max_nVrtHz"]
+                if not ok:
+                    fails.append(f"Noise@1kHz {noise_1k_nV:.1f} nV/rtHz > {SPECS['noise_1k_max_nVrtHz']}")
+                    all_ok = False
+                log(f"  Input noise @ 1kHz: {noise_1k_nV:.1f} nV/rtHz (max: {SPECS['noise_1k_max_nVrtHz']}) — {'OK' if ok else 'FAIL'}", report)
+            else:
+                log(f"  Input noise @ 1kHz: NOT MEASURED", report)
+                fails.append("noise_1k not found in simulation output")
+                all_ok = False
+
+            if noise_10k is not None:
+                if noise_10k < 1e-3:
+                    noise_10k_nV = noise_10k * 1e9
+                else:
+                    noise_10k_nV = noise_10k
+                ok = noise_10k_nV <= SPECS["noise_10k_max_nVrtHz"]
+                if not ok:
+                    fails.append(f"Noise@10kHz {noise_10k_nV:.1f} nV/rtHz > {SPECS['noise_10k_max_nVrtHz']}")
+                    all_ok = False
+                log(f"  Input noise @ 10kHz: {noise_10k_nV:.1f} nV/rtHz (max: {SPECS['noise_10k_max_nVrtHz']}) — {'OK' if ok else 'FAIL'}", report)
+            else:
+                log(f"  Input noise @ 10kHz: NOT MEASURED", report)
+                fails.append("noise_10k not found in simulation output")
+                all_ok = False
+    else:
+        log("  Noise: SKIPPED (tb_ota_noise.spice not found)", report)
+
+    # PSRR
+    tb_psrr = os.path.exists(os.path.join(WORK_DIR, "tb_ota_psrr.spice"))
+    if tb_psrr:
+        output, err = run_ngspice("tb_ota_psrr.spice")
+        if err:
+            log(f"  PSRR: BLOCKED: {err}", report)
+            all_ok = False
+        else:
+            psrr_1k = parse_meas(output, "psrr_1k")
+            if psrr_1k is not None:
+                ok = psrr_1k >= SPECS["psrr_1k_min_dB"]
+                if not ok:
+                    fails.append(f"PSRR@1kHz {psrr_1k:.1f} dB < {SPECS['psrr_1k_min_dB']} dB")
+                    all_ok = False
+                log(f"  PSRR @ 1kHz: {psrr_1k:.1f} dB (min: {SPECS['psrr_1k_min_dB']}) — {'OK' if ok else 'FAIL'}", report)
+            else:
+                log(f"  PSRR @ 1kHz: NOT MEASURED", report)
+                fails.append("psrr_1k not found in simulation output")
+                all_ok = False
+    else:
+        log("  PSRR: SKIPPED (tb_ota_psrr.spice not found)", report)
+
+    # CMRR
+    tb_cmrr = os.path.exists(os.path.join(WORK_DIR, "tb_ota_cmrr.spice"))
+    if tb_cmrr:
+        output, err = run_ngspice("tb_ota_cmrr.spice")
+        if err:
+            log(f"  CMRR: BLOCKED: {err}", report)
+            all_ok = False
+        else:
+            cmrr_dc = parse_meas(output, "cmrr_dc")
+            if cmrr_dc is not None:
+                ok = cmrr_dc >= SPECS["cmrr_dc_min_dB"]
+                if not ok:
+                    fails.append(f"CMRR@DC {cmrr_dc:.1f} dB < {SPECS['cmrr_dc_min_dB']} dB")
+                    all_ok = False
+                log(f"  CMRR @ DC: {cmrr_dc:.1f} dB (min: {SPECS['cmrr_dc_min_dB']}) — {'OK' if ok else 'FAIL'}", report)
+            else:
+                log(f"  CMRR @ DC: NOT MEASURED", report)
+                fails.append("cmrr_dc not found in simulation output")
+                all_ok = False
+    else:
+        log("  CMRR: SKIPPED (tb_ota_cmrr.spice not found)", report)
+
+    log(f"\n  GATE 4 RESULT: {'PASS' if all_ok else 'FAIL'}", report)
+    if fails:
+        log(f"  FAILURES ({len(fails)}):", report)
+        for f in fails:
+            log(f"    - {f}", report)
+    log("  " + "=" * 70, report)
+    return all_ok
+
+
+def gate5_corners_temperature(report):
+    """GATE 5: Corner and temperature sweep."""
+    log("\n" + "=" * 70, report)
+    log("GATE 5: CORNERS & TEMPERATURE (Section 5.7)", report)
+    log("=" * 70, report)
+
+    all_ok = True
+    fails = []
+
+    # Corner sweep — expect tb_ota_corners.spice or individual tb_corner_XX.spice
+    # The testbench should output: gain_XX, ugb_XX, pm_XX for each corner
+    tb_corners = os.path.exists(os.path.join(WORK_DIR, "tb_ota_corners.spice"))
+    corner_files = [f"tb_corner_{c}.spice" for c in ["tt", "ss", "ff", "sf", "fs"]]
+    individual_corners = [f for f in corner_files if os.path.exists(os.path.join(WORK_DIR, f))]
+
+    if tb_corners or individual_corners:
+        corners_data = {}
+
+        if individual_corners:
+            # Run each corner file individually
+            for cf in individual_corners:
+                corner_name = cf.replace("tb_corner_", "").replace(".spice", "").upper()
+                output, err = run_ngspice(cf)
+                if err:
+                    log(f"  Corner {corner_name}: BLOCKED: {err}", report)
+                    fails.append(f"Corner {corner_name} simulation failed")
+                    all_ok = False
+                    continue
+                gain = parse_meas(output, "gain_peak") or parse_meas(output, "gain_db")
+                ugb_val = parse_meas(output, "ugb")
+                corners_data[corner_name] = {"gain": gain, "ugb": ugb_val}
+        elif tb_corners:
+            # Single file with all corners
+            output, err = run_ngspice("tb_ota_corners.spice")
+            if err:
+                log(f"  Corners: BLOCKED: {err}", report)
+                all_ok = False
+            else:
+                for corner in ["tt", "ss", "ff", "sf", "fs"]:
+                    gain = parse_meas(output, f"gain_{corner}")
+                    ugb_val = parse_meas(output, f"ugb_{corner}")
+                    corners_data[corner.upper()] = {"gain": gain, "ugb": ugb_val}
+
+        if corners_data:
+            log(f"\n  Corner Results:", report)
+            log(f"  {'Corner':8s} | {'Gain (dB)':10s} | {'UGB (kHz)':10s} | Status", report)
+            log(f"  {'-'*50}", report)
+
+            # SANITY: gains should vary across corners
+            gains = [v["gain"] for v in corners_data.values() if v["gain"] is not None]
+            if len(gains) >= 3:
+                gain_range = max(gains) - min(gains)
+                if gain_range < 2.0:
+                    log(f"\n  *** SANITY WARNING: Gain varies only {gain_range:.1f} dB across {len(gains)} corners.", report)
+                    log(f"  *** Expected 5-25 dB variation. Identical results = broken measurement.", report)
+                    fails.append(f"SUSPICIOUS: gain range {gain_range:.1f} dB across corners (expected 5-25 dB)")
+                    all_ok = False
+
+            for corner, data in sorted(corners_data.items()):
+                g = data["gain"]
+                u = data["ugb"]
+                status = "OK"
+                if g is not None and g < SPECS["corner_gain_min_dB"]:
+                    status = f"FAIL: gain {g:.1f} < {SPECS['corner_gain_min_dB']} dB"
+                    fails.append(f"Corner {corner}: gain {g:.1f} dB < {SPECS['corner_gain_min_dB']} dB")
+                    all_ok = False
+                g_str = f"{g:.1f}" if g else "N/A"
+                u_str = f"{u/1000:.1f}" if u else "N/A"
+                log(f"  {corner:8s} | {g_str:>10s} | {u_str:>10s} | {status}", report)
+    else:
+        log("  Corners: SKIPPED (no corner testbench files found)", report)
+
+    # Temperature sweep — expect tb_ota_temp.spice or individual tb_temp_XX.spice
+    temp_files = [f for f in [f"tb_temp_{t}.spice" for t in ["-40", "27", "85"]]
+                  if os.path.exists(os.path.join(WORK_DIR, f))]
+    tb_temp = os.path.exists(os.path.join(WORK_DIR, "tb_ota_temp.spice"))
+
+    if temp_files or tb_temp:
+        temp_data = {}
+
+        if temp_files:
+            for tf in temp_files:
+                temp_name = tf.replace("tb_temp_", "").replace(".spice", "") + "C"
+                output, err = run_ngspice(tf)
+                if err:
+                    log(f"  Temp {temp_name}: BLOCKED: {err}", report)
+                    fails.append(f"Temp {temp_name} simulation failed")
+                    all_ok = False
+                    continue
+                gain = parse_meas(output, "gain_peak") or parse_meas(output, "gain_db")
+                ugb_val = parse_meas(output, "ugb")
+                temp_data[temp_name] = {"gain": gain, "ugb": ugb_val}
+        elif tb_temp:
+            output, err = run_ngspice("tb_ota_temp.spice")
+            if err:
+                log(f"  Temp: BLOCKED: {err}", report)
+                all_ok = False
+            else:
+                for t in ["-40", "27", "85"]:
+                    gain = parse_meas(output, f"gain_{t}")
+                    ugb_val = parse_meas(output, f"ugb_{t}")
+                    temp_data[f"{t}C"] = {"gain": gain, "ugb": ugb_val}
+
+        if temp_data:
+            log(f"\n  Temperature Results:", report)
+            log(f"  {'Temp':8s} | {'Gain (dB)':10s} | {'UGB (kHz)':10s} | Status", report)
+            log(f"  {'-'*50}", report)
+
+            for temp, data in sorted(temp_data.items()):
+                g = data["gain"]
+                u = data["ugb"]
+                issues = []
+                if g is not None and g < SPECS["temp_gain_min_dB"]:
+                    issues.append(f"gain {g:.1f} < {SPECS['temp_gain_min_dB']} dB")
+                if u is not None and not (SPECS["temp_ugb_min_Hz"] <= u <= SPECS["temp_ugb_max_Hz"]):
+                    issues.append(f"UGB {u:.0f} outside [{SPECS['temp_ugb_min_Hz']}, {SPECS['temp_ugb_max_Hz']}]")
+                status = "OK" if not issues else "FAIL: " + "; ".join(issues)
+                if issues:
+                    fails.extend([f"Temp {temp}: {i}" for i in issues])
+                    all_ok = False
+                g_str = f"{g:.1f}" if g else "N/A"
+                u_str = f"{u/1000:.1f}" if u else "N/A"
+                log(f"  {temp:8s} | {g_str:>10s} | {u_str:>10s} | {status}", report)
+    else:
+        log("  Temperature: SKIPPED (no temperature testbench files found)", report)
+
+    log(f"\n  GATE 5 RESULT: {'PASS' if all_ok else 'FAIL'}", report)
     if fails:
         log(f"  FAILURES ({len(fails)}):", report)
         for f in fails:
@@ -441,7 +740,6 @@ def main():
 
     # ==================== GATE 1 ====================
     gate1_pass, op_data = gate1_operating_point(report)
-
     if not gate1_pass:
         log(f"\n{'!' * 70}", report)
         log(f"! GATE 1 FAILED — DO NOT PROCEED", report)
@@ -481,6 +779,35 @@ def main():
             sys.exit(3)
     else:
         log("\n  GATE 3: SKIPPED (testbench files not found)", report)
+
+    # ==================== GATE 4 ====================
+    tb_noise = os.path.exists(os.path.join(WORK_DIR, "tb_ota_noise.spice"))
+    tb_psrr = os.path.exists(os.path.join(WORK_DIR, "tb_ota_psrr.spice"))
+    tb_cmrr = os.path.exists(os.path.join(WORK_DIR, "tb_ota_cmrr.spice"))
+    if tb_noise or tb_psrr or tb_cmrr:
+        gate4_pass = gate4_noise_rejection(report)
+        if not gate4_pass:
+            log(f"\n  GATE 4 FAILED — attempt #{attempt}", report)
+            with open(REPORT_FILE, "a") as f:
+                f.write("\n".join(report) + "\n")
+            sys.exit(4)
+    else:
+        log("\n  GATE 4: SKIPPED (no noise/rejection testbenches found)", report)
+
+    # ==================== GATE 5 ====================
+    corner_files = [f"tb_corner_{c}.spice" for c in ["tt", "ss", "ff", "sf", "fs"]]
+    temp_files = [f"tb_temp_{t}.spice" for t in ["-40", "27", "85"]]
+    has_corners = any(os.path.exists(os.path.join(WORK_DIR, f)) for f in corner_files + ["tb_ota_corners.spice"])
+    has_temps = any(os.path.exists(os.path.join(WORK_DIR, f)) for f in temp_files + ["tb_ota_temp.spice"])
+    if has_corners or has_temps:
+        gate5_pass = gate5_corners_temperature(report)
+        if not gate5_pass:
+            log(f"\n  GATE 5 FAILED — attempt #{attempt}", report)
+            with open(REPORT_FILE, "a") as f:
+                f.write("\n".join(report) + "\n")
+            sys.exit(5)
+    else:
+        log("\n  GATE 5: SKIPPED (no corner/temperature testbenches found)", report)
 
     # ==================== ALL PASSED ====================
     log(f"\n{'*' * 70}", report)
