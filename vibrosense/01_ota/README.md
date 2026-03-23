@@ -178,7 +178,12 @@ All 13 transistors verified in saturation with adequate overdrive voltage:
 | Unity-gain bandwidth | 30,000 | **33,700** | Hz |
 | Phase margin | 55 | **89.2** | deg |
 
-The Bode plot confirms a clean single-pole roll-off with the dominant pole near 30 Hz (f_p1 = gm1 / (2*pi*Rout*CL)). The high phase margin (89.2 deg) indicates robust stability with 10 pF load — the non-dominant pole is well above the UGB.
+The Bode plot shows the **signal band (100 Hz - 10 kHz)** highlighted in green:
+- **50.5 dB** open-loop gain at 100 Hz (lower band edge)
+- **30.6 dB** at 1 kHz (band center)
+- **10.8 dB** at 10 kHz (upper band edge)
+
+The dominant pole is near 30 Hz. The high phase margin (89.2 deg) indicates robust stability — the non-dominant pole is well above the UGB.
 
 ### 3.3 DC Transfer Characteristic
 
@@ -202,12 +207,14 @@ Slew rate measured using the derivative method on a 500 mV step (large-signal, c
 
 ### 3.5 Rejection
 
+![PSRR and CMRR](report_rejection.png)
+
 | Parameter | Min Spec | Measured | Unit |
 |-----------|---------|----------|------|
-| PSRR @ 1 kHz | 50 | **70.5** | dB |
-| CMRR @ DC | 60 | **80.5** | dB |
+| PSRR @ 1 kHz | 50 | **73.7** | dB |
+| CMRR @ DC | 60 | **82.3** | dB |
 
-PSRR is enhanced by VDD-tracking bias for the PMOS devices (Vbp and Vbcp referenced to VDD), ensuring that supply variations modulate the bias symmetrically.
+PSRR exceeds 50 dB across the entire signal band and remains above 70 dB at 1 kHz. CMRR is 82.3 dB at DC, rolling off at higher frequencies as expected. Both plots show the signal band (100 Hz - 10 kHz) highlighted. PSRR is enhanced by VDD-tracking bias for the PMOS devices.
 
 ### 3.6 Process Corner Analysis
 
@@ -235,6 +242,18 @@ Gain varies 7.9 dB across corners (61.4 to 69.3 dB), consistent with expected pr
 | 85 C | 64.8 | 29.2 | PASS |
 
 Gain decreases 5.2 dB from -40 C to 85 C — expected behavior due to mobility degradation and increased gds at high temperature.
+
+### 3.8 Input Symmetry Verification
+
+![Input Symmetry](report_symmetry.png)
+
+The gain through the non-inverting input (Vinp) and inverting input (Vinn) paths was measured independently. Both paths show identical gain magnitude, confirming the circuit's differential symmetry. The inverting path produces a phase-inverted output as expected.
+
+### 3.9 Specification Dashboard
+
+![Dashboard](report_dashboard.png)
+
+All 8 key specifications shown with their measured values (green bars) against minimum thresholds (red dashed lines). Every spec passes with margin.
 
 ---
 
