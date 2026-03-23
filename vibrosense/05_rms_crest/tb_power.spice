@@ -1,0 +1,16 @@
+* Power Measurement
+.include design.cir
+VDD vdd gnd 1.8
+VSS vss gnd 0
+Vreset reset gnd 0
+Vin inp gnd SIN(0.9 0.1 1k)
+Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+.ic V(rms_out)=0.9 V(peak_out)=0.9
+.options reltol=1e-3
+.tran 10u 50m uic
+.control
+run
+wrdata tb_power.csv i(VDD)
+quit
+.endc
+.end

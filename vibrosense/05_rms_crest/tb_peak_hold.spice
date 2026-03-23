@@ -1,0 +1,19 @@
+* Peak Hold Time Test
+.include design.cir
+VDD vdd gnd 1.8
+VSS vss gnd 0
+* Reset for 1ms at startup
+Vreset reset gnd PULSE(0 1.8 0 1n 1n 1m 1k)
+* Input: 10 cycles of 1kHz sine (10ms burst), then constant Vcm
+Venv env gnd PWL(0 0 1m 0 1.5m 0.1 11m 0.1 11.5m 0 100 0)
+Bvin inp gnd V = 0.9 + V(env)*sin(2*3.14159*1000*time)
+Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+.ic V(rms_out)=0.9 V(peak_out)=0.9
+.options reltol=1e-4
+.tran 100u 2 uic
+.control
+run
+wrdata tb_peak_hold.csv v(peak_out) v(inp)
+quit
+.endc
+.end

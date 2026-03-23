@@ -1,0 +1,16 @@
+* Crest Factor - Impulse 1% duty (CF~10)
+.include design.cir
+VDD vdd gnd 1.8
+VSS vss gnd 0
+Vreset reset gnd PULSE(0 1.8 0 1n 1n 1m 1k)
+Vin inp gnd PULSE(0.9 1.0 0 1u 1u 10u 1m)
+Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+.ic V(rms_out)=0.9 V(peak_out)=0.9
+.options reltol=1e-3
+.tran 1u 500m uic
+.control
+run
+wrdata tb_cf_impulse.csv v(rms_out) v(peak_out) v(inp)
+quit
+.endc
+.end

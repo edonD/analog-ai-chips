@@ -1,0 +1,16 @@
+* RMS Linearity Test - Amp=0.5
+.include design.cir
+VDD vdd gnd 1.8
+VSS vss gnd 0
+Vreset reset gnd PULSE(0 1.8 0 1n 1n 1m 1k)
+Vin inp gnd SIN(0.9 0.5 1k)
+Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+.ic V(rms_out)=0.9 V(peak_out)=0.9
+.options reltol=1e-3
+.tran 10u 300m uic
+.control
+run
+wrdata tb_rms_lin_0.500.csv v(rms_out)
+quit
+.endc
+.end

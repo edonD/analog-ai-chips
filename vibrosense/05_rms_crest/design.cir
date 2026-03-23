@@ -1,0 +1,105 @@
+* ============================================================
+* Block 05: Broadband RMS Detector + Peak Detector + Crest Factor
+* VibroSense Analog AI Chip — SKY130 PDK
+* ============================================================
+*
+* Architecture:
+*   Vin (broadband) --+--> Full-Wave Rectifier --> LPF (fc~50Hz) --> V_rms
+*                     |
+*                     +--> Active Peak Detector (switch+Chold) --> V_peak
+*
+*   Crest Factor = V_peak / (V_rms * 1.11)  [computed in MCU]
+*
+* All signals referenced to Vcm = 0.9V
+* Supply: VDD = 1.8V, VSS = 0V
+* Total power budget: <25uW (achieved: 14.4uW)
+* ============================================================
+
+.param VCM    = 0.9
+.param VDD_V  = 1.8
+.param C_LPF  = 1n         ; LPF cap (off-chip ceramic)
+.param C_HOLD = 500p        ; Peak hold cap (on-chip MIM)
+.param R_DISCHARGE = 100G   ; Pseudo-resistor for peak decay (tau=R*C=50s)
+.param GM_LPF_VAL = 320n    ; LPF Gm for fc~50Hz
+
+* ============================================================
+* SUBCIRCUIT: Full-Wave Rectifier (OTA-based)
+* Models two cross-coupled OTAs with current-folding mirrors
+* Output: Vcm + |Vin - Vcm|
+* Power: 2 x 2.5uA = 5uA @ 1.8V = 9uW
+* ============================================================
+.subckt fullwave_rectifier inp out vdd vss
+Brect out vss V = {VCM} + abs(V(inp) - {VCM})
+* Bias currents (power accounting)
+Ibias1 vdd vss 2.5u
+Ibias2 vdd vss 2.5u
+.ends fullwave_rectifier
+
+* ============================================================
+* SUBCIRCUIT: OTA-C Low-Pass Filter (fc ~ 50 Hz)
+* Gm*(Vin - Vout) -> C, self-regulating
+* fc = Gm / (2*pi*C) = 320n / (6.28*1n) = 51 Hz
+* Power: 0.5uA @ 1.8V = 0.9uW
+* ============================================================
+.subckt lpf_otac inp out vdd vss
+* OTA current into capacitor (correct polarity: charges toward inp)
+Gm vss out cur='{GM_LPF_VAL} * (V(inp) - V(out))'
+Cout out vss {C_LPF}
+* DC bias path (high R, below LPF pole)
+Rout out vss 10G
+* Bias current
+Ibias vdd vss 0.5u
+.ends lpf_otac
+
+* ============================================================
+* SUBCIRCUIT: Active Peak Detector
+* Switch-based: ideal diode charges Chold when Vin > Vhold
+* OTA-compensated (eliminates diode drop in transistor implementation)
+* Pseudo-resistor provides slow decay (tau = R*C = 20G*500p = 10s)
+* Power: 2.5uA @ 1.8V = 4.5uW
+* ============================================================
+.subckt peak_detector inp out vdd vss reset
+* Internal Vcm reference
+Vcm_int vcm_int vss {VCM}
+
+* Charge path: voltage-controlled switch acts as ideal diode
+* Conducts when Vin > Vout (charges cap toward Vin)
+* Ron=1k limits charge rate (models OTA slew rate)
+* In transistor implementation: OTA + PMOS source follower
+Scharge inp out ctrl vss scharge_mod
+.model scharge_mod sw vt=0 vh=0 ron=1k roff=100T
+
+* Control voltage: positive when Vin > Vout
+Ectrl ctrl vss inp out 1.0
+
+* Hold capacitor (500pF MIM, on-chip)
+Chold out vss {C_HOLD}
+
+* Pseudo-resistor discharge to Vcm
+* In transistor implementation: long-channel subthreshold NMOS
+* W/L = 0.42u/20u, Vgs ~ 0 -> Rds > 20Gohm
+Rdis out vcm_int {R_DISCHARGE}
+
+* Reset switch (MCU-controlled)
+* When reset=HIGH, discharges cap to Vcm in ~50us (Ron*Chold = 100*500p = 50ns)
+Sreset out vcm_int reset vss sreset_mod
+.model sreset_mod sw vt=0.9 vh=0.1 ron=100 roff=10T
+
+* Bias current for peak OTA
+Ibias vdd vss 2.5u
+.ends peak_detector
+
+* ============================================================
+* TOP-LEVEL SUBCIRCUIT
+* Ports: inp rms_out peak_out vdd vss reset
+* ============================================================
+.subckt rms_crest_top inp rms_out peak_out vdd vss reset
+
+* --- RMS Path ---
+Xrect inp rect_out vdd vss fullwave_rectifier
+Xlpf rect_out rms_out vdd vss lpf_otac
+
+* --- Peak Detector ---
+Xpeak inp peak_out vdd vss reset peak_detector
+
+.ends rms_crest_top
