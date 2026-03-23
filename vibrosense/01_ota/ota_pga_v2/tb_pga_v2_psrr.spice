@@ -1,22 +1,20 @@
 * TB: PGA OTA v2 PSRR — Power Supply Rejection Ratio
-* Open-loop measurement with loop-breaking
+* Two-step measurement: (1) differential gain at 1kHz, (2) VDD-to-output gain at 1kHz
+* PSRR = Adm(1kHz) - Avdd(1kHz) in dB
 .option scale=1e-6
 .lib "sky130_minimal_v2.lib.spice" tt
 .include "ota_pga_v2.spice"
 
-* AC stimulus on VDD
-Vdd vdd 0 dc 1.8 ac 1
-
-* NMOS biases: ground-referenced (no supply coupling)
+Vdd vdd 0 dc 1.8
 Vbn  vbn  0 dc 0.65
 Vbcn vbcn 0 dc 0.88
 Vbp  vbp  0 dc 0.73
 Vbcp vbcp 0 dc 0.475
 
-* No AC on signal input (inn = non-inverting)
-Vinn inn 0 dc 0.9
+* AC on non-inverting input (step 1: measure diff gain)
+Vinn inn 0 dc 0.9 ac 1
 
-* Loop-breaking: out → inp (inverting)
+* Loop-breaking: out -> inp (inverting)
 Lbreak out inp 1G
 Cdc inp 0 1
 
@@ -28,16 +26,24 @@ CL out 0 10p
 .control
 run
 
-* VDD-to-output gain at 1kHz
+* Step 1: differential gain at 1kHz
+meas ac adm_1k FIND vdb(out) AT=1000
+
+* Save to shell variable (persists across reset)
+set adm_saved = "$&adm_1k"
+
+* Step 2: VDD-to-output gain
+reset
+alter Vinn ac = 0
+alter Vdd ac = 1
+run
+
 meas ac avdd_1k FIND vdb(out) AT=1000
 
-* Measure actual differential gain at 1kHz from a separate run
-* UGB ~ 420 kHz, so gain at 1kHz ~ 20*log10(420000/1000) ~ 52.5 dB
-* Use slightly conservative 52 dB
-let adm_1k = 52.0
+* Compute PSRR
+let psrr = $adm_saved - avdd_1k
 
-let psrr = adm_1k - avdd_1k
-
+echo "adm_1k = $adm_saved"
 echo "avdd_1k = $&avdd_1k"
 echo "psrr_1k = $&psrr"
 

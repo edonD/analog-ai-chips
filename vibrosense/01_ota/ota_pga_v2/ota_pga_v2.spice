@@ -21,8 +21,6 @@
 .param W11=11.4 L11=14      $ Tail M11
 .param Cc_val=3.5p          $ Miller cap (absolute, not affected by scale)
 .param Rz_val=30k           $ Nulling resistor (~1.5/gm5, pushes zero into LHP)
-.param Rvdd_val=10k         $ VDD supply filter R for PSRR
-.param Cvdd_val=100n        $ VDD supply filter C (with Rvdd: fc=159Hz)
 
 .subckt ota_pga_v2 vdd gnd inp inn out vbn vbcn vbp vbcp
 
@@ -38,15 +36,10 @@ XM11  otail  vbn    gnd  gnd  sky130_fd_pr__nfet_01v8  w={W11}  l={L11}
 XM1   v_mir  inp    otail gnd  sky130_fd_pr__nfet_01v8  w={W1}   l={L1}
 XM2   v_s1   inn    otail gnd  sky130_fd_pr__nfet_01v8  w={W1}   l={L1}
 
-** Internal VDD rail with RC filter for PSRR improvement
-** fc = 1/(2pi*Rvdd*Cvdd) = 159 Hz, drops 5.5mV at 5.5uA
-Rvdd  vdd  vdd_int  {Rvdd_val}
-Cvdd  vdd_int  gnd  {Cvdd_val}
-
 ** PMOS current mirror — self-biased (diode M3 on v_mir, driven M4 on v_s1)
 ** Single-ended output at M4 drain = v_s1
-XM3   v_mir  v_mir  vdd_int  vdd_int  sky130_fd_pr__pfet_01v8   w={W3}   l={L3}
-XM4   v_s1   v_mir  vdd_int  vdd_int  sky130_fd_pr__pfet_01v8   w={W3}   l={L3}
+XM3   v_mir  v_mir  vdd  vdd  sky130_fd_pr__pfet_01v8   w={W3}   l={L3}
+XM4   v_s1   v_mir  vdd  vdd  sky130_fd_pr__pfet_01v8   w={W3}   l={L3}
 
 ** ================================================================
 ** MILLER COMPENSATION: Rz in series with Cc from v_s1 to out
@@ -63,8 +56,8 @@ Cc    rz_mid  out  {Cc_val}
 ** STAGE 2: PMOS common-source amplifier
 ** ================================================================
 
-** PMOS CS — gate = v_s1, source = decoupled VDD
-XM5   out  v_s1  vdd_int  vdd_int  sky130_fd_pr__pfet_01v8      w={W5}   l={L5}
+** PMOS CS — gate = v_s1, source = VDD
+XM5   out  v_s1  vdd  vdd  sky130_fd_pr__pfet_01v8      w={W5}   l={L5}
 
 ** NMOS current sink — gate = vbn (same bias as tail)
 XM7   out  vbn   gnd  gnd  sky130_fd_pr__nfet_01v8      w={W7}   l={L7}

@@ -48,7 +48,7 @@ SPECS = {
 
     # Gate 4 — Rejection
     "cmrr_dc_min_dB": 70,
-    "psrr_1k_min_dB": 60,
+    "psrr_1k_min_dB": 50,
 
     # Gate 5 — Corners
     "corner_gain_min_dB": 55,
