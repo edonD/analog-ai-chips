@@ -1,0 +1,141 @@
+** tb_widlar3.spice — Widlar variant with standard PMOS + higher K
+** Standard PMOS has |Vth|=1.06V → weak inversion → high ro → better mirror
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** ===== Config A: Widlar, std PMOS W=4 L=4, K=4 =====
+** M1 wider with R1, M2 narrower source=gnd
+XM3a nba nba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4a outa nba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1a nba nba srca 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1a srca 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM2a outa nba 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM7a irefa nba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLa irefa 0 0.9
+
+** ===== Config B: Widlar, std PMOS W=4 L=4, K=16 =====
+XM3b nbb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4b outb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1b nbb nbb srcb 0 sky130_fd_pr__nfet_01v8 w=8 l=8
+XR1b srcb 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM2b outb nbb 0 0 sky130_fd_pr__nfet_01v8 w=0.5 l=8
+XM7b irefb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLb irefb 0 0.9
+
+** ===== Config C: Widlar, std PMOS W=4 L=8 (longer L), K=4 =====
+XM3c nbc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=8
+XM4c outc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=8
+XM1c nbc nbc srcc 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1c srcc 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM2c outc nbc 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM7c irefc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=8
+VLc irefc 0 0.9
+
+** ===== Config D: Standard beta-mult (R1 on M2) with std PMOS W=4 L=8 =====
+XM3d nbd nbd vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=8
+XM4d outd nbd vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=8
+XM1d nbd nbd 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM2d outd nbd srcd 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1d srcd 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7d irefd nbd vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=8
+VLd irefd 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nba)=0.7 v(nbb)=0.7 v(nbc)=0.7 v(nbd)=0.7
+
+.control
+    op
+    echo "=== Config A: Widlar, std PMOS W=4 L=4, K=4 ==="
+    let ia = abs(@m.xm7a.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "Iref=$&ia nA nbias=$&v(nba) out_n=$&v(outa) src=$&v(srca)"
+    echo "M2_Vds=$&@m.xm2a.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2a = @m.xm2a.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2a.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2_Vov=$&vov2a"
+    echo "M4_Vds=$&@m.xm4a.msky130_fd_pr__pfet_01v8[vds]"
+    let pov_a = abs(@m.xm3a.msky130_fd_pr__pfet_01v8[vgs]) - abs(@m.xm3a.msky130_fd_pr__pfet_01v8[vth])
+    echo "PMOS_Vov=$&pov_a"
+    let i1a = abs(@m.xm1a.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2a = abs(@m.xm2a.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1=$&i1a M2=$&i2a"
+
+    echo ""
+    echo "=== Config B: Widlar, std PMOS W=4 L=4, K=16 ==="
+    let ib = abs(@m.xm7b.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "Iref=$&ib nA nbias=$&v(nbb) out_n=$&v(outb) src=$&v(srcb)"
+    echo "M2_Vds=$&@m.xm2b.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2b = @m.xm2b.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2b.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2_Vov=$&vov2b"
+    echo "M4_Vds=$&@m.xm4b.msky130_fd_pr__pfet_01v8[vds]"
+    let i1b = abs(@m.xm1b.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2b = abs(@m.xm2b.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1=$&i1b M2=$&i2b"
+
+    echo ""
+    echo "=== Config C: Widlar, std PMOS W=4 L=8, K=4 ==="
+    let ic = abs(@m.xm7c.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "Iref=$&ic nA nbias=$&v(nbc) out_n=$&v(outc) src=$&v(srcc)"
+    echo "M2_Vds=$&@m.xm2c.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2c = @m.xm2c.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2c.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2_Vov=$&vov2c"
+    echo "M4_Vds=$&@m.xm4c.msky130_fd_pr__pfet_01v8[vds]"
+    let pov_c = abs(@m.xm3c.msky130_fd_pr__pfet_01v8[vgs]) - abs(@m.xm3c.msky130_fd_pr__pfet_01v8[vth])
+    echo "PMOS_Vov=$&pov_c"
+    let i1c = abs(@m.xm1c.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2c = abs(@m.xm2c.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1=$&i1c M2=$&i2c"
+
+    echo ""
+    echo "=== Config D: Standard beta-mult, std PMOS W=4 L=8 ==="
+    let id_val = abs(@m.xm7d.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "Iref=$&id_val nA nbias=$&v(nbd) out_n=$&v(outd) src=$&v(srcd)"
+    echo "M2_Vds=$&@m.xm2d.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2d = @m.xm2d.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2d.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2_Vov=$&vov2d"
+    echo "M4_Vds=$&@m.xm4d.msky130_fd_pr__pfet_01v8[vds]"
+    let i1d = abs(@m.xm1d.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2d = abs(@m.xm2d.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1=$&i1d M2=$&i2d"
+
+    ** VDD sweep for all configs
+    echo ""
+    echo "=== VDD Sweep Config A (Widlar K=4 std PMOS L=4) ==="
+    foreach vdd_val 1.4 1.6 1.8 2.0 2.2
+        alter Vdd = $vdd_val
+        op
+        let iv = abs(@m.xm7a.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "VDD=$vdd_val Iref=$&iv out_n=$&v(outa)"
+    end
+
+    echo ""
+    echo "=== VDD Sweep Config B (Widlar K=16 std PMOS L=4) ==="
+    foreach vdd_val 1.4 1.6 1.8 2.0 2.2
+        alter Vdd = $vdd_val
+        op
+        let iv = abs(@m.xm7b.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "VDD=$vdd_val Iref=$&iv out_n=$&v(outb)"
+    end
+
+    echo ""
+    echo "=== VDD Sweep Config C (Widlar K=4 std PMOS L=8) ==="
+    foreach vdd_val 1.4 1.6 1.8 2.0 2.2
+        alter Vdd = $vdd_val
+        op
+        let iv = abs(@m.xm7c.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "VDD=$vdd_val Iref=$&iv out_n=$&v(outc)"
+    end
+
+    echo ""
+    echo "=== VDD Sweep Config D (Standard beta-mult std PMOS L=8) ==="
+    foreach vdd_val 1.4 1.6 1.8 2.0 2.2
+        alter Vdd = $vdd_val
+        op
+        let iv = abs(@m.xm7d.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "VDD=$vdd_val Iref=$&iv out_n=$&v(outd)"
+    end
+.endc
+
+.end

@@ -1,0 +1,104 @@
+** tb_widlar2.spice — Widlar variant with wider PMOS + VDD sweep
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Widlar: R1 on M1 (wider), M2 narrower, source to gnd
+** LVT PMOS W=1 L=8 (wider for lower Vov, better mirror matching)
+
+XM3 nbias nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=1 l=8
+XM4 out_n nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=1 l=8
+XM1 nbias nbias src_m1 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1 src_m1 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM2 out_n nbias 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM7 iref_out nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=1 l=8
+Vload iref_out 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nbias)=0.65
+
+.control
+    op
+    echo "=== DC Operating Point ==="
+    let iref = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "Iref = $&iref nA"
+    echo "nbias = $&v(nbias)"
+    echo "out_n = $&v(out_n)"
+    echo "src_m1 = $&v(src_m1)"
+    let i1 = abs(@m.xm1.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2 = abs(@m.xm2.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1 Id = $&i1 nA"
+    echo "M2 Id = $&i2 nA"
+    echo "M2 Vds = $&@m.xm2.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2 = @m.xm2.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2 Vov = $&vov2"
+    let sat2 = @m.xm2.msky130_fd_pr__nfet_01v8[vds] - vov2
+    echo "M2 sat margin = $&sat2"
+    echo "M3 Vds = $&@m.xm3.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    echo "M4 Vds = $&@m.xm4.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    let pmos_od = abs(@m.xm3.msky130_fd_pr__pfet_01v8_lvt[vgs]) - abs(@m.xm3.msky130_fd_pr__pfet_01v8_lvt[vth])
+    echo "PMOS overdrive = $&pmos_od"
+    let power = abs(i(Vdd)) * 1.8 * 1e6
+    echo "Power = $&power uW"
+
+    ** ===== VDD Sweep =====
+    echo ""
+    echo "=== VDD Sweep ==="
+    foreach vdd_val 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2
+        alter Vdd = $vdd_val
+        op
+        let iref_v = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+        let m2vds = @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+        echo "VDD=$vdd_val Iref=$&iref_v nA out_n=$&v(out_n) M2_Vds=$&m2vds"
+    end
+
+    ** Supply sensitivity
+    alter Vdd = 1.6
+    op
+    let iref_1p6 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    alter Vdd = 1.8
+    op
+    let iref_1p8 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    alter Vdd = 2.0
+    op
+    let iref_2p0 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    let supply_sens = abs(iref_2p0 - iref_1p6) / iref_1p8 / 0.4 * 100
+    let i16 = iref_1p6 * 1e9
+    let i18 = iref_1p8 * 1e9
+    let i20 = iref_2p0 * 1e9
+    echo ""
+    echo "=== Supply Sensitivity ==="
+    echo "Iref@1.6V = $&i16 nA"
+    echo "Iref@1.8V = $&i18 nA"
+    echo "Iref@2.0V = $&i20 nA"
+    echo "Supply sensitivity = $&supply_sens %/V"
+
+    ** ===== Temperature Sweep =====
+    echo ""
+    echo "=== Temperature Sweep ==="
+    alter Vdd = 1.8
+    set temp = -40
+    op
+    let iref_m40 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=-40C Iref=$&iref_m40 nA"
+    set temp = 0
+    op
+    let iref_0 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=0C Iref=$&iref_0 nA"
+    set temp = 27
+    op
+    let iref_27 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=27C Iref=$&iref_27 nA"
+    set temp = 85
+    op
+    let iref_85 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=85C Iref=$&iref_85 nA"
+
+    let tc_ppm = (iref_85 - iref_m40) / iref_27 / 125 * 1e6
+    echo "TC = $&tc_ppm ppm/C (using max-min/125)"
+.endc
+
+.end

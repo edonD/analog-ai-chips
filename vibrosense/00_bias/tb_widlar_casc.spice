@@ -1,0 +1,149 @@
+** tb_widlar_casc.spice — Widlar + LVT PMOS cascode mirror
+** PMOS cascode with gate=nbias forces V(out_n) ≈ V(nbias)
+** This equalizes M3/M4 Vds and gets M2 saturated
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** ===== PMOS Cascode Mirror (LVT) =====
+** Input side:
+**   M3: source=VDD, gate=nbias, drain=mid3
+**   Mc3: source=mid3, gate=nbias, drain=nbias (diode-connected)
+** Output side:
+**   M4: source=VDD, gate=nbias, drain=pmid
+**   Mc4: source=pmid, gate=nbias, drain=out_n
+
+XM3  mid3  nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XMc3 nbias nbias mid3 vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4  pmid  nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XMc4 out_n nbias pmid vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+
+** ===== NMOS Widlar pair =====
+** M1: wider (K=4), diode-connected, R1 on source
+XM1 nbias nbias src_m1 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1 src_m1 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+
+** M2: narrower, source directly to ground
+XM2 out_n nbias 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+
+** ===== Output Mirror =====
+XM7 iref_out nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+Vload iref_out 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nbias)=0.7 v(out_n)=0.7
+
+.control
+    op
+    echo "==========================================="
+    echo "=== DC Operating Point ==="
+    echo "==========================================="
+    let iref = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "Iref = $&iref nA"
+    echo "nbias = $&v(nbias)"
+    echo "out_n = $&v(out_n)"
+    echo "mid3 = $&v(mid3)"
+    echo "pmid = $&v(pmid)"
+    echo "src_m1 = $&v(src_m1)"
+
+    let i1 = abs(@m.xm1.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2 = abs(@m.xm2.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1 Id = $&i1 nA"
+    echo "M2 Id = $&i2 nA"
+    echo "Mirror match = M1/M2 ratio"
+
+    echo ""
+    echo "--- M2 saturation check ---"
+    echo "M2 Vds = $&@m.xm2.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2 = @m.xm2.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2 Vov = $&vov2"
+    let sat2 = @m.xm2.msky130_fd_pr__nfet_01v8[vds] - vov2
+    echo "M2 sat margin = $&sat2"
+
+    echo ""
+    echo "--- PMOS saturation check ---"
+    echo "M3 Vds = $&@m.xm3.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    echo "M4 Vds = $&@m.xm4.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    echo "Mc3 Vds = $&@m.xmc3.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    echo "Mc4 Vds = $&@m.xmc4.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    let pov = abs(@m.xm3.msky130_fd_pr__pfet_01v8_lvt[vgs]) - abs(@m.xm3.msky130_fd_pr__pfet_01v8_lvt[vth])
+    echo "PMOS Vov = $&pov"
+
+    let power = abs(i(Vdd)) * 1.8 * 1e6
+    echo "Power = $&power uW"
+
+    ** ===== VDD Sweep =====
+    echo ""
+    echo "==========================================="
+    echo "=== VDD Sweep ==="
+    echo "==========================================="
+    foreach vdd_val 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2
+        alter Vdd = $vdd_val
+        op
+        let iv = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+        let m2vds = @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+        let m4vds = @m.xm4.msky130_fd_pr__pfet_01v8_lvt[vds]
+        echo "VDD=$vdd_val Iref=$&iv nA out_n=$&v(out_n) M2_Vds=$&m2vds M4_Vds=$&m4vds"
+    end
+
+    ** Supply sensitivity
+    alter Vdd = 1.6
+    op
+    let iref_1p6 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    alter Vdd = 1.8
+    op
+    let iref_1p8 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    alter Vdd = 2.0
+    op
+    let iref_2p0 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    let supply_sens = abs(iref_2p0 - iref_1p6) / iref_1p8 / 0.4 * 100
+    let i16 = iref_1p6 * 1e9
+    let i18 = iref_1p8 * 1e9
+    let i20 = iref_2p0 * 1e9
+    echo ""
+    echo ">>> Supply sensitivity ==="
+    echo "Iref@1.6V = $&i16 nA"
+    echo "Iref@1.8V = $&i18 nA"
+    echo "Iref@2.0V = $&i20 nA"
+    echo "Supply sensitivity = $&supply_sens %/V"
+
+    ** ===== Temperature Sweep =====
+    echo ""
+    echo "==========================================="
+    echo "=== Temperature Sweep ==="
+    echo "==========================================="
+    alter Vdd = 1.8
+    set temp = -40
+    op
+    let iref_m40 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=-40C Iref=$&iref_m40 nA"
+    set temp = 0
+    op
+    let iref_0 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=0C Iref=$&iref_0 nA"
+    set temp = 27
+    op
+    let iref_27 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=27C Iref=$&iref_27 nA"
+    set temp = 85
+    op
+    let iref_85 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=85C Iref=$&iref_85 nA"
+
+    let tc_ppm = abs(iref_85 - iref_m40) / iref_27 / 125 * 1e6
+    echo "TC = $&tc_ppm ppm/C"
+
+    ** ===== R1 Sensitivity =====
+    echo ""
+    echo "==========================================="
+    echo "=== R1 Sensitivity (verify regulation) ==="
+    echo "==========================================="
+    set temp = 27
+    echo "Baseline R1: l=21 (~155kohm)"
+    echo "Will now check if changing R1 changes Iref"
+.endc
+
+.end

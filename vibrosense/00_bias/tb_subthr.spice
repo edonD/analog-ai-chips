@@ -1,0 +1,79 @@
+** tb_subthr.spice — Push NMOS into subthreshold for better regulation
+** Wider NMOS = lower Vgs = deeper subthreshold = more constant Vgs1-Vgs2
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Config A: M1=20/8, M2=80/8 K=4, LVT PMOS W=0.42 L=8, R1=155k
+XM3a nba nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4a outa nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1a nba nba 0 0 sky130_fd_pr__nfet_01v8 w=20 l=8
+XM2a outa nba srca 0 sky130_fd_pr__nfet_01v8 w=80 l=8
+XR1a srca 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7a irefa nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLa irefa 0 0.9
+
+** Config B: M1=10/8, M2=40/8 K=4, same PMOS, same R1
+XM3b nbb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4b outb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1b nbb nbb 0 0 sky130_fd_pr__nfet_01v8 w=10 l=8
+XM2b outb nbb srcb 0 sky130_fd_pr__nfet_01v8 w=40 l=8
+XR1b srcb 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7b irefb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLb irefb 0 0.9
+
+** Config C: M1=5/8, M2=20/8 K=4, same PMOS, same R1
+XM3c nbc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4c outc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1c nbc nbc 0 0 sky130_fd_pr__nfet_01v8 w=5 l=8
+XM2c outc nbc srcc 0 sky130_fd_pr__nfet_01v8 w=20 l=8
+XR1c srcc 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7c irefc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLc irefc 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nba)=0.5 v(nbb)=0.5 v(nbc)=0.5
+
+.control
+    foreach vdd_val 1.6 1.8 2.0
+        alter Vdd = $vdd_val
+        op
+        echo "--- VDD = $vdd_val ---"
+
+        let ia = abs(@m.xm7a.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+        let m1a = @m.xm1a.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2a = @m.xm2a.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let vgs1a = @m.xm1a.msky130_fd_pr__nfet_01v8[vgs]
+        let vgs2a = @m.xm2a.msky130_fd_pr__nfet_01v8[vgs]
+        let dv_a = vgs1a - vgs2a
+        let vth1a = @m.xm1a.msky130_fd_pr__nfet_01v8[vth]
+        let vov1a = vgs1a - vth1a
+        echo "A(W20): I=$&ia  M1=$&m1a M2=$&m2a  nb=$&v(nba)  Vgs1=$&vgs1a Vth=$&vth1a Vov=$&vov1a  dV=$&dv_a"
+
+        let ib = abs(@m.xm7b.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+        let m1b = @m.xm1b.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2b = @m.xm2b.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let vgs1b = @m.xm1b.msky130_fd_pr__nfet_01v8[vgs]
+        let vgs2b = @m.xm2b.msky130_fd_pr__nfet_01v8[vgs]
+        let dv_b = vgs1b - vgs2b
+        let vth1b = @m.xm1b.msky130_fd_pr__nfet_01v8[vth]
+        let vov1b = vgs1b - vth1b
+        echo "B(W10): I=$&ib  M1=$&m1b M2=$&m2b  nb=$&v(nbb)  Vgs1=$&vgs1b Vth=$&vth1b Vov=$&vov1b  dV=$&dv_b"
+
+        let ic = abs(@m.xm7c.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+        let m1c = @m.xm1c.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2c = @m.xm2c.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let vgs1c = @m.xm1c.msky130_fd_pr__nfet_01v8[vgs]
+        let vgs2c = @m.xm2c.msky130_fd_pr__nfet_01v8[vgs]
+        let dv_c = vgs1c - vgs2c
+        let vth1c = @m.xm1c.msky130_fd_pr__nfet_01v8[vth]
+        let vov1c = vgs1c - vth1c
+        echo "C(W5): I=$&ic  M1=$&m1c M2=$&m2c  nb=$&v(nbc)  Vgs1=$&vgs1c Vth=$&vth1c Vov=$&vov1c  dV=$&dv_c"
+        echo ""
+    end
+.endc
+
+.end

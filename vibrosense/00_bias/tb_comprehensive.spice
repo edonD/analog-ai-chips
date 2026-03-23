@@ -1,0 +1,84 @@
+** tb_comprehensive.spice — Full test of best config
+** LVT PMOS W=0.42 L=8, NMOS M1=1/8 M2=4/8, R1=155k
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+XM3 nbias nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4 out_n nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1 nbias nbias 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM2 out_n nbias src_m2 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1 src_m2 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7 iref_out nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+Vload iref_out 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nbias)=0.7
+
+.control
+    ** Test 1: DC OP
+    op
+    echo "=== TEST 1: DC OP at TT/27C/1.8V ==="
+    let iref = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "Iref = $&iref nA"
+    echo "nbias = $&v(nbias)"
+    echo "out_n = $&v(out_n)"
+    echo "src_m2 = $&v(src_m2)"
+    let m1 = @m.xm1.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m2 = @m.xm2.msky130_fd_pr__nfet_01v8[id] * 1e9
+    echo "M1=$&m1 nA  M2=$&m2 nA"
+    let power = abs(i(Vdd)) * 1.8
+    let power_uw = power * 1e6
+    echo "Power = $&power_uw uW"
+    echo ""
+
+    ** Test 2: Temperature sweep
+    echo "=== TEST 2: Temperature Sweep ==="
+    let temps = ( -40 -20 0 20 27 40 60 85 )
+    let iref_t = vector(8)
+    let idx = 0
+    foreach temp_val $&temps
+        set temp = $temp_val
+        op
+        let iref_t[idx] = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+        let iref_na_t = iref_t[idx] * 1e9
+        echo "T=$temp_val C  Iref=$&iref_na_t nA"
+        let idx = idx + 1
+    end
+    let iref_min = minimum(iref_t)
+    let iref_max = maximum(iref_t)
+    let iref_nom = iref_t[4]
+    let tc_ppm = (iref_max - iref_min) / iref_nom / 125 * 1e6
+    let iref_min_na = iref_min * 1e9
+    let iref_max_na = iref_max * 1e9
+    let iref_nom_na = iref_nom * 1e9
+    echo "Imin=$&iref_min_na Imax=$&iref_max_na Inom=$&iref_nom_na"
+    echo "TC = $&tc_ppm ppm/C"
+    echo ""
+
+    ** Test 3: Supply sweep
+    echo "=== TEST 3: Supply Sensitivity ==="
+    set temp = 27
+    foreach vdd_val 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2
+        alter Vdd = $vdd_val
+        op
+        let iv = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+        echo "VDD=$vdd_val Iref=$&iv nA"
+    end
+    alter Vdd = 1.6
+    op
+    let i16 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    alter Vdd = 1.8
+    op
+    let i18 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    alter Vdd = 2.0
+    op
+    let i20 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id])
+    let ss = abs(i20 - i16) / i18 / 0.4 * 100
+    echo "Supply sensitivity = $&ss %/V"
+.endc
+
+.end

@@ -1,0 +1,67 @@
+** tb_orig.spice — Test with program's original PMOS W=4 L=4
+** The PMOS has higher drive, check if beta-multiplier regulates
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Config A: Original program sizing, R1=120k
+XM3a nba nba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4a outa nba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1a nba nba 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2a outa nba srca 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1a srca 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7a irefa nba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLa irefa 0 0.9
+
+** Config B: Program PMOS, larger R1=360k for lower core current
+XM3b nbb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4b outb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1b nbb nbb 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2b outb nbb srcb 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1b srcb 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=63
+XM7b irefb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLb irefb 0 0.9
+
+** Config C: Program PMOS, R1=180k
+XM3c nbc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4c outc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1c nbc nbc 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2c outc nbc srcc 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1c srcc 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=31.5
+XM7c irefc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLc irefc 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nba)=0.55 v(nbb)=0.55 v(nbc)=0.55
+
+.control
+    foreach vdd_val 1.6 1.7 1.8 1.9 2.0
+        alter Vdd = $vdd_val
+        op
+        echo "--- VDD = $vdd_val ---"
+        let ia = abs(@m.xm7a.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let m1a = @m.xm1a.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2a = @m.xm2a.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m4a_vds = @m.xm4a.msky130_fd_pr__pfet_01v8[vds]
+        let pmos_oda = abs(@m.xm3a.msky130_fd_pr__pfet_01v8[vgs]) - abs(@m.xm3a.msky130_fd_pr__pfet_01v8[vth])
+        echo "A (R120k): Iref=$&ia nA  M1=$&m1a M2=$&m2a  M4vds=$&m4a_vds  outn=$&v(outa) pmos_od=$&pmos_oda"
+
+        let ib = abs(@m.xm7b.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let m1b = @m.xm1b.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2b = @m.xm2b.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m4b_vds = @m.xm4b.msky130_fd_pr__pfet_01v8[vds]
+        echo "B (R360k): Iref=$&ib nA  M1=$&m1b M2=$&m2b  M4vds=$&m4b_vds  outn=$&v(outb)"
+
+        let ic = abs(@m.xm7c.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let m1c = @m.xm1c.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2c = @m.xm2c.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m4c_vds = @m.xm4c.msky130_fd_pr__pfet_01v8[vds]
+        echo "C (R180k): Iref=$&ic nA  M1=$&m1c M2=$&m2c  M4vds=$&m4c_vds  outn=$&v(outc)"
+        echo ""
+    end
+.endc
+
+.end

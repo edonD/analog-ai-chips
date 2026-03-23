@@ -1,0 +1,109 @@
+** tb_ota_tc3.spice — OTA beta-mult with MOSFET R, gate=nbias
+** Fix: gate=nbias instead of gate=VDD to avoid VDD dependence
+** Sweep MOSFET fraction to find ZTC point
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** ===== Config A: Rpoly l=10 + Mr1 W=0.42 L=8 gate=nbias =====
+XM3a nba vba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4a outa vba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1a nba nba 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2a outa nba s2a 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1a s2a mra 0 sky130_fd_pr__res_xhigh_po w=0.35 l=10
+XMr1a mra nba 0 0 sky130_fd_pr__nfet_01v8 w=0.42 l=8
+XMo1a od1a nba ota 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo2a vba outa ota 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo3a od1a od1a vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo4a vba od1a vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo5a ota nba 0 0 sky130_fd_pr__nfet_01v8 w=0.5 l=8
+XM7a ia vba vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLa ia 0 0.9
+
+** ===== Config B: Rpoly l=14 + Mr1 W=0.55 L=8 gate=nbias =====
+XM3b nbb vbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4b outb vbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1b nbb nbb 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2b outb nbb s2b 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1b s2b mrb 0 sky130_fd_pr__res_xhigh_po w=0.35 l=14
+XMr1b mrb nbb 0 0 sky130_fd_pr__nfet_01v8 w=0.55 l=8
+XMo1b od1b nbb otb 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo2b vbb outb otb 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo3b od1b od1b vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo4b vbb od1b vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo5b otb nbb 0 0 sky130_fd_pr__nfet_01v8 w=0.5 l=8
+XM7b ib vbb vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLb ib 0 0.9
+
+** ===== Config C: Rpoly l=12 + Mr1 W=0.50 L=8 gate=nbias (middle) =====
+XM3c nbc vbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4c outc vbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1c nbc nbc 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2c outc nbc s2c 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1c s2c mrc 0 sky130_fd_pr__res_xhigh_po w=0.35 l=12
+XMr1c mrc nbc 0 0 sky130_fd_pr__nfet_01v8 w=0.50 l=8
+XMo1c od1c nbc otc 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo2c vbc outc otc 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo3c od1c od1c vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo4c vbc od1c vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo5c otc nbc 0 0 sky130_fd_pr__nfet_01v8 w=0.5 l=8
+XM7c ic vbc vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+VLc ic 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nba)=0.65 v(nbb)=0.65 v(nbc)=0.65 v(outa)=0.65 v(outb)=0.65 v(outc)=0.65
++ v(vba)=0.55 v(vbb)=0.55 v(vbc)=0.55 v(mra)=0.04 v(mrb)=0.04 v(mrc)=0.04
+
+.control
+    echo "=== DC at 27C ==="
+    op
+    let ia27 = abs(@m.xm7a.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    let ib27 = abs(@m.xm7b.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    let ic27 = abs(@m.xm7c.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "A (l=10,W=0.42): $&ia27 nA"
+    echo "B (l=14,W=0.55): $&ib27 nA"
+    echo "C (l=12,W=0.50): $&ic27 nA"
+
+    echo ""
+    echo "=== Temperature Sweep ==="
+    foreach temp_val -40 -20 0 27 60 85
+        set temp = $temp_val
+        op
+        let ia = abs(@m.xm7a.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let ib = abs(@m.xm7b.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let ic = abs(@m.xm7c.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "T=$temp_val  A=$&ia  B=$&ib  C=$&ic nA"
+    end
+
+    echo ""
+    echo "=== VDD Sweep (27C) ==="
+    set temp = 27
+    foreach vdd_val 1.4 1.5 1.6 1.7 1.8 1.9 2.0
+        alter Vdd = $vdd_val
+        op
+        let ia = abs(@m.xm7a.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let ib = abs(@m.xm7b.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let ic = abs(@m.xm7c.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "VDD=$vdd_val  A=$&ia  B=$&ib  C=$&ic nA"
+    end
+
+    echo ""
+    echo "=== MOSFET R checks at 27C VDD=1.8 ==="
+    alter Vdd = 1.8
+    set temp = 27
+    op
+    let rmra = v(mra) / abs(@m.xmr1a.msky130_fd_pr__nfet_01v8[id]) / 1000
+    let rmrb = v(mrb) / abs(@m.xmr1b.msky130_fd_pr__nfet_01v8[id]) / 1000
+    let rmrc = v(mrc) / abs(@m.xmr1c.msky130_fd_pr__nfet_01v8[id]) / 1000
+    echo "Mr1 R: A=$&rmra B=$&rmrb C=$&rmrc kohm"
+    let vova = @m.xmr1a.msky130_fd_pr__nfet_01v8[vgs] - @m.xmr1a.msky130_fd_pr__nfet_01v8[vth]
+    let vovb = @m.xmr1b.msky130_fd_pr__nfet_01v8[vgs] - @m.xmr1b.msky130_fd_pr__nfet_01v8[vth]
+    let vovc = @m.xmr1c.msky130_fd_pr__nfet_01v8[vgs] - @m.xmr1c.msky130_fd_pr__nfet_01v8[vth]
+    echo "Mr1 Vov: A=$&vova B=$&vovb C=$&vovc"
+    echo "Mr1 Vds: A=$&v(mra) B=$&v(mrb) C=$&v(mrc)"
+.endc
+
+.end

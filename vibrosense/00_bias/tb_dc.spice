@@ -1,0 +1,74 @@
+** tb_dc.spice — DC operating point
+** Block 00: Bias Generator core
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Core beta-multiplier
+** PMOS mirror
+XM3 nbias nbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4 out_n nbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+
+** NMOS pair (K=4: M2 W/L = 4 * M1 W/L)
+XM1 nbias nbias gnd gnd sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2 out_n nbias src_m2 gnd sky130_fd_pr__nfet_01v8 w=8 l=4
+
+** R1: xhigh poly resistor
+** rsheet~2000 ohm/sq. R = rsheet * l / w
+** For ~100k: l = 100000*0.35/2000 = 17.5u
+XR1 src_m2 gnd gnd sky130_fd_pr__res_xhigh_po w=0.35 l=17.5
+
+Vdd vdd 0 1.8
+
+** Nodeset to avoid zero-current state
+.nodeset v(nbias)=0.6
+
+.control
+    op
+
+    echo "=== Node Voltages ==="
+    print v(nbias) v(out_n) v(src_m2)
+
+    echo ""
+    echo "=== Currents ==="
+    print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+    print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+
+    echo ""
+    echo "=== M1 ==="
+    print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+    print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+    print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+    print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+
+    echo ""
+    echo "=== M2 ==="
+    print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+    print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+    print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+    print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+
+    echo ""
+    echo "=== M3 ==="
+    print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+    print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+    print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+    print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+
+    echo ""
+    echo "=== M4 ==="
+    print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+    print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+    print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+    print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+
+    echo ""
+    echo "=== Power ==="
+    let power = -i(Vdd) * 1.8
+    print power
+.endc
+
+.end

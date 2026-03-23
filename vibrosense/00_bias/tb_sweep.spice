@@ -1,0 +1,42 @@
+** tb_sweep.spice — DC sweep of VDD to diagnose supply sensitivity
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Core beta-multiplier
+XM3 nbias nbias vdd vdd sky130_fd_pr__pfet_01v8 w=1.5 l=4
+XM4 out_n nbias vdd vdd sky130_fd_pr__pfet_01v8 w=1.5 l=4
+XM1 nbias nbias 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2 out_n nbias src_m2 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1 src_m2 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+
+** Output mirror
+XM7 iref_out nbias vdd vdd sky130_fd_pr__pfet_01v8 w=1.5 l=4
+Vload iref_out 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nbias)=0.62
+
+.control
+    ** Individual OP at each supply to check convergence
+    foreach vdd_val 1.6 1.7 1.8 1.9 2.0
+        alter Vdd = $vdd_val
+        op
+        let iref_v = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let nbias_v = v(nbias)
+        let outn_v = v(out_n)
+        let srcm2_v = v(src_m2)
+        let m4_vds = @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+        let pmos_vsg = abs(@m.xm3.msky130_fd_pr__pfet_01v8[vgs])
+        let pmos_vth = abs(@m.xm3.msky130_fd_pr__pfet_01v8[vth])
+        let pmos_od = pmos_vsg - pmos_vth
+        let m1_id = @m.xm1.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2_id = @m.xm2.msky130_fd_pr__nfet_01v8[id] * 1e9
+        echo "VDD=$vdd_val: Iref=$&iref_v nA  nbias=$&nbias_v  out_n=$&outn_v  src_m2=$&srcm2_v  M4_Vds=$&m4_vds  PMOS_od=$&pmos_od  M1_id=$&m1_id nA  M2_id=$&m2_id nA"
+    end
+.endc
+
+.end

@@ -1,0 +1,56 @@
+** tb_startup.spice — Transient startup verification
+** Tests that circuit starts from zero-current state
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+.include "design.cir"
+
+Xbias vdd 0 iref_out bias_generator
+
+** VDD ramps from 0 to 1.8V in 10us
+Vdd vdd 0 pwl(0 0 10u 1.8 100u 1.8)
+Vload iref_out 0 0.9
+
+** All nodes start at zero
+.ic v(xbias.nbias)=0 v(xbias.out_n)=0 v(xbias.vbias)=0
++ v(xbias.od1)=0 v(xbias.otail)=0
+
+.control
+    tran 10n 100u uic
+
+    echo "=== Startup Transient (TT, 27C, VDD=1.8V, 10us ramp) ==="
+
+    ** Check Iref at various times after VDD is fully on
+    meas tran i_15u find i(Vload) at=15u
+    meas tran i_20u find i(Vload) at=20u
+    meas tran i_50u find i(Vload) at=50u
+    meas tran i_100u find i(Vload) at=100u
+
+    let i15 = abs(i_15u) * 1e9
+    let i20 = abs(i_20u) * 1e9
+    let i50 = abs(i_50u) * 1e9
+    let i100 = abs(i_100u) * 1e9
+
+    echo "Iref at 15us = $&i15 nA"
+    echo "Iref at 20us = $&i20 nA"
+    echo "Iref at 50us = $&i50 nA"
+    echo "Iref at 100us = $&i100 nA"
+
+    if i100 > 100
+        echo ">>> PASS: Circuit started up (Iref > 100nA at 100us)"
+    else
+        echo "*** FAIL: Circuit stuck in zero-current state ***"
+    end
+
+    if i100 > 400
+        if i100 < 600
+            echo ">>> PASS: Iref in range (400-600 nA)"
+        end
+    end
+.endc
+
+.end

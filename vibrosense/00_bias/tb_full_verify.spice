@@ -1,0 +1,104 @@
+** tb_full_verify.spice — Full spec verification for design.cir
+** Tests: DC operating point, TC, supply sensitivity, power, saturation
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+.include "design.cir"
+
+Xbias vdd 0 iref_out bias_generator
+
+Vdd vdd 0 1.8
+Vload iref_out 0 0.9
+
+.nodeset v(xbias.nbias)=0.65 v(xbias.out_n)=0.65 v(xbias.vbias)=0.55
++ v(xbias.od1)=0.85 v(xbias.otail)=0.15 v(xbias.src_m2)=0.06 v(xbias.mid_r)=0.03
+
+.control
+    ** ===== Test 1: DC Operating Point =====
+    echo "============================================"
+    echo "=== Test 1: DC Operating Point (27C) ==="
+    echo "============================================"
+    op
+    let iref = abs(@m.xbias.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "Iref = $&iref nA"
+    echo "nbias = $&v(xbias.nbias)"
+    echo "out_n = $&v(xbias.out_n)"
+    echo "vbias = $&v(xbias.vbias)"
+    echo "src_m2 = $&v(xbias.src_m2)"
+    echo "sg = $&v(xbias.sg)"
+
+    let i1 = abs(@m.xbias.xm1.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2 = abs(@m.xbias.xm2.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1=$&i1 M2=$&i2 nA"
+
+    ** Saturation checks
+    let vov2 = @m.xbias.xm2.msky130_fd_pr__nfet_01v8[vgs] - @m.xbias.xm2.msky130_fd_pr__nfet_01v8[vth]
+    let sat2 = @m.xbias.xm2.msky130_fd_pr__nfet_01v8[vds] - vov2
+    echo "M2: Vov=$&vov2 sat_margin=$&sat2"
+
+    ** M6 startup device - should be OFF
+    let i6 = abs(@m.xbias.xm6.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M6 startup Id=$&i6 nA (should be ~0)"
+
+    ** Power
+    let power = abs(i(Vdd)) * 1.8 * 1e6
+    echo "Power = $&power uW"
+
+    if iref > 400
+        if iref < 600
+            echo ">>> PASS: Iref in range (400-600 nA)"
+        end
+    end
+    if power < 15
+        echo ">>> PASS: Power < 15 uW"
+    end
+
+    ** ===== Test 2: Temperature Sweep =====
+    echo ""
+    echo "============================================"
+    echo "=== Test 2: Temperature Sweep ==="
+    echo "============================================"
+    foreach temp_val -40 -20 0 20 27 40 60 85
+        set temp = $temp_val
+        op
+        let i = abs(@m.xbias.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "T=$temp_val Iref=$&i nA"
+    end
+
+    ** ===== Test 3: Supply Sensitivity (DC sweep) =====
+    echo ""
+    echo "============================================"
+    echo "=== Test 3: Supply Sensitivity ==="
+    echo "============================================"
+    set temp = 27
+    alter Vdd = 1.8
+    dc Vdd 2.0 1.4 -0.1
+    let iref_sw = abs(i(Vload)) * 1e9
+    let i20 = iref_sw[0]
+    let i19 = iref_sw[1]
+    let i18 = iref_sw[2]
+    let i17 = iref_sw[3]
+    let i16 = iref_sw[4]
+    let i15 = iref_sw[5]
+    let i14 = iref_sw[6]
+    echo "VDD=2.0 Iref=$&i20 nA"
+    echo "VDD=1.9 Iref=$&i19 nA"
+    echo "VDD=1.8 Iref=$&i18 nA"
+    echo "VDD=1.7 Iref=$&i17 nA"
+    echo "VDD=1.6 Iref=$&i16 nA"
+    echo "VDD=1.5 Iref=$&i15 nA"
+    echo "VDD=1.4 Iref=$&i14 nA"
+    let ss_pct = (i20 - i16) / i18 / 0.4 * 100
+    echo "SS (1.6-2.0V) = $&ss_pct %/V"
+
+    echo ""
+    echo "=== Summary ==="
+    echo "TC spec: < 150 ppm/C"
+    echo "SS spec: < 2 %/V"
+.endc
+
+.end

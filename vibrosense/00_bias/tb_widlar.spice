@@ -1,0 +1,142 @@
+** tb_widlar.spice — Widlar variant: R1 on M1 (wider device), M2 narrower
+** This should get M2 into saturation because M2 is narrower and needs more Vds
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** ===== Config A: Widlar, M1=4/8 (with R1), M2=1/8, LVT PMOS =====
+** PMOS mirror (LVT)
+XM3a nba nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4a outa nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+** M1: wider, diode-connected, R1 on source
+XM1a nba nba srca 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1a srca 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+** M2: narrower, source directly to ground
+XM2a outa nba 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+** Output mirror
+XM7a irefa nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLa irefa 0 0.9
+
+** ===== Config B: Widlar, M1=4/8 (with R1), M2=1/8, larger R1 =====
+XM3b nbb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4b outb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1b nbb nbb srcb 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1b srcb 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=42
+XM2b outb nbb 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM7b irefb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLb irefb 0 0.9
+
+** ===== Config C: Widlar, M1=8/8 (with R1), M2=2/8, K=4 =====
+XM3c nbc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4c outc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1c nbc nbc srcc 0 sky130_fd_pr__nfet_01v8 w=8 l=8
+XR1c srcc 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM2c outc nbc 0 0 sky130_fd_pr__nfet_01v8 w=2 l=8
+XM7c irefc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLc irefc 0 0.9
+
+** ===== Config D: Standard beta-mult for comparison (R1 on M2) =====
+XM3d nbd nbd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4d outd nbd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1d nbd nbd 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM2d outd nbd srcd 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1d srcd 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7d irefd nbd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLd irefd 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nba)=0.7 v(nbb)=0.7 v(nbc)=0.7 v(nbd)=0.62
+
+.control
+    op
+    echo "=========================================="
+    echo "=== Config A: Widlar M1=4/8+R1, M2=1/8 ==="
+    echo "=========================================="
+    let ia = abs(@m.xm7a.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "Iref = $&ia nA"
+    echo "nbias = $&v(nba)"
+    echo "out_n = $&v(outa)"
+    echo "src_m1 = $&v(srca)"
+    echo "M1 Vgs_eff = v(nba)-v(srca)"
+    let vgs1a = v(nba) - v(srca)
+    echo "M1 Vgs_eff = $&vgs1a"
+    echo "M2 Vds = $&@m.xm2a.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2a = @m.xm2a.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2a.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2 Vov = $&vov2a"
+    let sat2a = @m.xm2a.msky130_fd_pr__nfet_01v8[vds] - vov2a
+    echo "M2 sat margin (Vds-Vov) = $&sat2a"
+    echo "M4 Vds = $&@m.xm4a.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    let i1a = abs(@m.xm1a.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2a = abs(@m.xm2a.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1 Id = $&i1a nA, M2 Id = $&i2a nA"
+
+    echo ""
+    echo "=========================================="
+    echo "=== Config B: Widlar M1=4/8+R1x2, M2=1/8 ==="
+    echo "=========================================="
+    let ib = abs(@m.xm7b.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "Iref = $&ib nA"
+    echo "nbias = $&v(nbb)"
+    echo "out_n = $&v(outb)"
+    echo "src_m1 = $&v(srcb)"
+    echo "M2 Vds = $&@m.xm2b.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2b = @m.xm2b.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2b.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2 Vov = $&vov2b"
+    let sat2b = @m.xm2b.msky130_fd_pr__nfet_01v8[vds] - vov2b
+    echo "M2 sat margin (Vds-Vov) = $&sat2b"
+    echo "M4 Vds = $&@m.xm4b.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    let i1b = abs(@m.xm1b.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2b = abs(@m.xm2b.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1 Id = $&i1b nA, M2 Id = $&i2b nA"
+
+    echo ""
+    echo "=========================================="
+    echo "=== Config C: Widlar M1=8/8+R1, M2=2/8 ==="
+    echo "=========================================="
+    let ic = abs(@m.xm7c.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "Iref = $&ic nA"
+    echo "nbias = $&v(nbc)"
+    echo "out_n = $&v(outc)"
+    echo "src_m1 = $&v(srcc)"
+    echo "M2 Vds = $&@m.xm2c.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2c = @m.xm2c.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2c.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2 Vov = $&vov2c"
+    let sat2c = @m.xm2c.msky130_fd_pr__nfet_01v8[vds] - vov2c
+    echo "M2 sat margin (Vds-Vov) = $&sat2c"
+    echo "M4 Vds = $&@m.xm4c.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    let i1c = abs(@m.xm1c.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2c = abs(@m.xm2c.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1 Id = $&i1c nA, M2 Id = $&i2c nA"
+
+    echo ""
+    echo "=========================================="
+    echo "=== Config D: Standard beta-mult (baseline) ==="
+    echo "=========================================="
+    let id_val = abs(@m.xm7d.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "Iref = $&id_val nA"
+    echo "nbias = $&v(nbd)"
+    echo "out_n = $&v(outd)"
+    echo "src_m2 = $&v(srcd)"
+    echo "M2 Vds = $&@m.xm2d.msky130_fd_pr__nfet_01v8[vds]"
+    let vov2d = @m.xm2d.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2d.msky130_fd_pr__nfet_01v8[vth]
+    echo "M2 Vov = $&vov2d"
+    let sat2d = @m.xm2d.msky130_fd_pr__nfet_01v8[vds] - vov2d
+    echo "M2 sat margin (Vds-Vov) = $&sat2d"
+    echo "M4 Vds = $&@m.xm4d.msky130_fd_pr__pfet_01v8_lvt[vds]"
+    let i1d = abs(@m.xm1d.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    let i2d = abs(@m.xm2d.msky130_fd_pr__nfet_01v8[id]) * 1e9
+    echo "M1 Id = $&i1d nA, M2 Id = $&i2d nA"
+
+    ** ===== R1 sensitivity test for Config A =====
+    echo ""
+    echo "=========================================="
+    echo "=== R1 sensitivity test (Config A only) ==="
+    echo "=========================================="
+    echo "(Config A uses R1=155k nominal)"
+    echo "Changing R1 and checking if current changes..."
+.endc
+
+.end

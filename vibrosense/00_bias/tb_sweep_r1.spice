@@ -1,0 +1,33 @@
+** tb_sweep_r1.spice — Sweep R1 to find 500nA target
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Try R1 with l=25 (~143kohm)
+XM3 nbias nbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4 out_n nbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1 nbias nbias 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2 out_n nbias src_m2 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1 src_m2 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=25
+
+Vdd vdd 0 1.8
+
+.nodeset v(nbias)=0.6
+
+.control
+    op
+    echo "=== R1 l=25 (~143k) ==="
+    echo "M1 Id = $&@m.xm1.msky130_fd_pr__nfet_01v8[id]"
+    echo "M4 Id = $&@m.xm4.msky130_fd_pr__pfet_01v8[id]"
+    echo "nbias = $&v(nbias)"
+    echo "out_n = $&v(out_n)"
+    echo "src_m2 = $&v(src_m2)"
+    echo "M4 Vds = $&@m.xm4.msky130_fd_pr__pfet_01v8[vds]"
+    echo "M3 Vth = $&@m.xm3.msky130_fd_pr__pfet_01v8[vth]"
+    echo "M1 Vth = $&@m.xm1.msky130_fd_pr__nfet_01v8[vth]"
+.endc
+
+.end
