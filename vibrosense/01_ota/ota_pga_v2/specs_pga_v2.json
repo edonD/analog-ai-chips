@@ -1,0 +1,21 @@
+{
+  "name": "VibroSense PGA OTA v2 (two-stage Miller, 477 kHz)",
+  "description": "Two-stage Miller OTA replacing folded-cascode v1 (67.5kHz). Achieves 477kHz UGB for 25kHz closed-loop BW at 16x PGA gain. Same 9-pin interface.",
+  "supply_v": 1.8,
+  "topology": "two-stage Miller",
+  "stage1_tail_ua": 1.5,
+  "stage2_current_ua": 3.75,
+  "miller_cap_pf": 4.0,
+  "nulling_resistor_kohm": 18.2,
+  "measurements": {
+    "dc_gain_db":               {"target": ">65",               "weight": 15},
+    "ugb_hz":                   {"target": "400000 to 2000000", "weight": 25},
+    "phase_margin_deg":         {"target": ">60",               "weight": 25},
+    "input_noise_nv_sqrthz_1k": {"target": "<400",              "weight": 5,
+                                  "note": "Stage 2 adds noise referred back through gm5/gm1. Relaxed from 300."},
+    "cmrr_db":                  {"target": ">70",               "weight": 10},
+    "psrr_db":                  {"target": ">60",               "weight": 10},
+    "power_uw":                 {"target": "<10",               "weight": 10,
+                                  "note": "Stage1=2.7uW + Stage2=6.75uW + overhead. Relaxed from 8uW for two-stage."}
+  }
+}
