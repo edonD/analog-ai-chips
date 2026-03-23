@@ -32,6 +32,11 @@ Digital control block for the VibroSense-1 analog ML vibration classifier. Imple
 
 ### 1.1 Block Diagram
 
+![Architecture Block Diagram](img/architecture.png)
+
+<details>
+<summary>ASCII version (click to expand)</summary>
+
 ```
                           +--------------------------------------------------+
                           |                digital_top                        |
@@ -60,6 +65,8 @@ Digital control block for the VibroSense-1 analog ML vibration classifier. Imple
     adc_data_in[7:0] ──>|                                                    |
                           +--------------------------------------------------+
 ```
+
+</details>
 
 ### 1.2 Design Philosophy
 
@@ -95,13 +102,8 @@ This is intentionally a **minimal peripheral controller**, not a CPU or complex 
 | CDC method | Toggle synchronizer (3-FF, write path) |
 
 **SPI Timing Diagram:**
-```
-CS_N  \_________________________________________________________/
-SCK    _/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\
-MOSI   |A7 |A6 |A5 |A4 |A3 |A2 |A1 |A0 |D7 |D6 |D5 |D4 |D3 |D2 |D1 |D0 |
-MISO   |   |   |   |   |   |   |   |   |R7 |R6 |R5 |R4 |R3 |R2 |R1 |R0 |
-       |<----------- address ---------->|<----------- data ------------->|
-```
+
+![SPI Timing Waveform](img/spi_timing.png)
 
 **Implementation Details:**
 - MOSI sampled on rising SCK edge
@@ -114,6 +116,8 @@ MISO   |   |   |   |   |   |   |   |   |R7 |R6 |R5 |R4 |R3 |R2 |R1 |R0 |
 - Toggle synchronizer propagates write strobe to CLK domain (2–3 CLK cycle latency)
 
 ### 2.2 Register File (`reg_file.v`)
+
+![Register Map](img/register_map.png)
 
 **15 registers, addressed 0x00–0x0E:**
 
@@ -143,6 +147,8 @@ MISO   |   |   |   |   |   |   |   |   |R7 |R6 |R5 |R4 |R3 |R2 |R1 |R0 |
 - Unused bits in sub-8-bit registers always read as 0
 
 ### 2.3 Classifier Timing FSM (`fsm_classifier.v`)
+
+![FSM State Diagram](img/fsm_states.png)
 
 **Counter-based state machine generating timing for the analog MAC classifier.**
 
@@ -335,6 +341,8 @@ Full end-to-end sequence verified:
 |------|---------|--------|
 | Yosys | 0.33 | Synthesis |
 | Liberty | sky130_fd_sc_hd__tt_025C_1v80 | Technology mapping |
+
+![Synthesis Cell Breakdown](img/synth_breakdown.png)
 
 ### 5.2 Gate Count
 
