@@ -1,0 +1,22 @@
+{
+  "block": "Block 04: Envelope Detector",
+  "process": "SKY130A",
+  "model": "Behavioral OTA",
+  "results": {
+    "rect_accuracy_100mv": 0.1589288318549358,
+    "rect_accuracy_10mv": 0.15892883185494666,
+    "ripple_bpf3_pct": 0.20994355011264804,
+    "ripple_worst_pct": 2.954891571117516,
+    "lpf_cutoff_hz": 10.032170991237312,
+    "settling_time_ms": 34.800000000000004,
+    "settling_v_final": 0.031780396185906286,
+    "am_tracking_error_pct": 25.27712409165041,
+    "min_detectable_mvpp": 1.0,
+    "power_per_ch_uw": 1.836,
+    "power_per_ch_opt_uw": 0.756,
+    "power_5ch_uw": 9.18,
+    "power_5ch_opt_uw": 3.7800000000000002
+  },
+  "pass_count": 8,
+  "fail_count": 0
+}
