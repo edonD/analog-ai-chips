@@ -1,0 +1,87 @@
+{
+  "block": "00_bias_distribution",
+  "name": "Bias Generator Full (4 OTA Bias Outputs)",
+  "subcircuit": "bias_generator_full",
+  "pins": ["vdd", "gnd", "iref_out", "vbn", "vbcn", "vbp", "vbcp"],
+  "process": "SKY130A",
+  "vdd": 1.8,
+
+  "specs": {
+    "iref": {
+      "description": "Reference current (must match frozen design.cir)",
+      "min": 480, "typ": 510, "max": 530, "unit": "nA",
+      "measured_tt27": 509.8,
+      "regression_delta_pct": 0.0,
+      "status": "PASS"
+    },
+    "vbn": {
+      "description": "NMOS bias voltage (ground-referred)",
+      "min": 0.60, "typ": 0.65, "max": 0.70, "unit": "V",
+      "measured_tt27": 0.629,
+      "worst_corner_dev_mV": 71.5,
+      "worst_corner": "fs -40C",
+      "vdd_tracking": 0.0000007,
+      "status": "PASS"
+    },
+    "vbcn": {
+      "description": "NMOS cascode bias voltage (ground-referred)",
+      "min": 0.82, "typ": 0.88, "max": 0.95, "unit": "V",
+      "measured_tt27": 0.883,
+      "worst_corner_dev_mV": 45.3,
+      "worst_corner": "sf 85C",
+      "vdd_tracking": 0.00025,
+      "status": "PASS"
+    },
+    "vbp": {
+      "description": "PMOS bias voltage (VDD-tracking, resistor-based generation)",
+      "min": 0.68, "typ": 0.73, "max": 0.78, "unit": "V",
+      "note": "Program.md spec of 1.00-1.15V was incorrect; OTA testbenches use 0.73V",
+      "measured_tt27": 0.739,
+      "worst_corner_dev_mV": 38.4,
+      "worst_corner": "ff 85C",
+      "vdd_tracking": 0.942,
+      "status": "PASS"
+    },
+    "vbcp": {
+      "description": "PMOS cascode bias voltage (VDD-tracking)",
+      "min": 0.42, "typ": 0.475, "max": 0.53, "unit": "V",
+      "measured_tt27": 0.474,
+      "worst_corner_dev_mV": 45.8,
+      "worst_corner": "ff 85C",
+      "vdd_tracking": 0.931,
+      "status": "PASS"
+    },
+    "vdd_tracking_vbp": {
+      "description": "dvbp/dVDD (VDD-tracking coefficient)",
+      "min": 0.85, "typ": 0.942, "max": 1.0, "unit": "V/V",
+      "measured_tt27": 0.942,
+      "status": "PASS"
+    },
+    "vdd_tracking_vbcp": {
+      "description": "dvbcp/dVDD (VDD-tracking coefficient)",
+      "min": 0.85, "typ": 0.931, "max": 1.0, "unit": "V/V",
+      "measured_tt27": 0.931,
+      "status": "PASS"
+    },
+    "vdd_tracking_vbn": {
+      "description": "dvbn/dVDD (must NOT track VDD)",
+      "min": 0.0, "typ": 0.0, "max": 0.15, "unit": "V/V",
+      "measured_tt27": 0.0000007,
+      "status": "PASS"
+    },
+    "vdd_tracking_vbcn": {
+      "description": "dvbcn/dVDD (must NOT track VDD)",
+      "min": 0.0, "typ": 0.0, "max": 0.15, "unit": "V/V",
+      "measured_tt27": 0.00025,
+      "status": "PASS"
+    }
+  },
+
+  "design_notes": {
+    "vbn_generation": "Direct rename of internal nbias node. Ground-referred by M1 diode connection.",
+    "vbcn_generation": "NMOS diode (W=0.84 L=20) to ground. Current from PMOS mirror (XM8 W=4 L=4). Vgs sets vbcn directly, no body effect.",
+    "vbp_generation": "Resistor (xhigh_po W=0.35 L=300, ~2.2 MΩ) from VDD to vbp + NMOS current sink (W=1.7 L=4, gate=vbn). Resistor positive TC partially cancels NMOS current TC for improved temperature stability (±38mV vs ±145mV with PMOS diode approach).",
+    "vbcp_generation": "Resistor (xhigh_po W=0.35 L=650) from vbp to vbcp. NMOS current sink (W=0.84 L=16, gate=vbn). VDD-tracking because vbp tracks VDD.",
+    "ss_corner_workaround": "W=0.84 used for all new PMOS/NMOS to avoid SKY130 ss-corner BSIM4 model bin .41 Pclm<0 issue with W=0.42."
+  }
+}
