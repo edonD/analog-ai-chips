@@ -22,9 +22,9 @@ XM2 out_n nbias src_m2 gnd sky130_fd_pr__nfet_01v8 w=8 l=4
 
 ** ===== R1: TC-compensated resistor =====
 ** xhigh_po (TC~0) in series with iso_pw (TC~3460 ppm/C)
-** Tuned ratio: max TC = 144 ppm/C across all 5 corners
-XR1a src_m2 mid_r gnd sky130_fd_pr__res_xhigh_po w=0.35 l=7.1
-XR1b mid_r gnd gnd sky130_fd_pr__res_iso_pw w=0.35 l=6.55
+** Tuned ratio: max TC = 149 ppm/C across all 5 corners
+XR1a src_m2 mid_r gnd sky130_fd_pr__res_xhigh_po w=0.35 l=7.09
+XR1b mid_r gnd gnd sky130_fd_pr__res_iso_pw w=0.35 l=6.56
 
 ** ===== Swapped OTA: forces V(out_n) = V(nbias) =====
 ** Mo1 gate=out_n, Mo2 gate=nbias → correct negative feedback
@@ -42,8 +42,10 @@ XMo5 otail nbias gnd gnd sky130_fd_pr__nfet_01v8 w=1 l=4
 ** Stabilizes the two-stage OTA + beta-multiplier loop
 XC_comp od1 gnd gnd sky130_fd_pr__cap_mim_m3_1 w=50 l=50
 
-** ===== Output Mirror =====
-XM7 iref_out vbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+** ===== Output Mirror (NMOS, mirrors M1 via nbias) =====
+** NMOS mirror eliminates PMOS PDK parasitic TC contribution
+** Matches M1 geometry (W=2 L=4) for 1:1 current copy
+XM7 iref_out nbias gnd gnd sky130_fd_pr__nfet_01v8 w=2 l=4
 
 ** ===== Anti-Deadlock Leaker =====
 ** Subthreshold NMOS (gate=GND, Vgs=0) provides ~pA leakage
