@@ -56,33 +56,33 @@ N 20 -430 20 -460 {lab=tail}
 N -20 -400 -60 -400 {lab=vbn}
 N 20 -370 20 -340 {lab=vss}
 N 20 -400 40 -400 {lab=vss}
-N -580 -1370 -580 -1200 {lab=fold_p}
-N -330 -1370 -330 -1200 {lab=fold_p}
+N -580 -1340 -580 -1200 {lab=fold_p}
+N -330 -1340 -330 -1200 {lab=fold_p}
 N -580 -1200 -330 -1200 {lab=fold_p}
-N -480 -1200 -480 -1030 {lab=fold_p}
-N 370 -1370 370 -1200 {lab=fold_n}
-N 570 -1370 570 -1200 {lab=fold_n}
+N -480 -1200 -480 -1060 {lab=fold_p}
+N 370 -1340 370 -1200 {lab=fold_n}
+N 570 -1340 570 -1200 {lab=fold_n}
 N 370 -1200 570 -1200 {lab=fold_n}
-N 520 -1200 520 -1030 {lab=fold_n}
-N -480 -970 -480 -630 {lab=cas_p}
-N 520 -970 520 -630 {lab=vout}
-N -480 -570 -480 -230 {lab=src7}
-N 520 -570 520 -230 {lab=src8}
-N -170 -770 -170 -500 {lab=tail}
-N 170 -770 170 -500 {lab=tail}
+N 520 -1200 520 -1060 {lab=fold_n}
+N -480 -940 -480 -660 {lab=cas_p}
+N 520 -940 520 -660 {lab=vout}
+N -480 -540 -480 -260 {lab=src7}
+N 520 -540 520 -260 {lab=src8}
+N -170 -740 -170 -500 {lab=tail}
+N 170 -740 170 -500 {lab=tail}
 N -170 -500 170 -500 {lab=tail}
-N 20 -500 20 -430 {lab=tail}
-N -170 -830 -170 -860 {lab=fold_p}
-N 170 -830 170 -860 {lab=fold_n}
+N 20 -500 20 -460 {lab=tail}
+N -170 -860 -170 -1200 {lab=fold_p}
+N 170 -860 170 -1200 {lab=fold_n}
 N -700 -1600 700 -1600 {lab=vdd}
-N -580 -1430 -580 -1600 {lab=vdd}
-N -330 -1430 -330 -1600 {lab=vdd}
-N 370 -1430 370 -1600 {lab=vdd}
-N 570 -1430 570 -1600 {lab=vdd}
+N -580 -1460 -580 -1600 {lab=vdd}
+N -330 -1460 -330 -1600 {lab=vdd}
+N 370 -1460 370 -1600 {lab=vdd}
+N 570 -1460 570 -1600 {lab=vdd}
 N -700 50 700 50 {lab=vss}
-N -480 -170 -480 50 {lab=vss}
-N 520 -170 520 50 {lab=vss}
-N 20 -370 20 50 {lab=vss}
+N -480 -140 -480 50 {lab=vss}
+N 520 -140 520 50 {lab=vss}
+N 20 -340 20 50 {lab=vss}
 N 520 -800 700 -800 {lab=vout}
 N 0 -1650 0 -1600 {lab=vdd}
 N 0 100 0 50 {lab=vss}
@@ -91,11 +91,13 @@ N 300 -800 190 -800 {lab=vinn}
 N -800 -300 -560 -300 {lab=vbn}
 N -560 -300 -560 -200 {lab=vbn}
 N -800 -600 -540 -600 {lab=vbcn}
-N -800 -1400 -640 -1400 {lab=vbp}
-N -800 -1000 -540 -1000 {lab=vbcp}
-T {VibroSense Folded-Cascode OTA} -800 -1800 0 0 0.6 0.6 {}
-T {SKY130A - 13 Transistors} -800 -1750 0 0 0.35 0.35 {layer=8}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} -600 -1400 0 0 {name=M3 L=14u W=6u nf=1 mult=1 model=pfet_01v8 spiceprefix=X}
+N -800 -1400 -660 -1400 {lab=vbp}
+N -800 -1000 -560 -1000 {lab=vbcp}
+T {VibroSense Folded-Cascode OTA v11} -800 -1800 0 0 0.6 0.6 {}
+T {SKY130A — 13 Transistors (M3/M4 x20 each)} -800 -1750 0 0 0.35 0.35 {layer=8}
+T {x20} -610 -1340 0 0 0.3 0.3 {layer=5}
+T {x20} 340 -1340 0 0 0.3 0.3 {layer=5}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} -600 -1400 0 0 {name=M3 L=20u W=0.42u nf=1 mult=20 model=pfet_01v8 spiceprefix=X}
 C {devices/lab_pin.sym} -580 -1340 3 0 {name=p1 lab=fold_p}
 C {devices/lab_pin.sym} -660 -1400 0 1 {name=p2 lab=vbp}
 C {devices/lab_pin.sym} -580 -1460 1 0 {name=p3 lab=vdd}
@@ -105,7 +107,7 @@ C {devices/lab_pin.sym} -330 -1340 3 0 {name=p5 lab=fold_p}
 C {devices/lab_pin.sym} -410 -1400 0 1 {name=p6 lab=vbp}
 C {devices/lab_pin.sym} -330 -1460 1 0 {name=p7 lab=vdd}
 C {devices/lab_pin.sym} -310 -1400 0 0 {name=p8 lab=vdd}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 350 -1400 0 0 {name=M4 L=14u W=6u nf=1 mult=1 model=pfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 350 -1400 0 0 {name=M4 L=20u W=0.42u nf=1 mult=20 model=pfet_01v8 spiceprefix=X}
 C {devices/lab_pin.sym} 370 -1340 3 0 {name=p9 lab=fold_n}
 C {devices/lab_pin.sym} 290 -1400 0 1 {name=p10 lab=vbp}
 C {devices/lab_pin.sym} 370 -1460 1 0 {name=p11 lab=vdd}
@@ -125,22 +127,22 @@ C {devices/lab_pin.sym} 520 -940 3 0 {name=p21 lab=vout}
 C {devices/lab_pin.sym} 440 -1000 0 1 {name=p22 lab=vbcp}
 C {devices/lab_pin.sym} 520 -1060 1 0 {name=p23 lab=fold_n}
 C {devices/lab_pin.sym} 540 -1000 0 0 {name=p24 lab=vdd}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} -500 -600 0 0 {name=M7 L=1u W=0.36u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} -500 -600 0 0 {name=M7 L=14u W=2u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 C {devices/lab_pin.sym} -480 -660 1 0 {name=p25 lab=cas_p}
 C {devices/lab_pin.sym} -560 -600 0 1 {name=p26 lab=vbcn}
 C {devices/lab_pin.sym} -480 -540 3 0 {name=p27 lab=src7}
 C {devices/lab_pin.sym} -460 -600 0 0 {name=p28 lab=vss}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 500 -600 0 0 {name=M8 L=1u W=0.36u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 500 -600 0 0 {name=M8 L=14u W=2u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 C {devices/lab_pin.sym} 520 -660 1 0 {name=p29 lab=vout}
 C {devices/lab_pin.sym} 440 -600 0 1 {name=p30 lab=vbcn}
 C {devices/lab_pin.sym} 520 -540 3 0 {name=p31 lab=src8}
 C {devices/lab_pin.sym} 540 -600 0 0 {name=p32 lab=vss}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} -500 -200 0 0 {name=M9 L=11u W=6u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} -500 -200 0 0 {name=M9 L=14u W=2.15u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 C {devices/lab_pin.sym} -480 -260 1 0 {name=p33 lab=src7}
 C {devices/lab_pin.sym} -560 -200 0 1 {name=p34 lab=vbn}
 C {devices/lab_pin.sym} -480 -140 3 0 {name=p35 lab=vss}
 C {devices/lab_pin.sym} -460 -200 0 0 {name=p36 lab=vss}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 500 -200 0 0 {name=M10 L=11u W=6u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 500 -200 0 0 {name=M10 L=14u W=2.15u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 C {devices/lab_pin.sym} 520 -260 1 0 {name=p37 lab=src8}
 C {devices/lab_pin.sym} 440 -200 0 1 {name=p38 lab=vbn}
 C {devices/lab_pin.sym} 520 -140 3 0 {name=p39 lab=vss}
@@ -155,7 +157,7 @@ C {devices/lab_pin.sym} 170 -860 1 0 {name=p45 lab=fold_n}
 C {devices/lab_pin.sym} 90 -800 0 1 {name=p46 lab=vinn}
 C {devices/lab_pin.sym} 170 -740 3 0 {name=p47 lab=tail}
 C {devices/lab_pin.sym} 190 -800 0 0 {name=p48 lab=vss}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 0 -400 0 0 {name=M11 L=4u W=3.8u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 0 -400 0 0 {name=M11 L=14u W=3.8u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 C {devices/lab_pin.sym} 20 -460 1 0 {name=p49 lab=tail}
 C {devices/lab_pin.sym} -60 -400 0 1 {name=p50 lab=vbn}
 C {devices/lab_pin.sym} 20 -340 3 0 {name=p51 lab=vss}
