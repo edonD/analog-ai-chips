@@ -1,0 +1,9 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1774307957" />
+    <testcase name="test_full_integration" classname="test_top" file="/home/ubuntu/analog-ai-chips/vibrosense/08_digital/tb/test_top.py" lineno="65" time="2.3171937465667725" sim_time_ns="376540.0" ratio_time="162498.28075787515" />
+    <testcase name="test_fsm_phase_signals" classname="test_top" file="/home/ubuntu/analog-ai-chips/vibrosense/08_digital/tb/test_top.py" lineno="170" time="0.08971333503723145" sim_time_ns="11300.0" ratio_time="125956.74874098091" />
+    <testcase name="test_clock_dividers" classname="test_top" file="/home/ubuntu/analog-ai-chips/vibrosense/08_digital/tb/test_top.py" lineno="202" time="0.0026466846466064453" sim_time_ns="310.0" ratio_time="117127.66777767769" />
+    <testcase name="test_stress_spi" classname="test_top" file="/home/ubuntu/analog-ai-chips/vibrosense/08_digital/tb/test_top.py" lineno="223" time="1.7413477897644043" sim_time_ns="273740.0" ratio_time="157200.0731898799" />
+  </testsuite>
+</testsuites>
