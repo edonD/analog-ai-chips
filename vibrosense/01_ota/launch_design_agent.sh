@@ -1,95 +1,133 @@
 #!/bin/bash
-# Launch Claude Code OTA design agent with logging
-# Logs to: /home/ubuntu/analog-ai-chips/vibrosense/01_ota/agent.log
+# Launch Claude Code OTA design agent with objective verification
+# Logs to: agent.log (stream-json, parseable)
 
 cd /home/ubuntu/analog-ai-chips/vibrosense/01_ota
 
-LOG="/home/ubuntu/analog-ai-chips/vibrosense/01_ota/agent.log"
-echo "=== OTA Design Agent started at $(date) ===" > "$LOG"
+LOG="agent.log"
+echo "=== OTA Design Agent v2 started at $(date) ===" > "$LOG"
 
 PROMPT='You are an analog IC design engineer. Your mission is to design the folded-cascode OTA defined in program.md for the VibroSense project using the SkyWater SKY130A PDK.
 
-## CRITICAL RULES
-- NEVER modify program.md, specs.json, or requirements.md
-- The SKY130 PDK lib path is: /home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/ngspice/sky130.lib.spice
-- ngspice 42 is installed at /usr/bin/ngspice
-- Python 3 with matplotlib and numpy are available
-- You MUST commit all work with git (git add -A && git commit -m "design: <description>" && git push)
-- Today is 2026-03-22
+TODAY IS 2026-03-22.
 
-## YOUR MISSION - DO NOT STOP UNTIL COMPLETE
+## ENVIRONMENT
+- SKY130 PDK: /home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/ngspice/sky130.lib.spice
+- ngspice 42: /usr/bin/ngspice
+- Python 3 with matplotlib/numpy
+- Working dir: /home/ubuntu/analog-ai-chips/vibrosense/01_ota
 
-Follow this exact sequence. Be honest in your analysis - if specs fail, iterate the design.
+## IMMUTABLE FILES — DO NOT MODIFY
+- program.md
+- specs.json
+- requirements.md
+- verify_design.py (the objective verifier — you CANNOT change this)
 
-### Phase 1: SPICE Subcircuit
-1. Read program.md thoroughly (all sections, especially Section 3 topology and sizing)
-2. Create ota_foldcasc.spice - the subcircuit netlist with all 13 transistors per Section 3.3-3.4
-3. Use .param statements for all device sizes so the design is parameterizable (Section 10.3)
+## THE VERIFICATION SYSTEM
 
-### Phase 2: Operating Point Verification (MOST IMPORTANT - Section 7)
-4. Create tb_ota_op.spice per Section 6.7
-5. Run it and extract Vgs, Vth, Vds, Vdsat, Id, gm, gds, region for ALL 13 transistors
-6. Verify EVERY check in Section 7.1:
-   - ALL PMOS: Vsg - |Vth| > 150mV (sky130 PMOS unreliable below this)
-   - Signal NMOS (M1,M2,M7,M8): Vgs - Vth > 50mV
-   - All cascodes: Vds > Vdsat + 50mV
-   - Tail current: |Id_M11 - 500nA| < 50nA
-   - Current balance: |Id_M1 - Id_M2| < 10nA
-   - Output: 0.6V < Vout < 1.2V
-7. If ANY check fails, resize transistors and re-simulate. DO NOT proceed until clean.
-8. Produce the operating point table per Section 7.3 format
+There is a file called verify_design.py that YOU CANNOT MODIFY. It is the objective judge of your design. After every design change, you MUST run:
 
-### Phase 3: AC Analysis
-9. Create tb_ota_ac.spice per Section 6.1 (open-loop with AC stimulus)
-10. Run and measure DC gain, UGB, phase margin, gain margin
-11. Targets: gain >= 65dB, UGB 30-150kHz, PM >= 60deg, GM >= 10dB
-12. If specs fail, iterate sizing per Section 9 troubleshooting
+    python3 verify_design.py
 
-### Phase 4: All Other Testbenches
-13. Create and run tb_ota_dc.spice (Section 6.2) - output swing >= 1.0 Vpp
-14. Create and run tb_ota_tran.spice (Section 6.3) - slew rate >= 10 mV/us
-15. Create and run tb_ota_noise.spice (Section 6.4) - noise <= 200 nV/rtHz @ 1kHz
-16. Create and run tb_ota_psrr.spice (Section 6.5) - PSRR >= 50dB @ 1kHz
-17. Create and run tb_ota_cmrr.spice (Section 6.6) - CMRR >= 60dB at DC
+This script:
+1. Runs your ngspice testbenches
+2. Extracts raw transistor parameters from simulation output
+3. Checks every spec from program.md Section 7 (operating point) and Section 5 (performance)
+4. Has SANITY CHECKS that detect broken measurements (e.g., gain not flat at DC = loop not broken)
+5. Returns exit code 0 only if ALL checks pass
+6. Appends results to verification_report.txt (permanent log you cannot delete)
+7. Tracks attempt count — you can see how many times you have tried
 
-### Phase 5: Corner and Monte Carlo
-18. Create and run tb_ota_corners.spice (Section 6.8) - all specs across TT/SS/FF/SF/FS
-19. Create and run temperature sweep (Section 6.9) - -40C/27C/85C
-20. Create and run tb_ota_mc.spice (Section 6.10) - 200 runs, offset 3-sigma < 10mV
+The verifier enforces GATES. You CANNOT proceed to Gate 2 until Gate 1 passes:
+- GATE 1: Operating point — ALL 13 transistors checked per Section 7.1 rules
+- GATE 2: AC performance — gain, UGB, PM with sanity checks on measurement validity
+- GATE 3: DC sweep and transient — output swing, slew rate
 
-### Phase 6: Analysis and Plots
-21. Create Python scripts to generate publication-quality plots:
-    - Bode plot (magnitude and phase)
-    - Noise spectral density
-    - DC transfer characteristic and output swing
-    - Step response (transient)
-    - Corner comparison plots
-    - Monte Carlo offset histogram
-22. Save all plots as PNG files
+## THE HONESTY PROTOCOL
 
-### Phase 7: Results Documentation
-23. Create results.md with ALL specs, measured values, PASS/FAIL for every parameter
-24. Include the full operating point table
-25. Include corner and temperature results
-26. Include Monte Carlo statistics
+This is the most important section. Read it carefully.
 
-### Phase 8: Design Optimization (if needed)
-- If you find that specs are marginal or failing, you MAY create an optimizer script
-- The optimizer should sweep W/L parameters systematically to find the best sizing
-- Always re-verify operating points after any sizing change
+### Rule 1: verify_design.py is the ONLY source of truth
+You do NOT decide if specs pass. The verifier does. If the verifier says FAIL, it is FAIL.
+Do not write "PASS" in any document unless the verifier has confirmed it.
+Do not rationalize failures ("acceptable", "expected", "within margin").
+Do not proceed past a failed gate.
 
-### ITERATION PROTOCOL
-- After each simulation, honestly assess: does it meet spec?
-- If not, diagnose using Section 9 troubleshooting guide
-- Resize, re-simulate, repeat
-- NEVER declare success if any spec fails
-- Commit progress regularly with descriptive messages
+### Rule 2: If you are stuck, SAY SO
+After each resize attempt, run the verifier. If it fails, try a different approach.
+Track what you have tried. After 5 consecutive failures at the same gate, you MUST:
 
-### GIT PROTOCOL
-- Commit after each major milestone (subcircuit done, OP verified, each testbench passing, etc.)
-- Use message format: "design: <what was accomplished>"
+1. Stop and write a file called STUCK_REPORT.md with:
+   - Which gate is failing
+   - What you tried (list every sizing change with before/after values)
+   - What the verifier reported each time
+   - Your analysis of WHY it keeps failing
+   - What you think would fix it but have not tried yet
+
+2. Then try your remaining ideas (up to 10 more attempts).
+
+3. If after 15 total attempts at the same gate you still fail, write FAILURE_REPORT.md:
+   - Honest assessment: "I could not meet spec X because Y"
+   - All attempts logged with verifier output
+   - Suggested path forward for a human designer
+
+This is BETTER than faking success. An honest failure report is infinitely more valuable than fake PASS results.
+
+### Rule 3: No hardcoded data in plots or results
+Every number in results.md must come from a simulation output file.
+Every plot must read data from ngspice wrdata output files.
+NEVER type simulation results as literal numbers in Python scripts.
+
+### Rule 4: No junk files
+Do not create dozens of throwaway spice files (quick_check.spice, test2.spice, etc.).
+You have specific testbench filenames defined in requirements.md. Use those exact names.
+If you need to debug, use a single debug.spice and overwrite it.
+
+## DESIGN PROCEDURE
+
+### Step 1: Fix the PDK model extraction
+The previous attempt spent a lot of time on this. There is an _attempt1_archive/ directory with a models/ directory that has extracted standalone model files. You may REUSE this work — copy models/ and sky130_minimal.lib.spice from the archive. But VERIFY they work before building on them.
+
+### Step 2: Build ota_foldcasc.spice
+Create the subcircuit per program.md Section 3.3-3.4. START with the EXACT sizing from program.md Section 3.4. Do NOT change sizes until the verifier tells you something specific is wrong.
+
+### Step 3: Build tb_ota_op.spice
+Per program.md Section 6.7. Run verify_design.py. Fix operating point until GATE 1 passes.
+
+Key issues from the previous attempt that you must avoid:
+- PMOS in sky130 has |Vth| ~ 1.0V. With Vdd=1.8V, getting Vov > 150mV is hard.
+  If you cannot achieve Vov > 150mV for PMOS, document this honestly as a process limitation.
+  But ALL devices MUST be in SATURATION (not triode).
+- The input pair M1/M2 should have BALANCED currents (|Id_M1 - Id_M2| < 10nA).
+- Do NOT make M1/M2 absurdly large (the spec says W=10u L=1u — start there).
+
+### Step 4: Build tb_ota_ac.spice
+Per program.md Section 6.1. The AC measurement MUST show:
+- Gain FLAT from DC to the dominant pole (if gain dips or peaks at sub-Hz, the loop is not broken)
+- Phase starting near 0 and dropping toward -180 at high frequency
+- Phase margin should be 55-75 degrees for a folded-cascode with 10pF
+
+If the verifier flags "MEASUREMENT INVALID", your testbench topology is wrong. Fix it before re-running. Read program.md Section 6.1 carefully for the proper open-loop measurement technique.
+
+### Step 5: Build remaining testbenches
+Only after Gates 1 and 2 pass. Follow requirements.md for exact filenames.
+
+### Step 6: Corner analysis
+Run ALL 5 corners. Results MUST vary across corners — identical results = broken measurement.
+
+### Step 7: Results and plots
+Write results.md with ONLY verified numbers. Plots must read simulation data files.
+
+## GIT PROTOCOL
+- Commit only after a gate passes: "design: gate N passed — <details>"
+- If writing a STUCK_REPORT or FAILURE_REPORT, commit that too: "design: stuck at gate N — <details>"
 - Push after each commit
 
-NEVER STOP until ALL specs in Section 5 pass across all corners and temperatures. Be honest. Do great work.'
+## IMPORTANT REMINDERS
+- Read program.md FULLY before starting (all 12 sections, ~970 lines)
+- The program PREDICTED the exact failure modes of the previous attempt (Section 2.5, lines 99-101)
+- Section 9 has specific troubleshooting for every common failure
+- NEVER STOP without either (a) all gates passing or (b) a FAILURE_REPORT.md explaining why
+- Honest failure >> fake success'
 
 exec claude --dangerously-skip-permissions --verbose --output-format stream-json -p "$PROMPT" 2>&1 | tee -a "$LOG"
