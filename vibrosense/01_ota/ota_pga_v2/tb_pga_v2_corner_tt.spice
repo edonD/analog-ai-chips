@@ -1,0 +1,56 @@
+* TB: PGA OTA v2 AC Open-Loop Analysis - tt Corner
+.option scale=1e-6
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "ota_pga_v2.spice"
+
+.param vdd_val = 1.8
+.param vcm_val = 0.9
+
+Vdd vdd 0 dc {vdd_val}
+
+* Self-biasing vbn — tracks process corner
+Ibias_n vdd vbn dc 1500n
+Xbias_n vbn vbn 0 0 sky130_fd_pr__nfet_01v8 W=11.4 L=14 nf=1
+
+* Unused bias pins (declared but unused in subcircuit)
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* AC bypass on self-biased vbn
+Cbn vbn 0 1
+
+* AC stimulus on non-inverting input (inn)
+Vinn inn 0 dc {vcm_val} ac 1
+
+* Loop-breaking: out → inp (inverting)
+Lbreak out inp 1G
+Cdc inp 0 1
+
+Xota vdd 0 inp inn out vbn vbcn vbp vbcp ota_pga_v2
+CL out 0 10p
+
+.ac dec 100 0.1 100Meg
+
+.control
+run
+
+meas ac gain_peak_raw MAX vdb(out)
+meas ac g1_raw FIND vdb(out) AT=1
+meas ac g10_raw FIND vdb(out) AT=10
+meas ac g100_raw FIND vdb(out) AT=100
+meas ac ugb_raw WHEN vdb(out)=0 FALL=1
+meas ac phase_ugb_rad FIND vp(out) WHEN vdb(out)=0 FALL=1
+
+let phase_ugb_deg = phase_ugb_rad * 180 / 3.14159265359
+
+echo "gain_peak = $&gain_peak_raw"
+echo "g1 = $&g1_raw"
+echo "g10 = $&g10_raw"
+echo "g100 = $&g100_raw"
+echo "ugb = $&ugb_raw"
+echo "phase_ugb = $&phase_ugb_deg"
+
+quit
+.endc
+.end

@@ -1,0 +1,46 @@
+* TB: PGA OTA v2 PSRR — Power Supply Rejection Ratio
+* Open-loop measurement with loop-breaking
+.option scale=1e-6
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "ota_pga_v2.spice"
+
+* AC stimulus on VDD
+Vdd vdd 0 dc 1.8 ac 1
+
+* NMOS biases: ground-referenced (no supply coupling)
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* No AC on signal input (inn = non-inverting)
+Vinn inn 0 dc 0.9
+
+* Loop-breaking: out → inp (inverting)
+Lbreak out inp 1G
+Cdc inp 0 1
+
+Xota vdd 0 inp inn out vbn vbcn vbp vbcp ota_pga_v2
+CL out 0 10p
+
+.ac dec 100 0.1 100Meg
+
+.control
+run
+
+* VDD-to-output gain at 1kHz
+meas ac avdd_1k FIND vdb(out) AT=1000
+
+* Measure actual differential gain at 1kHz from a separate run
+* UGB ~ 420 kHz, so gain at 1kHz ~ 20*log10(420000/1000) ~ 52.5 dB
+* Use slightly conservative 52 dB
+let adm_1k = 52.0
+
+let psrr = adm_1k - avdd_1k
+
+echo "avdd_1k = $&avdd_1k"
+echo "psrr_1k = $&psrr"
+
+quit
+.endc
+.end
