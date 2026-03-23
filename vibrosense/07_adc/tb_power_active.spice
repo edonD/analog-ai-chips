@@ -1,0 +1,29 @@
+* Active Power Measurement — One Full Conversion
+.include "sky130_pdk_fixup.spice"
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "strongarm_comp.spice"
+
+VDD vdd 0 1.8
+Vsleep sleep_n 0 1.8
+
+* Input at mid-scale
+Vinp inp 0 0.6
+Vinn inn 0 0.6
+
+* Clock: 100 kHz for 10 cycles (100 us conversion)
+Vclk clk 0 PULSE(0 1.8 0 0.5n 0.5n 4.9u 10u)
+
+* Comparator instance
+X1 inp inn outp outn vdd 0 clk sleep_n comparator
+
+.tran 0.1u 100u
+
+.meas tran Iavg AVG I(VDD) FROM=0 TO=100u
+.meas tran Ipeak MAX I(VDD) FROM=0 TO=100u
+
+.control
+run
+quit
+.endc
+
+.end
