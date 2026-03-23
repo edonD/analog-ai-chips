@@ -1,12 +1,10 @@
-* VibroSense Block 03 — Channel 3 Band-Pass Filter
-* Tow-Thomas Biquad: f0=3162 Hz, Q=1.05, BW=3000 Hz (2-5 kHz)
-* Detects: Bearing ball spin frequency, resonances
+* VibroSense Block 03 — Channel 3 Band-Pass Filter (4th-order)
+* Two cascaded Tow-Thomas biquads for ≥20 dB adjacent channel isolation
+* f0=3162 Hz, Qs=1.845 per section, Q_eff=2.87
+* Peak gain = Qs² = 3.404 → 10.64 dB
 *
-* Design parameters:
-*   gm1 = gm2 = 2*pi*3162*10p = 198.7 nS
-*   gm3 = gm/Q = 198.7n/1.05 = 189.2 nS
-*   C1 = C2 = 10 pF
-*   Peak gain G0 = Q = 1.05 → +0.42 dB
+* gm  = 2*pi*3162*10p = 198.7 nS
+* gm3 = gm/Qs = 198.7n/1.845 = 107.7 nS
 
 .include ota_behavioral.spice
 
@@ -16,18 +14,26 @@
 .param gm_nom = 198.7n
 .param gm1_val = {gm_nom * gm_scale}
 .param gm2_val = {gm_nom * gm_scale}
-.param gm3_val = {189.2n * gm_scale}
+.param gm3_val = {107.7n * gm_scale}
 
-Xota1 vin int2 int1 vdd vss ota_gmc gm_val={gm1_val}
-C1 int1 vss 10p
-Rbias1 int1 vcm 10G
+* ===== Stage 1 =====
+Xota1a vin s1_int2 s1_int1 vdd vss ota_gmc gm_val={gm1_val}
+C1a s1_int1 vss 10p
+Rbias1a s1_int1 vcm 10G
+Xota2a s1_int1 vcm s1_int2 vdd vss ota_gmc gm_val={gm2_val}
+C2a s1_int2 vss 10p
+Rbias2a s1_int2 vcm 10G
+Xota3a vcm s1_int1 s1_int1 vdd vss ota_gmc gm_val={gm3_val}
 
-Xota2 int1 vcm int2 vdd vss ota_gmc gm_val={gm2_val}
-C2 int2 vss 10p
-Rbias2 int2 vcm 10G
+* ===== Stage 2 =====
+Xota1b s1_int1 s2_int2 s2_int1 vdd vss ota_gmc gm_val={gm1_val}
+C1b s2_int1 vss 10p
+Rbias1b s2_int1 vcm 10G
+Xota2b s2_int1 vcm s2_int2 vdd vss ota_gmc gm_val={gm2_val}
+C2b s2_int2 vss 10p
+Rbias2b s2_int2 vcm 10G
+Xota3b vcm s2_int1 s2_int1 vdd vss ota_gmc gm_val={gm3_val}
 
-Xota3 vcm int1 int1 vdd vss ota_gmc gm_val={gm3_val}
-
-Rout_tap bp_out int1 1m
+Rout_tap bp_out s2_int1 1m
 
 .ends bpf_ch3

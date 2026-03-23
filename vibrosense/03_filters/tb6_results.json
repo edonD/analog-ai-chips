@@ -1,42 +1,42 @@
 {
   "1": {
-    "thermal_noise_uVrms": 29.18,
-    "flicker_noise_uVrms": 0.39,
-    "total_noise_uVrms": 29.18,
-    "total_noise_mVrms": 0.0292,
-    "noise_equiv_bw_Hz": 469.1,
+    "thermal_noise_uVrms": 27.2,
+    "flicker_noise_uVrms": 0.46,
+    "total_noise_uVrms": 27.2,
+    "total_noise_mVrms": 0.0272,
+    "noise_equiv_bw_Hz": 290.8,
     "pass": true
   },
   "2": {
-    "thermal_noise_uVrms": 29.54,
-    "flicker_noise_uVrms": 0.32,
-    "total_noise_uVrms": 29.55,
-    "total_noise_mVrms": 0.0295,
-    "noise_equiv_bw_Hz": 2344.5,
+    "thermal_noise_uVrms": 28.78,
+    "flicker_noise_uVrms": 0.55,
+    "total_noise_uVrms": 28.78,
+    "total_noise_mVrms": 0.0288,
+    "noise_equiv_bw_Hz": 872.7,
     "pass": true
   },
   "3": {
-    "thermal_noise_uVrms": 28.79,
-    "flicker_noise_uVrms": 0.41,
-    "total_noise_uVrms": 28.79,
-    "total_noise_mVrms": 0.0288,
-    "noise_equiv_bw_Hz": 4730.3,
+    "thermal_noise_uVrms": 32.64,
+    "flicker_noise_uVrms": 0.69,
+    "total_noise_uVrms": 32.65,
+    "total_noise_mVrms": 0.0327,
+    "noise_equiv_bw_Hz": 1730.6,
     "pass": true
   },
   "4": {
-    "thermal_noise_uVrms": 29.34,
-    "flicker_noise_uVrms": 0.48,
-    "total_noise_uVrms": 29.34,
-    "total_noise_mVrms": 0.0293,
-    "noise_equiv_bw_Hz": 7877.4,
+    "thermal_noise_uVrms": 34.67,
+    "flicker_noise_uVrms": 0.76,
+    "total_noise_uVrms": 34.68,
+    "total_noise_mVrms": 0.0347,
+    "noise_equiv_bw_Hz": 3247.7,
     "pass": true
   },
   "5": {
-    "thermal_noise_uVrms": 29.34,
-    "flicker_noise_uVrms": 0.48,
-    "total_noise_uVrms": 29.34,
-    "total_noise_mVrms": 0.0293,
-    "noise_equiv_bw_Hz": 15754.8,
+    "thermal_noise_uVrms": 34.67,
+    "flicker_noise_uVrms": 0.76,
+    "total_noise_uVrms": 34.68,
+    "total_noise_mVrms": 0.0347,
+    "noise_equiv_bw_Hz": 6495.4,
     "pass": true
   }
 }
