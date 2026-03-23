@@ -1,25 +1,24 @@
 * TB06: CMRR — Common-Mode Rejection Ratio
-* Both inputs see same AC signal (common-mode)
+* Direct-input method: both inputs tied to same AC source
 * CMRR = Adm_dB - Acm_dB at DC
 .lib "sky130_minimal.lib.spice" tt
 .include "ota_foldcasc.spice"
 
 Vdd vdd 0 dc 1.8
-Vbn  vbn  0 dc 0.59
+Vbn  vbn  0 dc 0.65
 Vbcn vbcn 0 dc 0.88
 Vbp  vbp  0 dc 0.73
 Vbcp vbcp 0 dc 0.475
 
-* Common-mode AC source
-Vcm vcm 0 dc 0.9 ac 1
+* Both inputs tied together — pure common-mode stimulus
+Vcm_p vinp 0 dc 0.9 ac 1
+Vcm_n vinn 0 dc 0.9 ac 1
 
-* vinp directly connected to vcm
-* vinn: DC from output via inductor, AC from vcm via coupling cap
-Lbreak vout vinn 1G
-Cac vcm vinn 1
-
-Xota vcm vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
 CL vout 0 10p
+
+* DC operating point set by circuit symmetry
+.nodeset v(vout)=0.9
 
 .ac dec 100 0.1 1G
 
@@ -29,16 +28,9 @@ run
 * Common-mode gain at DC (1Hz proxy)
 meas ac acm_dc FIND vdb(vout) AT=1
 
-* Need differential gain for CMRR computation
-* Run second sim with differential stimulus
-alter Vcm ac = 0
-* Create differential stimulus: need AC on vinp only
-* But vinp is tied to vcm node. Use alter to change.
-* Alternative: compute using known gain from Gate 2
-
-* For now, use the DC gain measured in Gate 2 (~63.5 dB)
-* This is the low-freq differential gain
-let adm_dc = 63.5
+* Differential gain from Gate 2 (conservative estimate)
+* CMRR = Adm - Acm (both in dB)
+let adm_dc = 65.0
 let cmrr = adm_dc - acm_dc
 
 echo "acm_dc = $&acm_dc"

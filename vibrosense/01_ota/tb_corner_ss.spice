@@ -1,4 +1,5 @@
-* Corner: SS — AC Open-Loop Analysis
+* TB: AC Open-Loop Analysis - SS Corner
+* Uses loop-breaking inductor technique
 .lib "sky130_minimal.lib.spice" ss
 .include "ota_foldcasc.spice"
 
@@ -6,15 +7,34 @@
 .param vcm_val = 0.9
 
 Vdd vdd 0 dc {vdd_val}
-Vbn  vbn  0 dc 0.59
-Vbcn vbcn 0 dc 0.88
-Vbp  vbp  0 dc 0.73
-Vbcp vbcp 0 dc 0.475
 
+* Self-biasing with voltage offsets — tracks process corner
+* vbn: 500nA through diode-connected NMOS (same as M11)
+Ibias_n vdd vbn dc 500n
+Xbias_n vbn vbn 0 0 sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
+
+* vbcn = vbn + 0.23V (cascode offset)
+Vbcn_off vbcn vbn dc 0.23
+
+* vbp: 24.3nA through diode-connected PMOS (same as fold instance)
+Ibias_p vbp 0 dc 24.3n
+Xbias_p vbp vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+
+* vbcp = vbp - 0.255V (cascode offset)
+Vbcp_off vbp vbcp dc 0.255
+
+* AC bypass on self-biased nodes
+Cbn vbn 0 1
+Cbp vbp 0 1
+
+* Input with AC stimulus
 Vinp vinp 0 dc {vcm_val} ac 1
+
+* Loop-breaking: L=1GH passes DC, blocks AC. C holds vinn at DC for AC.
 Lbreak vout vinn 1G
 Cdc vinn 0 1
 
+* OTA
 Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
 CL vout 0 10p
 
@@ -22,11 +42,33 @@ CL vout 0 10p
 
 .control
 run
-meas ac gain_peak MAX vdb(vout)
-meas ac ugb WHEN vdb(vout)=0 FALL=1
 
-echo "gain_peak = $&gain_peak"
-echo "ugb = $&ugb"
+* Compute measurements manually and echo in format verifier expects
+* Note: vp() returns RADIANS in ngspice 42, verifier expects DEGREES
+
+* Peak gain
+meas ac gain_peak_raw MAX vdb(vout)
+
+* Gain at specific frequencies
+meas ac g1_raw FIND vdb(vout) AT=1
+meas ac g10_raw FIND vdb(vout) AT=10
+meas ac g100_raw FIND vdb(vout) AT=100
+
+* UGB and phase at UGB
+meas ac ugb_raw WHEN vdb(vout)=0 FALL=1
+meas ac phase_ugb_rad FIND vp(vout) WHEN vdb(vout)=0 FALL=1
+
+* Convert radians to degrees for the verifier
+let phase_ugb_deg = phase_ugb_rad * 180 / 3.14159265359
+
+* Echo results in the exact format the verifier's parse_meas expects
+echo "gain_peak = $&gain_peak_raw"
+echo "g1 = $&g1_raw"
+echo "g10 = $&g10_raw"
+echo "g100 = $&g100_raw"
+echo "ugb = $&ugb_raw"
+echo "phase_ugb = $&phase_ugb_deg"
+
 quit
 .endc
 .end

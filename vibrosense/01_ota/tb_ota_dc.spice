@@ -7,7 +7,7 @@
 Vdd vdd 0 dc {vdd_val}
 
 * Bias voltages
-Vbn  vbn  0 dc 0.59
+Vbn  vbn  0 dc 0.65
 Vbcn vbcn 0 dc 0.88
 Vbp  vbp  0 dc 0.73
 Vbcp vbcp 0 dc 0.475

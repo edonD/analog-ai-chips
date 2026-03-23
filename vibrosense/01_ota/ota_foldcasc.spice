@@ -1,16 +1,15 @@
-* VibroSense Folded-Cascode OTA — SKY130A v8
-* Low-noise design: long-L NMOS for reduced 1/f noise
-* Cascoded tail for high CMRR
+* VibroSense Folded-Cascode OTA — SKY130A v11
+* Low-noise design: all NMOS L=14u for reduced 1/f noise
+* No tail cascode needed — long L provides sufficient CMRR
 
 .subckt ota_foldcasc vinp vinn vout vdd vss vbn vbcn vbp vbcp
 
-* Input Pair (W=5u L=14u for low 1/f noise)
+* Input Pair (W=5u L=14u for low 1/f noise, Vov>50mV)
 XM1 fold_p vinp tail vss sky130_fd_pr__nfet_01v8 W=5u L=14u nf=1
 XM2 fold_n vinn tail vss sky130_fd_pr__nfet_01v8 W=5u L=14u nf=1
 
-* Tail (500nA) — cascoded for high CMRR
-XM11  tail_int vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
-XM11c tail vbcn tail_int vss sky130_fd_pr__nfet_01v8 W=3.8u L=4u nf=1
+* Tail (500nA) — long L for high output impedance
+XM11 tail vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
 
 * PMOS Fold: 20 parallel instances of W=0.42u L=20u for low noise
 XM3a  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
@@ -66,7 +65,7 @@ XM6  vout  vbcp fold_n vdd sky130_fd_pr__pfet_01v8 W=0.42u L=2u nf=1
 XM7  cas_p vbcn src7 vss sky130_fd_pr__nfet_01v8 W=2u L=14u nf=1
 XM8  vout  vbcn src8 vss sky130_fd_pr__nfet_01v8 W=2u L=14u nf=1
 
-* NMOS Current Sources (W=2.15u L=14u — matched L with tail for mirror)
+* NMOS Current Sources (W=2.15u L=14u — matched L with tail)
 XM9  src7 vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
 XM10 src8 vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
 
