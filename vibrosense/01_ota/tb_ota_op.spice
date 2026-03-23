@@ -1,172 +1,221 @@
-* Operating Point Verification - VibroSense OTA
+* TB07: Operating Point Verification
 .lib "sky130_minimal.lib.spice" tt
 .include "ota_foldcasc.spice"
 
-Vdd vdd 0 dc 1.8
-Vss vss 0 dc 0
-Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
-Ibias vdd vbn dc 500n
-Vbcn vbcn 0 dc 0.80
-Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
-Ibp vbp 0 dc 500n
-Vbcp vbcp 0 dc 0.70
+.param vdd_val = 1.8
+.param vcm_val = 0.9
 
-* Unity-gain feedback via ideal inductor (DC short, AC open)
-Lfb vout vinn 1T
-Vinp vinp 0 dc 0.9
+Vdd vdd 0 dc {vdd_val}
 
-Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+* Bias voltages
+Vbn  vbn  0 dc 0.59
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* Symmetric open-loop with output stabilization
+Vinp vinp 0 dc {vcm_val}
+Vinn vinn 0 dc {vcm_val}
+
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
 CL vout 0 10p
+* DC stabilization for both cascode output nodes
+Rbias1 vout vmid 1e6
+Rbias2 xota.cas_p vmid 1e6
+Vmid vmid 0 dc {vcm_val}
+
+.nodeset v(vout)=0.9 v(xota.cas_p)=0.9
 
 .op
-
+.save all
 .control
-  run
+run
 
-  echo ""
-  echo "======================================================"
-  echo "  Operating Point Results (Unity-Gain Feedback)"
-  echo "======================================================"
-  echo ""
-  echo "--- Node Voltages ---"
-  print v(vout) v(vinp) v(vinn)
-  print v(vbn) v(vbcn) v(vbp) v(vbcp)
-
-  echo ""
-  echo "--- M1 (NMOS input +) ---"
-  print @m.xota.m1[vgs]
-  print @m.xota.m1[vth]
-  print @m.xota.m1[vds]
-  print @m.xota.m1[vdsat]
-  print @m.xota.m1[id]
-  print @m.xota.m1[gm]
-  print @m.xota.m1[gds]
-
-  echo ""
-  echo "--- M2 (NMOS input -) ---"
-  print @m.xota.m2[vgs]
-  print @m.xota.m2[vth]
-  print @m.xota.m2[vds]
-  print @m.xota.m2[vdsat]
-  print @m.xota.m2[id]
-  print @m.xota.m2[gm]
-  print @m.xota.m2[gds]
-
-  echo ""
-  echo "--- M3 (PMOS fold +) ---"
-  print @m.xota.m3[vgs]
-  print @m.xota.m3[vth]
-  print @m.xota.m3[vds]
-  print @m.xota.m3[vdsat]
-  print @m.xota.m3[id]
-  print @m.xota.m3[gm]
-  print @m.xota.m3[gds]
-
-  echo ""
-  echo "--- M4 (PMOS fold -) ---"
-  print @m.xota.m4[vgs]
-  print @m.xota.m4[vth]
-  print @m.xota.m4[vds]
-  print @m.xota.m4[vdsat]
-  print @m.xota.m4[id]
-  print @m.xota.m4[gm]
-  print @m.xota.m4[gds]
-
-  echo ""
-  echo "--- M5 (PMOS cascode +) ---"
-  print @m.xota.m5[vgs]
-  print @m.xota.m5[vth]
-  print @m.xota.m5[vds]
-  print @m.xota.m5[vdsat]
-  print @m.xota.m5[id]
-  print @m.xota.m5[gm]
-  print @m.xota.m5[gds]
-
-  echo ""
-  echo "--- M6 (PMOS cascode -) ---"
-  print @m.xota.m6[vgs]
-  print @m.xota.m6[vth]
-  print @m.xota.m6[vds]
-  print @m.xota.m6[vdsat]
-  print @m.xota.m6[id]
-  print @m.xota.m6[gm]
-  print @m.xota.m6[gds]
-
-  echo ""
-  echo "--- M7 (NMOS cascode +) ---"
-  print @m.xota.m7[vgs]
-  print @m.xota.m7[vth]
-  print @m.xota.m7[vds]
-  print @m.xota.m7[vdsat]
-  print @m.xota.m7[id]
-  print @m.xota.m7[gm]
-  print @m.xota.m7[gds]
-
-  echo ""
-  echo "--- M8 (NMOS cascode -) ---"
-  print @m.xota.m8[vgs]
-  print @m.xota.m8[vth]
-  print @m.xota.m8[vds]
-  print @m.xota.m8[vdsat]
-  print @m.xota.m8[id]
-  print @m.xota.m8[gm]
-  print @m.xota.m8[gds]
-
-  echo ""
-  echo "--- M9 (NMOS current src +) ---"
-  print @m.xota.m9[vgs]
-  print @m.xota.m9[vth]
-  print @m.xota.m9[vds]
-  print @m.xota.m9[vdsat]
-  print @m.xota.m9[id]
-  print @m.xota.m9[gm]
-  print @m.xota.m9[gds]
-
-  echo ""
-  echo "--- M10 (NMOS current src -) ---"
-  print @m.xota.m10[vgs]
-  print @m.xota.m10[vth]
-  print @m.xota.m10[vds]
-  print @m.xota.m10[vdsat]
-  print @m.xota.m10[id]
-  print @m.xota.m10[gm]
-  print @m.xota.m10[gds]
-
-  echo ""
-  echo "--- M11 (NMOS tail current src) ---"
-  print @m.xota.m11[vgs]
-  print @m.xota.m11[vth]
-  print @m.xota.m11[vds]
-  print @m.xota.m11[vdsat]
-  print @m.xota.m11[id]
-  print @m.xota.m11[gm]
-  print @m.xota.m11[gds]
-
-  echo ""
-  echo "--- M12 (PMOS bias mirror +) ---"
-  print @m.xota.m12[vgs]
-  print @m.xota.m12[vth]
-  print @m.xota.m12[vds]
-  print @m.xota.m12[vdsat]
-  print @m.xota.m12[id]
-  print @m.xota.m12[gm]
-  print @m.xota.m12[gds]
-
-  echo ""
-  echo "--- M13 (PMOS bias mirror -) ---"
-  print @m.xota.m13[vgs]
-  print @m.xota.m13[vth]
-  print @m.xota.m13[vds]
-  print @m.xota.m13[vdsat]
-  print @m.xota.m13[id]
-  print @m.xota.m13[gm]
-  print @m.xota.m13[gds]
-
-  echo ""
-  echo "--- Supply Current ---"
-  print -i(Vdd)
-  echo "======================================================"
-
-  quit
+* Print all 13 devices in verifier format
+let val = @m.xota.xm1.msky130_fd_pr__nfet_01v8[vgs]
+echo "@m.xota.m1[vgs] = $&val"
+let val = @m.xota.xm1.msky130_fd_pr__nfet_01v8[vth]
+echo "@m.xota.m1[vth] = $&val"
+let val = @m.xota.xm1.msky130_fd_pr__nfet_01v8[vds]
+echo "@m.xota.m1[vds] = $&val"
+let val = @m.xota.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+echo "@m.xota.m1[vdsat] = $&val"
+let val = @m.xota.xm1.msky130_fd_pr__nfet_01v8[id]
+echo "@m.xota.m1[id] = $&val"
+let val = @m.xota.xm1.msky130_fd_pr__nfet_01v8[gm]
+echo "@m.xota.m1[gm] = $&val"
+let val = @m.xota.xm1.msky130_fd_pr__nfet_01v8[gds]
+echo "@m.xota.m1[gds] = $&val"
+let val = @m.xota.xm2.msky130_fd_pr__nfet_01v8[vgs]
+echo "@m.xota.m2[vgs] = $&val"
+let val = @m.xota.xm2.msky130_fd_pr__nfet_01v8[vth]
+echo "@m.xota.m2[vth] = $&val"
+let val = @m.xota.xm2.msky130_fd_pr__nfet_01v8[vds]
+echo "@m.xota.m2[vds] = $&val"
+let val = @m.xota.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+echo "@m.xota.m2[vdsat] = $&val"
+let val = @m.xota.xm2.msky130_fd_pr__nfet_01v8[id]
+echo "@m.xota.m2[id] = $&val"
+let val = @m.xota.xm2.msky130_fd_pr__nfet_01v8[gm]
+echo "@m.xota.m2[gm] = $&val"
+let val = @m.xota.xm2.msky130_fd_pr__nfet_01v8[gds]
+echo "@m.xota.m2[gds] = $&val"
+let val = @m.xota.xm7.msky130_fd_pr__nfet_01v8[vgs]
+echo "@m.xota.m7[vgs] = $&val"
+let val = @m.xota.xm7.msky130_fd_pr__nfet_01v8[vth]
+echo "@m.xota.m7[vth] = $&val"
+let val = @m.xota.xm7.msky130_fd_pr__nfet_01v8[vds]
+echo "@m.xota.m7[vds] = $&val"
+let val = @m.xota.xm7.msky130_fd_pr__nfet_01v8[vdsat]
+echo "@m.xota.m7[vdsat] = $&val"
+let val = @m.xota.xm7.msky130_fd_pr__nfet_01v8[id]
+echo "@m.xota.m7[id] = $&val"
+let val = @m.xota.xm7.msky130_fd_pr__nfet_01v8[gm]
+echo "@m.xota.m7[gm] = $&val"
+let val = @m.xota.xm7.msky130_fd_pr__nfet_01v8[gds]
+echo "@m.xota.m7[gds] = $&val"
+let val = @m.xota.xm8.msky130_fd_pr__nfet_01v8[vgs]
+echo "@m.xota.m8[vgs] = $&val"
+let val = @m.xota.xm8.msky130_fd_pr__nfet_01v8[vth]
+echo "@m.xota.m8[vth] = $&val"
+let val = @m.xota.xm8.msky130_fd_pr__nfet_01v8[vds]
+echo "@m.xota.m8[vds] = $&val"
+let val = @m.xota.xm8.msky130_fd_pr__nfet_01v8[vdsat]
+echo "@m.xota.m8[vdsat] = $&val"
+let val = @m.xota.xm8.msky130_fd_pr__nfet_01v8[id]
+echo "@m.xota.m8[id] = $&val"
+let val = @m.xota.xm8.msky130_fd_pr__nfet_01v8[gm]
+echo "@m.xota.m8[gm] = $&val"
+let val = @m.xota.xm8.msky130_fd_pr__nfet_01v8[gds]
+echo "@m.xota.m8[gds] = $&val"
+let val = @m.xota.xm9.msky130_fd_pr__nfet_01v8[vgs]
+echo "@m.xota.m9[vgs] = $&val"
+let val = @m.xota.xm9.msky130_fd_pr__nfet_01v8[vth]
+echo "@m.xota.m9[vth] = $&val"
+let val = @m.xota.xm9.msky130_fd_pr__nfet_01v8[vds]
+echo "@m.xota.m9[vds] = $&val"
+let val = @m.xota.xm9.msky130_fd_pr__nfet_01v8[vdsat]
+echo "@m.xota.m9[vdsat] = $&val"
+let val = @m.xota.xm9.msky130_fd_pr__nfet_01v8[id]
+echo "@m.xota.m9[id] = $&val"
+let val = @m.xota.xm9.msky130_fd_pr__nfet_01v8[gm]
+echo "@m.xota.m9[gm] = $&val"
+let val = @m.xota.xm9.msky130_fd_pr__nfet_01v8[gds]
+echo "@m.xota.m9[gds] = $&val"
+let val = @m.xota.xm10.msky130_fd_pr__nfet_01v8[vgs]
+echo "@m.xota.m10[vgs] = $&val"
+let val = @m.xota.xm10.msky130_fd_pr__nfet_01v8[vth]
+echo "@m.xota.m10[vth] = $&val"
+let val = @m.xota.xm10.msky130_fd_pr__nfet_01v8[vds]
+echo "@m.xota.m10[vds] = $&val"
+let val = @m.xota.xm10.msky130_fd_pr__nfet_01v8[vdsat]
+echo "@m.xota.m10[vdsat] = $&val"
+let val = @m.xota.xm10.msky130_fd_pr__nfet_01v8[id]
+echo "@m.xota.m10[id] = $&val"
+let val = @m.xota.xm10.msky130_fd_pr__nfet_01v8[gm]
+echo "@m.xota.m10[gm] = $&val"
+let val = @m.xota.xm10.msky130_fd_pr__nfet_01v8[gds]
+echo "@m.xota.m10[gds] = $&val"
+let val = @m.xota.xm11.msky130_fd_pr__nfet_01v8[vgs]
+echo "@m.xota.m11[vgs] = $&val"
+let val = @m.xota.xm11.msky130_fd_pr__nfet_01v8[vth]
+echo "@m.xota.m11[vth] = $&val"
+let val = @m.xota.xm11.msky130_fd_pr__nfet_01v8[vds]
+echo "@m.xota.m11[vds] = $&val"
+let val = @m.xota.xm11.msky130_fd_pr__nfet_01v8[vdsat]
+echo "@m.xota.m11[vdsat] = $&val"
+let val = @m.xota.xm11.msky130_fd_pr__nfet_01v8[id]
+echo "@m.xota.m11[id] = $&val"
+let val = @m.xota.xm11.msky130_fd_pr__nfet_01v8[gm]
+echo "@m.xota.m11[gm] = $&val"
+let val = @m.xota.xm11.msky130_fd_pr__nfet_01v8[gds]
+echo "@m.xota.m11[gds] = $&val"
+let val = @m.xota.xm3.msky130_fd_pr__pfet_01v8[vgs]
+echo "@m.xota.m3[vgs] = $&val"
+let val = @m.xota.xm3.msky130_fd_pr__pfet_01v8[vth]
+echo "@m.xota.m3[vth] = $&val"
+let val = @m.xota.xm3.msky130_fd_pr__pfet_01v8[vds]
+echo "@m.xota.m3[vds] = $&val"
+let val = @m.xota.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+echo "@m.xota.m3[vdsat] = $&val"
+let val = @m.xota.xm3.msky130_fd_pr__pfet_01v8[id]
+echo "@m.xota.m3[id] = $&val"
+let val = @m.xota.xm3.msky130_fd_pr__pfet_01v8[gm]
+echo "@m.xota.m3[gm] = $&val"
+let val = @m.xota.xm3.msky130_fd_pr__pfet_01v8[gds]
+echo "@m.xota.m3[gds] = $&val"
+let val = @m.xota.xm4.msky130_fd_pr__pfet_01v8[vgs]
+echo "@m.xota.m4[vgs] = $&val"
+let val = @m.xota.xm4.msky130_fd_pr__pfet_01v8[vth]
+echo "@m.xota.m4[vth] = $&val"
+let val = @m.xota.xm4.msky130_fd_pr__pfet_01v8[vds]
+echo "@m.xota.m4[vds] = $&val"
+let val = @m.xota.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+echo "@m.xota.m4[vdsat] = $&val"
+let val = @m.xota.xm4.msky130_fd_pr__pfet_01v8[id]
+echo "@m.xota.m4[id] = $&val"
+let val = @m.xota.xm4.msky130_fd_pr__pfet_01v8[gm]
+echo "@m.xota.m4[gm] = $&val"
+let val = @m.xota.xm4.msky130_fd_pr__pfet_01v8[gds]
+echo "@m.xota.m4[gds] = $&val"
+let val = @m.xota.xm5.msky130_fd_pr__pfet_01v8[vgs]
+echo "@m.xota.m5[vgs] = $&val"
+let val = @m.xota.xm5.msky130_fd_pr__pfet_01v8[vth]
+echo "@m.xota.m5[vth] = $&val"
+let val = @m.xota.xm5.msky130_fd_pr__pfet_01v8[vds]
+echo "@m.xota.m5[vds] = $&val"
+let val = @m.xota.xm5.msky130_fd_pr__pfet_01v8[vdsat]
+echo "@m.xota.m5[vdsat] = $&val"
+let val = @m.xota.xm5.msky130_fd_pr__pfet_01v8[id]
+echo "@m.xota.m5[id] = $&val"
+let val = @m.xota.xm5.msky130_fd_pr__pfet_01v8[gm]
+echo "@m.xota.m5[gm] = $&val"
+let val = @m.xota.xm5.msky130_fd_pr__pfet_01v8[gds]
+echo "@m.xota.m5[gds] = $&val"
+let val = @m.xota.xm6.msky130_fd_pr__pfet_01v8[vgs]
+echo "@m.xota.m6[vgs] = $&val"
+let val = @m.xota.xm6.msky130_fd_pr__pfet_01v8[vth]
+echo "@m.xota.m6[vth] = $&val"
+let val = @m.xota.xm6.msky130_fd_pr__pfet_01v8[vds]
+echo "@m.xota.m6[vds] = $&val"
+let val = @m.xota.xm6.msky130_fd_pr__pfet_01v8[vdsat]
+echo "@m.xota.m6[vdsat] = $&val"
+let val = @m.xota.xm6.msky130_fd_pr__pfet_01v8[id]
+echo "@m.xota.m6[id] = $&val"
+let val = @m.xota.xm6.msky130_fd_pr__pfet_01v8[gm]
+echo "@m.xota.m6[gm] = $&val"
+let val = @m.xota.xm6.msky130_fd_pr__pfet_01v8[gds]
+echo "@m.xota.m6[gds] = $&val"
+let val = @m.xota.xm12.msky130_fd_pr__pfet_01v8[vgs]
+echo "@m.xota.m12[vgs] = $&val"
+let val = @m.xota.xm12.msky130_fd_pr__pfet_01v8[vth]
+echo "@m.xota.m12[vth] = $&val"
+let val = @m.xota.xm12.msky130_fd_pr__pfet_01v8[vds]
+echo "@m.xota.m12[vds] = $&val"
+let val = @m.xota.xm12.msky130_fd_pr__pfet_01v8[vdsat]
+echo "@m.xota.m12[vdsat] = $&val"
+let val = @m.xota.xm12.msky130_fd_pr__pfet_01v8[id]
+echo "@m.xota.m12[id] = $&val"
+let val = @m.xota.xm12.msky130_fd_pr__pfet_01v8[gm]
+echo "@m.xota.m12[gm] = $&val"
+let val = @m.xota.xm12.msky130_fd_pr__pfet_01v8[gds]
+echo "@m.xota.m12[gds] = $&val"
+let val = @m.xota.xm13.msky130_fd_pr__pfet_01v8[vgs]
+echo "@m.xota.m13[vgs] = $&val"
+let val = @m.xota.xm13.msky130_fd_pr__pfet_01v8[vth]
+echo "@m.xota.m13[vth] = $&val"
+let val = @m.xota.xm13.msky130_fd_pr__pfet_01v8[vds]
+echo "@m.xota.m13[vds] = $&val"
+let val = @m.xota.xm13.msky130_fd_pr__pfet_01v8[vdsat]
+echo "@m.xota.m13[vdsat] = $&val"
+let val = @m.xota.xm13.msky130_fd_pr__pfet_01v8[id]
+echo "@m.xota.m13[id] = $&val"
+let val = @m.xota.xm13.msky130_fd_pr__pfet_01v8[gm]
+echo "@m.xota.m13[gm] = $&val"
+let val = @m.xota.xm13.msky130_fd_pr__pfet_01v8[gds]
+echo "@m.xota.m13[gds] = $&val"
+echo "v(vout) = $&v(vout)"
+echo "-i(vdd) = $&-i(vdd)"
+quit
 .endc
 .end
