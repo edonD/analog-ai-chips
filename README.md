@@ -159,7 +159,7 @@ Full specifications in [vibrosense/README.md](vibrosense/README.md). Each block 
 | [00_bias](vibrosense/00_bias/) | 1,054 | Beta-multiplier 500nA current reference | Wave 1 (independent) |
 | [01_ota](vibrosense/01_ota/) | 973 | Folded-cascode OTA, 65dB gain, 50kHz UGB | Wave 1 (independent) |
 | [02_pga](vibrosense/02_pga/) | 583 | Capacitive-feedback PGA, 4 gain settings | Wave 2 (needs OTA) |
-| [03_filters](vibrosense/03_filters/) | 819 | 5-channel Gm-C Tow-Thomas BPF bank | Wave 2 (needs OTA) |
+| [03_filters](vibrosense/03_filters/) | 819 | 5-channel Gm-C Tow-Thomas BPF bank — **VERIFIED** | Wave 2 (needs OTA) |
 | [04_envelope](vibrosense/04_envelope/) | 918 | Precision rectifier + LPF envelope detectors | Wave 2 (needs OTA) |
 | [05_rms_crest](vibrosense/05_rms_crest/) | 500 | Broadband RMS + peak detector + crest factor | Wave 2 (needs OTA) |
 | [06_classifier](vibrosense/06_classifier/) | 598 | Charge-domain MAC, 128 MIM caps, 4-class | Wave 1 (independent) |
@@ -193,5 +193,6 @@ Full specifications in [vibrosense/README.md](vibrosense/README.md). Each block 
 
 | Date | What |
 |------|------|
+| 2026-03-24 | **Block 03 (Filters) COMPLETE & INDEPENDENTLY VERIFIED.** 5-channel pseudo-differential Gm-C Tow-Thomas BPF bank with real SKY130 OTA. All specs PASS: f0 within ±3.6%, noise 1.9–97.6 µVrms, THD -33.4 dBc, power 42.5 µW. 4-bit bias DAC verified (DNL 0.0006 LSB). Independent ngspice re-simulation confirms all claimed results — no fabrication detected. 225 files including netlists, testbenches, analysis scripts, and simulation data. |
 | 2026-03-22 | **32 research + 23 design files.** Complete analog AI landscape research, VibroSense-1 chip design (11 blocks, 9,700 lines of specs), competitive analysis, energy harvesting validation, process roadmap, DARPA citation chain. |
 | 2026-03-22 | Project initialized |

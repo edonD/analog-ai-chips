@@ -1,0 +1,34 @@
+{
+  "tt_27": {
+    "f0": 3852.1,
+    "Q": 0.729,
+    "pk": -0.04,
+    "status": "OK"
+  },
+  "ss_27": {
+    "f0": null,
+    "status": "DEAD"
+  },
+  "ff_27": {
+    "f0": null,
+    "status": "DEAD"
+  },
+  "sf_27": {
+    "f0": null,
+    "status": "DEAD"
+  },
+  "fs_27": {
+    "f0": null,
+    "status": "DEAD"
+  },
+  "tt_-40": {
+    "f0": 4849.7,
+    "Q": 0.74,
+    "pk": -0.16,
+    "status": "OK"
+  },
+  "tt_85": {
+    "f0": null,
+    "status": "DEAD"
+  }
+}

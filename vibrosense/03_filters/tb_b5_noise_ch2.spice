@@ -1,0 +1,51 @@
+* BLOCKER 5: Noise — Ch2 f0=1001.4Hz (positive path only, x sqrt2)
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "pseudo_res.spice"
+
+Vdd vdd 0 dc 1.8
+Vcm vcm 0 dc 0.9
+
+Vvbn vbn 0 dc 0.5973
+Vvbp vbp 0 dc 0.81
+Vvbcn vbcn 0 dc 0.8273
+Vvbcp vbcp 0 dc 0.555
+
+* AC input for noise analysis
+Vinp vinp 0 dc 0.9 ac 0
+Vinn vinn 0 dc 0.9 ac 0
+
+
+* Positive path
+Xota1p vinp int2p int1p vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C1p int1p 0 118.0p
+Xpr1p int1p vcm pseudo_res
+Xota2p int1p vcm int2p vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C2p int2p 0 260.0p
+Xpr2p int2p vcm pseudo_res
+Xota3p vcm int1p int1p vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+
+* Negative path
+Xota1n vinn int2n int1n vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C1n int1n 0 118.0p
+Xpr1n int1n vcm pseudo_res
+Xota2n int1n vcm int2n vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C2n int2n 0 260.0p
+Xpr2n int2n vcm pseudo_res
+Xota3n vcm int1n int1n vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+
+
+* Diff-to-single via VCVS for noise measurement
+Ediff ndiff 0 int1p int1n 1.0
+Rdiff ndiff 0 1G
+
+.nodeset v(int1p)=0.9 v(int2p)=0.9
++ v(int1n)=0.9 v(int2n)=0.9
+
+.control
+op
+noise v(ndiff) Vinp dec 50 1 100k
+setplot noise2
+print onoise_total
+.endc
+.end

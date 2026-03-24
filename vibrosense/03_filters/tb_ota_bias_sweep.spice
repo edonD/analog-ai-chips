@@ -1,0 +1,71 @@
+* Measure OTA gm at a few Vbn settings
+* Strategy: measure gain×bandwidth product at 10Hz (below UGB)
+* gm = |Vout/Vin| × 2π×f × CL at low freq where |H|≈gm/(2πfCL)...
+* Actually simpler: just measure DC gain and UGB separately
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+
+.param vbn_set = 0.65
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc {vbn_set}
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+Vinp vinp 0 dc 0.9 ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.control
+* Measure at default Vbn=0.65
+ac dec 100 0.1 1Meg
+meas ac gain_db MAX vdb(vout)
+meas ac ugb WHEN vdb(vout)=0 FALL=1
+let gm = ugb * 2 * 3.14159 * 10e-12
+let isup = -i(vdd)
+echo "Vbn=0.65: gain=$&gain_db dB, UGB=$&ugb Hz, gm=$&gm S, Isupply=$&isup A"
+
+* Now lower Vbn for reduced bias
+alter vbn 0.60
+op
+let isup2 = -i(vdd)
+ac dec 100 0.1 1Meg
+meas ac gain_db2 MAX vdb(vout)
+meas ac ugb2 WHEN vdb(vout)=0 FALL=1
+let gm2 = ugb2 * 2 * 3.14159 * 10e-12
+echo "Vbn=0.60: gain=$&gain_db2 dB, UGB=$&ugb2 Hz, gm=$&gm2 S, Isupply=$&isup2 A"
+
+alter vbn 0.55
+op
+let isup3 = -i(vdd)
+ac dec 100 0.1 100k
+meas ac gain_db3 MAX vdb(vout)
+meas ac ugb3 WHEN vdb(vout)=0 FALL=1
+let gm3 = ugb3 * 2 * 3.14159 * 10e-12
+echo "Vbn=0.55: gain=$&gain_db3 dB, UGB=$&ugb3 Hz, gm=$&gm3 S, Isupply=$&isup3 A"
+
+alter vbn 0.50
+op
+let isup4 = -i(vdd)
+ac dec 100 0.01 10k
+meas ac gain_db4 MAX vdb(vout)
+meas ac ugb4 WHEN vdb(vout)=0 FALL=1
+let gm4 = ugb4 * 2 * 3.14159 * 10e-12
+echo "Vbn=0.50: gain=$&gain_db4 dB, UGB=$&ugb4 Hz, gm=$&gm4 S, Isupply=$&isup4 A"
+
+alter vbn 0.45
+op
+let isup5 = -i(vdd)
+ac dec 100 0.001 1k
+meas ac gain_db5 MAX vdb(vout)
+meas ac ugb5 WHEN vdb(vout)=0 FALL=1
+let gm5 = ugb5 * 2 * 3.14159 * 10e-12
+echo "Vbn=0.45: gain=$&gain_db5 dB, UGB=$&ugb5 Hz, gm=$&gm5 S, Isupply=$&isup5 A"
+
+.endc
+.end

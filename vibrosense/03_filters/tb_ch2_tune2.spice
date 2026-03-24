@@ -1,0 +1,68 @@
+* Fine-tune C1/C2 ratio for Q and f0 simultaneously
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.565
+Vbcn vbcn 0 dc 0.795
+Vbp  vbp  0 dc 0.860
+Vbcp vbcp 0 dc 0.605
+Vcm vcm 0 dc 0.9
+Vin in 0 dc 0.9 ac 1
+
+.param c1_val = 55p
+.param c2_val = 145p
+
+Xota1 in int2 int1 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C1 int1 0 {c1_val}
+Rbias1 int1 vcm 1G
+Xota2 int1 vcm int2 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C2 int2 0 {c2_val}
+Rbias2 int2 vcm 1G
+Xota3 vcm int1 int1 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+.nodeset v(int1)=0.9 v(int2)=0.9
+
+.control
+* Q is too low (0.557 vs 0.67). Need to increase C1/C2 ratio.
+* Also need to keep f0≈1000Hz → keep sqrt(C1*C2) constant
+* From Q=sqrt(C1_eff/C2_eff): if effective parasitics add ~15p to V1 and ~8p to V2,
+* then C1_eff=C1+15, C2_eff=C2+8, Q=sqrt((C1+15)/(C2+8))
+* For Q=0.67: (C1+15)/(C2+8) = 0.449
+* For f0=1000: sqrt((C1+15)(C2+8)) = 100.1pF → (C1+15)(C2+8) = 10020
+
+* Solve: C1+15 = 0.449(C2+8), so C1 = 0.449C2 + 3.59 - 15 = 0.449C2 - 11.4
+* (0.449C2-11.4+15)(C2+8) = 10020
+* (0.449C2+3.6)(C2+8) = 10020
+* 0.449C2^2 + 3.59C2 + 3.6C2 + 28.8 = 10020
+* 0.449C2^2 + 7.19C2 = 9991
+* C2^2 + 16C2 - 22252 = 0
+* C2 = (-16+sqrt(256+89008))/2 = (-16+298.7)/2 = 141.4pF
+* C1 = 0.449*141.4 - 11.4 = 52.1pF
+
+alter c1 52p
+alter c2 141p
+op
+ac dec 200 10 100k
+wrdata ch2_tune_E.txt vdb(int1)
+
+* Also try slightly different combos
+alter c1 58p
+alter c2 137p
+op
+ac dec 200 10 100k
+wrdata ch2_tune_F.txt vdb(int1)
+
+alter c1 65p
+alter c2 130p
+op
+ac dec 200 10 100k
+wrdata ch2_tune_G.txt vdb(int1)
+
+alter c1 70p
+alter c2 125p
+op
+ac dec 200 10 100k
+wrdata ch2_tune_H.txt vdb(int1)
+
+.endc
+.end
