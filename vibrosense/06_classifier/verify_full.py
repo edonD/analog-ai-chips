@@ -18,21 +18,43 @@ os.makedirs(PLOT_DIR, exist_ok=True)
 
 N_IN = 8
 N_BITS = 4
-CUNIT = 50  # fF
-BP_FRAC = 0.10  # bottom-plate parasitic fraction
 CPAR_BL = 80  # fF bitline routing parasitic
 CORNERS = ['tt', 'ss', 'ff', 'sf', 'fs']
 
-# Effective cap per unit weight (including parasitic)
-CUNIT_EFF = CUNIT * (1 + BP_FRAC)  # 55 fF
-# Total cap on bitline (all max weight = 15)
-CTOTAL_ALL = N_IN * sum(2**b * CUNIT_EFF for b in range(N_BITS)) + CPAR_BL  # fF
+# Real MIM cap values (from sky130_fd_pr__cap_mim_m3_1 subcircuit):
+# C = W*L*2fF/um² + 2*(W+L)*0.38fF/um (area + fringe)
+# Cbp = W*L*0.1fF/um² (bottom plate parasitic)
+import math
+MIM_CAPS = {}  # bit -> (Cmain_fF, Cbp_fF, Ceff_fF)
+for _b in range(N_BITS):
+    _target = (2**_b) * 50
+    _W = math.sqrt(_target / 2)
+    for _ in range(20):
+        _c = _W*_W*2 + 4*_W*0.38
+        _dc = 4*_W + 4*0.38
+        _W = _W - (_c - _target) / _dc
+        _W = max(_W, 1.0)
+    _cmain = _W*_W*2 + 4*_W*0.38
+    _cbp = _W*_W*0.1
+    MIM_CAPS[_b] = (_cmain, _cbp, _cmain + _cbp)
+
+# Effective per-unit cap (bit 0)
+CUNIT_EFF = MIM_CAPS[0][2]  # ~52.2 fF (main + bp)
+# Total cap on bitline: all 32 caps (each with their own Cmain+Cbp) + BL parasitic
+CTOTAL_ALL = sum(MIM_CAPS[b][2] for b in range(N_BITS)) * N_IN + CPAR_BL  # fF
 
 
 def ideal_vbl(inputs, weights):
-    """Compute ideal Vbl including bottom-plate parasitic."""
-    q_total = sum(w * CUNIT_EFF * 1e-15 * v for w, v in zip(weights, inputs))
-    c_total = N_IN * sum(2**b * CUNIT_EFF for b in range(N_BITS)) * 1e-15 + CPAR_BL * 1e-15
+    """Compute ideal Vbl using real MIM cap values (Cmain + Cbp for each bit)."""
+    q_total = 0
+    c_total = CPAR_BL * 1e-15
+    for i in range(N_IN):
+        w = weights[i]
+        for b in range(N_BITS):
+            c_eff = MIM_CAPS[b][2] * 1e-15  # Cmain + Cbp
+            c_total += c_eff
+            if w & (1 << b):
+                q_total += c_eff * inputs[i]
     return q_total / c_total if c_total > 0 else 0
 
 
@@ -94,6 +116,7 @@ def make_full_tb(inputs, weights, corner='tt', extra_ctrl=""):
     inp_lines = "\n".join(f"Vin{i} in{i} 0 dc {inputs[i]}" for i in range(N_IN))
     return f"""* Auto-generated MAC testbench
 .lib "sky130_minimal.lib.spice" {corner}
+.include "sky130_fd_pr__cap_mim_m3_1.spice"
 .include "mac_8in4b.spice"
 
 Vdd vdd 0 dc 1.8
@@ -354,24 +377,18 @@ def run_p4_monte_carlo():
             for i in range(N_IN):
                 w = class_weights[cls][i]
                 for b in range(N_BITS):
+                    c_main_fF = MIM_CAPS[b][0]  # real MIM Cmain
+                    c_bp_fF = MIM_CAPS[b][1]    # real MIM Cbp
+                    c_eff_fF = c_main_fF + c_bp_fF
+                    c_eff = c_eff_fF * 1e-15
+                    # Pelgrom mismatch: area = Cmain/2 um² (2 fF/um²)
+                    area_um2 = c_main_fF / 2.0
+                    sigma_frac = A_C / np.sqrt(area_um2) / 100 if area_um2 > 0 else 0
+                    c_actual = c_eff * (1 + np.random.randn() * sigma_frac)
+                    c_total += c_actual
                     if w & (1 << b):
-                        c_nom = (2**b) * CUNIT * 1e-15
-                        c_bp = c_nom * BP_FRAC
-                        # Add mismatch
-                        area_um2 = c_nom * 1e15 / 2.0  # fF → μm²
-                        sigma_frac = A_C / np.sqrt(area_um2) / 100 if area_um2 > 0 else 0
-                        c_actual = (c_nom + c_bp) * (1 + np.random.randn() * sigma_frac)
                         q_total += c_actual * test_inputs[i]
-                        c_total += c_actual
-                    else:
-                        # Disabled cap still on bitline with parasitic + mismatch
-                        c_nom = (2**b) * CUNIT * 1e-15
-                        c_bp = c_nom * BP_FRAC
-                        area_um2 = c_nom * 1e15 / 2.0
-                        sigma_frac = A_C / np.sqrt(area_um2) / 100 if area_um2 > 0 else 0
-                        c_actual = (c_nom + c_bp) * (1 + np.random.randn() * sigma_frac)
-                        c_total += c_actual
-                        # q from disabled cap = 0 (reset)
+                    # Disabled cap: q = 0, but cap still on bitline
 
             # kT/C noise
             T = 300  # K
