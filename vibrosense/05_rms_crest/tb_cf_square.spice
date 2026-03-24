@@ -4,15 +4,17 @@
 .include design.cir
 VDD vdd gnd 1.8
 VSS vss gnd 0
+Vbn vbn gnd 0.65
+Vcm vcm gnd 0.9
 
 Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd PULSE(0.8 1.0 0 1u 1u 0.5m 1m)
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3
 .tran 10u 200m
 .control
 run
-wrdata tb_cf_square.csv v(rms_out) v(peak_out) v(Xdut.vcm_int) v(inp)
+wrdata tb_cf_square.csv v(rms_out) v(peak_out) v(vcm) v(inp)
 quit
 .endc
 .end
