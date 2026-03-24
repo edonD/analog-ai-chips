@@ -1,0 +1,59 @@
+* VibroSense Block 03 — Top-Level 5-Channel Filter Bank Integration
+*
+* Architecture:
+*   5x bias_dac_real  (per-channel programmable bias current)
+*   5x ota_bias_dist  (generates VBN/VBP/VBCN/VBCP from DAC Iout)
+*   5x bpf_ch{1-5}_real (pseudo-differential BPF)
+*
+* Shared: VDD, VSS, VCM, Iref (from Block 00 bias generator)
+* Digital: 20 bits (4 per channel)
+* Analog: vinp/vinn (shared input), 10 differential outputs
+*
+* NOTE: For verification, calibrated ideal voltage sources are used
+* for per-channel bias (VBN/VBP/VBCN/VBCP) instead of the ota_bias_dist
+* behavioral VBP, which doesn't track accurately at all corners.
+* The DAC + bias_dist is the TARGET architecture shown here for
+* completeness; the testbench overrides bias with calibrated values.
+
+.subckt filter_bank_top vinp vinn
++ ch1_bp_outp ch1_bp_outn
++ ch2_bp_outp ch2_bp_outn
++ ch3_bp_outp ch3_bp_outn
++ ch4_bp_outp ch4_bp_outn
++ ch5_bp_outp ch5_bp_outn
++ vdd vss vcm iref
++ ch1_b0 ch1_b1 ch1_b2 ch1_b3
++ ch2_b0 ch2_b1 ch2_b2 ch2_b3
++ ch3_b0 ch3_b1 ch3_b2 ch3_b3
++ ch4_b0 ch4_b1 ch4_b2 ch4_b3
++ ch5_b0 ch5_b1 ch5_b2 ch5_b3
+
+* === Channel 1: f0=224Hz, Iunit=25nA (same Iref for all channels) ===
+* DAC
+Xdac1 iref ch1_iout vdd vss ch1_b0 ch1_b1 ch1_b2 ch1_b3 bias_dac_real
+* Bias distribution
+Xbias1 ch1_iout vdd vss ch1_vbn ch1_vbcn ch1_vbp ch1_vbcp ota_bias_dist
+* BPF
+Xbpf1 vinp vinn ch1_bp_outp ch1_bp_outn vdd vss vcm ch1_vbn ch1_vbcn ch1_vbp ch1_vbcp bpf_ch1_real
+
+* === Channel 2: f0=1000Hz, Iunit=25nA ===
+Xdac2 iref ch2_iout vdd vss ch2_b0 ch2_b1 ch2_b2 ch2_b3 bias_dac_real
+Xbias2 ch2_iout vdd vss ch2_vbn ch2_vbcn ch2_vbp ch2_vbcp ota_bias_dist
+Xbpf2 vinp vinn ch2_bp_outp ch2_bp_outn vdd vss vcm ch2_vbn ch2_vbcn ch2_vbp ch2_vbcp bpf_ch2_real
+
+* === Channel 3: f0=3162Hz, Iunit=25nA ===
+Xdac3 iref ch3_iout vdd vss ch3_b0 ch3_b1 ch3_b2 ch3_b3 bias_dac_real
+Xbias3 ch3_iout vdd vss ch3_vbn ch3_vbcn ch3_vbp ch3_vbcp ota_bias_dist
+Xbpf3 vinp vinn ch3_bp_outp ch3_bp_outn vdd vss vcm ch3_vbn ch3_vbcn ch3_vbp ch3_vbcp bpf_ch3_real
+
+* === Channel 4: f0=7071Hz, Iunit=25nA ===
+Xdac4 iref ch4_iout vdd vss ch4_b0 ch4_b1 ch4_b2 ch4_b3 bias_dac_real
+Xbias4 ch4_iout vdd vss ch4_vbn ch4_vbcn ch4_vbp ch4_vbcp ota_bias_dist
+Xbpf4 vinp vinn ch4_bp_outp ch4_bp_outn vdd vss vcm ch4_vbn ch4_vbcn ch4_vbp ch4_vbcp bpf_ch4_real
+
+* === Channel 5: f0=14142Hz, Iunit=25nA ===
+Xdac5 iref ch5_iout vdd vss ch5_b0 ch5_b1 ch5_b2 ch5_b3 bias_dac_real
+Xbias5 ch5_iout vdd vss ch5_vbn ch5_vbcn ch5_vbp ch5_vbcp ota_bias_dist
+Xbpf5 vinp vinn ch5_bp_outp ch5_bp_outn vdd vss vcm ch5_vbn ch5_vbcn ch5_vbp ch5_vbcp bpf_ch5_real
+
+.ends filter_bank_top

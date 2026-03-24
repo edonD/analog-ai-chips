@@ -1,0 +1,97 @@
+* Testbench: Top-Level 5-Channel Filter Bank AC Verification
+* Uses calibrated ideal bias voltages per channel (bypasses ota_bias_dist)
+* Verifies all 5 channels show BPF responses at respective f0
+*
+* Note: The filter_bank_top.spice shows the full DAC+bias_dist+BPF
+* architecture. This testbench instantiates channels directly with
+* calibrated bias for reliable AC verification at tt/27C.
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "pseudo_res.spice"
+.include "bpf_ch1_real.spice"
+.include "bpf_ch2_real.spice"
+.include "bpf_ch3_real.spice"
+.include "bpf_ch4_real.spice"
+.include "bpf_ch5_real.spice"
+
+* === Supply ===
+Vdd vdd 0 dc 1.8
+Vcm vcm 0 dc 0.9
+
+* === Differential AC stimulus ===
+Vinp inp 0 dc 0.9 ac 0.5
+Vinn inn 0 dc 0.9 ac -0.5
+
+* === Per-channel calibrated bias voltages ===
+* Ch1-3 at 200nA (same bias, different caps set f0)
+Vbn13  ch13_vbn  0 dc 0.5973
+Vbp13  ch13_vbp  0 dc 0.81
+Vbcn13 ch13_vbcn 0 dc 0.8273
+Vbcp13 ch13_vbcp 0 dc 0.555
+
+* Ch4 at 440nA
+Vbn4  ch4_vbn  0 dc 0.6399
+Vbp4  ch4_vbp  0 dc 0.745
+Vbcn4 ch4_vbcn 0 dc 0.8699
+Vbcp4 ch4_vbcp 0 dc 0.49
+
+* Ch5 at 870nA
+Vbn5  ch5_vbn  0 dc 0.6914
+Vbp5  ch5_vbp  0 dc 0.66
+Vbcn5 ch5_vbcn 0 dc 0.9214
+Vbcp5 ch5_vbcp 0 dc 0.405
+
+* === Channel 1: f0=224Hz ===
+Xbpf1 inp inn ch1_bp_outp ch1_bp_outn vdd 0 vcm ch13_vbn ch13_vbcn ch13_vbp ch13_vbcp bpf_ch1_real
+
+* === Channel 2: f0=1000Hz ===
+Xbpf2 inp inn ch2_bp_outp ch2_bp_outn vdd 0 vcm ch13_vbn ch13_vbcn ch13_vbp ch13_vbcp bpf_ch2_real
+
+* === Channel 3: f0=3162Hz ===
+Xbpf3 inp inn ch3_bp_outp ch3_bp_outn vdd 0 vcm ch13_vbn ch13_vbcn ch13_vbp ch13_vbcp bpf_ch3_real
+
+* === Channel 4: f0=7071Hz ===
+Xbpf4 inp inn ch4_bp_outp ch4_bp_outn vdd 0 vcm ch4_vbn ch4_vbcn ch4_vbp ch4_vbcp bpf_ch4_real
+
+* === Channel 5: f0=14142Hz ===
+Xbpf5 inp inn ch5_bp_outp ch5_bp_outn vdd 0 vcm ch5_vbn ch5_vbcn ch5_vbp ch5_vbcp bpf_ch5_real
+
+* === Initial conditions for convergence ===
+.nodeset v(xbpf1.int1p)=0.9 v(xbpf1.int2p)=0.9
++ v(xbpf1.int1n)=0.9 v(xbpf1.int2n)=0.9
++ v(xbpf2.int1p)=0.9 v(xbpf2.int2p)=0.9
++ v(xbpf2.int1n)=0.9 v(xbpf2.int2n)=0.9
++ v(xbpf3.int1p)=0.9 v(xbpf3.int2p)=0.9
++ v(xbpf3.int1n)=0.9 v(xbpf3.int2n)=0.9
++ v(xbpf4.int1p)=0.9 v(xbpf4.int2p)=0.9
++ v(xbpf4.int1n)=0.9 v(xbpf4.int2n)=0.9
++ v(xbpf5.int1p)=0.9 v(xbpf5.int2p)=0.9
++ v(xbpf5.int1n)=0.9 v(xbpf5.int2n)=0.9
+
+.control
+op
+echo "=== DC Operating Points ==="
+echo "Ch1 outputs:"
+print v(ch1_bp_outp) v(ch1_bp_outn)
+echo "Ch2 outputs:"
+print v(ch2_bp_outp) v(ch2_bp_outn)
+echo "Ch3 outputs:"
+print v(ch3_bp_outp) v(ch3_bp_outn)
+echo "Ch4 outputs:"
+print v(ch4_bp_outp) v(ch4_bp_outn)
+echo "Ch5 outputs:"
+print v(ch5_bp_outp) v(ch5_bp_outn)
+echo "Supply current:"
+let isup = -i(vdd)
+let pwr_uw = isup * 1.8 * 1e6
+echo "Total power = $&pwr_uw uW"
+
+ac dec 200 1 200k
+wrdata b8_top_ch1.txt vdb(ch1_bp_outp,ch1_bp_outn)
+wrdata b8_top_ch2.txt vdb(ch2_bp_outp,ch2_bp_outn)
+wrdata b8_top_ch3.txt vdb(ch3_bp_outp,ch3_bp_outn)
+wrdata b8_top_ch4.txt vdb(ch4_bp_outp,ch4_bp_outn)
+wrdata b8_top_ch5.txt vdb(ch5_bp_outp,ch5_bp_outn)
+.endc
+.end

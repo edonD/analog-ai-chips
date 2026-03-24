@@ -1,0 +1,112 @@
+* VibroSense Block 03 — 4-Bit Binary-Weighted Cascode Current Mirror DAC
+* Transistor-level implementation using SKY130 real devices
+*
+* Iout = Iunit x (8*b3 + 4*b2 + 2*b1 + b0)
+* Range: code 1 (1x Iunit) to code 15 (15x Iunit)
+* Nominal code = 8 (1000b)
+*
+* Reference side: diode-connected cascode pair driven by Iref
+* Output side: binary-weighted cascode mirrors with NMOS switches
+*
+* Mirror NMOS:  sky130_fd_pr__nfet_01v8 W=2u L=4u
+* Cascode NMOS: sky130_fd_pr__nfet_01v8 W=2u L=4u
+* Switch NMOS:  sky130_fd_pr__nfet_01v8 W=1u L=0.15u
+*
+* Digital inputs: 1.8V = ON, 0V = OFF
+
+.subckt bias_dac_real iref iout vdd vss b0 b1 b2 b3
+
+* === Reference side: diode-connected cascode ===
+* Iref flows into drain of top cascode, sets gate_c and gate_n
+* Bottom: diode-connected mirror transistor
+XMref_bot  gate_n gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+* Top: diode-connected cascode transistor
+XMref_cas  iref   iref   gate_n vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+* Gate_c is driven by iref node (diode connection at cascode drain=gate)
+* Separate gate_c bias: use iref voltage directly for cascode gates
+* Actually: the cascode gate should be a separate node for better compliance
+* Use a dedicated bias: cascode gate = iref drain voltage
+* Route cascode gate bias from the reference drain
+Rg_cas iref gate_c 1
+* This 1-ohm resistor separates the current input from the gate_c bus
+
+* === Bit 0: 1x unit cell ===
+XM0_bot  mid0  gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM0_cas  sw0d  gate_c mid0 vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM0_sw   iout  b0     sw0d vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed0  sw0d  vss 100G
+
+* === Bit 1: 2x unit cells ===
+XM1a_bot mid1a gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM1a_cas sw1a  gate_c mid1a vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM1a_sw  iout  b1     sw1a  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed1a sw1a  vss 100G
+
+XM1b_bot mid1b gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM1b_cas sw1b  gate_c mid1b vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM1b_sw  iout  b1     sw1b  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed1b sw1b  vss 100G
+
+* === Bit 2: 4x unit cells ===
+XM2a_bot mid2a gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2a_cas sw2a  gate_c mid2a vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2a_sw  iout  b2     sw2a  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed2a sw2a  vss 100G
+
+XM2b_bot mid2b gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2b_cas sw2b  gate_c mid2b vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2b_sw  iout  b2     sw2b  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed2b sw2b  vss 100G
+
+XM2c_bot mid2c gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2c_cas sw2c  gate_c mid2c vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2c_sw  iout  b2     sw2c  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed2c sw2c  vss 100G
+
+XM2d_bot mid2d gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2d_cas sw2d  gate_c mid2d vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM2d_sw  iout  b2     sw2d  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed2d sw2d  vss 100G
+
+* === Bit 3: 8x unit cells ===
+XM3a_bot mid3a gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3a_cas sw3a  gate_c mid3a vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3a_sw  iout  b3     sw3a  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3a sw3a  vss 100G
+
+XM3b_bot mid3b gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3b_cas sw3b  gate_c mid3b vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3b_sw  iout  b3     sw3b  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3b sw3b  vss 100G
+
+XM3c_bot mid3c gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3c_cas sw3c  gate_c mid3c vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3c_sw  iout  b3     sw3c  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3c sw3c  vss 100G
+
+XM3d_bot mid3d gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3d_cas sw3d  gate_c mid3d vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3d_sw  iout  b3     sw3d  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3d sw3d  vss 100G
+
+XM3e_bot mid3e gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3e_cas sw3e  gate_c mid3e vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3e_sw  iout  b3     sw3e  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3e sw3e  vss 100G
+
+XM3f_bot mid3f gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3f_cas sw3f  gate_c mid3f vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3f_sw  iout  b3     sw3f  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3f sw3f  vss 100G
+
+XM3g_bot mid3g gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3g_cas sw3g  gate_c mid3g vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3g_sw  iout  b3     sw3g  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3g sw3g  vss 100G
+
+XM3h_bot mid3h gate_n vss vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3h_cas sw3h  gate_c mid3h vss sky130_fd_pr__nfet_01v8 W=2u L=4u nf=1
+XM3h_sw  iout  b3     sw3h  vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u nf=1
+Rbleed3h sw3h  vss 100G
+
+.ends bias_dac_real
