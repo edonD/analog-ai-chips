@@ -1,0 +1,10 @@
+* SKY130 MIM Capacitor Model (m3_1)
+* Approximate model: ~2 fF/um^2, series R, bottom-plate parasitic
+* For use when PDK model file is unavailable (stub/404)
+
+.subckt sky130_fd_pr__cap_mim_m3_1 top bottom sub
++ w=10 l=10
+Cmim top mid_rs {2e-15*w*l}
+Rseries mid_rs bottom {0.047/(w*1e-6)}
+Cbot bottom sub {0.1e-15*w*l}
+.ends sky130_fd_pr__cap_mim_m3_1
