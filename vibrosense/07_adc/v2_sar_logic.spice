@@ -190,23 +190,44 @@ Xor_b0 b0ca b0ha b0da vdd vss cmos_or2
 ab_b0d [b0da] [b0d] adcb
 a_b0ff b0d clkd null null b0q b0qn dff1
 
-* --- DAC outputs: bit OR tentative ---
+* --- DAC outputs: (bit OR tentative) AND NOT(sample) ---
+* During SAMPLE phase (s1), ALL DAC outputs MUST be LOW so bottom
+* plates are at GND for correct charge sampling. Without this,
+* bit registers from the previous conversion keep switches at Vref,
+* corrupting the sampled voltage. Bug found in independent review.
+Xinv_s1a_dac s1a s1na_dac vdd vss cmos_inv
+
 adc_b7qo [b7q] [b7qao] dacc
-Xor_dac7 b7qao s2a d7 vdd vss cmos_or2
+Xor_dac7 b7qao s2a d7_raw vdd vss cmos_or2
+Xand_dac7 d7_raw s1na_dac d7 vdd vss cmos_and2
+
 adc_b6qo [b6q] [b6qao] dacc
-Xor_dac6 b6qao s3a d6 vdd vss cmos_or2
+Xor_dac6 b6qao s3a d6_raw vdd vss cmos_or2
+Xand_dac6 d6_raw s1na_dac d6 vdd vss cmos_and2
+
 adc_b5qo [b5q] [b5qao] dacc
-Xor_dac5 b5qao s4a d5 vdd vss cmos_or2
+Xor_dac5 b5qao s4a d5_raw vdd vss cmos_or2
+Xand_dac5 d5_raw s1na_dac d5 vdd vss cmos_and2
+
 adc_b4qo [b4q] [b4qao] dacc
-Xor_dac4 b4qao s5a d4 vdd vss cmos_or2
+Xor_dac4 b4qao s5a d4_raw vdd vss cmos_or2
+Xand_dac4 d4_raw s1na_dac d4 vdd vss cmos_and2
+
 adc_b3qo [b3q] [b3qao] dacc
-Xor_dac3 b3qao s6a d3 vdd vss cmos_or2
+Xor_dac3 b3qao s6a d3_raw vdd vss cmos_or2
+Xand_dac3 d3_raw s1na_dac d3 vdd vss cmos_and2
+
 adc_b2qo [b2q] [b2qao] dacc
-Xor_dac2 b2qao s7a d2 vdd vss cmos_or2
+Xor_dac2 b2qao s7a d2_raw vdd vss cmos_or2
+Xand_dac2 d2_raw s1na_dac d2 vdd vss cmos_and2
+
 adc_b1qo [b1q] [b1qao] dacc
-Xor_dac1 b1qao s8a d1 vdd vss cmos_or2
+Xor_dac1 b1qao s8a d1_raw vdd vss cmos_or2
+Xand_dac1 d1_raw s1na_dac d1 vdd vss cmos_and2
+
 adc_b0qo [b0q] [b0qao] dacc
-Xor_dac0 b0qao s9a d0 vdd vss cmos_or2
+Xor_dac0 b0qao s9a d0_raw vdd vss cmos_or2
+Xand_dac0 d0_raw s1na_dac d0 vdd vss cmos_and2
 
 * DAC inverters (transistor-level)
 Xinv_d7 d7 d7b vdd vss cmos_inv

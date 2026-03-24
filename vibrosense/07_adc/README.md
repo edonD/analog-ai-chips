@@ -152,10 +152,15 @@ ngspice -b v2_tb_power_sleep.spice
 
 ```
 ngspice -b v2_tb_wakeup.spice
-Wakeup overhead ≈ 5 µs (bias settling + clock sync)
+.meas tran t_wakeup TRIG v(sleep_n) val=0.9 rise=1 TARG v(valid) val=0.9 rise=1
+t_wakeup = 105 µs
 ```
 
-**Wakeup = ~5 µs** (spec < 10 µs) — **PASS** ✅ (2× margin)
+**Wakeup to first valid output = 105 µs** (spec < 10 µs) — **FAIL** ❌
+
+Breakdown: ~5 µs bias settling + ~100 µs conversion time (10 clocks × 10 µs).
+The spec cannot be met at 100 kHz clock because the conversion itself takes 100 µs.
+To meet the 10 µs spec, the clock would need to be ≥ 1 MHz (10 clocks × 1 µs = 10 µs total).
 
 ---
 
@@ -164,16 +169,18 @@ Wakeup overhead ≈ 5 µs (bias settling + clock sync)
 **Testbench:** `v2_tb_corner_{tt,ss,ff,sf,fs}.spice`
 **Input:** Vin = 0.47V, expected code ≈ 156
 
-| Corner | Code | Binary | Valid | Error | Status |
-|--------|------|--------|-------|-------|--------|
-| TT | 159 | 10011111 | ✓ | 3 LSB | **PASS** |
-| SS | 160 | 10100000 | ✓ | 4 LSB | **PASS** |
-| FF | 159 | 10011111 | ✓ | 3 LSB | **PASS** |
-| SF | 255 | 11111111 | ✓ | — | **FAIL** |
-| FS | 157 | 10011101 | ✓ | 1 LSB | **PASS** |
+| Corner | Code | Binary | VTop (V) | Error (LSB) | Status |
+|--------|------|--------|----------|-------------|--------|
+| TT | 159 | 10011111 | 1.2089 | +3 | **PASS** |
+| SS | 176 | 10110000 | 1.2873 | +20 | **FAIL** |
+| FF | 159 | 10011111 | 1.2091 | +3 | **PASS** |
+| SF | 255 | 11111111 | 1.6520 | — | **FAIL** |
+| FS | 157 | 10011101 | 1.1997 | +1 | **PASS** |
 
-**4/5 corners pass.** SF fails: slow PMOS reduces comparator gain below LSB resolution.
-Fix: increase PMOS mirror W from 2µ to 4µ.
+**3/5 corners pass.** SS corner has 20 LSB error — slow NMOS reduces comparator
+transconductance, causing ~94 mV systematic offset (vtop converges to 1.287V instead of 1.2V).
+SF corner fails completely — comparator never resolves.
+Fix: increase diff pair W to 16µ and PMOS mirror W to 4µ, or use StrongARM with auto-zero.
 
 ---
 
@@ -199,11 +206,11 @@ Analytical mismatch budget:
 | 5 | Sample rate | ≥ 10 kSPS | 10 kSPS | 10 clk × 100 kHz | ✅ PASS |
 | 6 | Active power | < 100 µW | 35.3 µW | TB5 `.meas` | ✅ PASS |
 | 7 | Sleep power | < 0.5 µW | 29.8 nW | TB6 `.meas` | ✅ PASS |
-| 8 | Wakeup | < 10 µs | ~5 µs | TB7 `.meas` | ✅ PASS |
+| 8 | Wakeup | < 10 µs | 105 µs | TB7 `.meas` | ❌ FAIL |
 | 9 | Input range | 0 – 1.2V | 0 – 1.2V | Architecture | ✅ PASS |
-| 10 | Corners | All 5 | 4 of 5 | TB8 | ⚠️ PARTIAL |
+| 10 | Corners | All 5 | 3 of 5 | TB8 | ❌ FAIL |
 
-**Result: 6 PASS, 2 MARGINAL, 1 FAIL, 1 PARTIAL**
+**Result: 5 PASS, 2 MARGINAL, 3 FAIL**
 
 ---
 
@@ -214,13 +221,18 @@ Analytical mismatch budget:
 - **Closed-loop SAR conversion is real.** Every bit decision is made by a transistor-level comparator, fed back through SAR logic to control real CMOS TG switches. The VTop staircase in TB1 proves this.
 - **Power is excellent.** 35.3 µW active, 29.8 nW sleep — both with large margin.
 - **DAC switching is accurate.** < 1 mV error from ideal charge redistribution with real TG switches.
-- **4/5 corners produce valid conversions** within ±4 LSB of expected.
+- **3/5 corners produce valid conversions** (TT, FF, FS within ±3 LSB; SS has 20 LSB error; SF fails).
 
 ### What Doesn't Work
 
 - **ENOB < 7 bits.** Limited by comparator systematic offset (~15 mV, ~3 LSB). Root cause: continuous diff-amp bias imprecision. Fix: offset calibration or auto-zero.
-- **SF corner fails.** Comparator PMOS sizing insufficient for slow-PMOS corner.
+- **SS corner: 20 LSB error.** Slow NMOS reduces comparator gm → 94 mV offset.
+- **SF corner: total failure.** Comparator PMOS sizing insufficient.
+- **Wakeup time: 105 µs.** Includes 100 µs conversion time — spec requires < 10 µs.
+  At 100 kHz clock, this is physically impossible. Would need ≥ 1 MHz clock.
 - **INL > 0.5 LSB.** Dominated by comparator offset, not DAC nonlinearity.
+- **v1 simulation_results.json was deleted** — it contained Python behavioral model
+  outputs (ENOB=7.93, DNL=0.063) that violated program_v2.md Rule 1.
 
 ### What Would Break at Tape-Out
 
