@@ -47,10 +47,10 @@ Vin ─── [CMOS TG] ─── Vtop ←→ [8-bit Cap DAC] ←→ [SAR Logic]
 | 7 | Corner analysis | 5/5 pass (±5 LSB) | 5/5 pass (±1 LSB) | **PASS** |
 | 8 | Input range | 0–1.2V | 0–1.2V verified | **PASS** |
 | 9 | Sample rate | ≥ 10 kSPS | 10 kSPS (100kHz/10 clk) | **PASS** |
-| 10 | DNL | < 0.5 LSB | NOT MEASURED (requires TB3: 2048+ conversions) | — |
-| 11 | INL | < 0.5 LSB | NOT MEASURED (requires TB3) | — |
-| 12 | ENOB | ≥ 7.0 bits | NOT MEASURED (requires TB4: 1024-pt FFT) | — |
-| 13 | Missing codes | 0 | NOT MEASURED (requires TB3 histogram) | — |
+| 10 | DNL | < 0.5 LSB | 1.21 LSB (bit 0 stuck — see analysis below) | **FAIL** |
+| 11 | INL | < 0.5 LSB | 1.18 LSB | **FAIL** |
+| 12 | ENOB | ≥ 7.0 bits | 6.90 bits (512-pt FFT, SNDR=43.3dB, SFDR=59.5dB) | **FAIL** (−0.10) |
+| 13 | Missing codes | 0 | 127 missing (all even codes) | **FAIL** |
 
 ## Detailed Results
 
@@ -156,6 +156,68 @@ Corner  Conv1(0.47V)  Conv2(0.90V)  Status
 
 All corners: code within ±1 LSB of ideal
 All corners: dual-conversion verified (DAC reset works)
+```
+
+### TB4: ENOB via FFT (Coherent Sine)
+
+```
+Simulation: 5MHz accelerated clock, 500 kSPS conversion rate
+FFT length: N = 512
+Signal: coherent sine, M = 43 cycles (prime), fin = 41992.2 Hz
+Input: 0.6V ± 0.595V (0.005V to 1.195V, avoids clipping)
+Runtime: 1.1ms sim, ~1h52m wall clock (ngspice -b with SKY130 models)
+
+SNDR:  43.31 dB
+ENOB:  6.90 bits
+SFDR:  59.52 dB
+THD:   -53.81 dB
+
+Ideal 8-bit: SNDR = 49.92 dB, ENOB = 8.00 bits
+Degradation: -6.61 dB (-1.10 bits) from ideal
+
+Target ENOB >= 7.0 bits → FAIL (6.90 bits, miss by 0.10 bits)
+
+Root cause analysis: Bit 0 is stuck at 1 (see TB3 analysis below), making
+this effectively a 7-bit ADC. The 6.90-bit ENOB is consistent with ~7-bit
+effective resolution minus quantization noise from the stuck LSB.
+```
+
+### TB3: DNL/INL via Code Density (2048 Conversions)
+
+```
+Simulation: 5MHz accelerated clock, 500 kSPS conversion rate
+Input: linear ramp 0V→1.2V over 4.2ms
+Total conversions: 2099
+Runtime: 4.2ms sim, ~7h wall clock (ngspice -b with SKY130 models)
+
+--- DNL ---
+Max |DNL|: 1.21 LSB → FAIL (target < 0.5 LSB)
+Pattern: All even codes have 0 hits (DNL = -1.0), all odd codes have ~16 hits (DNL ≈ +1.0)
+
+--- INL ---
+Max |INL|: 1.18 LSB → FAIL (target < 0.5 LSB)
+
+--- Missing Codes ---
+Missing: 127 codes (all even: 2, 4, 6, ... 254) → FAIL
+Present: 128 codes (all odd: 1, 3, 5, ... 255)
+
+ROOT CAUSE: Bit 0 (LSB) is stuck at 1.
+The comparator always returns "keep bit" for the bit 0 evaluation (state S9).
+This is visible in TB2 as well — every single output code is odd.
+The ADC effectively operates as a 7-bit converter with a fixed +0.5 LSB offset.
+
+Analysis: During S9 (bit 0 eval), the tentative bit 0 adds 1/256 × 1.2V = 4.69mV
+to vtop. The comparator must resolve whether vtop is above or below Vref.
+After 7 correct bit decisions, vtop is within ~2 LSB of Vref (~9.4mV).
+Adding the tentative 4.69mV still leaves vtop below Vref in most cases,
+so the comparator correctly keeps the bit. The issue is that the ADC's
+quantization boundary between even and odd codes is offset by ~+1 LSB
+due to parasitic charge injection from the sample-to-hold transition and
+DAC switch charge sharing.
+
+Proposed fix: Add a half-LSB offset capacitor (0.5 × Cunit = 10fF) to the
+dummy cap, shifting all code transitions by -0.5 LSB. This is a standard
+SAR ADC calibration technique.
 ```
 
 ## What Was Fixed vs v2

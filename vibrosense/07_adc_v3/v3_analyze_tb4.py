@@ -81,9 +81,9 @@ def main():
         print("Usage: python3 v3_analyze_tb4.py <wrdata_file>")
         sys.exit(1)
 
-    M = 89    # Signal cycles
-    N = 1024  # FFT length
-    fs = 100e3  # Sample rate (100 kSPS at 1MHz clock)
+    M = 43    # Signal cycles (prime)
+    N = 512   # FFT length
+    fs = 500e3  # Sample rate (500 kSPS at 5MHz clock)
     fin = fs * M / N
 
     codes = load_and_extract_codes(sys.argv[1])
