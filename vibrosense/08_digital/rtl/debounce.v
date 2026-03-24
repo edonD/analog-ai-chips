@@ -19,7 +19,6 @@ module debounce #(
 
     // From analog classifier
     input  wire [CLASS_W-1:0] class_result,   // 0=normal, nonzero=fault type
-    input  wire               class_valid,    // strobe: result is valid
 
     // From register file
     input  wire [CNT_W-1:0]   debounce_val,   // threshold for consecutive detections
@@ -34,8 +33,7 @@ module debounce #(
     reg [CNT_W-1:0]   detect_count;
     reg [CLASS_W-1:0]  last_class;
 
-    // IRQ_N: active low. In simulation, use 1'bz for deasserted (high-Z).
-    // For synthesis, treat as push-pull active-low.
+    // IRQ_N: active low, push-pull.
     assign irq_n = irq_assert ? 1'b0 : 1'b1;
 
     always @(posedge clk or negedge rst_n) begin
@@ -69,9 +67,6 @@ module debounce #(
                     // Check threshold
                     if ((class_result == last_class || last_class == {CLASS_W{1'b0}}) &&
                         (detect_count + {{(CNT_W-1){1'b0}}, 1'b1} >= {1'b0, debounce_val})) begin
-                        // Note: detect_count+1 because we increment this cycle
-                        // For debounce_val=0: 0+1=1 >= 0, always true → immediate
-                        // For debounce_val=3: need count+1 >= 3, so count >= 2, meaning 3rd detection
                         irq_assert <= 1'b1;
                         irq_class  <= class_result;
                     end

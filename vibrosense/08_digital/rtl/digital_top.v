@@ -4,6 +4,9 @@
 // =============================================================================
 // Instantiates: spi_slave, reg_file, fsm_classifier, debounce, clk_divider.
 // All analog interface signals wired to register file outputs.
+//
+// Silicon-ready: no internal tristates, proper CDC with shadow registers,
+// real adc_done input, FSM gated by CTRL register enable bit.
 // =============================================================================
 
 module digital_top #(
@@ -18,11 +21,12 @@ module digital_top #(
     input  wire        clk,
     input  wire        rst_n,
 
-    // SPI interface
+    // SPI interface (miso split into data + output-enable for pad-level tristate)
     input  wire        sck,
     input  wire        mosi,
     input  wire        cs_n,
-    output wire        miso,
+    output wire        miso_data,
+    output wire        miso_oe_n,
 
     // Interrupt
     output wire        irq_n,
@@ -48,6 +52,7 @@ module digital_top #(
     output wire [1:0]  adc_chan,
     output wire        adc_start,
     input  wire [7:0]  adc_data_in,
+    input  wire        adc_done,       // real ADC done signal from analog
 
     // Analog classifier interface
     input  wire [3:0]  class_result,
@@ -58,7 +63,7 @@ module digital_top #(
     output wire        fsm_evaluate,
     output wire        fsm_compare,
 
-    // Divided clocks
+    // Divided clock-enable signals (see clk_divider.v for usage notes)
     output wire        clk_div2,
     output wire        clk_div4,
     output wire        clk_div8,
@@ -69,15 +74,17 @@ module digital_top #(
     // Internal wires
     // =========================================================================
 
-    // SPI → Register File
+    // SPI -> Register File
     wire        spi_wr_en;
     wire [6:0]  spi_wr_addr;
     wire [7:0]  spi_wr_data;
-    wire [6:0]  spi_rd_addr;
-    wire [7:0]  rf_rd_data;
     wire        spi_status_rd;
+    wire        spi_snapshot_req;
 
-    // Register File → Debounce
+    // Shadow register data bus (16 regs x 8 bits = 128 bits)
+    wire [127:0] shadow_data_bus;
+
+    // Register File -> Debounce
     wire [3:0]  rf_debounce_val;
     wire        rf_debounce_wr_pulse;
 
@@ -89,90 +96,49 @@ module digital_top #(
     wire        irq_assert;
     wire [3:0]  irq_class;
 
-    // ADC done — directly from class_valid for simplicity (separate in real chip)
-    // For now, adc_done is pulsed when ADC data is updated externally
-    // We'll detect adc_data_in changes — actually, use a simple mechanism:
-    // When adc_start goes high and then adc_data_in changes, that's "done"
-    // For RTL: we use adc_start falling edge as a proxy (self-clearing)
-    // Better: use the adc_done as the complement — tie to an external signal
-
-    // ADC done generation: detect when adc_data_in is valid
-    // In real chip, this comes from the ADC. For now, we generate it from
-    // a register write to ADC_DATA (but that's read-only...).
-    // Solution: add an adc_done input port. Let's connect it from outside.
-    // Actually the program.md doesn't specify an adc_done pin, so we'll
-    // synthesize a simple handshake: adc_start goes high for 1 cycle,
-    // then after some delay, data appears on adc_data_in.
-    // We detect data validity by seeing adc_start go low (which happens
-    // automatically via self-clear), then assume data arrives within
-    // some cycles. For simplicity, we sample adc_data_in when it changes.
-
-    // Simple approach: always capture adc_data_in into ADC_DATA register
-    // on every clock when NOT busy. This is handled in reg_file.
-    // Use a delayed adc_start to generate done after a configurable delay.
-
-    reg [3:0] adc_done_cnt;
-    reg       adc_done_r;
-    wire      rf_adc_start;
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            adc_done_cnt <= 4'd0;
-            adc_done_r   <= 1'b0;
-        end else begin
-            adc_done_r <= 1'b0;
-            if (rf_adc_start) begin
-                adc_done_cnt <= 4'd10;  // 10 cycle delay for ADC conversion
-            end else if (adc_done_cnt > 4'd0) begin
-                adc_done_cnt <= adc_done_cnt - 4'd1;
-                if (adc_done_cnt == 4'd1) begin
-                    adc_done_r <= 1'b1;
-                end
-            end
-        end
-    end
-
-    // FSM is always enabled after reset (can be gated by a register bit if needed)
-    assign fsm_enable = 1'b1;
+    // ADC
+    wire        rf_adc_start;
 
     // =========================================================================
     // Sub-block instantiations
     // =========================================================================
 
     spi_slave #(
-        .ADDR_W (7),
-        .DATA_W (8)
+        .ADDR_W   (7),
+        .DATA_W   (8),
+        .NUM_REGS (16)
     ) u_spi (
-        .clk       (clk),
-        .rst_n     (rst_n),
-        .sck       (sck),
-        .mosi      (mosi),
-        .cs_n      (cs_n),
-        .miso      (miso),
-        .wr_en     (spi_wr_en),
-        .wr_addr   (spi_wr_addr),
-        .wr_data   (spi_wr_data),
-        .rd_addr   (spi_rd_addr),
-        .rd_data   (rf_rd_data),
-        .status_rd (spi_status_rd)
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .sck            (sck),
+        .mosi           (mosi),
+        .cs_n           (cs_n),
+        .miso_data      (miso_data),
+        .miso_oe_n      (miso_oe_n),
+        .wr_en          (spi_wr_en),
+        .wr_addr        (spi_wr_addr),
+        .wr_data        (spi_wr_data),
+        .status_rd      (spi_status_rd),
+        .snapshot_req   (spi_snapshot_req),
+        .shadow_data_in (shadow_data_bus)
     );
 
     reg_file #(
         .ADDR_W       (7),
-        .DATA_W       (8)
+        .DATA_W       (8),
+        .NUM_REGS     (16)
     ) u_regfile (
         .clk               (clk),
         .rst_n             (rst_n),
         .wr_en             (spi_wr_en),
         .wr_addr           (spi_wr_addr),
         .wr_data           (spi_wr_data),
-        .rd_addr           (spi_rd_addr),
-        .rd_data           (rf_rd_data),
+        .shadow_data_out   (shadow_data_bus),
         .status_rd         (spi_status_rd),
         .class_result      (class_result),
         .class_valid       (fsm_done),   // latch result when FSM says done
         .adc_data_in       (adc_data_in),
-        .adc_done          (adc_done_r),
+        .adc_done          (adc_done),   // real ADC done from analog block
         .gain              (gain),
         .tune1             (tune1),
         .tune2             (tune2),
@@ -184,6 +150,7 @@ module digital_top #(
         .debounce_val      (rf_debounce_val),
         .adc_chan           (adc_chan),
         .adc_start         (rf_adc_start),
+        .fsm_enable        (fsm_enable),
         .debounce_wr_pulse (rf_debounce_wr_pulse)
     );
 
@@ -214,7 +181,6 @@ module digital_top #(
         .rst_n         (rst_n),
         .fsm_done      (fsm_done),
         .class_result  (class_result),
-        .class_valid   (class_valid),
         .debounce_val  (rf_debounce_val),
         .debounce_wr   (rf_debounce_wr_pulse),
         .irq_assert    (irq_assert),

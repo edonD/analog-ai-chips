@@ -2,8 +2,9 @@
 // =============================================================================
 // reg_file.v — Register File for VibroSense-1 Digital Control
 // =============================================================================
-// 15 registers (0x00–0x0E), synchronous write, combinational read.
+// 16 registers (0x00-0x0F), synchronous write, combinational read.
 // Read-only registers: STATUS (0x0C), ADC_DATA (0x0E).
+// CTRL register (0x0F): bit[0] = FSM enable (default 0 = disabled).
 // ADC_CTRL[2] (start) is self-clearing.
 // STATUS[7] (valid) is read-to-clear.
 // =============================================================================
@@ -11,14 +12,15 @@
 module reg_file #(
     parameter ADDR_W       = 7,
     parameter DATA_W       = 8,
-    parameter NUM_REGS     = 15,   // 0x00..0x0E
+    parameter NUM_REGS     = 16,   // 0x00..0x0F
     // Reset defaults
     parameter GAIN_RST     = 8'h00,
     parameter TUNE_RST     = 8'h08,
     parameter WEIGHT_RST   = 8'h00,
     parameter THRESH_RST   = 8'hFF,
     parameter DEBOUNCE_RST = 8'h03,
-    parameter ADC_CTRL_RST = 8'h00
+    parameter ADC_CTRL_RST = 8'h00,
+    parameter CTRL_RST     = 8'h00    // FSM disabled by default
 ) (
     input  wire                clk,
     input  wire                rst_n,
@@ -28,9 +30,8 @@ module reg_file #(
     input  wire [ADDR_W-1:0]   wr_addr,
     input  wire [DATA_W-1:0]   wr_data,
 
-    // Read port (combinational)
-    input  wire [ADDR_W-1:0]   rd_addr,
-    output reg  [DATA_W-1:0]   rd_data,
+    // Shadow register read bus (all registers, flat)
+    output wire [NUM_REGS*DATA_W-1:0] shadow_data_out,
 
     // Status read-to-clear strobe
     input  wire                status_rd,   // pulse when SPI reads STATUS
@@ -54,6 +55,9 @@ module reg_file #(
     output wire [1:0]          adc_chan,
     output wire                adc_start,
 
+    // FSM enable from CTRL register
+    output wire                fsm_enable,
+
     // Debounce reset (pulsed when DEBOUNCE reg is written)
     output reg                 debounce_wr_pulse
 );
@@ -71,6 +75,35 @@ module reg_file #(
 
     // ADC busy flag
     reg adc_busy;
+
+    // -------------------------------------------------------------------------
+    // Shadow data output: compose special registers, pass through others
+    // -------------------------------------------------------------------------
+    // For shadow snapshot, we provide the "read view" of each register
+    wire [DATA_W-1:0] rd_view [0:NUM_REGS-1];
+
+    genvar gi;
+    generate
+        for (gi = 0; gi < NUM_REGS; gi = gi + 1) begin : gen_rd_view
+            if (gi == 12) begin : status_view
+                // STATUS: compose from class_result + valid bit
+                assign rd_view[gi] = {status_valid, 3'b0, regs[12][3:0]};
+            end else if (gi == 13) begin : adc_ctrl_view
+                // ADC_CTRL: compose with busy bit
+                assign rd_view[gi] = {4'b0, adc_busy, regs[13][2], regs[13][1:0]};
+            end else begin : normal_view
+                assign rd_view[gi] = regs[gi];
+            end
+        end
+    endgenerate
+
+    // Flatten rd_view into shadow_data_out bus
+    genvar gj;
+    generate
+        for (gj = 0; gj < NUM_REGS; gj = gj + 1) begin : gen_shadow
+            assign shadow_data_out[gj*DATA_W +: DATA_W] = rd_view[gj];
+        end
+    endgenerate
 
     // -------------------------------------------------------------------------
     // Write logic
@@ -94,6 +127,7 @@ module reg_file #(
             regs[12] <= 8'h00;  // STATUS
             regs[13] <= ADC_CTRL_RST;
             regs[14] <= 8'h00;  // ADC_DATA
+            regs[15] <= CTRL_RST;  // CTRL: FSM disabled
             adc_start_r       <= 1'b0;
             status_valid      <= 1'b0;
             adc_busy          <= 1'b0;
@@ -154,28 +188,10 @@ module reg_file #(
                         end
                     end
                     4'hE: ;  // ADC_DATA: read-only, ignore write
-                    default: ;  // out-of-range: ignore
+                    4'hF: regs[15] <= {7'b0, wr_data[0]};  // CTRL: bit[0] = FSM enable
+                    default: ;
                 endcase
             end
-        end
-    end
-
-    // -------------------------------------------------------------------------
-    // Read logic (combinational)
-    // -------------------------------------------------------------------------
-    always @(*) begin
-        if (rd_addr < NUM_REGS[ADDR_W-1:0]) begin
-            if (rd_addr[3:0] == 4'hC) begin
-                // STATUS: compose from class_result + valid bit
-                rd_data = {status_valid, 3'b0, regs[12][3:0]};
-            end else if (rd_addr[3:0] == 4'hD) begin
-                // ADC_CTRL: compose with busy bit
-                rd_data = {4'b0, adc_busy, regs[13][2], regs[13][1:0]};
-            end else begin
-                rd_data = regs[rd_addr[3:0]];
-            end
-        end else begin
-            rd_data = 8'h00;
         end
     end
 
@@ -193,5 +209,6 @@ module reg_file #(
     assign debounce_val = regs[11][3:0];
     assign adc_chan     = regs[13][1:0];
     assign adc_start    = adc_start_r;
+    assign fsm_enable   = regs[15][0];
 
 endmodule

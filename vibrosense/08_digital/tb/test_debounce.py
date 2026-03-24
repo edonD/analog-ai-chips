@@ -12,7 +12,6 @@ async def reset_dut(dut):
     dut.rst_n.value = 0
     dut.fsm_done.value = 0
     dut.class_result.value = 0
-    dut.class_valid.value = 0
     dut.debounce_val.value = 3
     dut.debounce_wr.value = 0
     await ClockCycles(dut.clk, 10)

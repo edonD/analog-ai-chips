@@ -4,13 +4,23 @@
 // =============================================================================
 // SPI Mode 0 (CPOL=0, CPHA=0). 16-bit transaction: 8-bit addr + 8-bit data.
 // Address bit[7] = R/W flag (1=read, 0=write).
-// Clock domain crossing: toggle-based CDC for writes (SCK→clk).
-// Reads: register file rd_data sampled directly (stable in clk domain).
+// Clock domain crossing: toggle-based CDC for writes (SCK->clk).
+// Reads: shadow registers snapshotted on cs_n falling edge (fully SCK domain).
+// MISO: separate miso_data + miso_oe_n outputs (no internal tristate).
+//
+// Reset strategy:
+//   - clk-domain FFs: async reset via rst_n
+//   - SCK-domain per-transaction FFs (bit_cnt, rw_flag, etc.): async reset via cs_n posedge
+//   - SCK-domain persistent FFs (wr_toggle, rd_toggle, holds): async reset via rst_n
+//     (rst_n is safe here because it's held asserted for many cycles at power-on,
+//      long enough for all domains to see it. SCK is idle during reset.)
+// Each always block has at most one async reset -> clean standard-cell mapping.
 // =============================================================================
 
 module spi_slave #(
     parameter ADDR_W = 7,
-    parameter DATA_W = 8
+    parameter DATA_W = 8,
+    parameter NUM_REGS = 16   // number of registers to shadow (0x00..0x0F)
 ) (
     // System clock domain
     input  wire               clk,
@@ -20,92 +30,144 @@ module spi_slave #(
     input  wire               sck,
     input  wire               mosi,
     input  wire               cs_n,
-    output wire               miso,
+    output wire               miso_data,
+    output wire               miso_oe_n,    // active-low output enable
 
     // Register file interface (clk domain)
     output reg                wr_en,
     output reg  [ADDR_W-1:0]  wr_addr,
     output reg  [DATA_W-1:0]  wr_data,
-    output wire [ADDR_W-1:0]  rd_addr,      // combinational from SCK domain
-    input  wire [DATA_W-1:0]  rd_data,      // combinational from reg_file
-    output reg                status_rd     // pulse when reading STATUS register
+    output reg                status_rd,     // pulse when reading STATUS register
+
+    // Shadow register load interface (clk domain)
+    output reg                snapshot_req,
+    input  wire [NUM_REGS*DATA_W-1:0] shadow_data_in  // flat bus of all register read values
 );
 
     // =========================================================================
     // SCK Domain Logic
     // =========================================================================
 
+    // Per-transaction state (reset by cs_n posedge)
     reg [3:0]  bit_cnt;
-    reg [7:0]  shift_in;       // 8-bit shift register (reused for addr and data)
-    reg [7:0]  shift_out;      // MISO shift register
+    reg [7:0]  shift_in;
     reg        rw_flag;
     reg [6:0]  addr_latched;
+    reg        rd_is_status;
 
-    // Write completion toggle (for CDC)
+    // Persistent state across transactions (reset by rst_n only)
     reg        wr_toggle;
     reg [6:0]  wr_addr_hold;
     reg [7:0]  wr_data_hold;
-
-    // Read completion toggle (for status_rd CDC)
     reg        rd_toggle;
-    reg        rd_is_status;
 
-    // MISO: driven during data phase of read, tristate when CS_N high
-    reg miso_bit;
-    assign miso = cs_n ? 1'bz : miso_bit;
+    // MISO shift register (reset by cs_n posedge)
+    reg [7:0]  shift_out;
+    reg        miso_bit;
 
-    // Read address: directly from SCK-domain addr_latched for combinational read
-    assign rd_addr = addr_latched;
+    // Shadow register buffer (clk domain write, SCK domain read)
+    reg [DATA_W-1:0] shadow_regs [0:NUM_REGS-1];
+
+    // MISO output
+    assign miso_data = miso_bit;
+    assign miso_oe_n = cs_n;  // output enabled (low) when cs_n is low
 
     // -------------------------------------------------------------------------
-    // Rising edge of SCK: sample MOSI, process protocol
+    // CS_N falling edge detection and shadow register snapshot (clk domain)
+    // -------------------------------------------------------------------------
+    reg cs_n_sync1, cs_n_sync2, cs_n_sync3;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            cs_n_sync1 <= 1'b1;
+            cs_n_sync2 <= 1'b1;
+            cs_n_sync3 <= 1'b1;
+            snapshot_req <= 1'b0;
+        end else begin
+            cs_n_sync1 <= cs_n;
+            cs_n_sync2 <= cs_n_sync1;
+            cs_n_sync3 <= cs_n_sync2;
+            snapshot_req <= (cs_n_sync3 & ~cs_n_sync2);
+        end
+    end
+
+    // Latch shadow data on cs_n falling edge (clk domain)
+    integer si;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            for (si = 0; si < NUM_REGS; si = si + 1)
+                shadow_regs[si] <= {DATA_W{1'b0}};
+        end else if (cs_n_sync3 & ~cs_n_sync2) begin
+            for (si = 0; si < NUM_REGS; si = si + 1)
+                shadow_regs[si] <= shadow_data_in[si*DATA_W +: DATA_W];
+        end
+    end
+
+    // -------------------------------------------------------------------------
+    // Rising edge of SCK: per-transaction state (async reset: cs_n posedge)
     // -------------------------------------------------------------------------
     always @(posedge sck or posedge cs_n) begin
         if (cs_n) begin
-            bit_cnt <= 4'd0;
-            rw_flag <= 1'b0;
+            bit_cnt      <= 4'd0;
+            rw_flag      <= 1'b0;
+            shift_in     <= 8'd0;
+            addr_latched <= 7'd0;
+            rd_is_status <= 1'b0;
         end else begin
-            // Shift in MOSI
             shift_in <= {shift_in[6:0], mosi};
             bit_cnt  <= bit_cnt + 4'd1;
 
             if (bit_cnt == 4'd7) begin
-                // Address byte complete (bits 0-7 shifted in)
-                // shift_in[6:0] has bits A7..A1, mosi is A0
-                rw_flag      <= shift_in[6];  // A7 = R/W flag
-                addr_latched <= {shift_in[5:0], mosi};  // A6..A0
+                rw_flag      <= shift_in[6];
+                addr_latched <= {shift_in[5:0], mosi};
             end
 
+            // rd_is_status is set at bit 15 for read transactions
+            if (bit_cnt == 4'd15 && rw_flag) begin
+                rd_is_status <= (addr_latched[3:0] == 4'hC);
+            end
+        end
+    end
+
+    // -------------------------------------------------------------------------
+    // Rising edge of SCK: persistent CDC state (async reset: rst_n)
+    // -------------------------------------------------------------------------
+    // wr_toggle, rd_toggle, wr_addr_hold, wr_data_hold must survive across
+    // transactions so the clk-domain synchronizers can detect the toggle.
+    always @(posedge sck or negedge rst_n) begin
+        if (!rst_n) begin
+            wr_toggle    <= 1'b0;
+            rd_toggle    <= 1'b0;
+            wr_addr_hold <= 7'd0;
+            wr_data_hold <= 8'd0;
+        end else if (!cs_n) begin
+            // Only active during transaction (cs_n low)
             if (bit_cnt == 4'd15) begin
-                // Data byte complete
                 if (!rw_flag) begin
-                    // Write transaction: capture for CDC
                     wr_addr_hold <= addr_latched;
                     wr_data_hold <= {shift_in[6:0], mosi};
                     wr_toggle    <= ~wr_toggle;
                 end else begin
-                    // Read transaction complete
                     rd_toggle    <= ~rd_toggle;
-                    rd_is_status <= (addr_latched[3:0] == 4'hC);
                 end
             end
         end
     end
 
     // -------------------------------------------------------------------------
-    // Falling edge of SCK: shift out MISO
+    // Falling edge of SCK: shift out MISO (async reset: cs_n posedge)
     // -------------------------------------------------------------------------
-    // Load shift_out with read data at bit 8 (first data bit on MISO).
-    // For bits 9-15, shift out remaining bits.
+    wire [DATA_W-1:0] shadow_rd_data;
+    assign shadow_rd_data = (addr_latched < NUM_REGS[6:0]) ?
+                            shadow_regs[addr_latched[3:0]] : {DATA_W{1'b0}};
+
     always @(negedge sck or posedge cs_n) begin
         if (cs_n) begin
             miso_bit  <= 1'b0;
             shift_out <= 8'd0;
         end else begin
             if (bit_cnt == 4'd8) begin
-                // Load read data (rd_data is combinational from reg_file via rd_addr)
-                miso_bit  <= rd_data[7];
-                shift_out <= {rd_data[6:0], 1'b0};
+                miso_bit  <= shadow_rd_data[7];
+                shift_out <= {shadow_rd_data[6:0], 1'b0};
             end else if (bit_cnt > 4'd8 && bit_cnt <= 4'd15) begin
                 miso_bit  <= shift_out[7];
                 shift_out <= {shift_out[6:0], 1'b0};
@@ -116,7 +178,7 @@ module spi_slave #(
     end
 
     // =========================================================================
-    // Clock Domain Crossing: SCK → clk (write path)
+    // Clock Domain Crossing: SCK -> clk (write path)
     // =========================================================================
 
     reg wr_sync1, wr_sync2, wr_sync3;
@@ -136,7 +198,7 @@ module spi_slave #(
     wire wr_pulse = wr_sync2 ^ wr_sync3;
 
     // =========================================================================
-    // Clock Domain Crossing: SCK → clk (read-complete for status_rd)
+    // Clock Domain Crossing: SCK -> clk (read-complete for status_rd)
     // =========================================================================
 
     reg rd_sync1, rd_sync2, rd_sync3;
@@ -179,16 +241,6 @@ module spi_slave #(
                 status_rd <= 1'b1;
             end
         end
-    end
-
-    // =========================================================================
-    // Initialize toggle registers (simulation only, not synthesizable)
-    // =========================================================================
-    initial begin
-        wr_toggle    = 1'b0;
-        rd_toggle    = 1'b0;
-        rd_is_status = 1'b0;
-        addr_latched = 7'd0;
     end
 
 endmodule
