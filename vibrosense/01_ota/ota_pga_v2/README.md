@@ -66,6 +66,10 @@ bandwidth at 16x PGA gain. Same 9-pin interface as v1.
 | 27C    | 88.1      | 366       | 64.3     | PASS   |
 | 85C    | 87.6      | 330       | 64.1     | PASS   |
 
+## Schematic
+
+![OTA PGA v2.1 Schematic](schematic/ota_pga_v2_hires.png)
+
 ## Topology
 
 ```
