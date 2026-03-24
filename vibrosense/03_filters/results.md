@@ -1,24 +1,46 @@
 # Block 03: Gm-C Band-Pass Filter Bank — Final Results
 
+## Schematics
+
+### Pseudo-Differential BPF Channel (Ch2 representative)
+
+![BPF Channel Schematic](bpf_pseudo_diff.png)
+
+Each channel: 6 OTAs (2 mirrored Tow-Thomas paths) + 4 integration capacitors + 4 pseudo-resistors for DC bias. Bandpass output taken differentially from int1p - int1n.
+
+### 4-Bit Binary-Weighted Cascode Current Mirror DAC
+
+![Bias DAC Schematic](bias_dac_real.png)
+
+Per-channel programmable bias current. 15 codes (1x-15x Iunit), nominal code=8. DNL = 0.0006 LSB.
+
+### 5-Channel Filter Bank — Top Level
+
+![Filter Bank Top Level](filter_bank_top.png)
+
+5 channels with shared VDD/VSS/VCM/Iref and 20-bit digital control (4 bits per channel).
+
+---
+
 ## Architecture
 
-**Pseudo-differential Tow-Thomas biquad** × 5 channels.
-Each channel: 6 OTAs (2 mirrored paths × 3 OTAs) + pseudo-resistor DC bias.
-HD2 cancelled in differential output → THD < -30 dBc at 200mVpp.
+**Pseudo-differential Tow-Thomas biquad** x 5 channels.
+Each channel: 6 OTAs (2 mirrored paths x 3 OTAs) + pseudo-resistor DC bias.
+HD2 cancelled in differential output -> THD < -30 dBc at 200mVpp.
 
 **Per-channel Iref bias:** VBN diode (W=3.8u L=14u) generates PVT-tracking bias.
-Q set by C1/C2 ratio (independent of gm). DAC tunes Iref → tunes f0 without
+Q set by C1/C2 ratio (independent of gm). DAC tunes Iref -> tunes f0 without
 affecting Q.
 
 **Transfer function (corrected):**
 ```
-H_BP(s) = (gm/C1)·s / [s² + (gm/C1)·s + gm²/(C1·C2)]
-Q = √(C1/C2), f0 = gm/(2π√(C1·C2)), G0 = 1 (0 dB)
+H_BP(s) = (gm/C1)*s / [s^2 + (gm/C1)*s + gm^2/(C1*C2)]
+Q = sqrt(C1/C2), f0 = gm/(2*pi*sqrt(C1*C2)), G0 = 1 (0 dB)
 ```
 
 ---
 
-## Final Tuned Parameters (ngspice-verified, tt/27°C)
+## Final Tuned Parameters (ngspice-verified, tt/27C)
 
 | Ch | f0 tgt | f0 meas | err | Q tgt | Q meas | err | pk(dB) | C1(pF) | C2(pF) | Iref(nA) |
 |----|--------|---------|-----|-------|--------|-----|--------|--------|--------|----------|
@@ -131,8 +153,11 @@ Total power: **42.5 µW** (budget: 250 µW) — **PASS**.
 | `ota_bias_dist.spice` | Per-channel bias distribution (VBN diode + VBP) |
 | `bias_dac_real.spice` | 4-bit transistor-level binary-weighted DAC |
 | `filter_bank_top.spice` | Top-level integration netlist |
-| `bpf_ch[1-5].sch` | Xschem schematic placeholders |
-| `bias_dac.sch` | DAC schematic placeholder |
+| `bpf_pseudo_diff.sch/.png` | Pseudo-differential BPF channel schematic (xschem) |
+| `bias_dac_real.sch/.png` | 4-bit DAC schematic (xschem) |
+| `filter_bank_top.sch/.png` | Top-level 5-channel integration schematic (xschem) |
+| `ota_foldcasc.sym` | OTA subcircuit symbol for schematics |
+| `pseudo_res.sym` | Pseudo-resistor subcircuit symbol for schematics |
 | `tb_filter_bank_top.spice` | Top-level AC verification testbench |
 | `tb_blocker*.spice` | Individual channel testbenches |
 | `run_blockers_3_5.py` | PVT/THD/noise verification script |
