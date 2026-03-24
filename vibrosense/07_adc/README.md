@@ -110,6 +110,22 @@ Input: Vin = 0.47V. The SAR algorithm converges Vtop toward Vref = 1.2V:
 
 The staircase clearly shows the SAR algorithm working on the REAL transistor-level circuit.
 
+### Multi-Code Transfer Function
+
+Tested at 5 input voltages across the 0–1.2V range:
+
+| Vin (V) | Expected Code | Measured Code | Error (LSB) |
+|---------|--------------|---------------|-------------|
+| 0.10 | 235 | 240 | +5 |
+| 0.30 | 192 | 195 | +3 |
+| 0.60 | 128 | 131 | +3 |
+| 0.90 | 64 | 67 | +3 |
+| 1.10 | 21 | 31 | +10 |
+
+**Transfer function is MONOTONIC** (240 > 195 > 131 > 67 > 31 for increasing Vin ✓)
+**Systematic offset: ~3 LSB** (≈14 mV comparator offset, constant across mid-range)
+**Gain error at extremes:** +10 LSB at Vin=1.1V (comparator nonlinearity at high Vtop)
+
 ---
 
 ## 3. Power (TB5-TB7)
