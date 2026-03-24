@@ -1,88 +1,68 @@
-* VibroSense Block 04: Envelope Detector — SKY130A
-* Full-wave OTA-based precision rectifier + Gm-C Low-Pass Filter
+* VibroSense Block 04: Envelope Detector v2 — SKY130A (Transistor-Level)
+* Precision half-wave rectifier (dual ota_pga_v2 in feedback) + Gm-C LPF
+* NO behavioral models — all real SKY130 MOSFETs + verified two-stage Miller OTA
 *
 * Architecture:
-*   Stage 1: Two half-wave rectifiers (OTA + diode) summed for full-wave
-*            Each OTA outputs gm*(Vdiff), MOSFET diode clips negative current
-*   Stage 2: First-order Gm-C LPF (fc ~ 10 Hz) smooths to DC envelope
+*   Stage 1: Dual-OTA precision rectifier using ota_pga_v2 (>75dB gain).
+*     OTA1 (inp=vin, inn=rect) + PMOS: forces rect = vin when vin > rect
+*     OTA2 (inp=vcm, inn=rect) + PMOS: clamps rect = vcm when vin < vcm
+*     NMOS sink (S=vcm, G=VDD): zero-current discharge at rect=vcm,
+*     proportional for rect>vcm. No resistor = no feedback instability.
+*   Stage 2: 5T OTA + 50nF cap for Gm-C LPF (fc ~ 9 Hz)
 *
-* Ports:
-*   vin  - Input signal (from BPF output, AC on top of VCM)
-*   vcm  - Common-mode reference voltage (0.9V)
-*   vout - DC envelope output
-*   vdd  - Supply (1.8V)
-*   vss  - Ground (0V)
-*
-* Design targets:
-*   Rectification accuracy: <5% at 100mVpp, <15% at 10mVpp
-*   LPF cutoff: 10 Hz (5-20 Hz acceptable)
-*   Output ripple: <5% of DC at BPF3 frequency
-*   Settling time: <200 ms (10% to 90%)
-*   Power per channel: <10 uW
+* Requires: .option scale=1e-6 in testbench
+*           .include "ota_pga_v2.spice"
 
 * ============================================================
-* BEHAVIORAL MODEL (v1) — for initial spec verification
-* Uses B-sources to model OTA + diode rectification
-* Replace with transistor-level OTAs from Block 01 when available
+* SUB-BLOCK 1: Precision Half-Wave Rectifier (dual OTA feedback)
 * ============================================================
 
-.subckt envelope_det vin vcm vout vdd vss
+.subckt rectifier_v2 vin vcm rect vdd gnd vbn
 
-* --- Design Parameters ---
-* Rectifier OTA: gm = 2.5 uA/V (matches Block 01 OTA at Ibias=500nA)
-* LPF OTA: gm = 6.28 nS (for fc=10 Hz with C=100pF)
-* LPF cap: 100 pF
+* OTA1: positive-half follower (rect tracks vin when vin > vcm)
+Xota1 vdd gnd vin rect oa1 vbn gnd vdd vdd ota_pga_v2
 
-* === Stage 1: Full-Wave Precision Rectifier ===
-*
-* Two behavioral OTAs, each with a "diode" on its output:
-*   max(0, gm*Vdiff) models OTA current through a diode-connected MOSFET
-*   that only passes current in one direction.
-*
-* In a real implementation:
-*   - Each OTA is a folded-cascode (Block 01) biased at ~200 nA
-*   - Diode is a diode-connected PMOS between VDD and output
-*   - When OTA drives low, PMOS conducts (charges output)
-*   - When OTA drives high, PMOS cuts off (holds output)
+* OTA2: clamp to vcm during negative half
+Xota2 vdd gnd vcm rect oa2 vbn gnd vdd vdd ota_pga_v2
 
-* Half-wave 1: positive half-cycles (vin > vcm)
-* Current flows from vss INTO rect node (charges it positive)
-B_hw1 vss rect I = max(0, 2.5e-6 * (v(vin) - v(vcm)))
+* PMOS output transistors
+XMph1 rect oa1 vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=1
+XMph2 rect oa2 vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=1
 
-* Half-wave 2: negative half-cycles (vcm > vin)
-B_hw2 vss rect I = max(0, 2.5e-6 * (v(vcm) - v(vin)))
+* NMOS discharge to vcm: source=vcm, gate=VDD, drain=rect
+* In triode (small Vds): I proportional to (rect-vcm)
+* At rect=vcm: Vds=0, I=0 → no undershoot below vcm
+* Effective R ~ 6.85M → tau = 8.9us with 1.3pF parasitic
+XMsink rect vdd vcm gnd sky130_fd_pr__nfet_01v8 w=0.42 l=100
 
-* Combined current: I = gm * |vin - vcm| (full-wave rectified)
-* Load resistor converts current to voltage
-* R = 1/gm = 400 kOhm → V(rect) = |vin - vcm| (unity gain)
-R_rect rect vss 400k
+.ends rectifier_v2
 
-* Parasitic cap for numerical stability
-C_rect rect vss 10f
+* ============================================================
+* SUB-BLOCK 2: Gm-C Low-Pass Filter (fc ~ 9 Hz)
+* ============================================================
 
-* === Stage 2: Gm-C Low-Pass Filter ===
-*
-* First-order LPF: H(s) = 1 / (1 + s*C/gm)
-* fc = gm / (2*pi*C) = 6.28e-9 / (2*pi*100e-12) = 10.0 Hz
-*
-* In real implementation: simple 5-transistor OTA with Ibias ~ 20 nA
-* Low gm achieved by very low bias current
+.subckt lpf_10hz vin vout vdd gnd vbn_lpf
 
-* Current from vss INTO vout: charges vout toward v(rect)
-G_lpf vss vout cur='6.28e-9 * (v(rect) - v(vout))'
-C_lpf vout vss 100p
+* 5T OTA follower: fc = gm/(2*pi*C)
+* At 100nA tail: gm ~ 2.9uS, C = 50nF → fc ~ 9.3 Hz
+XM1    d1   vin   tail gnd sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2    vout vout  tail gnd sky130_fd_pr__nfet_01v8 w=2 l=4
+XMtail tail vbn_lpf gnd gnd sky130_fd_pr__nfet_01v8 w=1 l=8
 
-* High-value leakage resistor (sets DC bias, negligible at signal freq)
-R_leak vout vss 100G
+XMp3   d1   d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XMp4   vout d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+
+Clpf vout gnd 50n
+
+.ends lpf_10hz
+
+* ============================================================
+* TOP-LEVEL: Envelope Detector
+* ============================================================
+
+.subckt envelope_det vin vcm vout vdd gnd vbn vbn_lpf
+
+Xrect vin vcm rect vdd gnd vbn rectifier_v2
+Xlpf  rect vout vdd gnd vbn_lpf lpf_10hz
 
 .ends envelope_det
-
-* ============================================================
-* TRANSISTOR-LEVEL RECTIFIER (v2) — for future use
-* Uses SKY130 NMOS differential pair + PMOS current mirrors
-* ============================================================
-* TODO: Replace behavioral model with transistor-level when
-* Block 01 OTA integration is complete. The key change is:
-* - B_hw1/B_hw2 → real OTA subcircuits with MOSFET diodes
-* - G_lpf → real OTA with very low bias current (~20 nA)
-* - R_rect → implicit from OTA output impedance

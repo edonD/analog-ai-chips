@@ -1,22 +1,92 @@
 {
-  "block": "Block 04: Envelope Detector",
-  "process": "SKY130A",
-  "model": "Behavioral OTA",
-  "results": {
-    "rect_accuracy_100mv": 0.1589288318549358,
-    "rect_accuracy_10mv": 0.15892883185494666,
-    "ripple_bpf3_pct": 0.20994355011264804,
-    "ripple_worst_pct": 2.954891571117516,
-    "lpf_cutoff_hz": 10.032170991237312,
-    "settling_time_ms": 34.800000000000004,
-    "settling_v_final": 0.031780396185906286,
-    "am_tracking_error_pct": 25.27712409165041,
-    "min_detectable_mvpp": 1.0,
-    "power_per_ch_uw": 1.836,
-    "power_per_ch_opt_uw": 0.756,
-    "power_5ch_uw": 9.18,
-    "power_5ch_opt_uw": 3.7800000000000002
+  "accuracy_5mVpp": {
+    "vout_delta_mV": -0.255,
+    "rect_delta_mV": 0.132,
+    "expected_mV": 0.796,
+    "rect_error_pct": -83.4,
+    "spec_pct": 15,
+    "status": "FAIL"
   },
-  "pass_count": 8,
-  "fail_count": 0
+  "accuracy_10mVpp": {
+    "vout_delta_mV": 0.438,
+    "rect_delta_mV": 0.829,
+    "expected_mV": 1.592,
+    "rect_error_pct": -47.9,
+    "spec_pct": 15,
+    "status": "FAIL"
+  },
+  "accuracy_20mVpp": {
+    "vout_delta_mV": 1.971,
+    "rect_delta_mV": 2.371,
+    "expected_mV": 3.183,
+    "rect_error_pct": -25.5,
+    "spec_pct": 15,
+    "status": "FAIL"
+  },
+  "accuracy_50mVpp": {
+    "vout_delta_mV": 6.65,
+    "rect_delta_mV": 7.097,
+    "expected_mV": 7.958,
+    "rect_error_pct": -10.8,
+    "spec_pct": 15,
+    "status": "PASS"
+  },
+  "accuracy_100mVpp": {
+    "vout_delta_mV": 14.36,
+    "rect_delta_mV": 15.025,
+    "expected_mV": 15.915,
+    "rect_error_pct": -5.6,
+    "spec_pct": 5,
+    "status": "FAIL"
+  },
+  "accuracy_200mVpp": {
+    "vout_delta_mV": 28.864,
+    "rect_delta_mV": 30.976,
+    "expected_mV": 31.831,
+    "rect_error_pct": -2.7,
+    "spec_pct": 5,
+    "status": "PASS"
+  },
+  "accuracy_500mVpp": {
+    "vout_delta_mV": 59.684,
+    "rect_delta_mV": 79.253,
+    "expected_mV": 79.577,
+    "rect_error_pct": -0.4,
+    "spec_pct": 5,
+    "status": "PASS"
+  },
+  "power_uw": {
+    "value": 21.03,
+    "spec": 10,
+    "status": "FAIL"
+  },
+  "corner_tt": {
+    "rect_delta_mV": 15.025,
+    "vout_delta_mV": 14.36,
+    "power_uw": 21.03
+  },
+  "corner_ss": {
+    "rect_delta_mV": 15.006,
+    "vout_delta_mV": 14.188,
+    "power_uw": 20.37
+  },
+  "corner_ff": {
+    "rect_delta_mV": 15.065,
+    "vout_delta_mV": 14.554,
+    "power_uw": 21.73
+  },
+  "corner_sf": {
+    "rect_delta_mV": 15.032,
+    "vout_delta_mV": 14.137,
+    "power_uw": 21.96
+  },
+  "corner_fs": {
+    "rect_delta_mV": 15.106,
+    "vout_delta_mV": 14.655,
+    "power_uw": 20.15
+  },
+  "ripple_3162Hz": {
+    "ripple_pct": 0.5,
+    "status": "PASS"
+  }
 }
