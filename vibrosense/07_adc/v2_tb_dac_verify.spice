@@ -1,0 +1,70 @@
+* DAC Verification — test switching with real TG switches (full-bin models)
+.lib "sky130_v2.lib.spice" tt
+.include "v2_cap_dac_8b.spice"
+
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+
+* Input voltage source
+Vin vin_node 0 0.6
+
+* Sample switch — CMOS TG
+XMsw_n vin_node vtop sw_ctrl  vss sky130_fd_pr__nfet_01v8 w=5u l=0.15u
+XMsw_p vin_node vtop sw_ctrl_b vdd sky130_fd_pr__pfet_01v8 w=10u l=0.15u
+
+* Sample switch: ON for first 1us, then OFF
+Vsw_ctrl sw_ctrl 0 PWL(0 1.8 1u 1.8 1.01u 0)
+Vsw_ctrl_b sw_ctrl_b 0 PWL(0 0 1u 0 1.01u 1.8)
+
+* DAC instance
+Xdac vtop vref vss
++ sw7 sw7_b sw6 sw6_b sw5 sw5_b sw4 sw4_b
++ sw3 sw3_b sw2 sw2_b sw1 sw1_b sw0 sw0_b
++ vdd vss
++ v2_cap_dac_8b
+
+* All switches start LOW (bottom plates to GND)
+* At t=2us: set bit7 HIGH -> Vtop should jump +0.6V
+* At t=4us: also set bit6 HIGH -> Vtop should jump +0.3V
+* At t=6us: clear bit6, set bit5 -> Vtop change -0.15V
+
+Vsw7 sw7 0 PWL(0 0 2u 0 2.01u 1.8 10u 1.8)
+Vsw7b sw7_b 0 PWL(0 1.8 2u 1.8 2.01u 0 10u 0)
+
+Vsw6 sw6 0 PWL(0 0 4u 0 4.01u 1.8 6u 1.8 6.01u 0 10u 0)
+Vsw6b sw6_b 0 PWL(0 1.8 4u 1.8 4.01u 0 6u 0 6.01u 1.8 10u 1.8)
+
+Vsw5 sw5 0 PWL(0 0 6u 0 6.01u 1.8 10u 1.8)
+Vsw5b sw5_b 0 PWL(0 1.8 6u 1.8 6.01u 0 10u 0)
+
+Vsw4 sw4 0 0
+Vsw4b sw4_b 0 1.8
+Vsw3 sw3 0 0
+Vsw3b sw3_b 0 1.8
+Vsw2 sw2 0 0
+Vsw2b sw2_b 0 1.8
+Vsw1 sw1 0 0
+Vsw1b sw1_b 0 1.8
+Vsw0 sw0 0 0
+Vsw0b sw0_b 0 1.8
+
+.ic v(vtop)=0
+
+.tran 10n 10u UIC
+
+.control
+run
+* Expected:
+* vtop after sample: 0.6V
+* After bit7: 0.6 + 128/256*1.2 = 1.2V
+* After bit7+6: 1.2 + 64/256*1.2 = 1.5V
+* After bit7+5 (bit6 cleared): 1.5 - 64/256*1.2 + 32/256*1.2 = 1.35V
+meas tran vtop_sample FIND v(vtop) AT=0.9u
+meas tran vtop_hold FIND v(vtop) AT=1.5u
+meas tran vtop_bit7 FIND v(vtop) AT=3.5u
+meas tran vtop_bit76 FIND v(vtop) AT=5.5u
+meas tran vtop_bit75 FIND v(vtop) AT=8u
+quit
+.endc
+.end

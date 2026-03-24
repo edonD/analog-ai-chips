@@ -1,0 +1,81 @@
+* ============================================================================
+* StrongARM Latch Comparator with Pre-Amplifier — v2
+* VibroSense 8-bit SAR ADC — Block 07
+* Process: SkyWater SKY130A (130 nm CMOS)
+* Supply: 1.8V
+* ============================================================================
+*
+* Uses direct MOSFET model instantiation (sky130_fd_pr__nfet/pfet_01v8__model)
+* for compatibility with nested subcircuit hierarchies.
+*
+* Architecture:
+*   Pre-amplifier (NMOS diff pair + PMOS diode loads) -> StrongARM latch
+*   Pre-amp provides ~10x gain to reduce input-referred offset
+*   StrongARM latch provides fast regeneration to rail-to-rail output
+*
+* ============================================================================
+
+* --- Pre-Amplifier Stage ---
+.subckt v2_preamp inp inn outp outn vdd vss clk_n
+
+* Tail current switch (NMOS, clk_n gates it)
+M_tail vss_tail clk_n vss vss sky130_fd_pr__nfet_01v8__model w=4u l=0.5u
+
+* Input differential pair
+M_n1 outn inp vss_tail vss sky130_fd_pr__nfet_01v8__model w=8u l=1u
+M_n2 outp inn vss_tail vss sky130_fd_pr__nfet_01v8__model w=8u l=1u
+
+* PMOS diode-connected loads
+M_p1 outn outn vdd vdd sky130_fd_pr__pfet_01v8__model w=1u l=2u
+M_p2 outp outp vdd vdd sky130_fd_pr__pfet_01v8__model w=1u l=2u
+
+* Reset switches — pull outputs to VDD when clk_n=low (reset phase)
+M_rst1 outn clk_n vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M_rst2 outp clk_n vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+
+.ends v2_preamp
+
+* --- StrongARM Latch ---
+.subckt v2_strongarm_latch inp inn outp outn vdd vss clk
+
+* Tail current switch
+M0 tail_node clk vss vss sky130_fd_pr__nfet_01v8__model w=4u l=0.5u
+
+* Input differential pair
+M1 dn inp tail_node vss sky130_fd_pr__nfet_01v8__model w=4u l=0.5u
+M2 dp inn tail_node vss sky130_fd_pr__nfet_01v8__model w=4u l=0.5u
+
+* Cross-coupled NMOS latch
+M3 outn outp dn vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+M4 outp outn dp vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+
+* Cross-coupled PMOS latch
+M5 outn outp vdd vdd sky130_fd_pr__pfet_01v8__model w=1u l=0.15u
+M6 outp outn vdd vdd sky130_fd_pr__pfet_01v8__model w=1u l=0.15u
+
+* PMOS reset switches (pull outputs to VDD when CLK=low)
+M7 outn clk vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M8 outp clk vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+
+.ends v2_strongarm_latch
+
+* --- Complete Comparator ---
+.subckt v2_comparator inp inn outp outn vdd vss clk sleep_n
+
+* Power gating PMOS header
+* Inverter to generate sleep_bar
+M_slpinv_n sleep_bar sleep_n vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+M_slpinv_p sleep_bar sleep_n vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M_pg vdd_int sleep_bar vdd vdd sky130_fd_pr__pfet_01v8__model w=10u l=0.15u
+
+* Clock inverter for pre-amp
+M_inv_n clk_n clk vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+M_inv_p clk_n clk vdd_int vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+
+* Pre-amplifier
+X_preamp inp inn pa_outp pa_outn vdd_int vss clk_n v2_preamp
+
+* StrongARM latch (note polarity swap for correct output)
+X_latch pa_outn pa_outp outp outn vdd_int vss clk v2_strongarm_latch
+
+.ends v2_comparator
