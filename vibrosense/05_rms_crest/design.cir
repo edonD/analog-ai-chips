@@ -1,105 +1,124 @@
 * ============================================================
 * Block 05: Broadband RMS Detector + Peak Detector + Crest Factor
 * VibroSense Analog AI Chip — SKY130 PDK
+* FULLY TRANSISTOR-LEVEL — No behavioral models
 * ============================================================
+
+* ============================================================
+* BIAS GENERATOR
+* Resistor-biased NMOS diode → ~1.25 uA reference
+* ============================================================
+.subckt bias_gen vdd vss vbn vbp vcm
+
+* NMOS current reference: I = (VDD-Vgs)/R ~ 1.25 uA
+Rbias  vdd  vbn  1000k
+XMnref vbn  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+
+* PMOS bias: diode-connected PMOS + mirror NMOS
+XMpd   vbp  vbp  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=4u
+XMnm   vbp  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+
+* Vcm reference: 900k/900k divider + decoupling
+Rtop  vdd  vcm  900k
+Rbot  vcm  vss  900k
+Cvcm  vcm  vss  100p
+
+.ends bias_gen
+
+* ============================================================
+* FULL-WAVE RECTIFIER + INTEGRATED LPF
+* Current-mode full-wave rectifier:
+*   Diff pair → PMOS mirrors → NMOS subtraction → diodes → output mirrors
+* The rectified output current charges the LPF cap.
+* A resistor from cap to Vcm provides DC feedback and sets LPF fc.
 *
-* Architecture:
-*   Vin (broadband) --+--> Full-Wave Rectifier --> LPF (fc~50Hz) --> V_rms
-*                     |
-*                     +--> Active Peak Detector (switch+Chold) --> V_peak
-*
-*   Crest Factor = V_peak / (V_rms * 1.11)  [computed in MCU]
-*
-* All signals referenced to Vcm = 0.9V
-* Supply: VDD = 1.8V, VSS = 0V
-* Total power budget: <25uW (achieved: 14.4uW)
+* Output: V_rms = Vcm - K * MAV (inverted sense; MCU calibrates)
 * ============================================================
+.subckt rect_lpf inp vcm rms_out vdd vss vbn
 
-.param VCM    = 0.9
-.param VDD_V  = 1.8
-.param C_LPF  = 1n         ; LPF cap (off-chip ceramic)
-.param C_HOLD = 500p        ; Peak hold cap (on-chip MIM)
-.param R_DISCHARGE = 100G   ; Pseudo-resistor for peak decay (tau=R*C=50s)
-.param GM_LPF_VAL = 320n    ; LPF Gm for fc~50Hz
+* === DIFF PAIR (Itail ~ 1.25 uA) ===
+XM1    d1    inp   tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=4u
+XM2    d2    vcm   tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=4u
+XMtail tail  vbn   vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
 
-* ============================================================
-* SUBCIRCUIT: Full-Wave Rectifier (OTA-based)
-* Models two cross-coupled OTAs with current-folding mirrors
-* Output: Vcm + |Vin - Vcm|
-* Power: 2 x 2.5uA = 5uA @ 1.8V = 9uW
-* ============================================================
-.subckt fullwave_rectifier inp out vdd vss
-Brect out vss V = {VCM} + abs(V(inp) - {VCM})
-* Bias currents (power accounting)
-Ibias1 vdd vss 2.5u
-Ibias2 vdd vss 2.5u
-.ends fullwave_rectifier
+* === PMOS DIODE LOADS ===
+XM3   d1  d1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+XM4   d2  d2  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
 
-* ============================================================
-* SUBCIRCUIT: OTA-C Low-Pass Filter (fc ~ 50 Hz)
-* Gm*(Vin - Vout) -> C, self-regulating
-* fc = Gm / (2*pi*C) = 320n / (6.28*1n) = 51 Hz
-* Power: 0.5uA @ 1.8V = 0.9uW
-* ============================================================
-.subckt lpf_otac inp out vdd vss
-* OTA current into capacitor (correct polarity: charges toward inp)
-Gm vss out cur='{GM_LPF_VAL} * (V(inp) - V(out))'
-Cout out vss {C_LPF}
-* DC bias path (high R, below LPF pole)
-Rout out vss 10G
-* Bias current
-Ibias vdd vss 0.5u
-.ends lpf_otac
+* === PMOS MIRROR COPIES (1:1) ===
+* M5 mirrors I_D1 to node_a, M6 mirrors I_D2 to node_b
+XM5   na  d1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+XM6   nb  d2  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+
+* === NMOS REFERENCE SINKS (Itail/2 each) ===
+* Half the W of tail at same L → half current
+XM7   na  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=1u  l=4u
+XM8   nb  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=1u  l=4u
+
+* === NMOS DIODE CLAMPS ===
+* Conduct only when excess current exists (M5>M7 or M6>M8)
+XM9    na  na  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=1u
+XM10   nb  nb  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=1u
+
+* === OUTPUT MIRRORS (1:20 scaled down) ===
+* Sink gm*|Vd|/(2*20) from the LPF cap node
+* M9: W/L=2/1=2. M11: W/L=0.42/4=0.105. Ratio=0.105/2=1:19
+XM11  rms_out  na  vss  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=4u
+XM12  rms_out  nb  vss  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=4u
+
+* === LPF: R + C from output to Vcm ===
+* Resistor: sets DC operating point (V_out → Vcm when no signal)
+*           and LPF bandwidth: fc = 1/(2*pi*R*C)
+* R = 3 Mohm, C = 1 nF → fc = 53 Hz
+* At equilibrium: V_out = Vcm - I_rect_avg * R
+Rlpf   rms_out  vcm  3000k
+Clpf   rms_out  vss  1n
+
+.ends rect_lpf
 
 * ============================================================
-* SUBCIRCUIT: Active Peak Detector
-* Switch-based: ideal diode charges Chold when Vin > Vhold
-* OTA-compensated (eliminates diode drop in transistor implementation)
-* Pseudo-resistor provides slow decay (tau = R*C = 20G*500p = 10s)
-* Power: 2.5uA @ 1.8V = 4.5uW
+* ACTIVE PEAK DETECTOR
+* OTA comparator + NMOS source follower + hold cap
+* + subthreshold discharge + reset switch
 * ============================================================
-.subckt peak_detector inp out vdd vss reset
-* Internal Vcm reference
-Vcm_int vcm_int vss {VCM}
+.subckt peak_detector inp out vdd vss vbn vcm reset
 
-* Charge path: voltage-controlled switch acts as ideal diode
-* Conducts when Vin > Vout (charges cap toward Vin)
-* Ron=1k limits charge rate (models OTA slew rate)
-* In transistor implementation: OTA + PMOS source follower
-Scharge inp out ctrl vss scharge_mod
-.model scharge_mod sw vt=0 vh=0 ron=1k roff=100T
+* OTA comparator: +inp, -out (negative feedback)
+XMp1  dp1  inp   ptail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XMp2  dp2  out   ptail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XMpt  ptail vbn   vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
 
-* Control voltage: positive when Vin > Vout
-Ectrl ctrl vss inp out 1.0
+* PMOS mirror load
+XMp3  dp1  dp1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+XMp4  dp2  dp1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
 
-* Hold capacitor (500pF MIM, on-chip)
-Chold out vss {C_HOLD}
+* NMOS source follower — charges hold cap
+* When inp > out: dp2 rises → Mchrg Vgs increases → charges out UP
+XMchrg  vdd  dp2  out  vss  sky130_fd_pr__nfet_01v8  w=4u  l=0.5u
 
-* Pseudo-resistor discharge to Vcm
-* In transistor implementation: long-channel subthreshold NMOS
-* W/L = 0.42u/20u, Vgs ~ 0 -> Rds > 20Gohm
-Rdis out vcm_int {R_DISCHARGE}
+* Hold capacitor (500 pF on-chip MIM)
+Chold  out  vss  500p
 
-* Reset switch (MCU-controlled)
-* When reset=HIGH, discharges cap to Vcm in ~50us (Ron*Chold = 100*500p = 50ns)
-Sreset out vcm_int reset vss sreset_mod
-.model sreset_mod sw vt=0.9 vh=0.1 ron=100 roff=10T
+* Discharge: subthreshold NMOS (gate=source=vcm, Vgs=0 → deep subthreshold)
+XMdis  out  vcm  vcm  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=20u
 
-* Bias current for peak OTA
-Ibias vdd vss 2.5u
+* Reset switch (NMOS, MCU-controlled)
+XMrst  out  reset  vcm  vss  sky130_fd_pr__nfet_01v8  w=1u  l=0.5u
+
 .ends peak_detector
 
 * ============================================================
-* TOP-LEVEL SUBCIRCUIT
-* Ports: inp rms_out peak_out vdd vss reset
+* TOP-LEVEL
 * ============================================================
 .subckt rms_crest_top inp rms_out peak_out vdd vss reset
 
-* --- RMS Path ---
-Xrect inp rect_out vdd vss fullwave_rectifier
-Xlpf rect_out rms_out vdd vss lpf_otac
+* Bias
+Xbias  vdd vss vbn vbp vcm_int  bias_gen
 
-* --- Peak Detector ---
-Xpeak inp peak_out vdd vss reset peak_detector
+* Full-wave rectifier + integrated LPF
+Xrect  inp vcm_int rms_out vdd vss vbn  rect_lpf
+
+* Peak detector
+Xpeak  inp peak_out vdd vss vbn vcm_int reset  peak_detector
 
 .ends rms_crest_top
