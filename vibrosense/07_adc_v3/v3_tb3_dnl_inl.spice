@@ -1,0 +1,47 @@
+* TB3: DNL/INL via Code Density — 2048+ Conversions
+* Slow ramp 0V→1.2V, 1MHz accelerated clock, continuous conversion
+* Post-process with Python: parse wrdata, build histogram, compute DNL/INL
+*
+* At 1MHz clock: conversion rate = 100 kSPS (10 clk/conv)
+* 2100 conversions × 10us = 21000us = 21ms (extra for margin)
+* Ramp rate: 1.2V / 21ms = 57.1 uV/us = 0.12 LSB per conversion
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice tt
+
+.include v3_cap_dac.spice
+.include v3_comparator.spice
+.include v3_sar_logic.spice
+.include v3_sar_adc.spice
+
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+
+* Slow ramp from 0V to 1.2V over full sim
+Vin vin 0 PWL(0 0 21m 1.2)
+
+* Clock: 1MHz accelerated (period=1us, 50% duty)
+Vclk clk 0 PULSE(0 1.8 0.5u 10n 10n 0.5u 1u)
+
+* Convert: HIGH at 1.5us for continuous conversion
+Vconv convert 0 PWL(0 0 1.49u 0 1.5u 1.8)
+
+* Sleep: always awake
+Vslp sleep_n 0 1.8
+
+Xadc vin vref clk convert sleep_n
++ d7 d6 d5 d4 d3 d2 d1 d0 valid
++ vdd vss v3_sar_adc
+
+* Only save signals we need — dramatically reduces memory
+.save v(d7) v(d6) v(d5) v(d4) v(d3) v(d2) v(d1) v(d0) v(valid)
+
+.tran 200n 21m
+
+.control
+run
+wrdata v3_tb3_dnl_inl.dat v(d7) v(d6) v(d5) v(d4) v(d3) v(d2) v(d1) v(d0) v(valid)
+.endc
+
+.end

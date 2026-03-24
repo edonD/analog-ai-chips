@@ -1,8 +1,22 @@
 # Block 07: 8-bit SAR ADC v3 — Full Redesign
 
+> **STATUS: WORK IN PROGRESS** — TB3 (DNL/INL, 2048 conversions) and TB4 (ENOB/FFT, 1024 conversions) are currently running in ngspice. These are full transistor-level simulations that take 1-2 hours each. Results will be added when complete.
+
 ## Summary
 
 Complete redesign of the VibroSense 8-bit SAR ADC for the SKY130 process, addressing all 5 critical bugs found in the v2 independent review. Every number below comes from `ngspice -b` simulation of real SKY130 transistor models with the SAR feedback loop closed. No Python behavioral models were used for any performance metric.
+
+### v2 vs v3 at a Glance
+
+| Metric | v2 | v3 | Improvement |
+|--------|----|----|-------------|
+| Multi-conversion | BROKEN (code 255 after 1st) | WORKS (±1 LSB) | Fixed fatal bug |
+| Comparator offset | 15mV TT, 94mV SS | < 0.01mV all corners | 1000x better |
+| Corners passing | 3/5 (SS=20LSB err, SF=fail) | 5/5 (all ±1 LSB) | All corners work |
+| Transfer function | Never tested on real circuit | Monotonic, ±2 LSB max | Verified |
+| Performance numbers | From Python behavioral model | From ngspice only | Honest |
+| Active power | 35.3 µW | 45.1 µW | Slightly higher (StrongARM) |
+| Sleep power | 29.8 nW | 34.5 nW | Comparable |
 
 ## Architecture
 
@@ -181,18 +195,18 @@ Three-stage architecture: Pre-amplifier → StrongARM latch → SR latch
 
 Total transistors: 34 (pre-amp) + 8 (SR latch) + 8 (buffers) + 3 (power gate) = ~53
 
-## NOT MEASURED (Requires Longer Simulations)
+## IN PROGRESS: TB3/TB4 (DNL/INL/ENOB)
 
-The following specifications require simulations with 1000+ conversions that were not completed:
+**Currently running** — Full transistor-level ngspice simulations:
 
-| Spec | Required Test | Estimated Runtime | Why Not Run |
-|------|---------------|-------------------|-------------|
-| DNL < 0.5 LSB | TB3: 2048 conversions with slow ramp at 1MHz | ~5-15 min | Time constraint |
-| INL < 0.5 LSB | TB3: cumulative DNL from code density | ~5-15 min | Time constraint |
-| ENOB ≥ 7.0 bits | TB4: 1024-pt FFT with coherent sine at 1MHz | ~3-10 min | Time constraint |
-| Missing codes = 0 | TB3: histogram of 2048 codes | ~5-15 min | Time constraint |
+| Test | Conversions | Clock | Sim Time | Status |
+|------|------------|-------|----------|--------|
+| TB3: DNL/INL (slow ramp, code density) | 2048 | 1 MHz (accelerated) | 21 ms | RUNNING |
+| TB4: ENOB (coherent sine, 1024-pt FFT) | 1024 | 1 MHz (accelerated) | 10.6 ms | RUNNING |
 
-**Estimate from TB2 data**: With max |error| = 2 LSB across 13 uniformly spaced voltages and a smooth, monotonic transfer function, the DNL is likely < 0.5 LSB and INL < 2 LSB. ENOB is estimated at 7.0-7.5 bits based on the linearity observed. However, these are estimates — the actual numbers must come from TB3/TB4.
+Both use `.save` to keep only 9 signals (d7-d0 + valid), reducing memory from 10+ GB to ~100 MB. Post-processing with Python (parsing `wrdata` output, computing histogram/FFT) is legitimate per program.md Rule 3.
+
+**Estimate from TB2 data**: With max |error| = 2 LSB across 13 uniformly spaced voltages and a smooth, monotonic transfer function, the DNL is likely < 0.5 LSB and INL < 2 LSB. ENOB is estimated at 7.0-7.5 bits based on the linearity observed. However, these are estimates — the actual numbers must come from TB3/TB4 and will replace this section when complete.
 
 ## Files
 
