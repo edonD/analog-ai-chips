@@ -1,0 +1,14 @@
+* VibroSense Block 03 — Channel 4 BPF (REAL SKY130)
+* f0=7071Hz Q=1.41, Bias LE, C1=21pF C2=8pF
+* Measured: f0=6848Hz (3.2%), Q=1.476 (4.7%), Pk=-1.72dB
+
+.subckt bpf_ch4_real vin bp_out vdd vss vcm vbn vbcn vbp vbcp
+Xota1 vin int2 int1 vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C1 int1 vss 21p
+Rbias1 int1 vcm 1G
+Xota2 int1 vcm int2 vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C2 int2 vss 8p
+Rbias2 int2 vcm 1G
+Xota3 vcm int1 int1 vdd vss vbn vbcn vbp vbcp ota_foldcasc
+Rout_tap bp_out int1 1m
+.ends bpf_ch4_real

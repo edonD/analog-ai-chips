@@ -1,0 +1,23 @@
+* TB1: AC Sweep — Channel 4 with REAL SKY130 OTA
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "bpf_ch4_real.spice"
+Vdd vdd 0 dc 1.8
+Vbn vbn 0 dc 0.565
+Vbcn vbcn 0 dc 0.795
+Vbp vbp 0 dc 0.860
+Vbcp vbcp 0 dc 0.605
+Vcm vcm 0 dc 0.9
+Vss vss 0 dc 0
+Vin in 0 dc 0.9 ac 1
+Xbpf in bp_out vdd vss vcm vbn vbcn vbp vbcp bpf_ch4_real
+.nodeset v(xbpf.int1)=0.9 v(xbpf.int2)=0.9
+.control
+op
+let isup = -i(vdd)
+echo "Ch4 Isupply:"
+print isup
+ac dec 200 1 200k
+wrdata ac_real_ch4.txt vdb(bp_out)
+.endc
+.end
