@@ -6,103 +6,137 @@
 
 * ============================================================
 * BIAS GENERATOR
-* Resistor-biased NMOS diode → ~1.25 uA reference
 * ============================================================
 .subckt bias_gen vdd vss vbn vbp vcm
 
-* NMOS current reference: I = (VDD-Vgs)/R ~ 1.25 uA
+* NMOS current ref: I = (VDD-Vgs)/R ~ 1.25 uA
 Rbias  vdd  vbn  1000k
 XMnref vbn  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
 
-* PMOS bias: diode-connected PMOS + mirror NMOS
+* PMOS bias mirror
 XMpd   vbp  vbp  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=4u
 XMnm   vbp  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
 
-* Vcm reference: 900k/900k divider + decoupling
-Rtop  vdd  vcm  900k
-Rbot  vcm  vss  900k
+* Vcm: 450k/450k divider (2 uA, 3.6 uW)
+Rtop  vdd  vcm  450k
+Rbot  vcm  vss  450k
 Cvcm  vcm  vss  100p
 
 .ends bias_gen
 
 * ============================================================
-* FULL-WAVE RECTIFIER + INTEGRATED LPF
-* Current-mode full-wave rectifier:
-*   Diff pair → PMOS mirrors → NMOS subtraction → diodes → output mirrors
-* The rectified output current charges the LPF cap.
-* A resistor from cap to Vcm provides DC feedback and sets LPF fc.
-*
-* Output: V_rms = Vcm - K * MAV (inverted sense; MCU calibrates)
+* 5-TRANSISTOR OTA (reusable building block)
+* NMOS diff pair + PMOS mirror load
+* Ports: vip vim vout vdd vss vbn
 * ============================================================
-.subckt rect_lpf inp vcm rms_out vdd vss vbn
+.subckt ota5 vip vim vout vdd vss vbn
+XM1  d1   vip  tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XM2  vout vim  tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XMt  tail vbn  vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+XM3  d1   d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+XM4  vout d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+.ends ota5
 
-* === DIFF PAIR (Itail ~ 1.25 uA) ===
-XM1    d1    inp   tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=4u
-XM2    d2    vcm   tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=4u
-XMtail tail  vbn   vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+* ============================================================
+* DEGENERATED OTA — Extended linear range (±400mV)
+* Source degeneration Rs on each diff pair input
+* Gm_eff = gm/(1+gm*Rs), linear range = ±Vov*(1+gm*Rs)
+* With Rs=200k: Gm_eff ≈ 3.8 uA/V, linear range ±400mV
+* ============================================================
+.subckt ota5 vip vim vout vdd vss vbn
+XM1  d1   vip  s1    vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XM2  vout vim  s2    vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+Rs1  s1   tail  200k
+Rs2  s2   tail  200k
+XMt  tail vbn  vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+XM3  d1   d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+XM4  vout d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+.ends ota5
 
-* === PMOS DIODE LOADS ===
-XM3   d1  d1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
-XM4   d2  d2  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+* ============================================================
+* PRECISION FULL-WAVE RECTIFIER (3-OTA architecture)
+*
+* OTA_INV: Unity-gain inverter → generates inv = 2*Vcm - inp
+* OTA_A:   Positive half-wave → charges output when inp > output
+* OTA_B:   Negative half-wave → charges output when inv > output
+*
+* Each half uses an NMOS source follower (unidirectional charge)
+* A resistive discharge pulls output toward Vcm between peaks
+*
+* Output: rect_out = Vcm + |inp - Vcm| (approximately)
+* Then LPF averages this to get MAV
+* ============================================================
+.subckt fullwave_rect inp vcm rect_out vdd vss vbn
 
-* === PMOS MIRROR COPIES (1:1) ===
-* M5 mirrors I_D1 to node_a, M6 mirrors I_D2 to node_b
-XM5   na  d1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
-XM6   nb  d2  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+* --- INVERTING AMPLIFIER: generates inv = 2*Vcm - inp ---
+* OTA_INV: +vcm, -inv_fb. Rin from inp to inv_fb, Rfb from inv_fb to inv_out.
+* Gain = -Rfb/Rin = -1. Output = Vcm - (inp - Vcm) = 2*Vcm - inp.
+* Use R=100k matched resistors.
+Xota_inv  vcm  inv_fb  inv_raw  vdd vss vbn  ota5
+Rin_inv   inp     inv_fb   100k
+Rfb_inv   inv_fb  inv_raw  100k
+* Buffer inv_raw to provide low-impedance output
+* (OTA output can directly drive, inv_raw IS the output)
+* Actually need to close the loop properly:
+* inv_fb is the summing junction. OTA drives inv_raw.
+* At equilibrium: V(inv_fb) = Vcm (virtual ground)
+* inv_raw = Vcm + (Vcm - inp) = 2*Vcm - inp. Correct.
 
-* === NMOS REFERENCE SINKS (Itail/2 each) ===
-* Half the W of tail at same L → half current
-XM7   na  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=1u  l=4u
-XM8   nb  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=1u  l=4u
+* --- POSITIVE HALF-WAVE DETECTOR (class-AB output) ---
+* OTA_A: +inp, -rect_out (feedback)
+* NMOS follower charges UP when inp > rect_out
+* PMOS pull-down discharges toward Vcm when inp < rect_out
+Xota_a  inp  rect_out  ota_a_out  vdd vss vbn  ota5
+XMf_a   vdd  ota_a_out rect_out  vss  sky130_fd_pr__nfet_01v8  w=4u l=0.5u
+XMp_a   rect_out  ota_a_out  vcm  vdd  sky130_fd_pr__pfet_01v8  w=0.42u l=50u
 
-* === NMOS DIODE CLAMPS ===
-* Conduct only when excess current exists (M5>M7 or M6>M8)
-XM9    na  na  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=1u
-XM10   nb  nb  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=1u
+* --- NEGATIVE HALF-WAVE DETECTOR (class-AB output) ---
+* OTA_B: +inv_raw, -rect_out (feedback)
+Xota_b  inv_raw  rect_out  ota_b_out  vdd vss vbn  ota5
+XMf_b   vdd  ota_b_out  rect_out  vss  sky130_fd_pr__nfet_01v8  w=4u l=0.5u
+XMp_b   rect_out  ota_b_out  vcm  vdd  sky130_fd_pr__pfet_01v8  w=0.42u l=50u
 
-* === OUTPUT MIRRORS (1:20 scaled down) ===
-* Sink gm*|Vd|/(2*20) from the LPF cap node
-* M9: W/L=2/1=2. M11: W/L=0.42/4=0.105. Ratio=0.105/2=1:19
-XM11  rms_out  na  vss  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=4u
-XM12  rms_out  nb  vss  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=4u
+* Small cap for HF filtering (reduces glitches at zero crossings)
+Crect   rect_out  vss  10p
 
-* === LPF: R + C from output to Vcm ===
-* Resistor: sets DC operating point (V_out → Vcm when no signal)
-*           and LPF bandwidth: fc = 1/(2*pi*R*C)
-* R = 3 Mohm, C = 1 nF → fc = 53 Hz
-* At equilibrium: V_out = Vcm - I_rect_avg * R
-Rlpf   rms_out  vcm  3000k
-Clpf   rms_out  vss  1n
+.ends fullwave_rect
 
-.ends rect_lpf
+* ============================================================
+* LOW-PASS FILTER (passive R-C, fc ~ 50 Hz)
+* Simple, reliable, no startup issues.
+* R = 3.18 Mohm, C = 1 nF → fc = 1/(2*pi*R*C) = 50 Hz
+* tau = R*C = 3.18 ms → settling to 1% in 16 ms
+*
+* The 3.18 Mohm can be implemented as high-poly resistor
+* (1590 squares at 2k/sq) or as an off-chip resistor.
+* For prototype: use off-chip 3.3 Mohm.
+* ============================================================
+.subckt lpf_rc inp out vdd vss
+
+* Simple RC LPF
+Rlpf  inp  out  3180k
+Clpf  out  vss  1n
+
+.ends lpf_rc
 
 * ============================================================
 * ACTIVE PEAK DETECTOR
-* OTA comparator + NMOS source follower + hold cap
-* + subthreshold discharge + reset switch
 * ============================================================
 .subckt peak_detector inp out vdd vss vbn vcm reset
 
-* OTA comparator: +inp, -out (negative feedback)
-XMp1  dp1  inp   ptail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
-XMp2  dp2  out   ptail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
-XMpt  ptail vbn   vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+* OTA: +inp, -out (negative feedback)
+Xota_pk  inp  out  pk_ota_out  vdd vss vbn  ota5
 
-* PMOS mirror load
-XMp3  dp1  dp1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
-XMp4  dp2  dp1  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
-
-* NMOS source follower — charges hold cap
-* When inp > out: dp2 rises → Mchrg Vgs increases → charges out UP
-XMchrg  vdd  dp2  out  vss  sky130_fd_pr__nfet_01v8  w=4u  l=0.5u
+* NMOS source follower (charges hold cap)
+XMchrg  vdd  pk_ota_out  out  vss  sky130_fd_pr__nfet_01v8  w=4u  l=0.5u
 
 * Hold capacitor (500 pF on-chip MIM)
 Chold  out  vss  500p
 
-* Discharge: subthreshold NMOS (gate=source=vcm, Vgs=0 → deep subthreshold)
+* Discharge: subthreshold NMOS (Vgs=0, deep off)
 XMdis  out  vcm  vcm  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=20u
 
-* Reset switch (NMOS, MCU-controlled)
+* Reset switch
 XMrst  out  reset  vcm  vss  sky130_fd_pr__nfet_01v8  w=1u  l=0.5u
 
 .ends peak_detector
@@ -112,11 +146,13 @@ XMrst  out  reset  vcm  vss  sky130_fd_pr__nfet_01v8  w=1u  l=0.5u
 * ============================================================
 .subckt rms_crest_top inp rms_out peak_out vdd vss reset
 
-* Bias
 Xbias  vdd vss vbn vbp vcm_int  bias_gen
 
-* Full-wave rectifier + integrated LPF
-Xrect  inp vcm_int rms_out vdd vss vbn  rect_lpf
+* Full-wave rectifier (3-OTA precision)
+Xrect  inp vcm_int rect_out vdd vss vbn  fullwave_rect
+
+* Low-pass filter (passive R-C)
+Xlpf   rect_out rms_out vdd vss  lpf_rc
 
 * Peak detector
 Xpeak  inp peak_out vdd vss vbn vcm_int reset  peak_detector

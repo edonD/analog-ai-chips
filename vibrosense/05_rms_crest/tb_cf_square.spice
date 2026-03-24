@@ -1,16 +1,18 @@
-* Crest Factor - Square (CF=1.0)
+* Crest Factor - Square
+.include sky130_pdk_fixup.spice
+.lib sky130.lib.spice tt
 .include design.cir
 VDD vdd gnd 1.8
 VSS vss gnd 0
-Vreset reset gnd PULSE(0 1.8 0 1n 1n 1m 1k)
+
+Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd PULSE(0.8 1.0 0 1u 1u 0.5m 1m)
 Xdut inp rms_out peak_out vdd vss reset rms_crest_top
-.ic V(rms_out)=0.9 V(peak_out)=0.9
 .options reltol=1e-3
-.tran 10u 300m uic
+.tran 10u 200m
 .control
 run
-wrdata tb_cf_square.csv v(rms_out) v(peak_out) v(inp)
+wrdata tb_cf_square.csv v(rms_out) v(peak_out) v(Xdut.vcm_int) v(inp)
 quit
 .endc
 .end

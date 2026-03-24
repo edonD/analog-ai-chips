@@ -1,8 +1,48 @@
 {
-  "a": 1.0,
-  "b": [
-    1,
-    2,
-    3
-  ]
+  "rms_linearity_r2": 0.9894180129255347,
+  "rms_linearity_slope": 1.3502303972923495,
+  "rms_linearity_pass": false,
+  "rms_accuracy_pct": 9.02529941442717,
+  "rms_accuracy_pass": false,
+  "rms_bw_low": 10,
+  "rms_bw_high": 20000,
+  "rms_bw_pass": true,
+  "peak_hold_decay_500ms": 3.0922978904026075,
+  "peak_hold_pass": true,
+  "peak_accuracy_pct": 5.279750000000055,
+  "peak_accuracy_pass": true,
+  "cf_sine_err": 13.003780973407197,
+  "cf_sine_pass": true,
+  "crest_factor": [
+    {
+      "name": "Sine",
+      "cf_id": 1.414,
+      "cf_meas": 1.2301265370360221,
+      "cf_err": 13.003780973407197,
+      "mav": 93.71633408618285,
+      "peak": 94.83356516036778,
+      "true_cf": 1.4140278485787783
+    },
+    {
+      "name": "Square",
+      "cf_id": 1.0,
+      "cf_meas": 1.2183373594424618,
+      "cf_err": 21.83373594424618,
+      "mav": 95.40416283291331,
+      "peak": 95.61628919952747,
+      "true_cf": 1.0233625461810607
+    },
+    {
+      "name": "Triangle",
+      "cf_id": 1.732,
+      "cf_meas": 1.2683994798191316,
+      "cf_err": 26.766773682498172,
+      "mav": 90.39674716371326,
+      "peak": 94.32044838449028,
+      "true_cf": 1.4791427603336833
+    }
+  ],
+  "power_uw": 15.456578712449105,
+  "power_idd_uA": 8.586988173582837,
+  "power_pass": true
 }

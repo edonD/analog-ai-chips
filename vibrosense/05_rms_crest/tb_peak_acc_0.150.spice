@@ -1,16 +1,18 @@
 * Peak Accuracy - Amp=0.15
+.include sky130_pdk_fixup.spice
+.lib sky130.lib.spice tt
 .include design.cir
 VDD vdd gnd 1.8
 VSS vss gnd 0
-Vreset reset gnd PULSE(0 1.8 0 1n 1n 1m 1k)
+
+Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd SIN(0.9 0.15 1k)
 Xdut inp rms_out peak_out vdd vss reset rms_crest_top
-.ic V(rms_out)=0.9 V(peak_out)=0.9
 .options reltol=1e-3
-.tran 10u 100m uic
+.tran 10u 50m
 .control
 run
-wrdata tb_peak_acc_0.150.csv v(peak_out) v(inp)
+wrdata tb_peak_acc_0.150.csv v(peak_out) v(Xdut.vcm_int)
 quit
 .endc
 .end

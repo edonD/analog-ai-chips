@@ -1,16 +1,18 @@
-* RMS Frequency Response - f=10000Hz
+* RMS Freq Response - f=10000Hz
+.include sky130_pdk_fixup.spice
+.lib sky130.lib.spice tt
 .include design.cir
 VDD vdd gnd 1.8
 VSS vss gnd 0
-Vreset reset gnd PULSE(0 1.8 0 1n 1n 1m 1k)
+
+Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd SIN(0.9 0.1 10000)
 Xdut inp rms_out peak_out vdd vss reset rms_crest_top
-.ic V(rms_out)=0.9 V(peak_out)=0.9
 .options reltol=1e-3
-.tran 1.000000e-05 0.300 uic
+.tran 1.000000e-05 0.300
 .control
 run
-wrdata tb_rms_freq_10000.csv v(rms_out)
+wrdata tb_rms_freq_10000.csv v(rms_out) v(Xdut.vcm_int)
 quit
 .endc
 .end
