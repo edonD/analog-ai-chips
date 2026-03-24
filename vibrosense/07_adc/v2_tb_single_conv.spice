@@ -66,19 +66,20 @@ Xsar clk convert comp_outn
 .control
 run
 
-meas tran d7v FIND v(sw7) AT=125u
-meas tran d6v FIND v(sw6) AT=125u
-meas tran d5v FIND v(sw5) AT=125u
-meas tran d4v FIND v(sw4) AT=125u
-meas tran d3v FIND v(sw3) AT=125u
-meas tran d2v FIND v(sw2) AT=125u
-meas tran d1v FIND v(sw1) AT=125u
-meas tran d0v FIND v(sw0) AT=125u
-meas tran valid_v FIND v(valid) AT=120u
+* Read output when valid is asserted (around 110us)
+meas tran d7v FIND v(sw7) AT=112u
+meas tran d6v FIND v(sw6) AT=112u
+meas tran d5v FIND v(sw5) AT=112u
+meas tran d4v FIND v(sw4) AT=112u
+meas tran d3v FIND v(sw3) AT=112u
+meas tran d2v FIND v(sw2) AT=112u
+meas tran d1v FIND v(sw1) AT=112u
+meas tran d0v FIND v(sw0) AT=112u
+meas tran valid_v FIND v(valid) AT=112u
 
 meas tran vtop_sample FIND v(vtop) AT=20u
 meas tran vtop_hold FIND v(vtop) AT=27u
-meas tran vtop_final FIND v(vtop) AT=120u
+meas tran vtop_final FIND v(vtop) AT=110u
 
 wrdata v2_single_conv.dat v(vtop) v(clk) v(comp_outn) v(sw7) v(sw6) v(sw5) v(sw4) v(sw3) v(sw2) v(sw1) v(sw0) v(valid) v(sample)
 
