@@ -18,6 +18,10 @@ The peak detector uses a 5-transistor OTA comparator with an NMOS source followe
 
 Total transistor count: **10 MOSFETs**, 8 resistors, 3 capacitors. Power: **8.0 uW** at 1.8V.
 
+### Schematic (xschem, SKY130A)
+
+![Block 05 Schematic](rms_crest.png)
+
 ---
 
 ## Key Results (TT/27C)
@@ -254,6 +258,8 @@ Expected yield at 3-sigma mismatch: >95% within spec after digital calibration.
 
 | File | Description |
 |------|-------------|
+| `rms_crest.sch` | xschem schematic (SKY130 PDK symbols) |
+| `rms_crest.png` | Schematic screenshot |
 | `design.cir` | Complete transistor-level netlist (10 MOSFETs, SKY130) |
 | `run_all.py` | Full PVT simulation suite (15 corners, 6 test categories) |
 | `results_summary.txt` | PASS/FAIL summary for all 10 specs |
