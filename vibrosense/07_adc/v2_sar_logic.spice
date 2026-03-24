@@ -227,7 +227,12 @@ a_vff s9d clkd null null validd validnd dff1
 adc_valid [validd] [valid] dacc
 
 * --- Comp clock gating (analog) ---
-* comp_clk = clk AND eval_active
+* comp_clk = NOT(clk) AND eval_active
+* CRITICAL TIMING: The comparator MUST evaluate AFTER the DAC settles.
+*   Rising edge: state advances, DAC switches toggle (~10ns to settle)
+*   CLK HIGH phase: DAC settles, latch in RESET
+*   CLK LOW phase: comp_clk goes HIGH → latch EVALUATES (vtop stable)
+*   Next rising edge: comp_clk drops → TG latch holds result → DFF captures
 Xor_ev1 s2a s3a ev12 vdd vss cmos_or2
 Xor_ev2 s4a s5a ev34 vdd vss cmos_or2
 Xor_ev3 s6a s7a ev56 vdd vss cmos_or2
@@ -235,6 +240,7 @@ Xor_ev4 s8a s9a ev78 vdd vss cmos_or2
 Xor_ev5 ev12 ev34 ev1234 vdd vss cmos_or2
 Xor_ev6 ev56 ev78 ev5678 vdd vss cmos_or2
 Xor_ev7 ev1234 ev5678 eval_act vdd vss cmos_or2
-Xand_cclk clk eval_act comp_clk vdd vss cmos_and2
+Xinv_clk_comp clk clk_n_comp vdd vss cmos_inv
+Xand_cclk clk_n_comp eval_act comp_clk vdd vss cmos_and2
 
 .ends v2_sar_logic
