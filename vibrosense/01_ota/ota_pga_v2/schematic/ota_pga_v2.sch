@@ -13,6 +13,12 @@ T {PMOS CS + NMOS Sink} 640 -1020 0 0 0.25 0.25 {layer=8}
 T {(unused)} -750 -1100 0 0 0.2 0.2 {layer=8}
 T {(unused)} -750 -1000 0 0 0.2 0.2 {layer=8}
 T {(unused)} -750 -900 0 0 0.2 0.2 {layer=8}
+T {M3 diode} -340 -1210 0 0 0.25 0.25 {layer=5}
+T {gate = drain} -350 -1180 0 0 0.2 0.2 {layer=5}
+T {COMPENSATION} 430 -1180 0 0 0.3 0.3 {layer=8}
+T {Rz = 30k} 530 -1110 0 0 0.25 0.25 {layer=5}
+T {Cc = 3.5pF} 530 -960 0 0 0.25 0.25 {layer=5}
+T {rz_mid} 510 -1030 0 0 0.2 0.2 {layer=4}
 
 N -850 -1700 800 -1700 {lab=vdd}
 N -850 -200 800 -200 {lab=gnd}
@@ -28,10 +34,10 @@ N -180 -1350 -160 -1350 {lab=vdd}
 N 220 -1350 240 -1350 {lab=vdd}
 N 720 -1350 740 -1350 {lab=vdd}
 
-N -180 -1320 -180 -1270 {lab=v_mir}
-N -220 -1350 -280 -1350 {lab=v_mir}
-N -280 -1350 -280 -1270 {lab=v_mir}
-N -280 -1270 -180 -1270 {lab=v_mir}
+N -180 -1320 -180 -1200 {lab=v_mir}
+N -220 -1350 -350 -1350 {lab=v_mir}
+N -350 -1350 -350 -1200 {lab=v_mir}
+N -350 -1200 -180 -1200 {lab=v_mir}
 
 N 180 -1350 120 -1350 {lab=v_mir}
 
@@ -80,7 +86,7 @@ C {devices/capa.sym} 500 -950 0 0 {name=Cc value=3.5p}
 C {devices/lab_pin.sym} -160 -1350 0 0 {name=l1 lab=vdd}
 C {devices/lab_pin.sym} 240 -1350 0 0 {name=l2 lab=vdd}
 C {devices/lab_pin.sym} 740 -1350 0 0 {name=l3 lab=vdd}
-C {devices/lab_pin.sym} -180 -1270 3 0 {name=l4 lab=v_mir}
+C {devices/lab_pin.sym} -180 -1200 3 0 {name=l4 lab=v_mir}
 C {devices/lab_pin.sym} 120 -1350 0 1 {name=l5 lab=v_mir}
 C {devices/lab_pin.sym} -200 -970 1 0 {name=l6 lab=v_mir}
 C {devices/lab_pin.sym} -230 -900 0 1 {name=l7 lab=gnd}
