@@ -35,6 +35,10 @@ Total device count: **~702 transistors + ~260 capacitors** for the full 4-class 
 
 ## 1. Circuit Topology
 
+### 1.0 Schematic
+
+![Classifier Schematic](classifier_schematic.png)
+
 ### 1.1 Architecture
 
 The classifier implements a 4-class single-layer neural network in the charge domain. Each class has its own MAC unit that computes the dot product of the 8-element feature vector with a stored 4-bit weight vector. The WTA circuit then selects the class with the highest output.
