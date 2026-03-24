@@ -1,0 +1,270 @@
+* ============================================================================
+* SAR Logic — Hybrid XSPICE/Transistor Implementation
+* VibroSense 8-bit SAR ADC — Block 07
+* ============================================================================
+*
+* ngspice-42 limitation: XSPICE vector [a b] ports don't work inside
+* subcircuits. Workaround:
+*   - DFFs, inverters, buffers: XSPICE d_dff, d_inverter, d_buffer (scalar)
+*   - AND, OR gates: transistor-level CMOS (NAND+INV, NOR+INV)
+*   - Bridges: single-element adc_bridge/dac_bridge
+*
+* This is actually MORE realistic for tape-out: the logic gates use
+* real SKY130 transistors, only the flip-flops are XSPICE idealized.
+*
+* ============================================================================
+
+* --- Transistor-Level Logic Gates ---
+
+.subckt cmos_nand2 a b y vdd vss
+M1 y a vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M2 y b vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M3 y a mid vss sky130_fd_pr__nfet_01v8__model w=2u l=0.15u
+M4 mid b vss vss sky130_fd_pr__nfet_01v8__model w=2u l=0.15u
+.ends cmos_nand2
+
+.subckt cmos_nor2 a b y vdd vss
+M1 y a mid2 vdd sky130_fd_pr__pfet_01v8__model w=4u l=0.15u
+M2 mid2 b vdd vdd sky130_fd_pr__pfet_01v8__model w=4u l=0.15u
+M3 y a vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+M4 y b vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+.ends cmos_nor2
+
+.subckt cmos_inv a y vdd vss
+M1 y a vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M2 y a vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+.ends cmos_inv
+
+* AND2 = NAND2 + INV
+.subckt cmos_and2 a b y vdd vss
+Xnand a b yn vdd vss cmos_nand2
+Xinv yn y vdd vss cmos_inv
+.ends cmos_and2
+
+* OR2 = NOR2 + INV
+.subckt cmos_or2 a b y vdd vss
+Xnor a b yn vdd vss cmos_nor2
+Xinv yn y vdd vss cmos_inv
+.ends cmos_or2
+
+* --- SAR Logic Subcircuit ---
+.subckt v3_sar_logic clk convert comp_out
++ d7 d6 d5 d4 d3 d2 d1 d0
++ d7b d6b d5b d4b d3b d2b d1b d0b
++ sample sample_b valid comp_clk
++ vdd vss
+
+* XSPICE models (scalar ports only)
+.model dff1 d_dff rise_delay=0.5n fall_delay=0.5n
+.model inv1 d_inverter rise_delay=0.2n fall_delay=0.2n
+.model buf1 d_buffer rise_delay=0.1n fall_delay=0.1n
+.model adcb adc_bridge in_low=0.6 in_high=1.2
+.model dacb dac_bridge out_low=0 out_high=1.8 t_rise=1n t_fall=1n
+
+* --- ADC bridges (scalar, single-element) ---
+ab_clk [clk] [clkd] adcb
+ab_conv [convert] [convd] adcb
+ab_comp [comp_out] [compd] adcb
+
+* --- Convert convd to analog for AND gate ---
+.model dacc dac_bridge out_low=0 out_high=1.8 t_rise=0.5n t_fall=0.5n
+adc_conv [convd] [conv_a] dacc
+
+* --- Start signal: AND(convert, NOT(any_active)) ---
+* v3 fix: Uses combinational not_act instead of registered idle_a.
+* The registered idle DFF had a one-cycle delay that caused S1 to re-enter
+* for a second cycle before advancing to S2 (state machine stuck in sample).
+* Now start drops immediately when any state becomes active.
+Xand_start conv_a not_act start_a vdd vss cmos_and2
+ab_start [start_a] [startd] adcb
+
+* --- One-hot state register (DFFs have scalar ports — OK) ---
+a_ff0 d0in clkd null null idled idle_nd dff1
+a_ff1 startd clkd null null s1d s1nd dff1
+a_ff2 s1d clkd null null s2d s2nd dff1
+a_ff3 s2d clkd null null s3d s3nd dff1
+a_ff4 s3d clkd null null s4d s4nd dff1
+a_ff5 s4d clkd null null s5d s5nd dff1
+a_ff6 s5d clkd null null s6d s6nd dff1
+a_ff7 s6d clkd null null s7d s7nd dff1
+a_ff8 s7d clkd null null s8d s8nd dff1
+a_ff9 s8d clkd null null s9d s9nd dff1
+
+* --- IDLE feedback: NOT(any_active) ---
+* Convert states to analog for OR tree
+adc_s1 [s1d] [s1a] dacc
+adc_s2 [s2d] [s2a] dacc
+adc_s3 [s3d] [s3a] dacc
+adc_s4 [s4d] [s4a] dacc
+adc_s5 [s5d] [s5a] dacc
+adc_s6 [s6d] [s6a] dacc
+adc_s7 [s7d] [s7a] dacc
+adc_s8 [s8d] [s8a] dacc
+adc_s9 [s9d] [s9a] dacc
+
+* OR tree using transistor gates
+Xor_a1 s1a s2a a12 vdd vss cmos_or2
+Xor_a2 s3a s4a a34 vdd vss cmos_or2
+Xor_a3 s5a s6a a56 vdd vss cmos_or2
+Xor_a4 s7a s8a a78 vdd vss cmos_or2
+Xor_a5 a12 a34 a1234 vdd vss cmos_or2
+Xor_a6 a56 a78 a5678 vdd vss cmos_or2
+Xor_a7 a1234 a5678 a18 vdd vss cmos_or2
+Xor_a8 a18 s9a any_act vdd vss cmos_or2
+Xinv_act any_act not_act vdd vss cmos_inv
+ab_d0in [not_act] [d0in] adcb
+
+* --- Bit result registers ---
+* For each bit k (eval in state s(k+2)):
+*   D_k = (state_eval AND comp_d) OR (NOT state_eval AND Q_k)
+* Convert compd to analog
+adc_comp [compd] [comp_a] dacc
+
+* Macro: each bit needs AND/OR MUX
+* bit7 eval in s2
+Xand_b7c s2a comp_a b7ca vdd vss cmos_and2
+Xinv_s2a s2a s2na vdd vss cmos_inv
+adc_b7q [b7q] [b7qa] dacc
+Xand_b7h s2na b7qa b7ha vdd vss cmos_and2
+Xor_b7 b7ca b7ha b7da vdd vss cmos_or2
+ab_b7d [b7da] [b7d] adcb
+a_b7ff b7d clkd null s1d b7q b7qn dff1
+
+* bit6 eval in s3
+Xand_b6c s3a comp_a b6ca vdd vss cmos_and2
+Xinv_s3a s3a s3na vdd vss cmos_inv
+adc_b6q [b6q] [b6qa] dacc
+Xand_b6h s3na b6qa b6ha vdd vss cmos_and2
+Xor_b6 b6ca b6ha b6da vdd vss cmos_or2
+ab_b6d [b6da] [b6d] adcb
+a_b6ff b6d clkd null s1d b6q b6qn dff1
+
+* bit5 eval in s4
+Xand_b5c s4a comp_a b5ca vdd vss cmos_and2
+Xinv_s4a s4a s4na vdd vss cmos_inv
+adc_b5q [b5q] [b5qa] dacc
+Xand_b5h s4na b5qa b5ha vdd vss cmos_and2
+Xor_b5 b5ca b5ha b5da vdd vss cmos_or2
+ab_b5d [b5da] [b5d] adcb
+a_b5ff b5d clkd null s1d b5q b5qn dff1
+
+* bit4 eval in s5
+Xand_b4c s5a comp_a b4ca vdd vss cmos_and2
+Xinv_s5a s5a s5na vdd vss cmos_inv
+adc_b4q [b4q] [b4qa] dacc
+Xand_b4h s5na b4qa b4ha vdd vss cmos_and2
+Xor_b4 b4ca b4ha b4da vdd vss cmos_or2
+ab_b4d [b4da] [b4d] adcb
+a_b4ff b4d clkd null s1d b4q b4qn dff1
+
+* bit3 eval in s6
+Xand_b3c s6a comp_a b3ca vdd vss cmos_and2
+Xinv_s6a s6a s6na vdd vss cmos_inv
+adc_b3q [b3q] [b3qa] dacc
+Xand_b3h s6na b3qa b3ha vdd vss cmos_and2
+Xor_b3 b3ca b3ha b3da vdd vss cmos_or2
+ab_b3d [b3da] [b3d] adcb
+a_b3ff b3d clkd null s1d b3q b3qn dff1
+
+* bit2 eval in s7
+Xand_b2c s7a comp_a b2ca vdd vss cmos_and2
+Xinv_s7a s7a s7na vdd vss cmos_inv
+adc_b2q [b2q] [b2qa] dacc
+Xand_b2h s7na b2qa b2ha vdd vss cmos_and2
+Xor_b2 b2ca b2ha b2da vdd vss cmos_or2
+ab_b2d [b2da] [b2d] adcb
+a_b2ff b2d clkd null s1d b2q b2qn dff1
+
+* bit1 eval in s8
+Xand_b1c s8a comp_a b1ca vdd vss cmos_and2
+Xinv_s8a s8a s8na vdd vss cmos_inv
+adc_b1q [b1q] [b1qa] dacc
+Xand_b1h s8na b1qa b1ha vdd vss cmos_and2
+Xor_b1 b1ca b1ha b1da vdd vss cmos_or2
+ab_b1d [b1da] [b1d] adcb
+a_b1ff b1d clkd null s1d b1q b1qn dff1
+
+* bit0 eval in s9
+Xand_b0c s9a comp_a b0ca vdd vss cmos_and2
+Xinv_s9a s9a s9na vdd vss cmos_inv
+adc_b0q [b0q] [b0qa] dacc
+Xand_b0h s9na b0qa b0ha vdd vss cmos_and2
+Xor_b0 b0ca b0ha b0da vdd vss cmos_or2
+ab_b0d [b0da] [b0d] adcb
+a_b0ff b0d clkd null s1d b0q b0qn dff1
+
+* --- DAC outputs: (bit OR tentative) AND NOT(sample) ---
+* During SAMPLE phase (s1), ALL DAC outputs MUST be LOW so bottom
+* plates are at GND for correct charge sampling. Without this,
+* bit registers from the previous conversion keep switches at Vref,
+* corrupting the sampled voltage. Bug found in independent review.
+Xinv_s1a_dac s1a s1na_dac vdd vss cmos_inv
+
+adc_b7qo [b7q] [b7qao] dacc
+Xor_dac7 b7qao s2a d7_raw vdd vss cmos_or2
+Xand_dac7 d7_raw s1na_dac d7 vdd vss cmos_and2
+
+adc_b6qo [b6q] [b6qao] dacc
+Xor_dac6 b6qao s3a d6_raw vdd vss cmos_or2
+Xand_dac6 d6_raw s1na_dac d6 vdd vss cmos_and2
+
+adc_b5qo [b5q] [b5qao] dacc
+Xor_dac5 b5qao s4a d5_raw vdd vss cmos_or2
+Xand_dac5 d5_raw s1na_dac d5 vdd vss cmos_and2
+
+adc_b4qo [b4q] [b4qao] dacc
+Xor_dac4 b4qao s5a d4_raw vdd vss cmos_or2
+Xand_dac4 d4_raw s1na_dac d4 vdd vss cmos_and2
+
+adc_b3qo [b3q] [b3qao] dacc
+Xor_dac3 b3qao s6a d3_raw vdd vss cmos_or2
+Xand_dac3 d3_raw s1na_dac d3 vdd vss cmos_and2
+
+adc_b2qo [b2q] [b2qao] dacc
+Xor_dac2 b2qao s7a d2_raw vdd vss cmos_or2
+Xand_dac2 d2_raw s1na_dac d2 vdd vss cmos_and2
+
+adc_b1qo [b1q] [b1qao] dacc
+Xor_dac1 b1qao s8a d1_raw vdd vss cmos_or2
+Xand_dac1 d1_raw s1na_dac d1 vdd vss cmos_and2
+
+adc_b0qo [b0q] [b0qao] dacc
+Xor_dac0 b0qao s9a d0_raw vdd vss cmos_or2
+Xand_dac0 d0_raw s1na_dac d0 vdd vss cmos_and2
+
+* DAC inverters (transistor-level)
+Xinv_d7 d7 d7b vdd vss cmos_inv
+Xinv_d6 d6 d6b vdd vss cmos_inv
+Xinv_d5 d5 d5b vdd vss cmos_inv
+Xinv_d4 d4 d4b vdd vss cmos_inv
+Xinv_d3 d3 d3b vdd vss cmos_inv
+Xinv_d2 d2 d2b vdd vss cmos_inv
+Xinv_d1 d1 d1b vdd vss cmos_inv
+Xinv_d0 d0 d0b vdd vss cmos_inv
+
+* --- Sample switch control (analog output from digital state) ---
+adc_samp [s1d] [sample] dacc
+Xinv_samp sample sample_b vdd vss cmos_inv
+
+* --- Valid signal ---
+a_vff s9d clkd null null validd validnd dff1
+adc_valid [validd] [valid] dacc
+
+* --- Comp clock gating (analog) ---
+* comp_clk = NOT(clk) AND eval_active
+* CRITICAL TIMING: The comparator MUST evaluate AFTER the DAC settles.
+*   Rising edge: state advances, DAC switches toggle (~10ns to settle)
+*   CLK HIGH phase: DAC settles, latch in RESET
+*   CLK LOW phase: comp_clk goes HIGH → latch EVALUATES (vtop stable)
+*   Next rising edge: comp_clk drops → TG latch holds result → DFF captures
+Xor_ev1 s2a s3a ev12 vdd vss cmos_or2
+Xor_ev2 s4a s5a ev34 vdd vss cmos_or2
+Xor_ev3 s6a s7a ev56 vdd vss cmos_or2
+Xor_ev4 s8a s9a ev78 vdd vss cmos_or2
+Xor_ev5 ev12 ev34 ev1234 vdd vss cmos_or2
+Xor_ev6 ev56 ev78 ev5678 vdd vss cmos_or2
+Xor_ev7 ev1234 ev5678 eval_act vdd vss cmos_or2
+Xinv_clk_comp clk clk_n_comp vdd vss cmos_inv
+Xand_cclk clk_n_comp eval_act comp_clk vdd vss cmos_and2
+
+.ends v3_sar_logic

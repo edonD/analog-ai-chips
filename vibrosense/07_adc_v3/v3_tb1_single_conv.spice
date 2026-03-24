@@ -1,0 +1,66 @@
+* TB1: Single Conversion — Vin = 0.47V
+* Expected code: round((1.2 - 0.47) / 1.2 * 256) = round(155.7) = 156 = 0b10011100
+*
+* Timing at 100kHz clock (10us period):
+*   t=0:    Power up, sleep_n=HIGH, convert=LOW
+*   t=5us:  First clock edges, ADC initializes to IDLE
+*   t=15us: convert=HIGH → ADC starts: IDLE→S1(sample)→S2(bit7)→...→S9(bit0)→IDLE
+*   t=15us + 10*10us = 115us: conversion complete, valid pulses HIGH
+*
+* The convert signal stays HIGH to trigger continuous conversions,
+* but we only care about the first one for TB1.
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice tt
+
+.include v3_cap_dac.spice
+.include v3_comparator.spice
+.include v3_sar_logic.spice
+.include v3_sar_adc.spice
+
+* Supply and reference
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+
+* Input voltage
+Vin vin 0 0.47
+
+* Clock: 100kHz, 50% duty
+Vclk clk 0 PULSE(0 1.8 5u 10n 10n 5u 10u)
+
+* Convert: goes HIGH at 15us to start conversion
+Vconv convert 0 PWL(0 0 14.9u 0 15u 1.8)
+
+* Sleep: always awake
+Vslp sleep_n 0 1.8
+
+* ADC instance
+Xadc vin vref clk convert sleep_n
++ d7 d6 d5 d4 d3 d2 d1 d0 valid
++ vdd vss v3_sar_adc
+
+.tran 100n 150u
+
+* Measure the output code when valid goes HIGH
+.meas tran t_valid WHEN v(valid)=0.9 RISE=1
+.meas tran b7 FIND v(d7) WHEN v(valid)=0.9 RISE=1
+.meas tran b6 FIND v(d6) WHEN v(valid)=0.9 RISE=1
+.meas tran b5 FIND v(d5) WHEN v(valid)=0.9 RISE=1
+.meas tran b4 FIND v(d4) WHEN v(valid)=0.9 RISE=1
+.meas tran b3 FIND v(d3) WHEN v(valid)=0.9 RISE=1
+.meas tran b2 FIND v(d2) WHEN v(valid)=0.9 RISE=1
+.meas tran b1 FIND v(d1) WHEN v(valid)=0.9 RISE=1
+.meas tran b0 FIND v(d0) WHEN v(valid)=0.9 RISE=1
+
+.control
+run
+
+echo "=== TB1 Single Conversion Results ==="
+echo "Expected code for Vin=0.47V: 156 (0b10011100)"
+print t_valid b7 b6 b5 b4 b3 b2 b1 b0
+
+wrdata v3_tb1_single.dat v(Xadc.vtop) v(d7) v(d6) v(d5) v(d4) v(d3) v(d2) v(d1) v(d0) v(valid) v(Xadc.comp_out) v(Xadc.sample)
+.endc
+
+.end

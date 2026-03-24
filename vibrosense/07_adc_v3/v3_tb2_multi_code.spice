@@ -1,0 +1,202 @@
+* TB2: Multi-Code Transfer Function — 13 Input Voltages
+* Vin = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2}V
+*
+* Verify: codes monotonically decreasing, each within +/-5 LSB of ideal
+* Ideal code = round((Vref - Vin) / Vref * 256)
+*
+* Timing: 13 conversions x 100us = 1300us = 1.3ms
+* Input steps between conversions during idle/sample phase
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice tt
+
+.include v3_cap_dac.spice
+.include v3_comparator.spice
+.include v3_sar_logic.spice
+.include v3_sar_adc.spice
+
+* Supply and reference
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+
+* Input: step through 13 voltages, changing during sample phase of each conversion
+* Each conversion takes ~100us (10 clocks x 10us)
+* Convert goes HIGH at 15us, first valid at ~105us
+* Change Vin during the idle gap between valid and next sample
+Vin vin 0 PWL(
++ 0      0.0
++ 104u   0.0
++ 105u   0.1
++ 204u   0.1
++ 205u   0.2
++ 304u   0.2
++ 305u   0.3
++ 404u   0.3
++ 405u   0.4
++ 504u   0.4
++ 505u   0.5
++ 604u   0.5
++ 605u   0.6
++ 704u   0.6
++ 705u   0.7
++ 804u   0.7
++ 805u   0.8
++ 904u   0.8
++ 905u   0.9
++ 1004u  0.9
++ 1005u  1.0
++ 1104u  1.0
++ 1105u  1.1
++ 1204u  1.1
++ 1205u  1.2
++ 1400u  1.2)
+
+* Clock: 100kHz
+Vclk clk 0 PULSE(0 1.8 5u 10n 10n 5u 10u)
+
+* Convert: HIGH continuously for back-to-back conversions
+Vconv convert 0 PWL(0 0 14.9u 0 15u 1.8)
+
+* Sleep: always awake
+Vslp sleep_n 0 1.8
+
+* ADC instance
+Xadc vin vref clk convert sleep_n
++ d7 d6 d5 d4 d3 d2 d1 d0 valid
++ vdd vss v3_sar_adc
+
+.tran 100n 1400u
+
+* Measure all 13 conversion codes
+.meas tran v1_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=1
+.meas tran v1_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=1
+.meas tran v1_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=1
+.meas tran v1_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=1
+.meas tran v1_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=1
+.meas tran v1_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=1
+.meas tran v1_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=1
+.meas tran v1_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=1
+
+.meas tran v2_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=2
+.meas tran v2_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=2
+.meas tran v2_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=2
+.meas tran v2_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=2
+.meas tran v2_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=2
+.meas tran v2_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=2
+.meas tran v2_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=2
+.meas tran v2_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=2
+
+.meas tran v3_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=3
+.meas tran v3_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=3
+.meas tran v3_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=3
+.meas tran v3_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=3
+.meas tran v3_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=3
+.meas tran v3_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=3
+.meas tran v3_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=3
+.meas tran v3_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=3
+
+.meas tran v4_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=4
+.meas tran v4_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=4
+.meas tran v4_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=4
+.meas tran v4_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=4
+.meas tran v4_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=4
+.meas tran v4_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=4
+.meas tran v4_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=4
+.meas tran v4_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=4
+
+.meas tran v5_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=5
+.meas tran v5_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=5
+.meas tran v5_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=5
+.meas tran v5_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=5
+.meas tran v5_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=5
+.meas tran v5_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=5
+.meas tran v5_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=5
+.meas tran v5_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=5
+
+.meas tran v6_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=6
+.meas tran v6_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=6
+.meas tran v6_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=6
+.meas tran v6_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=6
+.meas tran v6_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=6
+.meas tran v6_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=6
+.meas tran v6_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=6
+.meas tran v6_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=6
+
+.meas tran v7_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=7
+.meas tran v7_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=7
+.meas tran v7_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=7
+.meas tran v7_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=7
+.meas tran v7_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=7
+.meas tran v7_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=7
+.meas tran v7_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=7
+.meas tran v7_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=7
+
+.meas tran v8_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=8
+.meas tran v8_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=8
+.meas tran v8_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=8
+.meas tran v8_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=8
+.meas tran v8_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=8
+.meas tran v8_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=8
+.meas tran v8_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=8
+.meas tran v8_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=8
+
+.meas tran v9_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=9
+.meas tran v9_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=9
+.meas tran v9_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=9
+.meas tran v9_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=9
+.meas tran v9_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=9
+.meas tran v9_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=9
+.meas tran v9_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=9
+.meas tran v9_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=9
+
+.meas tran v10_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=10
+.meas tran v10_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=10
+.meas tran v10_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=10
+.meas tran v10_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=10
+.meas tran v10_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=10
+.meas tran v10_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=10
+.meas tran v10_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=10
+.meas tran v10_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=10
+
+.meas tran v11_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=11
+.meas tran v11_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=11
+.meas tran v11_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=11
+.meas tran v11_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=11
+.meas tran v11_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=11
+.meas tran v11_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=11
+.meas tran v11_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=11
+.meas tran v11_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=11
+
+.meas tran v12_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=12
+.meas tran v12_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=12
+.meas tran v12_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=12
+.meas tran v12_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=12
+.meas tran v12_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=12
+.meas tran v12_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=12
+.meas tran v12_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=12
+.meas tran v12_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=12
+
+.meas tran v13_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=13
+.meas tran v13_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=13
+.meas tran v13_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=13
+.meas tran v13_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=13
+.meas tran v13_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=13
+.meas tran v13_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=13
+.meas tran v13_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=13
+.meas tran v13_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=13
+
+.control
+run
+
+echo "=== TB2: Multi-Code Transfer Function ==="
+* Print all 13 codes
+let thresh = 0.9
+foreach n 1 2 3 4 5 6 7 8 9 10 11 12 13
+  echo "Code $n :"
+end
+
+wrdata v3_tb2_multi_code.dat v(Xadc.vtop) v(d7) v(d6) v(d5) v(d4) v(d3) v(d2) v(d1) v(d0) v(valid)
+.endc
+
+.end
