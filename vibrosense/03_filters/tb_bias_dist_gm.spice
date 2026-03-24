@@ -1,0 +1,33 @@
+* Measure OTA gm with the bias distribution network
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "ota_bias_dist.spice"
+
+Vdd vdd 0 dc 1.8
+Iref vdd iref 500n
+Xbdist iref vdd 0 vbn vbcn vbp vbcp ota_bias_dist
+
+Vinp vinp 0 dc 0.9 ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.control
+op
+echo "Bias:"
+print v(vbn) v(vbcn) v(vbp) v(vbcp)
+echo "OTA DC:"
+print v(vout)
+let isup = -i(vdd)
+print isup
+
+ac dec 100 0.1 1Meg
+meas ac ugb WHEN vdb(vout)=0 FALL=1
+meas ac gain MAX vdb(vout)
+let gm = ugb * 2 * 3.14159 * 10e-12
+echo "Results:"
+print gain ugb gm
+.endc
+.end
