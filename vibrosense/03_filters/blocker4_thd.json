@@ -1,0 +1,39 @@
+{
+  "blocker": 4,
+  "test": "THD",
+  "input": "200mVpp differential",
+  "pass_criteria": "THD < -30 dBc",
+  "overall_pass": true,
+  "channels": [
+    {
+      "channel": 1,
+      "f0_Hz": 226.6,
+      "fund_freq_Hz": 226.6,
+      "fund_mag_mV": 94.495,
+      "HD2_dBc": -144.3,
+      "HD3_dBc": -33.5,
+      "THD_dBc": -33.5,
+      "pass": true
+    },
+    {
+      "channel": 2,
+      "f0_Hz": 1001.4,
+      "fund_freq_Hz": 1001.4,
+      "fund_mag_mV": 95.454,
+      "HD2_dBc": -129.3,
+      "HD3_dBc": -33.7,
+      "THD_dBc": -33.7,
+      "pass": true
+    },
+    {
+      "channel": 5,
+      "f0_Hz": 14639.4,
+      "fund_freq_Hz": 14650.0,
+      "fund_mag_mV": 89.087,
+      "HD2_dBc": -162.3,
+      "HD3_dBc": -38.5,
+      "THD_dBc": -38.5,
+      "pass": true
+    }
+  ]
+}
