@@ -1,36 +1,33 @@
-* OTA-Matched Bias Distribution Network (v2)
-* Takes Iref current (sourced from VDD) and generates VBN/VBP/VBCN/VBCP
-* matched to Block 01 folded-cascode OTA W/L ratios.
+* OTA-Matched Bias Distribution Network (v6)
+* Iref (sourced from VDD) generates VBN/VBP/VBCN/VBCP.
 *
-* Iref: current source pin — 500nA sourced from VDD flows in here
+* VBCN/VBCP use matched current mirrors: PMOS from VBP, NMOS from VBN,
+* with W/L ratios scaled to carry IDENTICAL current in each branch.
 
 .subckt ota_bias_dist iref vdd vss vbn vbcn vbp vbcp
 
-* === VBN: Diode NMOS matches OTA tail (W=3.8u L=14u) ===
-* Iref (from external) flows through this diode to vss
-* V(vbn) = Vgs of this NMOS at Iref current
+* === VBN: Iref → diode NMOS (matches OTA tail XM11) ===
 XMbn vbn vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
-* Connect iref to vbn (diode drain)
 Rlink iref vbn 1
 
-* === VBP: PMOS diode matched to OTA fold ===
-* NMOS sink (gate=VBN) mirrors Iref into PMOS diode
-* PMOS diode: W=8.82u L=20u (matches 21 parallel W=0.42u L=20u in OTA)
+* === VBP: NMOS mirror (gate=VBN) sinks Iref → PMOS diode (matches OTA fold) ===
 XMbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8 W=8.82u L=20u nf=1
-XMbp_sink vbp vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
+XMbp_n vbp vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
 
-* === VBCN: Cascode NMOS bias ===
-* Stack: cascode diode (W=2u L=14u) + current source (W=2.15u L=14u, gate=VBN)
-* PMOS source (mirrors from VBP) drives the stack
-XMbcn_src vbcn vbp vdd vdd sky130_fd_pr__pfet_01v8 W=8.82u L=20u nf=1
-XMbcn vbcn vbcn bcn_src vss sky130_fd_pr__nfet_01v8 W=2u L=14u nf=1
-XMbcn_bot bcn_src vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
+* === VBCN: Replica of OTA NMOS cascode stack ===
+* PMOS source (VBP mirror, W=4.41u → Iref/2 = 250nA)
+* NMOS cascode diode (W=2u L=14u, matches OTA XM7/8)
+* NMOS current source (W=1.9u L=14u, sized for ~250nA = Iref/2)
+* At 250nA: both PMOS and NMOS carry matched current → VBCN settles correctly
+XMbcn_p vbcn vbp vdd vdd sky130_fd_pr__pfet_01v8 W=4.41u L=20u nf=1
+XMbcn   vbcn vbcn bcn_s vss sky130_fd_pr__nfet_01v8 W=2u L=14u nf=1
+XMbcn_b bcn_s vbn vss vss sky130_fd_pr__nfet_01v8 W=1.9u L=14u nf=1
 
-* === VBCP: Cascode PMOS bias ===
-* Stack: fold PMOS (W=8.82u L=20u, gate=VBP) + cascode diode (W=0.42u L=2u)
-* NMOS sink (gate=VBN) drives the stack
-XMbcp_top bcp_mid vbp vdd vdd sky130_fd_pr__pfet_01v8 W=8.82u L=20u nf=1
-XMbcp vbcp vbcp bcp_mid vdd sky130_fd_pr__pfet_01v8 W=0.42u L=2u nf=1
-XMbcp_sink vbcp vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
+* === VBCP: Replica of OTA PMOS cascode stack ===
+* PMOS fold mirror (VBP, W=4.41u → Iref/2) → PMOS cascode diode
+* NMOS sink (VBN, W=1.9u → ~250nA)
+XMbcp_f bcp_m vbp vdd vdd sky130_fd_pr__pfet_01v8 W=4.41u L=20u nf=1
+XMbcp   vbcp vbcp bcp_m vdd sky130_fd_pr__pfet_01v8 W=0.42u L=2u nf=1
+XMbcp_n vbcp vbn vss vss sky130_fd_pr__nfet_01v8 W=1.9u L=14u nf=1
 
 .ends ota_bias_dist
