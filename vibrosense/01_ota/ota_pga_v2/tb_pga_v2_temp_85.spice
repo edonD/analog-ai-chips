@@ -10,7 +10,7 @@
 Vdd vdd 0 dc {vdd_val}
 
 Ibias_n vdd vbn dc 1500n
-Xbias_n vbn vbn 0 0 sky130_fd_pr__nfet_01v8 W=11.4 L=14 nf=1
+Xbias_n vbn vbn 0 0 sky130_fd_pr__nfet_01v8 W=15.0 L=18 nf=1
 Vbcn vbcn 0 dc 0.88
 Vbp  vbp  0 dc 0.73
 Vbcp vbcp 0 dc 0.475

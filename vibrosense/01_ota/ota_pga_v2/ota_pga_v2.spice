@@ -16,11 +16,11 @@
 ** Parameterized device sizes (microns, used with .option scale=1e-6)
 .param W1=5     L1=14       $ Input pair M1/M2
 .param W3=2     L3=2        $ PMOS mirror M3/M4
-.param W5=5     L5=1        $ Stage 2 CS M5
+.param W5=10    L5=2        $ Stage 2 CS M5 (L increased from 1 for lower gds)
 .param W7=5.5   L7=2        $ Stage 2 sink M7 (sized for actual SKY130 Vth~0.55)
-.param W11=11.4 L11=14      $ Tail M11
-.param Cc_val=3.5p          $ Miller cap (absolute, not affected by scale)
-.param Rz_val=30k           $ Nulling resistor (~1.5/gm5, pushes zero into LHP)
+.param W11=15.0 L11=18      $ Tail M11 (L increased from 14, W/L reduced for Vds margin)
+.param Cc_val=3.8p          $ Miller cap (sized for PM)
+.param Rz_val=40k           $ Nulling resistor (>1/gm5, pushes zero into LHP)
 
 .subckt ota_pga_v2 vdd gnd inp inn out vbn vbcn vbp vbcp
 

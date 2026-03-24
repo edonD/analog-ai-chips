@@ -36,11 +36,11 @@ SPECS = {
     "vout_max_V": 1.2,
     "total_current_max_uA": 6.5,  # stage1 + stage2
 
-    # Gate 2 — AC
+    # Gate 2 — AC (nominal targets from program_v2.md)
     "dc_gain_min_dB": 65,
     "ugb_min_Hz": 400_000,
     "ugb_max_Hz": 2_000_000,
-    "pm_min_deg": 60,
+    "pm_min_deg": 65,
 
     # Gate 3 — Transient
     "slew_rate_min_mVus": 50,
@@ -50,13 +50,13 @@ SPECS = {
     "cmrr_dc_min_dB": 70,
     "psrr_1k_min_dB": 50,
 
-    # Gate 5 — Corners
-    "corner_gain_min_dB": 55,
-    "corner_ugb_min_Hz": 250_000,
+    # Gate 5 — Corners (from program_v2.md success criteria)
+    "corner_gain_min_dB": 60,
+    "corner_ugb_min_Hz": 300_000,
     "corner_ugb_max_Hz": 3_000_000,
     "corner_pm_min_deg": 55,
-    "temp_gain_min_dB": 55,
-    "temp_ugb_min_Hz": 250_000,
+    "temp_gain_min_dB": 60,
+    "temp_ugb_min_Hz": 300_000,
     "temp_ugb_max_Hz": 3_000_000,
 }
 
