@@ -1,14 +1,28 @@
-* VibroSense Block 03 — Channel 4 BPF (REAL SKY130)
-* f0=7071Hz Q=1.41, Bias LE, C1=21pF C2=8pF
-* Measured: f0=6848Hz (3.2%), Q=1.476 (4.7%), Pk=-1.72dB
+* VibroSense Block 03 — Channel 4 Pseudo-Differential BPF
+* f0=7071Hz, Q=1.41, Iref=440nA, C1=40pF, C2=20pF
 
-.subckt bpf_ch4_real vin bp_out vdd vss vcm vbn vbcn vbp vbcp
-Xota1 vin int2 int1 vdd vss vbn vbcn vbp vbcp ota_foldcasc
-C1 int1 vss 21p
-Rbias1 int1 vcm 1G
-Xota2 int1 vcm int2 vdd vss vbn vbcn vbp vbcp ota_foldcasc
-C2 int2 vss 8p
-Rbias2 int2 vcm 1G
-Xota3 vcm int1 int1 vdd vss vbn vbcn vbp vbcp ota_foldcasc
-Rout_tap bp_out int1 1m
+.subckt bpf_ch4_real vinp vinn bp_outp bp_outn vdd vss vcm vbn vbcn vbp vbcp
+
+* Positive path
+Xota1p vinp int2p int1p vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C1p int1p vss 40p
+Xpr1p int1p vcm pseudo_res
+Xota2p int1p vcm int2p vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C2p int2p vss 20p
+Xpr2p int2p vcm pseudo_res
+Xota3p vcm int1p int1p vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* Negative path
+Xota1n vinn int2n int1n vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C1n int1n vss 40p
+Xpr1n int1n vcm pseudo_res
+Xota2n int1n vcm int2n vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C2n int2n vss 20p
+Xpr2n int2n vcm pseudo_res
+Xota3n vcm int1n int1n vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* Differential output
+Routp bp_outp int1p 1m
+Routn bp_outn int1n 1m
+
 .ends bpf_ch4_real
