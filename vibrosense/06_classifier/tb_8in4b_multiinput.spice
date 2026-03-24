@@ -1,0 +1,110 @@
+* TB: 8in4b Multi-Input MAC — all inputs active with diverse weights
+.lib "sky130_minimal.lib.spice" tt
+.include "mac_8in4b.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+
+Vin0 in0 0 dc 0.9
+Vin1 in1 0 dc 0.45
+Vin2 in2 0 dc 1.35
+Vin3 in3 0 dc 0.6
+Vin4 in4 0 dc 1.1
+Vin5 in5 0 dc 0.3
+Vin6 in6 0 dc 0.75
+Vin7 in7 0 dc 1.5
+
+Vphi_e phi_e 0 pulse(0 1.8 220n 2n 2n 100n 500n)
+Vphi_eb phi_eb 0 pulse(1.8 0 220n 2n 2n 100n 500n)
+Vphi_r phi_r 0 pulse(0 1.8 340n 2n 2n 100n 500n)
+
+Ven0b0  en0b0  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven0b0b en0b0b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven0b1  en0b1  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven0b1b en0b1b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven0b2  en0b2  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven0b2b en0b2b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven0b3  en0b3  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven0b3b en0b3b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven1b0  en1b0  0 dc 0
+Ven1b0b en1b0b 0 dc 1.8
+Ven1b1  en1b1  0 dc 0
+Ven1b1b en1b1b 0 dc 1.8
+Ven1b2  en1b2  0 dc 0
+Ven1b2b en1b2b 0 dc 1.8
+Ven1b3  en1b3  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven1b3b en1b3b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven2b0  en2b0  0 dc 0
+Ven2b0b en2b0b 0 dc 1.8
+Ven2b1  en2b1  0 dc 0
+Ven2b1b en2b1b 0 dc 1.8
+Ven2b2  en2b2  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven2b2b en2b2b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven2b3  en2b3  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven2b3b en2b3b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven3b0  en3b0  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven3b0b en3b0b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven3b1  en3b1  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven3b1b en3b1b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven3b2  en3b2  0 dc 0
+Ven3b2b en3b2b 0 dc 1.8
+Ven3b3  en3b3  0 dc 0
+Ven3b3b en3b3b 0 dc 1.8
+Ven4b0  en4b0  0 dc 0
+Ven4b0b en4b0b 0 dc 1.8
+Ven4b1  en4b1  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven4b1b en4b1b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven4b2  en4b2  0 dc 0
+Ven4b2b en4b2b 0 dc 1.8
+Ven4b3  en4b3  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven4b3b en4b3b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven5b0  en5b0  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven5b0b en5b0b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven5b1  en5b1  0 dc 0
+Ven5b1b en5b1b 0 dc 1.8
+Ven5b2  en5b2  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven5b2b en5b2b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven5b3  en5b3  0 dc 0
+Ven5b3b en5b3b 0 dc 1.8
+Ven6b0  en6b0  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven6b0b en6b0b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven6b1  en6b1  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven6b1b en6b1b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven6b2  en6b2  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven6b2b en6b2b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven6b3  en6b3  0 dc 0
+Ven6b3b en6b3b 0 dc 1.8
+Ven7b0  en7b0  0 pulse(0 1.8 10n 2n 2n 190n 500n)
+Ven7b0b en7b0b 0 pulse(1.8 0 10n 2n 2n 190n 500n)
+Ven7b1  en7b1  0 dc 0
+Ven7b1b en7b1b 0 dc 1.8
+Ven7b2  en7b2  0 dc 0
+Ven7b2b en7b2b 0 dc 1.8
+Ven7b3  en7b3  0 dc 0
+Ven7b3b en7b3b 0 dc 1.8
+
+XMAC
++ bl vss vdd in0 in1 in2 in3 in4 in5 in6
++ in7 phi_e phi_eb phi_r en0b0 en0b0b en0b1 en0b1b en0b2 en0b2b
++ en0b3 en0b3b en1b0 en1b0b en1b1 en1b1b en1b2 en1b2b en1b3 en1b3b
++ en2b0 en2b0b en2b1 en2b1b en2b2 en2b2b en2b3 en2b3b en3b0 en3b0b
++ en3b1 en3b1b en3b2 en3b2b en3b3 en3b3b en4b0 en4b0b en4b1 en4b1b
++ en4b2 en4b2b en4b3 en4b3b en5b0 en5b0b en5b1 en5b1b en5b2 en5b2b
++ en5b3 en5b3b en6b0 en6b0b en6b1 en6b1b en6b2 en6b2b en6b3 en6b3b
++ en7b0 en7b0b en7b1 en7b1b en7b2 en7b2b en7b3 en7b3b
++ mac_8in4b
+
+.control
+set wr_vecnames
+tran 0.5n 2.5u uic
+wrdata mac_8in4b_transient.txt v(bl) v(phi_e) v(phi_r)
+meas tran vbl_eval FIND v(bl) AT=780n
+meas tran vbl_eval2 FIND v(bl) AT=1280n
+echo "Expected Vbl = 0.406811 V"
+echo "RESULT: vbl_eval = $&vbl_eval"
+echo "RESULT: vbl_eval2 = $&vbl_eval2"
+let err_pct = 100 * (vbl_eval2 - 0.406811) / 0.406811
+echo "RESULT: error_pct = $&err_pct"
+quit
+.endc
+.end
