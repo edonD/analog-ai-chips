@@ -2,32 +2,16 @@
 * Block 05: Broadband RMS Detector + Peak Detector + Crest Factor
 * VibroSense Analog AI Chip — SKY130 PDK
 * FULLY TRANSISTOR-LEVEL — No behavioral models
+*
+* External bias from Block 00 bias_generator:
+*   vbn  — NMOS gate bias (~0.65V, sets ~1.25 uA tail currents)
+*   vcm  — Common-mode voltage (0.9V)
 * ============================================================
 
 * ============================================================
-* BIAS GENERATOR
-* ============================================================
-.subckt bias_gen vdd vss vbn vbp vcm
-
-* NMOS current ref: I = (VDD-Vgs)/R ~ 1.25 uA
-Rbias  vdd  vbn  1000k
-XMnref vbn  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
-
-* PMOS bias mirror
-XMpd   vbp  vbp  vdd  vdd  sky130_fd_pr__pfet_01v8  w=2u  l=4u
-XMnm   vbp  vbn  vss  vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
-
-* Vcm: 450k/450k divider (2 uA, 3.6 uW)
-Rtop  vdd  vcm  450k
-Rbot  vcm  vss  450k
-Cvcm  vcm  vss  100p
-
-.ends bias_gen
-
-* ============================================================
-* 5-TRANSISTOR OTA (reusable building block)
-* NMOS diff pair + PMOS mirror load
-* Ports: vip vim vout vdd vss vbn
+* 5-TRANSISTOR OTA (high-gain, for peak detector)
+* NMOS diff pair + PMOS mirror load, no degeneration
+* DC gain ~50 dB, GBW ~500 kHz at 1.25 uA tail
 * ============================================================
 .subckt ota5 vip vim vout vdd vss vbn
 XM1  d1   vip  tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
@@ -38,12 +22,12 @@ XM4  vout d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
 .ends ota5
 
 * ============================================================
-* DEGENERATED OTA — Extended linear range (±400mV)
-* Source degeneration Rs on each diff pair input
-* Gm_eff = gm/(1+gm*Rs), linear range = ±Vov*(1+gm*Rs)
-* With Rs=200k: Gm_eff ≈ 3.8 uA/V, linear range ±400mV
+* DEGENERATED OTA — Extended linear range for rectifier
+* Source degeneration Rs=200k on each diff pair input
+* Gm_eff = gm/(1+gm*Rs) ≈ 3.8 uA/V, linear range ±400mV
+* Lower gain (~30 dB) but handles full ±300 mV signal range
 * ============================================================
-.subckt ota5 vip vim vout vdd vss vbn
+.subckt ota5_degen vip vim vout vdd vss vbn
 XM1  d1   vip  s1    vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
 XM2  vout vim  s2    vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
 Rs1  s1   tail  200k
@@ -51,7 +35,7 @@ Rs2  s2   tail  200k
 XMt  tail vbn  vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
 XM3  d1   d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
 XM4  vout d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
-.ends ota5
+.ends ota5_degen
 
 * ============================================================
 * PRECISION FULL-WAVE RECTIFIER (3-OTA architecture)
@@ -60,32 +44,26 @@ XM4  vout d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
 * OTA_A:   Positive half-wave → charges output when inp > output
 * OTA_B:   Negative half-wave → charges output when inv > output
 *
-* Each half uses an NMOS source follower (unidirectional charge)
-* A resistive discharge pulls output toward Vcm between peaks
+* Each half uses an NMOS source follower (charge UP) and a weak
+* PMOS pull-down (discharge toward Vcm) for class-AB operation.
 *
-* Output: rect_out = Vcm + |inp - Vcm| (approximately)
-* Then LPF averages this to get MAV
+* The inverter and half-wave OTAs use ota5 (high gain) for best
+* feedback accuracy. The degenerated version could be used if
+* large-signal transient compression is a concern.
 * ============================================================
 .subckt fullwave_rect inp vcm rect_out vdd vss vbn
 
 * --- INVERTING AMPLIFIER: generates inv = 2*Vcm - inp ---
-* OTA_INV: +vcm, -inv_fb. Rin from inp to inv_fb, Rfb from inv_fb to inv_out.
-* Gain = -Rfb/Rin = -1. Output = Vcm - (inp - Vcm) = 2*Vcm - inp.
-* Use R=100k matched resistors.
+* OTA_INV: +vcm, -inv_fb. Rin from inp to inv_fb, Rfb from inv_fb to inv_raw.
+* Gain = -Rfb/Rin = -1. Output = Vcm + (Vcm - inp) = 2*Vcm - inp.
 Xota_inv  vcm  inv_fb  inv_raw  vdd vss vbn  ota5
 Rin_inv   inp     inv_fb   100k
 Rfb_inv   inv_fb  inv_raw  100k
-* Buffer inv_raw to provide low-impedance output
-* (OTA output can directly drive, inv_raw IS the output)
-* Actually need to close the loop properly:
-* inv_fb is the summing junction. OTA drives inv_raw.
-* At equilibrium: V(inv_fb) = Vcm (virtual ground)
-* inv_raw = Vcm + (Vcm - inp) = 2*Vcm - inp. Correct.
 
 * --- POSITIVE HALF-WAVE DETECTOR (class-AB output) ---
 * OTA_A: +inp, -rect_out (feedback)
 * NMOS follower charges UP when inp > rect_out
-* PMOS pull-down discharges toward Vcm when inp < rect_out
+* Weak PMOS pull-down discharges toward Vcm when inp < rect_out
 Xota_a  inp  rect_out  ota_a_out  vdd vss vbn  ota5
 XMf_a   vdd  ota_a_out rect_out  vss  sky130_fd_pr__nfet_01v8  w=4u l=0.5u
 XMp_a   rect_out  ota_a_out  vcm  vdd  sky130_fd_pr__pfet_01v8  w=0.42u l=50u
@@ -103,17 +81,12 @@ Crect   rect_out  vss  10p
 
 * ============================================================
 * LOW-PASS FILTER (passive R-C, fc ~ 50 Hz)
-* Simple, reliable, no startup issues.
 * R = 3.18 Mohm, C = 1 nF → fc = 1/(2*pi*R*C) = 50 Hz
 * tau = R*C = 3.18 ms → settling to 1% in 16 ms
-*
-* The 3.18 Mohm can be implemented as high-poly resistor
-* (1590 squares at 2k/sq) or as an off-chip resistor.
-* For prototype: use off-chip 3.3 Mohm.
+* For prototype: off-chip 3.3 Mohm + 1 nF ceramic.
 * ============================================================
 .subckt lpf_rc inp out vdd vss
 
-* Simple RC LPF
 Rlpf  inp  out  3180k
 Clpf  out  vss  1n
 
@@ -121,6 +94,10 @@ Clpf  out  vss  1n
 
 * ============================================================
 * ACTIVE PEAK DETECTOR
+* Uses high-gain ota5 (no degeneration) for fast, accurate
+* peak tracking. The OTA only needs to swing its output
+* rail-to-rail as a comparator; the NMOS follower does the
+* heavy current lifting into the 500 pF hold cap.
 * ============================================================
 .subckt peak_detector inp out vdd vss vbn vcm reset
 
@@ -133,28 +110,28 @@ XMchrg  vdd  pk_ota_out  out  vss  sky130_fd_pr__nfet_01v8  w=4u  l=0.5u
 * Hold capacitor (500 pF on-chip MIM)
 Chold  out  vss  500p
 
-* Discharge: subthreshold NMOS (Vgs=0, deep off)
+* Discharge: subthreshold NMOS (gate=source=vcm, Vgs=0 → deep subthreshold)
 XMdis  out  vcm  vcm  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=20u
 
-* Reset switch
+* Reset switch (NMOS, MCU-controlled)
 XMrst  out  reset  vcm  vss  sky130_fd_pr__nfet_01v8  w=1u  l=0.5u
 
 .ends peak_detector
 
 * ============================================================
 * TOP-LEVEL
+* Ports: inp rms_out peak_out vdd vss reset vbn vcm
+*   vbn, vcm supplied externally from Block 00 bias_generator
 * ============================================================
-.subckt rms_crest_top inp rms_out peak_out vdd vss reset
-
-Xbias  vdd vss vbn vbp vcm_int  bias_gen
+.subckt rms_crest_top inp rms_out peak_out vdd vss reset vbn vcm
 
 * Full-wave rectifier (3-OTA precision)
-Xrect  inp vcm_int rect_out vdd vss vbn  fullwave_rect
+Xrect  inp vcm rect_out vdd vss vbn  fullwave_rect
 
 * Low-pass filter (passive R-C)
 Xlpf   rect_out rms_out vdd vss  lpf_rc
 
 * Peak detector
-Xpeak  inp peak_out vdd vss vbn vcm_int reset  peak_detector
+Xpeak  inp peak_out vdd vss vbn vcm reset  peak_detector
 
 .ends rms_crest_top

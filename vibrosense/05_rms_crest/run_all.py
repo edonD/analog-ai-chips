@@ -18,6 +18,8 @@ HEADER = """\
 .include design.cir
 VDD vdd gnd 1.8
 VSS vss gnd 0
+Vbn vbn gnd 0.65
+Vcm vcm gnd 0.9
 """
 
 def run_ngspice(fname, timeout=300):
@@ -48,12 +50,12 @@ for amp in amplitudes:
 {HEADER}
 Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd SIN(0.9 {amp} 1k)
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3 abstol=1e-12
 .tran 10u 200m
 .control
 run
-wrdata tb_rms_lin_{amp:.3f}.csv v(rms_out) v(Xdut.vcm_int)
+wrdata tb_rms_lin_{amp:.3f}.csv v(rms_out) v(vcm)
 quit
 .endc
 .end
@@ -132,12 +134,12 @@ for freq in frequencies:
 {HEADER}
 Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd SIN(0.9 0.1 {freq})
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3
 .tran {tstep:.6e} {sim_time:.3f}
 .control
 run
-wrdata tb_rms_freq_{freq}.csv v(rms_out) v(Xdut.vcm_int)
+wrdata tb_rms_freq_{freq}.csv v(rms_out) v(vcm)
 quit
 .endc
 .end
@@ -194,12 +196,12 @@ with open('tb_peak_hold.spice','w') as f:
 Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Venv env gnd PWL(0 0 2m 0 2.5m 0.1 12m 0.1 12.5m 0 100 0)
 Bvin inp gnd V = 0.9 + V(env)*sin(2*3.14159*1000*time)
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3
 .tran 100u 2
 .control
 run
-wrdata tb_peak_hold.csv v(peak_out) v(Xdut.vcm_int)
+wrdata tb_peak_hold.csv v(peak_out) v(vcm)
 quit
 .endc
 .end
@@ -256,12 +258,12 @@ for amp in peak_amps:
 {HEADER}
 Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd SIN(0.9 {amp} 1k)
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3
 .tran 10u 50m
 .control
 run
-wrdata tb_peak_acc_{amp:.3f}.csv v(peak_out) v(Xdut.vcm_int)
+wrdata tb_peak_acc_{amp:.3f}.csv v(peak_out) v(vcm)
 quit
 .endc
 .end
@@ -321,12 +323,12 @@ for name, src, cf_id in cf_tests:
 {HEADER}
 Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd {src}
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3
 .tran 10u 200m
 .control
 run
-wrdata tb_cf_{name.lower()}.csv v(rms_out) v(peak_out) v(Xdut.vcm_int) v(inp)
+wrdata tb_cf_{name.lower()}.csv v(rms_out) v(peak_out) v(vcm) v(inp)
 quit
 .endc
 .end
@@ -397,7 +399,7 @@ with open('tb_power.spice','w') as f:
 {HEADER}
 Vreset reset gnd 0
 Vin inp gnd SIN(0.9 0.1 1k)
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3
 .tran 10u 20m
 .control
@@ -430,12 +432,12 @@ with open('tb_basic.spice','w') as f:
 {HEADER}
 Vreset reset gnd PULSE(1.8 0 2m 1n 1n 10k 20k)
 Vin inp gnd SIN(0.9 0.1 1k)
-Xdut inp rms_out peak_out vdd vss reset rms_crest_top
+Xdut inp rms_out peak_out vdd vss reset vbn vcm rms_crest_top
 .options reltol=1e-3
 .tran 5u 100m
 .control
 run
-wrdata tb_basic_out.csv v(inp) v(rms_out) v(peak_out) v(Xdut.vcm_int)
+wrdata tb_basic_out.csv v(inp) v(rms_out) v(peak_out) v(vcm)
 quit
 .endc
 .end
