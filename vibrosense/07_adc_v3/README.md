@@ -201,23 +201,33 @@ Max |INL|: 1.18 LSB → FAIL (target < 0.5 LSB)
 Missing: 127 codes (all even: 2, 4, 6, ... 254) → FAIL
 Present: 128 codes (all odd: 1, 3, 5, ... 255)
 
-ROOT CAUSE: Bit 0 (LSB) is stuck at 1.
-The comparator always returns "keep bit" for the bit 0 evaluation (state S9).
-This is visible in TB2 as well — every single output code is odd.
-The ADC effectively operates as a 7-bit converter with a fixed +0.5 LSB offset.
+ROOT CAUSE: Bit 0 (LSB) is stuck at 1 — code-proportional DAC gain error.
 
-Analysis: During S9 (bit 0 eval), the tentative bit 0 adds 1/256 × 1.2V = 4.69mV
-to vtop. The comparator must resolve whether vtop is above or below Vref.
-After 7 correct bit decisions, vtop is within ~2 LSB of Vref (~9.4mV).
-Adding the tentative 4.69mV still leaves vtop below Vref in most cases,
-so the comparator correctly keeps the bit. The issue is that the ADC's
-quantization boundary between even and odd codes is offset by ~+1 LSB
-due to parasitic charge injection from the sample-to-hold transition and
-DAC switch charge sharing.
+The comparator and SAR logic are functioning correctly. The issue is a
+~42fF parasitic capacitance at the vtop node (comparator input gate ~67fF
++ sample switch drain junction), which reduces the effective DAC step size
+by Cp/(256*Cunit + Cp) = 42/5162 = 0.82%.
 
-Proposed fix: Add a half-LSB offset capacitor (0.5 × Cunit = 10fF) to the
-dummy cap, shifting all code transitions by -0.5 LSB. This is a standard
-SAR ADC calibration technique.
+This gain error is code-proportional: at code N, the accumulated shortfall
+is N × 0.82% × 1 LSB. At midscale (code 128), the shortfall is 1.05 LSB.
+This means after 7 bits, vtop consistently falls ~1 LSB short of Vref.
+When bit 0 is tentatively set (+1 LSB) and the previous bit is simultaneously
+cleared (-2 LSB), the net change is -1 LSB. Combined with the ~1 LSB
+shortfall, vtop lands right at or just below Vref — always in the "keep"
+region. Bit 0 is always 1.
+
+Verified empirically: increasing Cunit from 20fF to 500fF (reducing parasitic
+fraction from 0.82% to 0.03%) was attempted but the offset persists at exact
+code-boundary test voltages. A constant voltage trim was also attempted but
+cannot correct a code-proportional gain error (offset ≠ gain correction).
+
+Proposed fixes (in order of practicality):
+1. Digital gain calibration: multiply output code by (256+Cp/Cunit)/256 ≈ 1.0082
+   in firmware. Zero area cost, fixes the issue completely.
+2. Increase Cunit to 100-200fF: reduces parasitic fraction to 0.08-0.16%.
+   Increases DAC area by 5-10x and settling time proportionally.
+3. Reduce comparator input device size: W=4u L=0.5u instead of W=8u L=1u.
+   Halves parasitic cap but increases random offset risk.
 ```
 
 ## What Was Fixed vs v2

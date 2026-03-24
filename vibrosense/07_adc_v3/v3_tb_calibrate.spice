@@ -1,0 +1,90 @@
+* Quick calibration: sweep dummy cap to find optimal value
+* Uses 5 voltages from TB2 to check code accuracy
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice tt
+
+.include v3_comparator.spice
+.include v3_sar_logic.spice
+.include v3_sar_adc.spice
+
+* --- Modified Cap DAC with adjustable dummy ---
+.include v3_cap_dac.spice
+
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+
+* 5 test voltages: 0.0, 0.3, 0.6, 0.9, 1.2
+Vin vin 0 PWL(
++ 0     0.0
++ 106u  0.0
++ 108u  0.3
++ 206u  0.3
++ 208u  0.6
++ 306u  0.6
++ 308u  0.9
++ 406u  0.9
++ 408u  1.2
++ 550u  1.2)
+
+Vclk clk 0 PULSE(0 1.8 5u 10n 10n 5u 10u)
+Vconv convert 0 PWL(0 0 14.9u 0 15u 1.8)
+Vslp sleep_n 0 1.8
+
+Xadc vin vref clk convert sleep_n
++ d7 d6 d5 d4 d3 d2 d1 d0 valid
++ vdd vss v3_sar_adc
+
+.tran 100n 550u
+
+.meas tran c1_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=1
+
+.meas tran c2_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=2
+
+.meas tran c3_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=3
+.meas tran c3_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=3
+.meas tran c3_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=3
+.meas tran c3_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=3
+.meas tran c3_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=3
+.meas tran c3_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=3
+.meas tran c3_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=3
+.meas tran c3_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=3
+
+.meas tran c4_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=4
+.meas tran c4_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=4
+.meas tran c4_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=4
+.meas tran c4_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=4
+.meas tran c4_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=4
+.meas tran c4_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=4
+.meas tran c4_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=4
+.meas tran c4_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=4
+
+.meas tran c5_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=5
+.meas tran c5_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=5
+.meas tran c5_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=5
+.meas tran c5_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=5
+.meas tran c5_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=5
+.meas tran c5_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=5
+.meas tran c5_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=5
+.meas tran c5_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=5
+
+.control
+run
+.endc
+
+.end

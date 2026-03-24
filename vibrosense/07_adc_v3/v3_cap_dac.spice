@@ -78,6 +78,9 @@ Rleak3 bn3 gnd_node 10G
 Rleak2 bn2 gnd_node 10G
 Rleak1 bn1 gnd_node 10G
 Rleak0 bn0 gnd_node 10G
-Rleak_top top gnd_node 10G
+* v3: Increased from 10G to 100G to reduce charge leakage during conversion
+* At 10G, 120pA leaks from vtop during 100us conversion = 12fC = 0.5 LSB error
+* At 100G, leakage drops to 0.05 LSB — negligible
+Rleak_top top gnd_node 100G
 
 .ends v2_cap_dac_8b
