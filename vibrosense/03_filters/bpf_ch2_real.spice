@@ -1,0 +1,43 @@
+* VibroSense Block 03 — Channel 2 BPF (REAL transistor-level)
+* Tow-Thomas Biquad: 3× Block 01 folded-cascode OTA (SKY130)
+*
+* Design: f0=1000Hz, Q=0.67
+* Bias level LE: Vbn=0.565 Vbp=0.860 Vbcn=0.795 Vbcp=0.605
+* gm ≈ 629 nS
+*
+* Caps pre-compensated for OTA parasitic capacitance:
+*   C1 = 63 pF (explicit) + ~15pF parasitic → C1_eff ≈ 78pF
+*   C2 = 120 pF (explicit) + ~8pF parasitic → C2_eff ≈ 128pF
+*   Q = sqrt(C1_eff/C2_eff) ≈ 0.67
+*   f0 = gm/(2π×sqrt(C1_eff×C2_eff)) ≈ 1000 Hz
+*
+* Peak gain: -1.67 dB (systematic OTA finite-gain effect, consistent)
+* Note: Using ideal caps; target PDK type is sky130_fd_pr__cap_mim_m3_1
+
+.subckt bpf_ch2_real vin bp_out vdd vss vcm vbn vbcn vbp vbcp
+
+* OTA1: Input + feedback
+Xota1 vin int2 int1 vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* C1 at V1 node (63pF explicit)
+C1 int1 vss 63p
+
+* DC bias for V1 (1GΩ pseudo-resistor, adds 1nS — negligible vs gm3=629nS)
+Rbias1 int1 vcm 1G
+
+* OTA2: Forward integrator
+Xota2 int1 vcm int2 vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* C2 at V2 node (120pF explicit)
+C2 int2 vss 120p
+
+* DC bias for V2
+Rbias2 int2 vcm 1G
+
+* OTA3: Damping (same bias → Q from C ratio)
+Xota3 vcm int1 int1 vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* BP output
+Rout_tap bp_out int1 1m
+
+.ends bpf_ch2_real

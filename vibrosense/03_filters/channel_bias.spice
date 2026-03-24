@@ -1,0 +1,62 @@
+* Per-channel bias generator
+* Takes an external bias current Ibias and generates the four OTA bias voltages
+* by using diode-connected devices matched to the OTA's internal transistors.
+*
+* Ibias flows in through the 'ibias' pin (sunk to vss internally)
+*
+* Generates:
+*   vbn:  from diode NMOS (W=3.8u L=14u, matches OTA tail XM11)
+*   vbcn: from stacked NMOS diode (W=2u L=14u, matches OTA cascode XM7/8)
+*   vbp:  from diode PMOS (W=8.4u L=20u, matches OTA fold M3+M12 total)
+*   vbcp: from stacked PMOS cascode bias
+*
+* The Ibias current is mirrored into NMOS and PMOS branches.
+
+.subckt channel_bias ibias vdd vss vbn vbcn vbp vbcp
+
+* === NMOS Bias: VBN ===
+* Diode-connected NMOS, same W/L as OTA tail (XM11: W=3.8u L=14u)
+* Ibias flows through this device → Vgs = VBN
+XMbn vbn vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
+
+* Mirror Ibias into MBN: PMOS from VDD sources current into MBN
+XMbn_src ibias vbp_int vdd vdd sky130_fd_pr__pfet_01v8 W=4u L=4u nf=1
+
+* === PMOS Bias: VBP ===
+* Diode-connected PMOS, total W matches OTA fold (21 instances of W=0.42u = 8.82u)
+* Current mirror from NMOS side provides the operating current
+XMbp vbp_int vbp_int vdd vdd sky130_fd_pr__pfet_01v8 W=4u L=4u nf=1
+
+* NMOS current sink for PMOS diode (mirrors from VBN)
+XMbp_sink vbp_int vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
+
+* VBP output: buffer from internal vbp_int
+* Use separate PMOS diode matched to OTA fold to generate the correct VBP
+* Actually, the OTA's PMOS fold has W=0.42u×21=8.82u L=20u per side
+* We need VBP such that those devices carry the right current
+* With W=8.82u L=20u PMOS at VBP: Isd = f(VDD-VBP)
+* The simplest: use a PMOS mirror that copies the NMOS current
+XMbp_out vbp vbp vdd vdd sky130_fd_pr__pfet_01v8 W=8.82u L=20u nf=1
+XMbp_nsink vbp vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
+
+* === NMOS Cascode Bias: VBCN ===
+* NMOS diode stack: Vbcn = Vbn + Vgs_cascode
+* Use NMOS with same W/L as OTA cascode (XM7/8: W=2u L=14u)
+XMbcn vbcn vbcn src_bcn vss sky130_fd_pr__nfet_01v8 W=2u L=14u nf=1
+XMbcn_bot src_bcn vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
+* Source current for cascode bias
+XMbcn_src vbcn vbp_int vdd vdd sky130_fd_pr__pfet_01v8 W=4u L=4u nf=1
+
+* === PMOS Cascode Bias: VBCP ===
+* PMOS diode: Vbcp = VBP - |Vgs_pcas|
+* Matches OTA PMOS cascode (XM5/6: W=0.42u L=2u)
+XMbcp vbcp vbcp src_bcp vdd sky130_fd_pr__pfet_01v8 W=0.42u L=2u nf=1
+XMbcp_top src_bcp vbp vdd vdd sky130_fd_pr__pfet_01v8 W=8.82u L=20u nf=1
+* Sink for cascode bias
+XMbcp_sink vbcp vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
+
+* Ibias sinking: the external current flows into ibias pin
+* Route it through the VBN diode
+Ribias ibias vbn 1
+
+.ends channel_bias
