@@ -504,4 +504,109 @@ Measured Itail vs UGB:
 
 ---
 
-*Design completed 2026-03-23. SkyWater SKY130A process. ngspice 42. All results from automated verification.*
+## 10. PGA OTA Variants — Why We Needed a New Topology
+
+The folded-cascode OTA above (33.7 kHz UGB, 0.9 uW) is the **filter OTA** — optimized for
+the Gm-C bandpass filter bank where it runs open-loop and stability is inherent. But the
+PGA requires a **closed-loop amplifier** with 25 kHz bandwidth at 16x gain, which means
+UGB > 400 kHz. The filter OTA is 12x too slow.
+
+### 10.1 First Attempt: ota_pga (Folded-Cascode, Higher Current)
+
+Directory: `ota_pga/`
+
+Scaled up the filter OTA by 3x current to push UGB higher:
+- M11 tail: W=3.8u -> 11.4u (3x current at same Vbn)
+- M3/M4 fold: 20 -> 50 parallel instances
+- M9/M10 cascode: W=2.15u -> 3.5u
+
+**Result: 67.5 kHz UGB.** Only 2x improvement for 3x power — the folded-cascode topology
+hit a wall. The PMOS fold transistors (50 parallel instances of W=0.42u L=20u) add massive
+parasitic capacitance at the fold node, creating a low-frequency non-dominant pole that
+limits how far the UGB can be pushed. At 67.5 kHz, closed-loop BW at 16x gain is only
+~4 kHz — far below the 25 kHz target.
+
+**Why the folded-cascode can't reach 400 kHz:**
+- The fold node parasitic cap (50 instances x Cgs + Cgd) creates a mirror pole at ~200 kHz
+- Pushing more current doesn't help — it increases gm but also increases the number of
+  parallel instances needed (to keep Vov > 150 mV), which increases the parasitic cap
+- The topology is fundamentally self-limiting for high UGB in SKY130 PMOS
+
+### 10.2 Solution: ota_pga_v2 (Two-Stage Miller OTA)
+
+Directory: `ota_pga_v2/`
+
+Abandoned the folded-cascode entirely for a **two-stage Miller-compensated OTA**:
+- Stage 1: NMOS diff pair + PMOS current mirror (simple, no fold — no parasitic pole)
+- Stage 2: PMOS common-source + NMOS current sink (provides voltage gain and drive)
+- Miller Rz-Cc compensation for stability
+
+**Why two-stage Miller works here:**
+- No fold transistors = no mirror pole limiting UGB
+- Stage 2 provides additional gain (total ~88 dB vs 65 dB folded-cascode)
+- Miller compensation gives direct control over PM via Cc and Rz
+- Only 7 transistors vs 13 (53 instances) for the folded-cascode
+
+**Tradeoffs accepted:**
+- Power: 9.9 uW vs 0.9 uW (11x more) — acceptable for a single PGA instance
+- PSRR: 53 dB vs 70 dB — two-stage Miller has inherently weaker supply rejection;
+  external bypass cap on PCB compensates
+- Stability: requires Rz-Cc tuning vs inherently stable single-stage
+
+### 10.3 ota_pga_v2 Redesign (v2.1) — Fixing PVT Issues
+
+The initial v2 design passed at nominal (TT/27C) but had serious issues:
+
+| Issue | v2.0 | v2.1 (current) |
+|-------|------|----------------|
+| Phase margin | 60.9 deg (0.9 deg margin!) | **66.8 deg** (+6.8 deg margin) |
+| Corner verification | Fake (all N/A) | **Real numbers, all pass** |
+| M5 (stage 2) length | L=1 (minimum, high gds) | **L=2** (gds halved, 54 nS) |
+| M11 tail Vds headroom | 193 mV (marginal) | **191 mV** (similar, but gds improved) |
+| Cc / Rz | 3.5 pF / 30k | **3.8 pF / 40k** |
+| Worst corner PM (SS) | Unknown | **62.8 deg** (>55 deg target) |
+| CMRR | 79.8 dB | **113.5 dB** (M11 resizing) |
+
+Changes made:
+- **M5 (stage 2 PMOS):** L=1 -> 2, W=5 -> 10. Reduced gds from 112 to 54 nS. Better DC
+  gain and process robustness while maintaining gm ~44 uS.
+- **M11 (tail):** L=14 -> 18, W=11.4 -> 15. Improved gds for dramatically better CMRR
+  (79.8 -> 113.5 dB).
+- **Cc:** 3.5 -> 3.8 pF. Slightly larger Miller cap pushes the dominant pole down.
+- **Rz:** 30k -> 40k. Pushes the RHP zero deeper into LHP, adding ~6 deg PM.
+- **Verification script:** Fixed Gate 5 to actually extract and report gain/UGB/PM at
+  each corner and temperature instead of reporting N/A.
+
+### 10.4 Final ota_pga_v2.1 Performance
+
+![OTA PGA v2.1 Schematic](ota_pga_v2/schematic/ota_pga_v2_hires.png)
+
+| Parameter | Nominal (TT/27C) | Worst Corner | Target |
+|-----------|-------------------|-------------|--------|
+| DC Gain | 88.1 dB | 87.3 dB (SF) | >60 dB |
+| UGB | 405 kHz | 330 kHz (85C) | >300 kHz |
+| Phase Margin | 66.8 deg | 62.8 deg (SS) | >55 deg |
+| CMRR | 113.5 dB | — | >70 dB |
+| PSRR | 53.3 dB | — | >50 dB |
+| Power | 9.9 uW | — | <10 uW |
+| Output Swing | 1.51 Vpp | — | >1.0 Vpp |
+| Slew Rate | 669 mV/us | — | >50 mV/us |
+
+**All 5 verification gates pass at all 5 corners and 3 temperatures.**
+
+### 10.5 OTA Summary: Which OTA Goes Where
+
+| OTA | Topology | UGB | Power | Used In |
+|-----|----------|-----|-------|---------|
+| `ota_foldcasc` | Folded-cascode | 33.7 kHz | 0.9 uW | Gm-C filters, envelope detectors (20+ instances) |
+| `ota_pga` | Folded-cascode (high-current) | 67.5 kHz | ~3 uW | **Abandoned** — UGB too low for PGA |
+| `ota_pga_v2` | Two-stage Miller | 405 kHz | 9.9 uW | PGA (1 instance) |
+
+The filter OTA remains the workhorse for open-loop Gm-C blocks. The two-stage Miller
+OTA is used only for the PGA, where closed-loop bandwidth demands high UGB. The
+folded-cascode PGA variant (`ota_pga`) is kept for reference but is not used in the
+final design.
+
+---
+
+*Design completed 2026-03-23, updated 2026-03-24. SkyWater SKY130A process. ngspice 42. All results from automated verification.*
