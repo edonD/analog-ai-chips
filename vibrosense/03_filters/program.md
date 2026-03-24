@@ -94,15 +94,25 @@ The band-pass output is taken at the output of the first integrator:
 ```
                     (gm1/C1) × s
     H_BP(s) = ─────────────────────────────────────
-              s² + (gm3/C2) × s + (gm1×gm2)/(C1×C2)
+              s² + (gm3/C1) × s + (gm1×gm2)/(C1×C2)
 ```
+
+Note: The damping term is gm3/C1 (not gm3/C2) because OTA3 feeds into
+the C1 node (V1, first integrator output where the BP output is taken).
 
 Mapping to standard biquad parameters:
 
 ```
     Center frequency:  w0 = sqrt(gm1 × gm2 / (C1 × C2))
-    Quality factor:    Q  = sqrt(gm1 × gm2 × C2 / (gm3² × C1))
+    Quality factor:    Q  = sqrt(gm1 × gm2 × C1 / (gm3² × C2))
     Peak gain:         G0 = gm1 / gm3
+```
+
+When gm1 = gm2 = gm3 = gm (all OTAs at same bias, Q set by cap ratio):
+
+```
+    Q  = sqrt(C1 / C2)     [not gm/gm3]
+    G0 = 1  (0 dB)         [not Q]
 ```
 
 When gm1 = gm2 = gm and C1 = C2 = C (symmetric design):
