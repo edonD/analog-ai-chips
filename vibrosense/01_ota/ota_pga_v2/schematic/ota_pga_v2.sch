@@ -16,8 +16,8 @@ T {(unused)} -750 -900 0 0 0.2 0.2 {layer=8}
 T {M3 diode} -340 -1210 0 0 0.25 0.25 {layer=5}
 T {gate = drain} -350 -1180 0 0 0.2 0.2 {layer=5}
 T {COMPENSATION} 430 -1180 0 0 0.3 0.3 {layer=8}
-T {Rz = 30k} 530 -1110 0 0 0.25 0.25 {layer=5}
-T {Cc = 3.5pF} 530 -960 0 0 0.25 0.25 {layer=5}
+T {Rz = 40k} 530 -1110 0 0 0.25 0.25 {layer=5}
+T {Cc = 3.8pF} 530 -960 0 0 0.25 0.25 {layer=5}
 T {rz_mid} 510 -1030 0 0 0.2 0.2 {layer=4}
 
 N -850 -1700 800 -1700 {lab=vdd}
@@ -74,14 +74,14 @@ N 720 -800 790 -800 {lab=out}
 
 C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} -200 -1350 0 0 {name=M3 L=2u W=2u nf=1 mult=1 model=pfet_01v8 spiceprefix=X}
 C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 200 -1350 0 0 {name=M4 L=2u W=2u nf=1 mult=1 model=pfet_01v8 spiceprefix=X}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 700 -1350 0 0 {name=M5 L=1u W=5u nf=1 mult=1 model=pfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 700 -1350 0 0 {name=M5 L=2u W=10u nf=1 mult=1 model=pfet_01v8 spiceprefix=X}
 C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} -180 -900 0 1 {name=M1 L=14u W=5u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 200 -900 0 0 {name=M2 L=14u W=5u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
-C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} -20 -500 0 0 {name=M11 L=14u W=11.4u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
+C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} -20 -500 0 0 {name=M11 L=18u W=15u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 C {/home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 700 -500 0 0 {name=M7 L=2u W=5.5u nf=1 mult=1 model=nfet_01v8 spiceprefix=X}
 
-C {devices/res.sym} 500 -1100 0 0 {name=Rz value=30k}
-C {devices/capa.sym} 500 -950 0 0 {name=Cc value=3.5p}
+C {devices/res.sym} 500 -1100 0 0 {name=Rz value=40k}
+C {devices/capa.sym} 500 -950 0 0 {name=Cc value=3.8p}
 
 C {devices/lab_pin.sym} -160 -1350 0 0 {name=l1 lab=vdd}
 C {devices/lab_pin.sym} 240 -1350 0 0 {name=l2 lab=vdd}
