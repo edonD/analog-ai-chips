@@ -1,0 +1,36 @@
+v {xschem version=3.4.4 file_version=1.2}
+G {}
+K {type=subcircuit
+format="@spiceprefix@name @pinlist @symname"
+template="name=X1"
+}
+V {}
+S {}
+E {}
+L 7 -80 -60 80 60 {}
+L 7 -80 60 80 60 {}
+L 7 80 60 80 -60 {}
+L 7 80 -60 -80 -60 {}
+L 7 -80 -60 -80 60 {}
+L 4 -100 -30 -80 -30 {}
+L 4 -100 30 -80 30 {}
+L 4 80 0 100 0 {}
+L 4 0 -60 0 -80 {}
+L 4 0 60 0 80 {}
+L 4 -40 60 -40 80 {}
+L 4 40 60 40 80 {}
+L 4 -40 -60 -40 -80 {}
+L 4 40 -60 40 -80 {}
+T {+} -70 -40 0 0 0.3 0.3 {layer=4}
+T {-} -70 20 0 0 0.3 0.3 {layer=4}
+T {OTA} -25 -12 0 0 0.35 0.35 {layer=8}
+T {@name} -25 65 0 0 0.25 0.25 {layer=15}
+B 5 -100 -35 -80 -25 {name=inp dir=in}
+B 5 -100 25 -80 35 {name=inn dir=in}
+B 5 80 -5 100 5 {name=out dir=out}
+B 5 -5 -80 5 -60 {name=vdd dir=inout}
+B 5 -5 60 5 80 {name=gnd dir=inout}
+B 5 -45 60 -35 80 {name=vbn dir=in}
+B 5 35 60 45 80 {name=vbcn dir=in}
+B 5 -45 -80 -35 -60 {name=vbp dir=in}
+B 5 35 -80 45 -60 {name=vbcp dir=in}
