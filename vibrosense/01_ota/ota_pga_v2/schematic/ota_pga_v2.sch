@@ -4,8 +4,8 @@ K {}
 V {}
 S {}
 E {}
-T {VibroSense PGA OTA v2.1 (Two-Stage Miller)} -250 -1200 0 0 0.5 0.5 {}
-T {SKY130A — 7 Transistors + Rz + Cc} -250 -1165 0 0 0.28 0.28 {layer=8}
+T {VibroSense PGA OTA v2.1 (Two-Stage Miller)} -250 -1140 0 0 0.5 0.5 {}
+T {SKY130A — 7 Transistors + Rz + Cc} -250 -1115 0 0 0.28 0.28 {layer=8}
 T {STAGE 1} -50 -1050 0 0 0.3 0.3 {layer=8}
 T {Diff Pair + Mirror} -100 -1025 0 0 0.2 0.2 {layer=8}
 T {STAGE 2} 430 -1050 0 0 0.3 0.3 {layer=8}
