@@ -27,7 +27,7 @@
 1. Executing Verilog-2005 frontend: ../rtl/spi_slave.v
 Parsing Verilog input from `../rtl/spi_slave.v' to AST representation.
 Generating RTLIL representation for module `\spi_slave'.
-Warning: Replacing memory \shadow_regs with list of registers. See ../rtl/spi_slave.v:98
+Warning: Replacing memory \shadow_regs with list of registers. See ../rtl/spi_slave.v:84
 Successfully finished Verilog frontend.
 
 2. Executing Verilog-2005 frontend: ../rtl/reg_file.v
@@ -109,7 +109,7 @@ Parameter \ADDR_W = 7
 Parameter \DATA_W = 8
 Parameter \NUM_REGS = 16
 Generating RTLIL representation for module `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave'.
-Warning: Replacing memory \shadow_regs with list of registers. See ../rtl/spi_slave.v:98
+Warning: Replacing memory \shadow_regs with list of registers. See ../rtl/spi_slave.v:84
 
 7.7. Analyzing design hierarchy..
 Top module:  \digital_top
@@ -139,102 +139,94 @@ Removed 5 unused modules.
 Cleaned up 0 empty switches.
 
 8.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
-Removed 1 dead cases from process $proc$../rtl/spi_slave.v:0$164 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:0$164 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:224$161 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:206$158 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:186$155 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 3 switch rules as full_case in process $proc$../rtl/spi_slave.v:163$150 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 2 switch rules as full_case in process $proc$../rtl/spi_slave.v:136$141 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:108$135 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 2 switch rules as full_case in process $proc$../rtl/spi_slave.v:95$131 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:79$127 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
-Marked 2 switch rules as full_case in process $proc$../rtl/reg_file.v:113$123 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.
-Marked 3 switch rules as full_case in process $proc$../rtl/fsm_classifier.v:38$103 in module $paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.
-Marked 3 switch rules as full_case in process $proc$../rtl/debounce.v:39$89 in module $paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.
-Marked 1 switch rules as full_case in process $proc$../rtl/clk_divider.v:31$85 in module $paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.
+Removed 1 dead cases from process $proc$../rtl/spi_slave.v:0$152 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:0$152 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:210$149 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:192$146 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:172$143 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 3 switch rules as full_case in process $proc$../rtl/spi_slave.v:149$138 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 2 switch rules as full_case in process $proc$../rtl/spi_slave.v:122$129 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:94$123 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 1 switch rules as full_case in process $proc$../rtl/spi_slave.v:81$121 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.
+Marked 2 switch rules as full_case in process $proc$../rtl/reg_file.v:113$117 in module $paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.
+Marked 3 switch rules as full_case in process $proc$../rtl/fsm_classifier.v:38$97 in module $paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.
+Marked 3 switch rules as full_case in process $proc$../rtl/debounce.v:39$83 in module $paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.
+Marked 1 switch rules as full_case in process $proc$../rtl/clk_divider.v:31$79 in module $paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.
 Removed a total of 1 dead cases.
 
 8.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
-Removed 18 redundant assignments.
+Removed 30 redundant assignments.
 Promoted 18 assignments to connections.
 
 8.4. Executing PROC_INIT pass (extract init attributes).
 
 8.5. Executing PROC_ARST pass (detect async resets in processes).
-Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
-Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:206$158'.
-Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:186$155'.
-Found async reset \cs_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:163$150'.
-Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
-Found async reset \cs_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:79$127'.
-Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-Found async reset \rst_n in `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$103'.
-Found async reset \rst_n in `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
-Found async reset \rst_n in `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$85'.
+Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
+Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:192$146'.
+Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:172$143'.
+Found async reset \cs_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:149$138'.
+Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
+Found async reset \cs_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+Found async reset \rst_n in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+Found async reset \rst_n in `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$97'.
+Found async reset \rst_n in `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
+Found async reset \rst_n in `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$79'.
 
 8.6. Executing PROC_ROM pass (convert switches to ROMs).
 Converted 0 switches.
-<suppressed ~26 debug messages>
+<suppressed ~25 debug messages>
 
 8.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$164'.
-     1/1: $1$mem2reg_rd$\shadow_regs$../rtl/spi_slave.v:161$126_DATA[7:0]$166
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$152'.
+     1/1: $1$mem2reg_rd$\shadow_regs$../rtl/spi_slave.v:147$120_DATA[7:0]$154
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
      1/4: $0\status_rd[0:0]
      2/4: $0\wr_en[0:0]
      3/4: $0\wr_data[7:0]
      4/4: $0\wr_addr[6:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:206$158'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:192$146'.
      1/3: $0\rd_sync3[0:0]
      2/3: $0\rd_sync2[0:0]
      3/3: $0\rd_sync1[0:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:186$155'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:172$143'.
      1/3: $0\wr_sync3[0:0]
      2/3: $0\wr_sync2[0:0]
      3/3: $0\wr_sync1[0:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:163$150'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:149$138'.
      1/2: $0\miso_bit[0:0]
      2/2: $0\shift_out[7:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
      1/4: $0\rd_toggle[0:0]
      2/4: $0\wr_data_hold[7:0]
      3/4: $0\wr_addr_hold[6:0]
      4/4: $0\wr_toggle[0:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
      1/5: $0\bit_cnt[3:0]
      2/5: $0\shift_in[7:0]
      3/5: $0\rd_is_status[0:0]
      4/5: $0\addr_latched[6:0]
      5/5: $0\rw_flag[0:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-     1/18: $2\si[31:0]
-     2/18: $1\si[31:0]
-     3/18: $0\shadow_regs[15][7:0]
-     4/18: $0\shadow_regs[14][7:0]
-     5/18: $0\shadow_regs[13][7:0]
-     6/18: $0\shadow_regs[12][7:0]
-     7/18: $0\shadow_regs[11][7:0]
-     8/18: $0\shadow_regs[10][7:0]
-     9/18: $0\shadow_regs[9][7:0]
-    10/18: $0\shadow_regs[8][7:0]
-    11/18: $0\shadow_regs[7][7:0]
-    12/18: $0\shadow_regs[6][7:0]
-    13/18: $0\shadow_regs[5][7:0]
-    14/18: $0\shadow_regs[4][7:0]
-    15/18: $0\shadow_regs[3][7:0]
-    16/18: $0\shadow_regs[2][7:0]
-    17/18: $0\shadow_regs[1][7:0]
-    18/18: $0\shadow_regs[0][7:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:79$127'.
-     1/4: $0\snapshot_req[0:0]
-     2/4: $0\cs_n_sync3[0:0]
-     3/4: $0\cs_n_sync2[0:0]
-     4/4: $0\cs_n_sync1[0:0]
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+     1/17: $1\si[31:0]
+     2/17: $0\shadow_regs[15][7:0]
+     3/17: $0\shadow_regs[14][7:0]
+     4/17: $0\shadow_regs[13][7:0]
+     5/17: $0\shadow_regs[12][7:0]
+     6/17: $0\shadow_regs[11][7:0]
+     7/17: $0\shadow_regs[10][7:0]
+     8/17: $0\shadow_regs[9][7:0]
+     9/17: $0\shadow_regs[8][7:0]
+    10/17: $0\shadow_regs[7][7:0]
+    11/17: $0\shadow_regs[6][7:0]
+    12/17: $0\shadow_regs[5][7:0]
+    13/17: $0\shadow_regs[4][7:0]
+    14/17: $0\shadow_regs[3][7:0]
+    15/17: $0\shadow_regs[2][7:0]
+    16/17: $0\shadow_regs[1][7:0]
+    17/17: $0\shadow_regs[0][7:0]
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
      1/24: $0\regs[12][7:0] [7:4]
      2/24: $0\regs[12][7:0] [3:0]
      3/24: $0\regs[13][7:0] [3]
@@ -259,200 +251,190 @@ Creating decoders for process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646
     22/24: $0\adc_busy[0:0]
     23/24: $0\status_valid[0:0]
     24/24: $0\adc_start_r[0:0]
-Creating decoders for process `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$103'.
+Creating decoders for process `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$97'.
      1/1: $0\cnt[9:0]
-Creating decoders for process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
+Creating decoders for process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
      1/4: $0\last_class[3:0]
      2/4: $0\detect_count[3:0]
      3/4: $0\irq_class[3:0]
      4/4: $0\irq_assert[0:0]
-Creating decoders for process `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$85'.
+Creating decoders for process `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$79'.
      1/1: $0\cnt[3:0]
 
 8.8. Executing PROC_DLATCH pass (convert process syncs to latches).
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$mem2reg_rd$\shadow_regs$../rtl/spi_slave.v:161$126_DATA' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$164'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[0]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[1]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[2]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[3]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[4]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[5]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[6]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[7]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[8]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[9]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[10]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[11]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[12]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[13]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[14]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[15]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$mem2reg_rd$\shadow_regs$../rtl/spi_slave.v:147$120_DATA' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$152'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[0]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[1]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[2]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[3]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[4]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[5]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[6]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[7]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[8]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[9]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[10]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[11]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[12]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[13]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[14]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+No latch inferred for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\rd_view[15]' from process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
 
 8.9. Executing PROC_DFF pass (convert process syncs to FFs).
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_en' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_en' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
+  created $adff cell `$procdff$494' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_addr' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
+  created $adff cell `$procdff$495' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_data' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
+  created $adff cell `$procdff$496' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\status_rd' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
+  created $adff cell `$procdff$497' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_sync1' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:192$146'.
+  created $adff cell `$procdff$498' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_sync2' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:192$146'.
+  created $adff cell `$procdff$499' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_sync3' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:192$146'.
+  created $adff cell `$procdff$500' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_sync1' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:172$143'.
+  created $adff cell `$procdff$501' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_sync2' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:172$143'.
+  created $adff cell `$procdff$502' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_sync3' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:172$143'.
+  created $adff cell `$procdff$503' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shift_out' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:149$138'.
+  created $adff cell `$procdff$504' with negative edge clock and positive level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\miso_bit' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:149$138'.
+  created $adff cell `$procdff$505' with negative edge clock and positive level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_toggle' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
+  created $adff cell `$procdff$506' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_addr_hold' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
+  created $adff cell `$procdff$507' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_data_hold' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
+  created $adff cell `$procdff$508' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_toggle' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
+  created $adff cell `$procdff$509' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\bit_cnt' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+  created $adff cell `$procdff$510' with positive edge clock and positive level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shift_in' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+  created $adff cell `$procdff$511' with positive edge clock and positive level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rw_flag' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+  created $adff cell `$procdff$512' with positive edge clock and positive level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\addr_latched' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+  created $adff cell `$procdff$513' with positive edge clock and positive level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_is_status' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+  created $adff cell `$procdff$514' with positive edge clock and positive level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\si' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$515' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[0]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$516' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[1]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$517' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[2]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$518' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[3]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$519' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[4]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$520' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[5]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$521' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[6]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$522' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[7]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$523' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[8]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$524' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[9]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$525' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[10]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$526' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[11]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$527' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[12]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$528' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[13]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$529' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[14]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$530' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[15]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+  created $adff cell `$procdff$531' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\debounce_wr_pulse' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$532' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\adc_start_r' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$533' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\status_valid' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$534' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\adc_busy' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$535' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[0]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$536' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[1]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$537' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[2]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$538' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[3]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$539' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[4]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$540' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[5]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$541' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[6]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$542' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[7]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$543' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[8]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$544' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[9]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$545' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[10]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$546' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[11]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$547' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[12]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$548' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[13]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$549' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[14]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$550' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[15]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+  created $adff cell `$procdff$551' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.\cnt' using process `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$97'.
+  created $adff cell `$procdff$552' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\irq_assert' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
+  created $adff cell `$procdff$553' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\irq_class' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
+  created $adff cell `$procdff$554' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\detect_count' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
+  created $adff cell `$procdff$555' with positive edge clock and negative level reset.
+Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\last_class' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
+  created $adff cell `$procdff$556' with positive edge clock and negative level reset.
+Creating register for signal `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.\cnt' using process `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$79'.
   created $adff cell `$procdff$557' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_addr' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
-  created $adff cell `$procdff$558' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_data' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
-  created $adff cell `$procdff$559' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\status_rd' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
-  created $adff cell `$procdff$560' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_sync1' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:206$158'.
-  created $adff cell `$procdff$561' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_sync2' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:206$158'.
-  created $adff cell `$procdff$562' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_sync3' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:206$158'.
-  created $adff cell `$procdff$563' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_sync1' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:186$155'.
-  created $adff cell `$procdff$564' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_sync2' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:186$155'.
-  created $adff cell `$procdff$565' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_sync3' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:186$155'.
-  created $adff cell `$procdff$566' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shift_out' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:163$150'.
-  created $adff cell `$procdff$567' with negative edge clock and positive level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\miso_bit' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:163$150'.
-  created $adff cell `$procdff$568' with negative edge clock and positive level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_toggle' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
-  created $adff cell `$procdff$569' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_addr_hold' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
-  created $adff cell `$procdff$570' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\wr_data_hold' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
-  created $adff cell `$procdff$571' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_toggle' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
-  created $adff cell `$procdff$572' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\bit_cnt' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-  created $adff cell `$procdff$573' with positive edge clock and positive level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shift_in' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-  created $adff cell `$procdff$574' with positive edge clock and positive level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rw_flag' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-  created $adff cell `$procdff$575' with positive edge clock and positive level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\addr_latched' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-  created $adff cell `$procdff$576' with positive edge clock and positive level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\rd_is_status' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-  created $adff cell `$procdff$577' with positive edge clock and positive level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\si' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$578' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[0]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$579' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[1]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$580' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[2]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$581' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[3]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$582' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[4]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$583' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[5]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$584' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[6]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$585' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[7]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$586' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[8]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$587' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[9]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$588' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[10]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$589' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[11]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$590' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[12]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$591' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[13]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$592' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[14]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$593' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\shadow_regs[15]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-  created $adff cell `$procdff$594' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\snapshot_req' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:79$127'.
-  created $adff cell `$procdff$595' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\cs_n_sync1' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:79$127'.
-  created $adff cell `$procdff$596' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\cs_n_sync2' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:79$127'.
-  created $adff cell `$procdff$597' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.\cs_n_sync3' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:79$127'.
-  created $adff cell `$procdff$598' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\debounce_wr_pulse' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$599' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\adc_start_r' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$600' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\status_valid' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$601' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\adc_busy' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$602' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[0]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$603' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[1]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$604' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[2]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$605' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[3]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$606' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[4]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$607' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[5]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$608' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[6]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$609' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[7]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$610' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[8]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$611' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[9]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$612' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[10]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$613' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[11]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$614' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[12]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$615' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[13]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$616' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[14]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$617' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.\regs[15]' using process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-  created $adff cell `$procdff$618' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.\cnt' using process `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$103'.
-  created $adff cell `$procdff$619' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\irq_assert' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
-  created $adff cell `$procdff$620' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\irq_class' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
-  created $adff cell `$procdff$621' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\detect_count' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
-  created $adff cell `$procdff$622' with positive edge clock and negative level reset.
-Creating register for signal `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.\last_class' using process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
-  created $adff cell `$procdff$623' with positive edge clock and negative level reset.
-Creating register for signal `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.\cnt' using process `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$85'.
-  created $adff cell `$procdff$624' with positive edge clock and negative level reset.
 
 8.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
 
 8.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
-Found and cleaned up 1 empty switch in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$164'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$164'.
-Found and cleaned up 2 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:224$161'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:206$158'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:186$155'.
-Found and cleaned up 2 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:163$150'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:163$150'.
-Found and cleaned up 3 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:136$141'.
-Found and cleaned up 2 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:108$135'.
-Found and cleaned up 1 empty switch in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:95$131'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:79$127'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$125'.
-Found and cleaned up 7 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$123'.
-Found and cleaned up 2 empty switches in `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$103'.
-Removing empty process `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$103'.
-Found and cleaned up 6 empty switches in `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
-Removing empty process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$89'.
-Removing empty process `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$85'.
-Cleaned up 26 empty switches.
+Found and cleaned up 1 empty switch in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$152'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:0$152'.
+Found and cleaned up 2 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:210$149'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:192$146'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:172$143'.
+Found and cleaned up 2 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:149$138'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:149$138'.
+Found and cleaned up 3 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:122$129'.
+Found and cleaned up 2 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:94$123'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\spi_slave.$proc$../rtl/spi_slave.v:81$121'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:0$119'.
+Found and cleaned up 7 empty switches in `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+Removing empty process `$paramod$27370b39e4cc9018fb9df468291e9599044c5646\reg_file.$proc$../rtl/reg_file.v:113$117'.
+Found and cleaned up 2 empty switches in `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$97'.
+Removing empty process `$paramod$1717efffecf2644856d005d1d5d9a85f3fa28ccd\fsm_classifier.$proc$../rtl/fsm_classifier.v:38$97'.
+Found and cleaned up 6 empty switches in `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
+Removing empty process `$paramod$9ff4b7de6e1ec167d05a6c3a9663a341105db48e\debounce.$proc$../rtl/debounce.v:39$83'.
+Removing empty process `$paramod\clk_divider\DIV_WIDTH=s32'00000000000000000000000000000100.$proc$../rtl/clk_divider.v:31$79'.
+Cleaned up 25 empty switches.
 
 8.12. Executing OPT_EXPR pass (perform const folding).
 Optimizing module digital_top.
@@ -480,17 +462,17 @@ Optimizing module digital_top.
 
 10.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\digital_top'.
-<suppressed ~63 debug messages>
-Removed a total of 21 cells.
+<suppressed ~54 debug messages>
+Removed a total of 18 cells.
 
 10.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
 Running muxtree optimizer on module \digital_top..
   Creating internal representation of mux trees.
   Evaluating internal representation of mux trees.
-      Replacing known input bits on port A of cell $flatten\u_regfile.$procmux$507: \u_regfile.adc_start_r -> 1'0
+      Replacing known input bits on port A of cell $flatten\u_regfile.$procmux$444: \u_regfile.adc_start_r -> 1'0
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~64 debug messages>
+<suppressed ~47 debug messages>
 
 10.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \digital_top.
@@ -502,139 +484,122 @@ Finding identical cells in module `\digital_top'.
 Removed a total of 0 cells.
 
 10.6. Executing OPT_DFF pass (perform DFF optimizations).
-Adding EN signal on $flatten\u_spi.$procdff$594 ($adff) from module digital_top (D = \u_spi.shadow_data_in [127:120], Q = \u_spi.shadow_regs[15]).
-Adding EN signal on $flatten\u_spi.$procdff$593 ($adff) from module digital_top (D = \u_spi.shadow_data_in [119:112], Q = \u_spi.shadow_regs[14]).
-Adding EN signal on $flatten\u_spi.$procdff$592 ($adff) from module digital_top (D = \u_spi.shadow_data_in [111:104], Q = \u_spi.shadow_regs[13]).
-Adding EN signal on $flatten\u_spi.$procdff$591 ($adff) from module digital_top (D = \u_spi.shadow_data_in [103:96], Q = \u_spi.shadow_regs[12]).
-Adding EN signal on $flatten\u_spi.$procdff$590 ($adff) from module digital_top (D = \u_spi.shadow_data_in [95:88], Q = \u_spi.shadow_regs[11]).
-Adding EN signal on $flatten\u_spi.$procdff$589 ($adff) from module digital_top (D = \u_spi.shadow_data_in [87:80], Q = \u_spi.shadow_regs[10]).
-Adding EN signal on $flatten\u_spi.$procdff$588 ($adff) from module digital_top (D = \u_spi.shadow_data_in [79:72], Q = \u_spi.shadow_regs[9]).
-Adding EN signal on $flatten\u_spi.$procdff$587 ($adff) from module digital_top (D = \u_spi.shadow_data_in [71:64], Q = \u_spi.shadow_regs[8]).
-Adding EN signal on $flatten\u_spi.$procdff$586 ($adff) from module digital_top (D = \u_spi.shadow_data_in [63:56], Q = \u_spi.shadow_regs[7]).
-Adding EN signal on $flatten\u_spi.$procdff$585 ($adff) from module digital_top (D = \u_spi.shadow_data_in [55:48], Q = \u_spi.shadow_regs[6]).
-Adding EN signal on $flatten\u_spi.$procdff$584 ($adff) from module digital_top (D = \u_spi.shadow_data_in [47:40], Q = \u_spi.shadow_regs[5]).
-Adding EN signal on $flatten\u_spi.$procdff$583 ($adff) from module digital_top (D = \u_spi.shadow_data_in [39:32], Q = \u_spi.shadow_regs[4]).
-Adding EN signal on $flatten\u_spi.$procdff$582 ($adff) from module digital_top (D = \u_spi.shadow_data_in [31:24], Q = \u_spi.shadow_regs[3]).
-Adding EN signal on $flatten\u_spi.$procdff$581 ($adff) from module digital_top (D = \u_spi.shadow_data_in [23:16], Q = \u_spi.shadow_regs[2]).
-Adding EN signal on $flatten\u_spi.$procdff$580 ($adff) from module digital_top (D = \u_spi.shadow_data_in [15:8], Q = \u_spi.shadow_regs[1]).
-Adding EN signal on $flatten\u_spi.$procdff$579 ($adff) from module digital_top (D = \u_spi.shadow_data_in [7:0], Q = \u_spi.shadow_regs[0]).
-Adding EN signal on $flatten\u_spi.$procdff$578 ($adff) from module digital_top (D = 16, Q = \u_spi.si).
-Adding EN signal on $flatten\u_spi.$procdff$577 ($adff) from module digital_top (D = $flatten\u_spi.$eq$../rtl/spi_slave.v:126$140_Y, Q = \u_spi.rd_is_status).
-Adding EN signal on $flatten\u_spi.$procdff$576 ($adff) from module digital_top (D = { \u_spi.shift_in [5:0] \u_spi.mosi }, Q = \u_spi.addr_latched).
-Adding EN signal on $flatten\u_spi.$procdff$575 ($adff) from module digital_top (D = \u_spi.shift_in [6], Q = \u_spi.rw_flag).
-Adding EN signal on $flatten\u_spi.$procdff$572 ($adff) from module digital_top (D = $flatten\u_spi.$not$../rtl/spi_slave.v:150$147_Y, Q = \u_spi.rd_toggle).
-Adding EN signal on $flatten\u_spi.$procdff$571 ($adff) from module digital_top (D = { \u_spi.shift_in [6:0] \u_spi.mosi }, Q = \u_spi.wr_data_hold).
-Adding EN signal on $flatten\u_spi.$procdff$570 ($adff) from module digital_top (D = \u_spi.addr_latched, Q = \u_spi.wr_addr_hold).
-Adding EN signal on $flatten\u_spi.$procdff$569 ($adff) from module digital_top (D = $flatten\u_spi.$not$../rtl/spi_slave.v:148$146_Y, Q = \u_spi.wr_toggle).
-Adding EN signal on $flatten\u_spi.$procdff$567 ($adff) from module digital_top (D = $flatten\u_spi.$procmux$202_Y, Q = \u_spi.shift_out).
-Adding EN signal on $flatten\u_spi.$procdff$559 ($adff) from module digital_top (D = \u_spi.wr_data_hold, Q = \u_spi.wr_data).
-Adding EN signal on $flatten\u_spi.$procdff$558 ($adff) from module digital_top (D = \u_spi.wr_addr_hold, Q = \u_spi.wr_addr).
-Adding EN signal on $flatten\u_regfile.$procdff$618 ($adff) from module digital_top (D = { 7'0000000 \u_regfile.wr_data [0] }, Q = \u_regfile.regs[15]).
-Adding EN signal on $flatten\u_regfile.$procdff$617 ($adff) from module digital_top (D = \u_regfile.adc_data_in, Q = \u_regfile.regs[14]).
-Adding EN signal on $flatten\u_regfile.$procdff$616 ($adff) from module digital_top (D = \u_regfile.wr_data [1:0], Q = \u_regfile.regs[13] [1:0]).
-Adding EN signal on $flatten\u_regfile.$procdff$616 ($adff) from module digital_top (D = \u_regfile.regs[13] [7:4], Q = \u_regfile.regs[13] [7:4]).
-Handling D = Q on $auto$ff.cc:266:slice$683 ($adffe) from module digital_top (removing D path).
-Adding EN signal on $flatten\u_regfile.$procdff$615 ($adff) from module digital_top (D = \u_regfile.class_result, Q = \u_regfile.regs[12] [3:0]).
-Adding EN signal on $flatten\u_regfile.$procdff$615 ($adff) from module digital_top (D = \u_regfile.regs[12] [7:4], Q = \u_regfile.regs[12] [7:4]).
-Handling D = Q on $auto$ff.cc:266:slice$688 ($adffe) from module digital_top (removing D path).
-Adding EN signal on $flatten\u_regfile.$procdff$614 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[11]).
-Adding EN signal on $flatten\u_regfile.$procdff$613 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[10]).
-Adding EN signal on $flatten\u_regfile.$procdff$612 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[9]).
-Adding EN signal on $flatten\u_regfile.$procdff$611 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[8]).
-Adding EN signal on $flatten\u_regfile.$procdff$610 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[7]).
-Adding EN signal on $flatten\u_regfile.$procdff$609 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[6]).
-Adding EN signal on $flatten\u_regfile.$procdff$608 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[5]).
-Adding EN signal on $flatten\u_regfile.$procdff$607 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[4]).
-Adding EN signal on $flatten\u_regfile.$procdff$606 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[3]).
-Adding EN signal on $flatten\u_regfile.$procdff$605 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[2]).
-Adding EN signal on $flatten\u_regfile.$procdff$604 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[1]).
-Adding EN signal on $flatten\u_regfile.$procdff$603 ($adff) from module digital_top (D = { 6'000000 \u_regfile.wr_data [1:0] }, Q = \u_regfile.regs[0]).
-Adding EN signal on $flatten\u_regfile.$procdff$601 ($adff) from module digital_top (D = $flatten\u_regfile.$procmux$505_Y, Q = \u_regfile.status_valid).
-Adding EN signal on $flatten\u_debounce.$procdff$623 ($adff) from module digital_top (D = $flatten\u_debounce.$procmux$524_Y, Q = \u_debounce.last_class).
-Adding EN signal on $flatten\u_debounce.$procdff$621 ($adff) from module digital_top (D = \u_debounce.class_result, Q = \u_debounce.irq_class).
-Adding EN signal on $flatten\u_debounce.$procdff$620 ($adff) from module digital_top (D = $flatten\u_debounce.$procmux$553_Y, Q = \u_debounce.irq_assert).
-Setting constant 0-bit at position 0 on $auto$ff.cc:266:slice$688 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$688 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$688 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$688 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 0 on $auto$ff.cc:266:slice$683 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$683 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$683 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$683 ($dlatch) from module digital_top.
-Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$724 ($adffe) from module digital_top.
-Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$724 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$724 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$724 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$724 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$724 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$721 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$721 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$721 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$721 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$718 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$718 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$718 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$718 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$715 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$715 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$715 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$715 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$712 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$712 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$712 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$712 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$709 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$709 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$709 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$709 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$691 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$691 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$691 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$691 ($adffe) from module digital_top.
-Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$676 ($adffe) from module digital_top.
-Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$676 ($adffe) from module digital_top.
-Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$676 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$676 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$676 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$676 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$676 ($adffe) from module digital_top.
-Setting constant 0-bit at position 0 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 1-bit at position 4 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 8 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 9 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 10 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 11 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 12 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 13 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 14 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 15 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 16 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 17 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 18 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 19 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 20 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 21 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 22 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 23 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 24 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 25 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 26 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 27 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 28 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 29 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 30 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
-Setting constant 0-bit at position 31 on $auto$ff.cc:266:slice$641 ($adffe) from module digital_top.
+Adding EN signal on $flatten\u_spi.$procdff$514 ($adff) from module digital_top (D = $flatten\u_spi.$eq$../rtl/spi_slave.v:112$128_Y, Q = \u_spi.rd_is_status).
+Adding EN signal on $flatten\u_spi.$procdff$513 ($adff) from module digital_top (D = { \u_spi.shift_in [5:0] \u_spi.mosi }, Q = \u_spi.addr_latched).
+Adding EN signal on $flatten\u_spi.$procdff$512 ($adff) from module digital_top (D = \u_spi.shift_in [6], Q = \u_spi.rw_flag).
+Adding EN signal on $flatten\u_spi.$procdff$509 ($adff) from module digital_top (D = $flatten\u_spi.$not$../rtl/spi_slave.v:136$135_Y, Q = \u_spi.rd_toggle).
+Adding EN signal on $flatten\u_spi.$procdff$508 ($adff) from module digital_top (D = { \u_spi.shift_in [6:0] \u_spi.mosi }, Q = \u_spi.wr_data_hold).
+Adding EN signal on $flatten\u_spi.$procdff$507 ($adff) from module digital_top (D = \u_spi.addr_latched, Q = \u_spi.wr_addr_hold).
+Adding EN signal on $flatten\u_spi.$procdff$506 ($adff) from module digital_top (D = $flatten\u_spi.$not$../rtl/spi_slave.v:134$134_Y, Q = \u_spi.wr_toggle).
+Adding EN signal on $flatten\u_spi.$procdff$504 ($adff) from module digital_top (D = $flatten\u_spi.$procmux$190_Y, Q = \u_spi.shift_out).
+Adding EN signal on $flatten\u_spi.$procdff$496 ($adff) from module digital_top (D = \u_spi.wr_data_hold, Q = \u_spi.wr_data).
+Adding EN signal on $flatten\u_spi.$procdff$495 ($adff) from module digital_top (D = \u_spi.wr_addr_hold, Q = \u_spi.wr_addr).
+Adding EN signal on $flatten\u_regfile.$procdff$551 ($adff) from module digital_top (D = { 7'0000000 \u_regfile.wr_data [0] }, Q = \u_regfile.regs[15]).
+Adding EN signal on $flatten\u_regfile.$procdff$550 ($adff) from module digital_top (D = \u_regfile.adc_data_in, Q = \u_regfile.regs[14]).
+Adding EN signal on $flatten\u_regfile.$procdff$549 ($adff) from module digital_top (D = \u_regfile.wr_data [1:0], Q = \u_regfile.regs[13] [1:0]).
+Adding EN signal on $flatten\u_regfile.$procdff$549 ($adff) from module digital_top (D = \u_regfile.regs[13] [7:4], Q = \u_regfile.regs[13] [7:4]).
+Handling D = Q on $auto$ff.cc:266:slice$599 ($adffe) from module digital_top (removing D path).
+Adding EN signal on $flatten\u_regfile.$procdff$548 ($adff) from module digital_top (D = \u_regfile.class_result, Q = \u_regfile.regs[12] [3:0]).
+Adding EN signal on $flatten\u_regfile.$procdff$548 ($adff) from module digital_top (D = \u_regfile.regs[12] [7:4], Q = \u_regfile.regs[12] [7:4]).
+Handling D = Q on $auto$ff.cc:266:slice$604 ($adffe) from module digital_top (removing D path).
+Adding EN signal on $flatten\u_regfile.$procdff$547 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[11]).
+Adding EN signal on $flatten\u_regfile.$procdff$546 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[10]).
+Adding EN signal on $flatten\u_regfile.$procdff$545 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[9]).
+Adding EN signal on $flatten\u_regfile.$procdff$544 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[8]).
+Adding EN signal on $flatten\u_regfile.$procdff$543 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[7]).
+Adding EN signal on $flatten\u_regfile.$procdff$542 ($adff) from module digital_top (D = \u_regfile.wr_data, Q = \u_regfile.regs[6]).
+Adding EN signal on $flatten\u_regfile.$procdff$541 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[5]).
+Adding EN signal on $flatten\u_regfile.$procdff$540 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[4]).
+Adding EN signal on $flatten\u_regfile.$procdff$539 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[3]).
+Adding EN signal on $flatten\u_regfile.$procdff$538 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[2]).
+Adding EN signal on $flatten\u_regfile.$procdff$537 ($adff) from module digital_top (D = { 4'0000 \u_regfile.wr_data [3:0] }, Q = \u_regfile.regs[1]).
+Adding EN signal on $flatten\u_regfile.$procdff$536 ($adff) from module digital_top (D = { 6'000000 \u_regfile.wr_data [1:0] }, Q = \u_regfile.regs[0]).
+Adding EN signal on $flatten\u_regfile.$procdff$534 ($adff) from module digital_top (D = $flatten\u_regfile.$procmux$442_Y, Q = \u_regfile.status_valid).
+Adding EN signal on $flatten\u_debounce.$procdff$556 ($adff) from module digital_top (D = $flatten\u_debounce.$procmux$461_Y, Q = \u_debounce.last_class).
+Adding EN signal on $flatten\u_debounce.$procdff$554 ($adff) from module digital_top (D = \u_debounce.class_result, Q = \u_debounce.irq_class).
+Adding EN signal on $flatten\u_debounce.$procdff$553 ($adff) from module digital_top (D = $flatten\u_debounce.$procmux$490_Y, Q = \u_debounce.irq_assert).
+Setting constant 0-bit at position 0 on $auto$ff.cc:266:slice$604 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$604 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$604 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$604 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 0 on $auto$ff.cc:266:slice$599 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$599 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$599 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$599 ($dlatch) from module digital_top.
+Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
+Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$634 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$634 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$634 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$634 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$631 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$631 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$631 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$631 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$628 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$628 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$628 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$628 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$607 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$607 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$607 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$607 ($adffe) from module digital_top.
+Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$592 ($adffe) from module digital_top.
+Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$592 ($adffe) from module digital_top.
+Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$592 ($adffe) from module digital_top.
+Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$592 ($adffe) from module digital_top.
+Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$592 ($adffe) from module digital_top.
+Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$592 ($adffe) from module digital_top.
+Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$592 ($adffe) from module digital_top.
+Setting constant 0-bit at position 0 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 1 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 2 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 3 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 1-bit at position 4 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 8 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 9 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 10 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 11 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 12 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 13 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 14 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 15 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 16 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 17 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 18 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 19 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 20 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 21 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 22 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 23 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 24 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 25 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 26 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 27 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 28 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 29 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 30 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
+Setting constant 0-bit at position 31 on $flatten\u_spi.$procdff$515 ($adff) from module digital_top.
 
 10.7. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \digital_top..
-Removed 77 unused cells and 288 unused wires.
-<suppressed ~83 debug messages>
+Removed 59 unused cells and 244 unused wires.
+<suppressed ~63 debug messages>
 
 10.8. Executing OPT_EXPR pass (perform const folding).
 Optimizing module digital_top.
@@ -660,50 +625,50 @@ Finding identical cells in module `\digital_top'.
 Removed a total of 7 cells.
 
 10.13. Executing OPT_DFF pass (perform DFF optimizations).
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$635 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$635 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$635 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$635 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$636 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$636 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$636 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$636 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$637 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$638 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$638 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$638 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$638 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$639 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$639 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$639 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$639 ($adffe) from module digital_top.
-Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
-Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$640 ($adffe) from module digital_top.
-Setting constant 0-bit at position 1 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
-Setting constant 0-bit at position 2 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
-Setting constant 0-bit at position 3 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$625 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$627 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$627 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$627 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$627 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$628 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$628 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$628 ($adffe) from module digital_top.
-Setting constant 0-bit at position 4 on $auto$ff.cc:266:slice$629 ($adffe) from module digital_top.
-Setting constant 0-bit at position 5 on $auto$ff.cc:266:slice$629 ($adffe) from module digital_top.
-Setting constant 0-bit at position 6 on $auto$ff.cc:266:slice$629 ($adffe) from module digital_top.
-Setting constant 0-bit at position 7 on $auto$ff.cc:266:slice$629 ($adffe) from module digital_top.
+Setting constant 0-bit at position 2 on $flatten\u_spi.$procdff$516 ($adff) from module digital_top.
+Setting constant 0-bit at position 3 on $flatten\u_spi.$procdff$516 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$516 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$516 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$516 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$516 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$517 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$517 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$517 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$517 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$518 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$518 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$518 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$518 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$519 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$519 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$519 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$519 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$520 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$520 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$520 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$520 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$521 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$521 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$521 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$521 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$527 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$527 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$527 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$527 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$528 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$528 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$528 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$529 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$529 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$529 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$529 ($adff) from module digital_top.
+Setting constant 0-bit at position 1 on $flatten\u_spi.$procdff$531 ($adff) from module digital_top.
+Setting constant 0-bit at position 2 on $flatten\u_spi.$procdff$531 ($adff) from module digital_top.
+Setting constant 0-bit at position 3 on $flatten\u_spi.$procdff$531 ($adff) from module digital_top.
+Setting constant 0-bit at position 4 on $flatten\u_spi.$procdff$531 ($adff) from module digital_top.
+Setting constant 0-bit at position 5 on $flatten\u_spi.$procdff$531 ($adff) from module digital_top.
+Setting constant 0-bit at position 6 on $flatten\u_spi.$procdff$531 ($adff) from module digital_top.
+Setting constant 0-bit at position 7 on $flatten\u_spi.$procdff$531 ($adff) from module digital_top.
 
 10.14. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \digital_top..
@@ -772,11 +737,11 @@ Generating RTLIL representation for module `\_90_lut'.
 Successfully finished Verilog frontend.
 
 11.2. Continuing TECHMAP pass.
-Using extmapper simplemap for cells of type $reduce_bool.
-Using extmapper simplemap for cells of type $adffe.
-Using extmapper simplemap for cells of type $reduce_and.
-Using extmapper simplemap for cells of type $ne.
 Using extmapper simplemap for cells of type $adff.
+Using extmapper simplemap for cells of type $reduce_and.
+Using extmapper simplemap for cells of type $reduce_bool.
+Using extmapper simplemap for cells of type $ne.
+Using extmapper simplemap for cells of type $adffe.
 Using extmapper simplemap for cells of type $mux.
 Using extmapper simplemap for cells of type $logic_not.
 Using extmapper simplemap for cells of type $eq.
@@ -806,20 +771,20 @@ Using template $extern:wrap:$add:A_SIGNED=0:A_WIDTH=4:B_SIGNED=0:B_WIDTH=4:Y_WID
 Using extmapper simplemap for cells of type $logic_or.
 Running "alumacc" on wrapper $extern:wrap:$lt:A_SIGNED=0:A_WIDTH=4:B_SIGNED=0:B_WIDTH=4:Y_WIDTH=1:394426c56d1a028ba8fdd5469b163e04011def47.
 Using template $extern:wrap:$lt:A_SIGNED=0:A_WIDTH=4:B_SIGNED=0:B_WIDTH=4:Y_WIDTH=1:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$lt:A_SIGNED=0:A_WIDTH=4:B_SIGNED=0:B_WIDTH=4:Y_WIDTH=1:394426c56d1a028ba8fdd5469b163e04011def47.
-Using extmapper simplemap for cells of type $reduce_or.
-Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7\_90_alu for cells of type $alu.
-Using template $paramod$484d51534650924b7ed4c69e46eed3a56904771f\_90_alu for cells of type $alu.
-Using extmapper simplemap for cells of type $or.
 Using template $paramod$dbcdc7e8aa1a4080cea2deda6fdc8772064f4d90\_90_alu for cells of type $alu.
+Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7\_90_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $or.
+Using extmapper simplemap for cells of type $reduce_or.
+Using template $paramod$484d51534650924b7ed4c69e46eed3a56904771f\_90_alu for cells of type $alu.
 Using template $paramod$b85fbb3374a1d9ba7ee4f4d6323c30f939df3ada\_90_alu for cells of type $alu.
 Using template $paramod$b18e16801adf491a64caa0542270798e5d4ac6b6\_90_alu for cells of type $alu.
-Using template $paramod\_90_lcu\WIDTH=32'00000000000000000000000000000100 for cells of type $lcu.
-Using extmapper simplemap for cells of type $pos.
-Using template $paramod\_90_lcu\WIDTH=32'00000000000000000000000000001010 for cells of type $lcu.
 Using template $paramod\_90_lcu\WIDTH=32'00000000000000000000000000000111 for cells of type $lcu.
+Using extmapper simplemap for cells of type $pos.
+Using template $paramod\_90_lcu\WIDTH=32'00000000000000000000000000000100 for cells of type $lcu.
+Using template $paramod\_90_lcu\WIDTH=32'00000000000000000000000000001010 for cells of type $lcu.
 Using template $paramod\_90_lcu\WIDTH=32'00000000000000000000000000000101 for cells of type $lcu.
 No more expansions possible.
-<suppressed ~1546 debug messages>
+<suppressed ~1541 debug messages>
 
 12. Executing OPT pass (performing simple optimizations).
 
@@ -1147,12 +1112,12 @@ Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin att
 Mapping DFF cells in module `\digital_top':
   mapped 9 $_DFF_NN0_ cells to \sky130_fd_sc_hd__dfrtn_1 cells.
   mapped 232 $_DFF_PN0_ cells to \sky130_fd_sc_hd__dfrtp_1 cells.
-  mapped 18 $_DFF_PN1_ cells to \sky130_fd_sc_hd__dfstp_2 cells.
+  mapped 15 $_DFF_PN1_ cells to \sky130_fd_sc_hd__dfstp_2 cells.
 
 14. Executing ABC pass (technology mapping using ABC).
 
 14.1. Extracting gate netlist of module `\digital_top' to `<abc-temp-dir>/input.blif'..
-Extracted 869 gates and 1143 wires to a netlist network with 271 inputs and 276 outputs.
+Extracted 783 gates and 1055 wires to a netlist network with 269 inputs and 192 outputs.
 
 14.1.1. Executing ABC.
 Running ABC command: "<yosys-exe-dir>/yosys-abc" -s -f <abc-temp-dir>/abc.script 2>&1
@@ -1275,90 +1240,88 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 
 14.1.2. Re-integrating ABC results.
 ABC RESULTS:   sky130_fd_sc_hd__a221o_1 cells:        3
-ABC RESULTS:   sky130_fd_sc_hd__a32oi_1 cells:        2
 ABC RESULTS:   sky130_fd_sc_hd__nand3b_1 cells:        3
-ABC RESULTS:   sky130_fd_sc_hd__nand2b_1 cells:       11
+ABC RESULTS:   sky130_fd_sc_hd__nand2b_1 cells:       10
 ABC RESULTS:   sky130_fd_sc_hd__o211a_1 cells:        1
 ABC RESULTS:   sky130_fd_sc_hd__maj3_1 cells:        1
-ABC RESULTS:   sky130_fd_sc_hd__or4_1 cells:        3
 ABC RESULTS:   sky130_fd_sc_hd__o41ai_1 cells:        1
-ABC RESULTS:   sky130_fd_sc_hd__mux2_1 cells:      190
-ABC RESULTS:   sky130_fd_sc_hd__a222oi_1 cells:        9
-ABC RESULTS:   sky130_fd_sc_hd__a22oi_1 cells:       22
-ABC RESULTS:   sky130_fd_sc_hd__a22o_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__or4_1 cells:        4
+ABC RESULTS:   sky130_fd_sc_hd__mux2_1 cells:      109
 ABC RESULTS:   sky130_fd_sc_hd__nand4_1 cells:       11
-ABC RESULTS:   sky130_fd_sc_hd__o21ai_0 cells:       12
+ABC RESULTS:   sky130_fd_sc_hd__o21ai_0 cells:        9
 ABC RESULTS:   sky130_fd_sc_hd__and2_0 cells:        3
-ABC RESULTS:   sky130_fd_sc_hd__nand2_1 cells:       49
+ABC RESULTS:   sky130_fd_sc_hd__nand2_1 cells:       39
 ABC RESULTS:   sky130_fd_sc_hd__nor3b_1 cells:        4
 ABC RESULTS:   sky130_fd_sc_hd__o211ai_1 cells:        1
-ABC RESULTS:   sky130_fd_sc_hd__a21o_1 cells:        3
-ABC RESULTS:   sky130_fd_sc_hd__nor4_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__a222oi_1 cells:        9
+ABC RESULTS:   sky130_fd_sc_hd__a22oi_1 cells:       28
+ABC RESULTS:   sky130_fd_sc_hd__a31oi_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a21o_1 cells:        4
+ABC RESULTS:   sky130_fd_sc_hd__nor4_1 cells:        4
 ABC RESULTS:   sky130_fd_sc_hd__nor3_1 cells:       14
 ABC RESULTS:   sky130_fd_sc_hd__and3_1 cells:        4
-ABC RESULTS:   sky130_fd_sc_hd__nor2_1 cells:       35
+ABC RESULTS:   sky130_fd_sc_hd__nor2_1 cells:       37
 ABC RESULTS:   sky130_fd_sc_hd__xor2_1 cells:        7
-ABC RESULTS:   sky130_fd_sc_hd__nand3_1 cells:       10
-ABC RESULTS:   sky130_fd_sc_hd__a21oi_1 cells:       22
-ABC RESULTS:   sky130_fd_sc_hd__lpflow_isobufsrc_1 cells:       11
+ABC RESULTS:   sky130_fd_sc_hd__nand3_1 cells:        8
+ABC RESULTS:   sky130_fd_sc_hd__a21oi_1 cells:       21
+ABC RESULTS:   sky130_fd_sc_hd__lpflow_isobufsrc_1 cells:        3
 ABC RESULTS:   sky130_fd_sc_hd__xnor2_1 cells:       10
-ABC RESULTS:   sky130_fd_sc_hd__clkinv_1 cells:       39
-ABC RESULTS:        internal signals:      596
-ABC RESULTS:           input signals:      271
-ABC RESULTS:          output signals:      276
+ABC RESULTS:   sky130_fd_sc_hd__clkinv_1 cells:       40
+ABC RESULTS:        internal signals:      594
+ABC RESULTS:           input signals:      269
+ABC RESULTS:          output signals:      192
 Removing temp directory.
 
 15. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \digital_top..
-Removed 0 unused cells and 916 unused wires.
+Removed 0 unused cells and 828 unused wires.
 <suppressed ~98 debug messages>
 
 16. Printing statistics.
 
 === digital_top ===
 
-   Number of wires:                556
-   Number of wire bits:            833
-   Number of public wires:          80
-   Number of public wire bits:     345
+   Number of wires:                457
+   Number of wire bits:            734
+   Number of public wires:          77
+   Number of public wire bits:     342
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:                744
-     sky130_fd_sc_hd__a21o_1         3
-     sky130_fd_sc_hd__a21oi_1       22
+   Number of cells:                645
+     sky130_fd_sc_hd__a21o_1         4
+     sky130_fd_sc_hd__a21oi_1       21
      sky130_fd_sc_hd__a221o_1        3
      sky130_fd_sc_hd__a222oi_1       9
-     sky130_fd_sc_hd__a22o_1         1
-     sky130_fd_sc_hd__a22oi_1       22
-     sky130_fd_sc_hd__a32oi_1        2
+     sky130_fd_sc_hd__a22oi_1       28
+     sky130_fd_sc_hd__a31oi_1        1
      sky130_fd_sc_hd__and2_0         3
      sky130_fd_sc_hd__and3_1         4
-     sky130_fd_sc_hd__clkinv_1      39
+     sky130_fd_sc_hd__clkinv_1      40
      sky130_fd_sc_hd__dfrtn_1        9
      sky130_fd_sc_hd__dfrtp_1      232
-     sky130_fd_sc_hd__dfstp_2       18
-     sky130_fd_sc_hd__lpflow_isobufsrc_1     11
+     sky130_fd_sc_hd__dfstp_2       15
+     sky130_fd_sc_hd__lpflow_isobufsrc_1      3
      sky130_fd_sc_hd__maj3_1         1
-     sky130_fd_sc_hd__mux2_1       190
-     sky130_fd_sc_hd__nand2_1       49
-     sky130_fd_sc_hd__nand2b_1      11
-     sky130_fd_sc_hd__nand3_1       10
+     sky130_fd_sc_hd__mux2_1       109
+     sky130_fd_sc_hd__nand2_1       39
+     sky130_fd_sc_hd__nand2b_1      10
+     sky130_fd_sc_hd__nand3_1        8
      sky130_fd_sc_hd__nand3b_1       3
      sky130_fd_sc_hd__nand4_1       11
-     sky130_fd_sc_hd__nor2_1        35
+     sky130_fd_sc_hd__nor2_1        37
      sky130_fd_sc_hd__nor3_1        14
      sky130_fd_sc_hd__nor3b_1        4
-     sky130_fd_sc_hd__nor4_1         3
+     sky130_fd_sc_hd__nor4_1         4
      sky130_fd_sc_hd__o211a_1        1
      sky130_fd_sc_hd__o211ai_1       1
-     sky130_fd_sc_hd__o21ai_0       12
+     sky130_fd_sc_hd__o21ai_0        9
      sky130_fd_sc_hd__o41ai_1        1
-     sky130_fd_sc_hd__or4_1          3
+     sky130_fd_sc_hd__or4_1          4
      sky130_fd_sc_hd__xnor2_1       10
      sky130_fd_sc_hd__xor2_1         7
 
-   Chip area for module '\digital_top': 10258.588800
+   Chip area for module '\digital_top': 9201.324800
 
 0 objects.
 0 objects.
@@ -1371,6 +1334,6 @@ Removed 0 unused cells and 916 unused wires.
 Dumping module `\digital_top'.
 
 Warnings: 28 unique messages, 238 total
-End of script. Logfile hash: 468440ebc2, CPU: user 1.08s system 0.03s, MEM: 40.23 MB peak
+End of script. Logfile hash: 97fc3656db, CPU: user 1.05s system 0.03s, MEM: 39.93 MB peak
 Yosys 0.33 (git sha1 2584903a060)
-Time spent: 32% 1x abc (0 sec), 12% 1x stat (0 sec), ...
+Time spent: 31% 1x abc (0 sec), 13% 1x stat (0 sec), ...

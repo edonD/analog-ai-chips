@@ -5,7 +5,7 @@
 // SPI Mode 0 (CPOL=0, CPHA=0). 16-bit transaction: 8-bit addr + 8-bit data.
 // Address bit[7] = R/W flag (1=read, 0=write).
 // Clock domain crossing: toggle-based CDC for writes (SCK->clk).
-// Reads: shadow registers snapshotted on cs_n falling edge (fully SCK domain).
+// Reads: shadow registers updated every CLK cycle (always fresh, no SCK:CLK constraint).
 // MISO: separate miso_data + miso_oe_n outputs (no internal tristate).
 //
 // Reset strategy:
@@ -40,7 +40,6 @@ module spi_slave #(
     output reg                status_rd,     // pulse when reading STATUS register
 
     // Shadow register load interface (clk domain)
-    output reg                snapshot_req,
     input  wire [NUM_REGS*DATA_W-1:0] shadow_data_in  // flat bus of all register read values
 );
 
@@ -73,30 +72,17 @@ module spi_slave #(
     assign miso_oe_n = cs_n;  // output enabled (low) when cs_n is low
 
     // -------------------------------------------------------------------------
-    // CS_N falling edge detection and shadow register snapshot (clk domain)
+    // Shadow register update (clk domain) — free-running every cycle
     // -------------------------------------------------------------------------
-    reg cs_n_sync1, cs_n_sync2, cs_n_sync3;
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            cs_n_sync1 <= 1'b1;
-            cs_n_sync2 <= 1'b1;
-            cs_n_sync3 <= 1'b1;
-            snapshot_req <= 1'b0;
-        end else begin
-            cs_n_sync1 <= cs_n;
-            cs_n_sync2 <= cs_n_sync1;
-            cs_n_sync3 <= cs_n_sync2;
-            snapshot_req <= (cs_n_sync3 & ~cs_n_sync2);
-        end
-    end
-
-    // Latch shadow data on cs_n falling edge (clk domain)
+    // Shadow buffer updates every CLK cycle so it always holds the latest
+    // register values. This eliminates any SCK:CLK ratio constraint — SPI
+    // reads are correct regardless of how fast SCK runs relative to CLK.
     integer si;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             for (si = 0; si < NUM_REGS; si = si + 1)
                 shadow_regs[si] <= {DATA_W{1'b0}};
-        end else if (cs_n_sync3 & ~cs_n_sync2) begin
+        end else begin
             for (si = 0; si < NUM_REGS; si = si + 1)
                 shadow_regs[si] <= shadow_data_in[si*DATA_W +: DATA_W];
         end

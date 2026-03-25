@@ -79,7 +79,6 @@ module digital_top #(
     wire [6:0]  spi_wr_addr;
     wire [7:0]  spi_wr_data;
     wire        spi_status_rd;
-    wire        spi_snapshot_req;
 
     // Shadow register data bus (16 regs x 8 bits = 128 bits)
     wire [127:0] shadow_data_bus;
@@ -119,7 +118,6 @@ module digital_top #(
         .wr_addr        (spi_wr_addr),
         .wr_data        (spi_wr_data),
         .status_rd      (spi_status_rd),
-        .snapshot_req   (spi_snapshot_req),
         .shadow_data_in (shadow_data_bus)
     );
 
