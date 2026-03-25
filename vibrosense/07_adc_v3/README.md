@@ -49,7 +49,7 @@ Vin ─── [CMOS TG] ─── Vtop ←→ [8-bit Cap DAC] ←→ [SAR Logic]
 | 9 | Sample rate | ≥ 10 kSPS | 10 kSPS (100kHz/10 clk) | **PASS** |
 | 10 | DNL | < 0.5 LSB | 1.21 LSB (bit 0 stuck — see analysis below) | **FAIL** |
 | 11 | INL | < 0.5 LSB | 1.18 LSB | **FAIL** |
-| 12 | ENOB | ≥ 7.0 bits | 6.90 bits (512-pt FFT, SNDR=43.3dB, SFDR=59.5dB) | **FAIL** (−0.10) |
+| 12 | ENOB | ≥ 7.0 bits | 6.90 bits (SNDR=43.3dB, SFDR=59.5dB) | **FAIL** (−0.10) |
 | 13 | Missing codes | 0 | 127 missing (all even codes) | **FAIL** |
 
 ## Detailed Results
