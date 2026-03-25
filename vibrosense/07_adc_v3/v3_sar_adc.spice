@@ -31,6 +31,7 @@
 * --- Sample Switch (CMOS Transmission Gate) ---
 * Connects Vin to Vtop during sample phase (sample=HIGH)
 * Sized for fast settling: Ron ~ 100 ohm, tau = 100*5.12p = 0.5ns
+* Sized for 51.2pF total DAC: Ron ~50 ohm, tau = 50*51.2p = 2.6ns
 M_sw_n vtop sample vin vss sky130_fd_pr__nfet_01v8__model w=5u l=0.15u
 M_sw_p vtop sample_b vin vdd sky130_fd_pr__pfet_01v8__model w=10u l=0.15u
 
