@@ -136,22 +136,22 @@ mult=1
 model=pfet_01v8
 spiceprefix=X
 }
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -500 -1140 0 1 {name=p_inp lab=inp}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 400 -1140 0 0 {name=p_inn lab=inn}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 1400 -1370 0 0 {name=p_outp lab=outp}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 1400 -1250 0 0 {name=p_outn lab=outn}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -500 -1540 0 1 {name=p_vdd lab=vdd}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -500 -960 0 1 {name=p_vss lab=vss}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 710 -960 0 0 {name=p_comp_clk lab=comp_clk}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -500 -900 0 1 {name=p_sleep_n lab=sleep_n}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -120 -1290 0 1 {name=l_d1n lab=d1n}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 220 -1290 0 0 {name=l_d1p lab=d1p}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 50 -1080 0 0 {name=l_tail1 lab=tail1}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -340 -1080 0 0 {name=l_vbias lab=vbias}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -500 -1430 0 1 {name=l_vdd_int lab=vdd_int}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 590 -1270 0 1 {name=l_outp_i lab=outp_i}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 870 -1270 0 0 {name=l_outn_i lab=outn_i}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 730 -1080 0 0 {name=l_tail2 lab=tail2}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -500 -1140 0 1 {name=p_inp lab=inp}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 400 -1140 0 0 {name=p_inn lab=inn}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 1400 -1370 0 0 {name=p_outp lab=outp}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 1400 -1250 0 0 {name=p_outn lab=outn}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -500 -1540 0 1 {name=p_vdd lab=vdd}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -500 -960 0 1 {name=p_vss lab=vss}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 710 -960 0 0 {name=p_comp_clk lab=comp_clk}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -500 -900 0 1 {name=p_sleep_n lab=sleep_n}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} -120 -1290 0 1 {name=l_d1n lab=d1n}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 220 -1290 0 0 {name=l_d1p lab=d1p}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 50 -1080 0 0 {name=l_tail1 lab=tail1}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} -340 -1080 0 0 {name=l_vbias lab=vbias}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} -500 -1430 0 1 {name=l_vdd_int lab=vdd_int}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 590 -1270 0 1 {name=l_outp_i lab=outp_i}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 870 -1270 0 0 {name=l_outn_i lab=outn_i}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 730 -1080 0 0 {name=l_tail2 lab=tail2}
 N -120 -1540 -120 -1350 {lab=vdd_int}
 N -120 -1540 220 -1540 {lab=vdd_int}
 N 220 -1540 220 -1350 {lab=vdd_int}

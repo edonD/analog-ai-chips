@@ -68,26 +68,26 @@ mult=1
 model=pfet_01v8
 spiceprefix=X
 }
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -600 -1400 0 1 {name=p_vin lab=vin}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -600 -1140 0 1 {name=p_vref lab=vref}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -600 -1030 0 1 {name=p_clk lab=clk}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -600 -990 0 1 {name=p_convert lab=convert}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -600 -950 0 1 {name=p_sleep_n lab=sleep_n}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -600 -1620 0 1 {name=p_vdd lab=vdd}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -600 -680 0 1 {name=p_vss lab=vss}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1400 0 0 {name=p_d7 lab=d7}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1370 0 0 {name=p_d6 lab=d6}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1340 0 0 {name=p_d5 lab=d5}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1310 0 0 {name=p_d4 lab=d4}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1280 0 0 {name=p_d3 lab=d3}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1250 0 0 {name=p_d2 lab=d2}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1220 0 0 {name=p_d1 lab=d1}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1190 0 0 {name=p_d0 lab=d0}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 900 -1140 0 0 {name=p_valid lab=valid}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -200 -1480 0 1 {name=l_vtop lab=vtop}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 300 -1140 0 0 {name=l_comp_out lab=comp_out}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -340 -1460 0 0 {name=l_sample lab=sample}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 700 -1030 0 0 {name=l_comp_clk lab=comp_clk}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -600 -1400 0 1 {name=p_vin lab=vin}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -600 -1140 0 1 {name=p_vref lab=vref}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -600 -1030 0 1 {name=p_clk lab=clk}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -600 -990 0 1 {name=p_convert lab=convert}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -600 -950 0 1 {name=p_sleep_n lab=sleep_n}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -600 -1620 0 1 {name=p_vdd lab=vdd}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} -600 -680 0 1 {name=p_vss lab=vss}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1400 0 0 {name=p_d7 lab=d7}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1370 0 0 {name=p_d6 lab=d6}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1340 0 0 {name=p_d5 lab=d5}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1310 0 0 {name=p_d4 lab=d4}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1280 0 0 {name=p_d3 lab=d3}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1250 0 0 {name=p_d2 lab=d2}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1220 0 0 {name=p_d1 lab=d1}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1190 0 0 {name=p_d0 lab=d0}
+C {/usr/local/share/xschem/xschem_library/devices/iopin.sym} 900 -1140 0 0 {name=p_valid lab=valid}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} -200 -1480 0 1 {name=l_vtop lab=vtop}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 300 -1140 0 0 {name=l_comp_out lab=comp_out}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} -340 -1460 0 0 {name=l_sample lab=sample}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 700 -1030 0 0 {name=l_comp_clk lab=comp_clk}
 N -600 -1400 -380 -1400 {lab=vin}
 N -340 -1370 -340 -1330 {lab=vtop}
 N -340 -1480 -340 -1430 {lab=vtop}
