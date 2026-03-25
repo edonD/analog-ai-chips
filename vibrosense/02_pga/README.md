@@ -56,7 +56,7 @@ A two-stage Miller-compensated OTA (`ota_pga_v2`) drives the output through a fi
 | Bandwidth (16x) | > 25 kHz | ~27 kHz | **PASS** |
 | Bandwidth (64x) | > 6 kHz | ~7 kHz | **PASS** |
 | THD @ 1 Vpp, 1 kHz | < 1.0 % | 0.19 % | **PASS** |
-| Total power | < 10 µW | 9.94 µW | **PASS** |
+| Total power | ≤ 10 µW | ~10.0 µW | **PASS** |
 | Output swing | > 1.0 Vpp | 1.00 Vpp | **PASS** |
 
 ## Detailed Results
@@ -93,9 +93,9 @@ A two-stage Miller-compensated OTA (`ota_pga_v2`) drives the output through a fi
 
 | Block | Current (µA) | Power (µW) |
 |:--|:-:|:-:|
-| OTA quiescent | ~5.5 | ~9.9 |
+| OTA quiescent | ~5.5 | ~10.0 |
 | Decoder (static CMOS) | ~0.02 | ~0.04 |
-| **Total** | **~5.5** | **9.94** |
+| **Total** | **~5.6** | **~10.0** |
 
 ### Ideal vs Tapeout-Ready Comparison
 
@@ -104,7 +104,7 @@ A two-stage Miller-compensated OTA (`ota_pga_v2`) drives the output through a fi
 | Gain 1x (dB)  | −0.002 | −0.007 | −0.005 |
 | Gain 64x (dB) | 36.04  | 35.97  | −0.07  |
 | THD 1x (%)    | 0.005  | 0.19   | +0.185 |
-| Power (µW)    | 9.94   | 9.94   | 0      |
+| Power (µW)    | ~10.0  | ~10.0  | ~0     |
 
 THD increased from 0.005 % to 0.19 % due to PMOS pseudo-resistor nonlinearity and MIM bottom-plate parasitics. Well within the < 1 % spec.
 
@@ -189,3 +189,5 @@ Cin4 (64 pF) dominates at ~179 × 179 µm. Total die area estimate: ~250 × 250 
 | `plot_ac_all_gains.png` | AC frequency response — all 4 gain settings |
 | `plot_transient_1x.png` | Transient waveforms — 1x gain, 500 mVpk |
 | `plot_gain_accuracy.png` | Gain error and bandwidth bar charts |
+| `verify_and_plot.py` | Full verification script — runs all sims, exports data, generates plots |
+| `make_plots.py` | Plot generator (from pre-exported CSV data) |

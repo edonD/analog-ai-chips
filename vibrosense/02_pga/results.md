@@ -21,8 +21,8 @@
 
 | Component | Current (uA) | Power (uW) |
 |-----------|-------------|-----------|
-| OTA + decoder + switches | 5.52 | 9.94 |
-| **Total** | **5.52** | **9.94** |
+| OTA + decoder + switches | 5.56 | 10.0 |
+| **Total** | **5.56** | **~10.0** |
 | **Spec** | — | **<10** |
 | | | **PASS** |
 
