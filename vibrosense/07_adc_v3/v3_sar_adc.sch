@@ -50,9 +50,9 @@ T {TB8: 5/5 corners pass (TT/SS/FF/SF/FS)} 600 -870 0 0 0.3 0.3 {layer=8}
 T {Power: 28.2 uW active, 34.5 nW sleep} 600 -840 0 0 0.3 0.3 {layer=8}
 T {Wakeup: 95.1 us (includes 10-cycle conversion)} 600 -810 0 0 0.3 0.3 {layer=8}
 T {v3 Fixes: DAC reset, bit register clear, comp redesign} 600 -770 0 0 0.3 0.3 {layer=5}
-B 4 440 -1590 950 -1290 {}
-B 4 440 -1260 950 -1010 {}
-B 4 1040 -1590 1700 -1290 {}
+B 2 440 -1590 950 -1290 {dash=4}
+B 2 440 -1260 950 -1010 {dash=4}
+B 2 1040 -1590 1700 -1290 {dash=4}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_01v8.sym} 140 -1370 0 0 {name=XM_sw_n
 W=5
 L=0.15
