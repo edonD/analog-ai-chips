@@ -34,14 +34,14 @@ T {M_tail1} 140 -1360 0 0 0.3 0.3 {layer=8}
 T {4/2} 140 -1336 0 0 0.25 0.25 {layer=8}
 T {Stage 2: StrongARM Latch (Dynamic)} 700 -2080 0 0 0.5 0.5 {layer=4}
 T {Clocked by comp_clk: LOW=reset, HIGH=evaluate} 700 -2040 0 0 0.3 0.3 {layer=8}
-T {M_rst_p} 720 -1920 0 0 0.3 0.3 {layer=8}
-T {2/0.15} 720 -1896 0 0 0.25 0.25 {layer=8}
-T {M_rst_n} 1060 -1920 0 0 0.3 0.3 {layer=8}
-T {2/0.15} 1060 -1896 0 0 0.25 0.25 {layer=8}
-T {M_lp1} 720 -1800 0 0 0.3 0.3 {layer=8}
-T {2/0.15} 720 -1776 0 0 0.25 0.25 {layer=8}
-T {M_lp2} 1060 -1800 0 0 0.3 0.3 {layer=8}
-T {2/0.15} 1060 -1776 0 0 0.25 0.25 {layer=8}
+T {M_lp1} 640 -1920 0 0 0.3 0.3 {layer=8}
+T {2/0.15} 640 -1896 0 0 0.25 0.25 {layer=8}
+T {M_rst_p} 840 -1920 0 0 0.3 0.3 {layer=8}
+T {2/0.15} 840 -1896 0 0 0.25 0.25 {layer=8}
+T {M_rst_n} 1040 -1920 0 0 0.3 0.3 {layer=8}
+T {2/0.15} 1040 -1896 0 0 0.25 0.25 {layer=8}
+T {M_lp2} 1240 -1920 0 0 0.3 0.3 {layer=8}
+T {2/0.15} 1240 -1896 0 0 0.25 0.25 {layer=8}
 T {M_ln1} 720 -1640 0 0 0.3 0.3 {layer=8}
 T {2/0.15} 720 -1616 0 0 0.25 0.25 {layer=8}
 T {M_ln2} 1060 -1640 0 0 0.3 0.3 {layer=8}
@@ -168,7 +168,7 @@ mult=1
 model=nfet_01v8
 spiceprefix=X
 }
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 780 -1860 0 0 {name=XM_rst_p
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 860 -1860 0 0 {name=XM_rst_p
 W=2
 L=0.15
 nf=1
@@ -176,7 +176,7 @@ mult=1
 model=pfet_01v8
 spiceprefix=X
 }
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 1100 -1860 0 1 {name=XM_rst_n
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 1040 -1860 0 1 {name=XM_rst_n
 W=2
 L=0.15
 nf=1
@@ -184,7 +184,7 @@ mult=1
 model=pfet_01v8
 spiceprefix=X
 }
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 780 -1740 0 0 {name=XM_lp1
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 660 -1860 0 0 {name=XM_lp1
 W=2
 L=0.15
 nf=1
@@ -192,7 +192,7 @@ mult=1
 model=pfet_01v8
 spiceprefix=X
 }
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 1100 -1740 0 1 {name=XM_lp2
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_01v8.sym} 1240 -1860 0 1 {name=XM_lp2
 W=2
 L=0.15
 nf=1
@@ -393,9 +393,13 @@ C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1080 -1670 0 1 {n
 C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 940 -1300 0 0 {name=l_tail2 lab=tail2}
 C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 760 -1460 0 1 {name=l_d1p2 lab=d1p}
 C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1120 -1460 0 0 {name=l_d1n2 lab=d1n}
-C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 760 -1860 0 1 {name=l_comp_clk2 lab=comp_clk}
-C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1120 -1860 0 0 {name=l_comp_clk3 lab=comp_clk}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 840 -1860 0 1 {name=l_comp_clk2 lab=comp_clk}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1060 -1860 0 0 {name=l_comp_clk3 lab=comp_clk}
 C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 900 -1240 0 1 {name=l_comp_clk4 lab=comp_clk}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 640 -1860 0 1 {name=l_outn_i_lp1 lab=outn_i}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1260 -1860 0 0 {name=l_outp_i_lp2 lab=outp_i}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 760 -1600 0 1 {name=l_outn_i_ln1 lab=outn_i}
+C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1120 -1600 0 0 {name=l_outp_i_ln2 lab=outp_i}
 C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1520 -1860 0 1 {name=l_outn_i2 lab=outn_i}
 C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1660 -1860 0 1 {name=l_qbar_sr lab=qbar_sr}
 C {/usr/local/share/xschem/xschem_library/devices/lab_pin.sym} 1580 -1680 0 1 {name=l_outn_i3 lab=outn_i}
@@ -453,24 +457,25 @@ N -80 -1700 60 -1700 {lab=d1n}
 N 400 -1820 480 -1820 {lab=d1n}
 N 480 -1820 480 -1700 {lab=d1n}
 N 60 -1700 480 -1700 {lab=d1n}
-N 60 -1550 60 -1490 {lab=d1n}
-N 60 -1490 60 -1700 {lab=d1n}
-N 360 -1550 360 -1490 {lab=d1p}
-N 60 -1490 60 -1420 {lab=d1n}
-N 360 -1490 360 -1420 {lab=d1p}
+N 60 -1700 60 -1550 {lab=d1n}
+N 360 -1700 360 -1550 {lab=d1p}
+N 60 -1490 60 -1420 {lab=tail1}
+N 360 -1490 360 -1420 {lab=tail1}
 N 60 -1420 210 -1420 {lab=tail1}
 N 210 -1420 360 -1420 {lab=tail1}
 N 210 -1420 210 -1340 {lab=tail1}
 N 210 -1280 210 -1100 {lab=vss}
 N -500 -1100 210 -1100 {lab=vss}
-N 800 -1960 800 -1890 {lab=vdd_int}
-N 1080 -1960 1080 -1890 {lab=vdd_int}
-N 800 -1830 800 -1770 {lab=outp_i}
-N 1080 -1830 1080 -1770 {lab=outn_i}
-N 800 -1710 800 -1670 {lab=outp_i}
-N 1080 -1710 1080 -1670 {lab=outn_i}
-N 800 -1630 800 -1570 {lab=outp_i}
-N 1080 -1630 1080 -1570 {lab=outn_i}
+N 680 -1960 680 -1890 {lab=vdd_int}
+N 880 -1960 880 -1890 {lab=vdd_int}
+N 680 -1960 880 -1960 {lab=vdd_int}
+N 1020 -1960 1020 -1890 {lab=vdd_int}
+N 1220 -1960 1220 -1890 {lab=vdd_int}
+N 1020 -1960 1220 -1960 {lab=vdd_int}
+N 680 -1830 880 -1830 {lab=outp_i}
+N 800 -1830 800 -1630 {lab=outp_i}
+N 1020 -1830 1220 -1830 {lab=outn_i}
+N 1080 -1830 1080 -1630 {lab=outn_i}
 N 800 -1570 800 -1490 {lab=sn1}
 N 1080 -1570 1080 -1490 {lab=sn2}
 N 800 -1430 800 -1380 {lab=tail2}
@@ -479,18 +484,6 @@ N 800 -1380 1080 -1380 {lab=tail2}
 N 940 -1380 940 -1270 {lab=tail2}
 N 940 -1210 940 -1100 {lab=vss}
 N 210 -1100 940 -1100 {lab=vss}
-N 760 -1740 700 -1740 {lab=outn_i}
-N 700 -1740 700 -1600 {lab=outn_i}
-N 760 -1600 700 -1600 {lab=outn_i}
-N 700 -1600 700 -1500 {lab=outn_i}
-N 700 -1500 1080 -1500 {lab=outn_i}
-N 1080 -1500 1080 -1670 {lab=outn_i}
-N 1120 -1740 1180 -1740 {lab=outp_i}
-N 1180 -1740 1180 -1600 {lab=outp_i}
-N 1120 -1600 1180 -1600 {lab=outp_i}
-N 1180 -1600 1180 -1500 {lab=outp_i}
-N 800 -1500 1180 -1500 {lab=outp_i}
-N 800 -1670 800 -1500 {lab=outp_i}
 N 1560 -1960 1560 -1890 {lab=vdd_int}
 N 1700 -1960 1700 -1890 {lab=vdd_int}
 N 1560 -1830 1560 -1790 {lab=q_sr}
