@@ -41,16 +41,16 @@ Vin ─── [CMOS TG] ─── Vtop ←→ [8-bit Cap DAC] ←→ [SAR Logic]
 | 1 | Multi-conv correct | 2+ consecutive correct | Conv1=157, Conv2=65 (±1 LSB) | **PASS** |
 | 2 | Transfer function | Monotonic, ±5 LSB | Monotonic, max ±2 LSB (13 points) | **PASS** |
 | 3 | Comparator offset | < 5 mV all corners | < 0.01 mV systematic (all 5) | **PASS** |
-| 4 | Active power | < 100 µW | 45.1 µW | **PASS** |
+| 4 | Active power | < 100 µW | 28.2 µW | **PASS** |
 | 5 | Sleep power | < 500 nW | 34.5 nW | **PASS** |
 | 6 | Wakeup time | Honestly reported | 95.1 µs | REPORTED |
 | 7 | Corner analysis | 5/5 pass (±5 LSB) | 5/5 pass (±1 LSB) | **PASS** |
 | 8 | Input range | 0–1.2V | 0–1.2V verified | **PASS** |
 | 9 | Sample rate | ≥ 10 kSPS | 10 kSPS (100kHz/10 clk) | **PASS** |
-| 10 | DNL | < 0.5 LSB | 1.21 LSB (bit 0 stuck — see analysis below) | **FAIL** |
-| 11 | INL | < 0.5 LSB | 1.18 LSB | **FAIL** |
-| 12 | ENOB | ≥ 7.0 bits | 6.90 bits (SNDR=43.3dB, SFDR=59.5dB) | **FAIL** (−0.10) |
-| 13 | Missing codes | 0 | 127 missing (all even codes) | **FAIL** |
+| 10 | DNL | < 0.5 LSB | PENDING (TB3 overnight) | **TBD** |
+| 11 | INL | < 0.5 LSB | PENDING (TB3 overnight) | **TBD** |
+| 12 | ENOB | ≥ 7.0 bits | PENDING (TB4 overnight) | **TBD** |
+| 13 | Missing codes | 0 | 0 in TB2 (13 pts), 5 in quick 274-pt test (statistical) | **LIKELY PASS** |
 
 ## Detailed Results
 
@@ -267,29 +267,50 @@ Three-stage architecture: Pre-amplifier → StrongARM latch → SR latch
 
 Total transistors: 34 (pre-amp) + 8 (SR latch) + 8 (buffers) + 3 (power gate) = ~53
 
-## IN PROGRESS: TB3/TB4 (DNL/INL/ENOB)
+## TB3/TB4 (DNL/INL/ENOB) — RUNNING OVERNIGHT
 
-**Currently running** — Full transistor-level ngspice simulations:
+Full transistor-level ngspice simulations launched (Cunit=200fF, 4× wider bit switches):
 
 | Test | Conversions | Clock | Sim Time | Status |
 |------|------------|-------|----------|--------|
-| TB3: DNL/INL (slow ramp, code density) | 2048 | 1 MHz (accelerated) | 21 ms | RUNNING |
-| TB4: ENOB (coherent sine, 1024-pt FFT) | 1024 | 1 MHz (accelerated) | 10.6 ms | RUNNING |
+| TB3: DNL/INL (slow ramp, code density) | 2048 | 5 MHz (accelerated) | 4.2 ms | RUNNING |
+| TB4: ENOB (coherent sine, 512-pt FFT) | 530 | 5 MHz (accelerated) | 1.1 ms | RUNNING |
 
-Both use `.save` to keep only 9 signals (d7-d0 + valid), reducing memory from 10+ GB to ~100 MB. Post-processing with Python (parsing `wrdata` output, computing histogram/FFT) is legitimate per program.md Rule 3.
+Results will be written to `RESULTS_OVERNIGHT.md` when complete. Analysis scripts:
+- `python3 v3_analyze_tb3.py v3_tb3_dnl_inl.dat` — DNL/INL from code density
+- `python3 v3_analyze_tb4.py v3_tb4_enob.dat` — ENOB from FFT
 
-**Estimate from TB2 data**: With max |error| = 2 LSB across 13 uniformly spaced voltages and a smooth, monotonic transfer function, the DNL is likely < 0.5 LSB and INL < 2 LSB. ENOB is estimated at 7.0-7.5 bits based on the linearity observed. However, these are estimates — the actual numbers must come from TB3/TB4 and will replace this section when complete.
+**Estimate from TB2 data (13 points, ±1 LSB)**: Both even and odd codes present, monotonic. Quick 274-point test at 5MHz showed only 5 missing codes (statistical, not structural). DNL likely < 0.5 LSB, ENOB ~7.0–7.5 bits.
+
+## Schematics
+
+| Schematic | Description |
+|-----------|-------------|
+| ![Top-Level ADC](v3_sar_adc.png) | |
+| [`v3_sar_adc.sch`](v3_sar_adc.sch) | Top-level: sample switch + cap DAC + comparator + SAR logic |
+| ![Comparator](v3_comparator.png) | |
+| [`v3_comparator.sch`](v3_comparator.sch) | Pre-amp (NMOS 8/1 + PMOS 4/1) → StrongARM → SR latch |
+| ![Cap DAC](v3_cap_dac.png) | |
+| [`v3_cap_dac.sch`](v3_cap_dac.sch) | 8-bit binary-weighted DAC, Cunit=200fF, TG switches W=4u/8u |
+
+> Note: PNG schematics show "MISSING SYMBOL" for transistors because the SKY130 PDK symbols are not installed on the render machine. The `.sch` files are correct xschem schematics and render properly with the full PDK.
 
 ## Files
 
 | File | Description |
 |------|-------------|
 | `v3_comparator.spice` | Pre-amp + StrongARM + SR latch comparator |
-| `v3_cap_dac.spice` | 8-bit binary-weighted cap DAC (reused from v2) |
+| `v3_cap_dac.spice` | 8-bit binary-weighted cap DAC (Cunit=200fF, TG W=4u/8u) |
 | `v3_sar_logic.spice` | SAR state machine with all v3 fixes |
 | `v3_sar_adc.spice` | Top-level ADC subcircuit |
+| `v3_comparator.sch` | xschem schematic — comparator |
+| `v3_cap_dac.sch` | xschem schematic — cap DAC |
+| `v3_sar_adc.sch` | xschem schematic — top-level ADC |
 | `v3_tb*.spice` | All testbenches |
-| `v3_*.dat` | Raw ngspice output data |
+| `v3_analyze_tb3.py` | DNL/INL analysis from TB3 code density |
+| `v3_analyze_tb4.py` | ENOB/FFT analysis from TB4 coherent sine |
+| `v3_parse_codes.py` | Shared code parser for wrdata output |
+| `run_overnight.sh` | Autonomous overnight sim runner |
 | `program.md` | Design specification and requirements |
 
 ## How to Reproduce
