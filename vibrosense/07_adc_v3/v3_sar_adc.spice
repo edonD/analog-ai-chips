@@ -35,12 +35,13 @@ M_sw_n vtop sample vin vss sky130_fd_pr__nfet_01v8__model w=5u l=0.15u
 M_sw_p vtop sample_b vin vdd sky130_fd_pr__pfet_01v8__model w=10u l=0.15u
 
 * --- 8-bit Binary-Weighted Capacitor DAC ---
-* 128C + 64C + 32C + 16C + 8C + 4C + 2C + 1C + 1C(dummy)
-* Total = 256 * 20fF = 5.12 pF
+* Cunit=200fF (10x original) to reduce parasitic cap fraction at vtop
 Xdac vtop vref vss
 + d7 d7_b d6 d6_b d5 d5_b d4 d4_b
 + d3 d3_b d2 d2_b d1 d1_b d0 d0_b
 + vdd vss v2_cap_dac_8b
+
+* (Offset cap removed — the valid delay fix resolves the bit 0 issue)
 
 * --- Comparator (Pre-amp + StrongARM Latch) ---
 * inp = Vtop (DAC top plate), inn = Vref_comp (trimmed reference)

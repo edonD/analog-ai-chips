@@ -246,8 +246,14 @@ Xinv_d0 d0 d0b vdd vss cmos_inv
 adc_samp [s1d] [sample] dacc
 Xinv_samp sample sample_b vdd vss cmos_inv
 
-* --- Valid signal ---
-a_vff s9d clkd null null validd validnd dff1
+* --- Valid signal (delayed by 10ns for d0 settling) ---
+* At the S9→IDLE clock edge, d0 transitions from the tentative value
+* (HIGH, from OR with s9a) to the decided value (b0q). This transition
+* takes ~5ns through the analog CMOS gates. The valid signal must not
+* assert until d0 has settled, so we delay it with a digital buffer.
+a_vff s9d clkd null null validd_raw validnd_raw dff1
+.model buf_vdly d_buffer rise_delay=10n fall_delay=1n
+a_vdly validd_raw validd buf_vdly
 adc_valid [validd] [valid] dacc
 
 * --- Comp clock gating (analog) ---

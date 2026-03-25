@@ -92,23 +92,14 @@ M_ln2 outn_i outp_i sn2 vss sky130_fd_pr__nfet_01v8__model w=2u l=0.15u
 M_lp1 outp_i outn_i vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
 M_lp2 outn_i outp_i vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
 
-* PMOS reset switches (precharge to VDD when comp_clk_d = LOW)
-* DELAYED comp_clk: 2-inverter buffer adds ~1-2ns delay so TG closes
-* BEFORE the StrongARM resets. Without delay, the reset PMOS turns on
-* (at comp_clk < 1.35V) while the TG is still partially open
-* (TG closes at comp_clk < 0.4V), leaking reset state to hold cap.
-M_dly1_n dly1 comp_clk vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
-M_dly1_p dly1 comp_clk vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
-M_dly2_n comp_clk_d dly1 vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
-M_dly2_p comp_clk_d dly1 vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
-M_rst_p outp_i comp_clk_d vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
-M_rst_n outn_i comp_clk_d vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+* PMOS reset switches (precharge to VDD when comp_clk = LOW)
+M_rst_p outp_i comp_clk vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M_rst_n outn_i comp_clk vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
 
-* --- SR Latch + delayed reset: holds decision through StrongARM reset ---
-* The SR latch captures the StrongARM decision during evaluation.
-* The reset is DELAYED by ~2ns via a 2-inverter buffer chain so the
-* DFF has time to capture the SR latch output before the StrongARM
-* resets and potentially disturbs the latch.
+* --- SR Latch: holds comparator decision through StrongARM reset ---
+* Required for FF/SF corners where the StrongARM resets too fast.
+* The delayed valid signal (10ns) in the SAR logic ensures the DFF reads
+* the DECIDED d0 value (not the stale tentative), fixing the bit 0 issue.
 M_sr1_p1 q_sr outn_i vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
 M_sr1_p2 q_sr qbar_sr vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
 M_sr1_n1 q_sr outn_i mid_sr1 vss sky130_fd_pr__nfet_01v8__model w=2u l=0.15u

@@ -24,33 +24,37 @@ Vref vref 0 1.2
 * Each conversion takes ~100us (10 clocks x 10us)
 * Convert goes HIGH at 15us, first valid at ~105us
 * Change Vin during the idle gap between valid and next sample
+* Vin changes at the MIDPOINT of each conversion (~50us after sample start).
+* The sample switch is OPEN during this time, so vtop is unaffected.
+* Next conversion samples 50us later, with Vin fully settled.
+* Conv N samples at t = 15 + (N-1)*100us.
 Vin vin 0 PWL(
-+ 0      0.0
-+ 104u   0.0
-+ 105u   0.1
-+ 204u   0.1
-+ 205u   0.2
-+ 304u   0.2
-+ 305u   0.3
-+ 404u   0.3
-+ 405u   0.4
-+ 504u   0.4
-+ 505u   0.5
-+ 604u   0.5
-+ 605u   0.6
-+ 704u   0.6
-+ 705u   0.7
-+ 804u   0.7
-+ 805u   0.8
-+ 904u   0.8
-+ 905u   0.9
-+ 1004u  0.9
-+ 1005u  1.0
-+ 1104u  1.0
-+ 1105u  1.1
-+ 1204u  1.1
-+ 1205u  1.2
-+ 1400u  1.2)
++ 0     0.0
++ 59u   0.0
++ 60u   0.1
++ 159u  0.1
++ 160u  0.2
++ 259u  0.2
++ 260u  0.3
++ 359u  0.3
++ 360u  0.4
++ 459u  0.4
++ 460u  0.5
++ 559u  0.5
++ 560u  0.6
++ 659u  0.6
++ 660u  0.7
++ 759u  0.7
++ 760u  0.8
++ 859u  0.8
++ 860u  0.9
++ 959u  0.9
++ 960u  1.0
++ 1059u 1.0
++ 1060u 1.1
++ 1159u 1.1
++ 1160u 1.2
++ 1400u 1.2)
 
 * Clock: 100kHz
 Vclk clk 0 PULSE(0 1.8 5u 10n 10n 5u 10u)
