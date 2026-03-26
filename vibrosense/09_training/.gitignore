@@ -1,0 +1,3 @@
+# CWRU dataset .mat files (134MB) — regenerate with: python download_cwru.py
+data/*.mat
+__pycache__/
