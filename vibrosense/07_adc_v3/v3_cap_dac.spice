@@ -31,12 +31,12 @@
 *
 .subckt bit_sw bp vref gnd_node ctrl ctrl_b vdd vss
 * TG to Vref: ON when ctrl=HIGH, ctrl_b=LOW
-* v3.1: 4x wider for Cunit=200fF settling at 5MHz (was w=1u/2u)
-M_vr_n vref ctrl  bp vss sky130_fd_pr__nfet_01v8__model w=4u l=0.15u
-M_vr_p vref ctrl_b bp vdd sky130_fd_pr__pfet_01v8__model w=8u l=0.15u
+* v3.2: 8x wider for reliable 5MHz settling (was w=1u/2u, then 4u/8u)
+M_vr_n vref ctrl  bp vss sky130_fd_pr__nfet_01v8__model w=8u l=0.15u
+M_vr_p vref ctrl_b bp vdd sky130_fd_pr__pfet_01v8__model w=16u l=0.15u
 * TG to GND: ON when ctrl=LOW, ctrl_b=HIGH
-M_gn_n gnd_node ctrl_b bp vss sky130_fd_pr__nfet_01v8__model w=4u l=0.15u
-M_gn_p gnd_node ctrl   bp vdd sky130_fd_pr__pfet_01v8__model w=8u l=0.15u
+M_gn_n gnd_node ctrl_b bp vss sky130_fd_pr__nfet_01v8__model w=8u l=0.15u
+M_gn_p gnd_node ctrl   bp vdd sky130_fd_pr__pfet_01v8__model w=16u l=0.15u
 .ends bit_sw
 
 * --- 8-bit Cap DAC with Real Switches ---
