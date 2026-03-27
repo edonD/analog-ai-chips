@@ -1,0 +1,28 @@
+# Block 10: Top Integration — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: specs_pass — number of the 18 system tests that pass (higher is better)
+#   Perfect: 18. Any value < 18 means the design is not done.
+#   When specs_pass == 18, secondary metric is pm_min_deg (maximize stability margin).
+#
+metric	grep_pattern	operator	threshold	unit	primary
+specs_pass	^specs_pass:	>=	18	count	yes
+vpvdd_min_V	^vpvdd_min_V:	>=	4.825	V	no
+vpvdd_max_V	^vpvdd_max_V:	<=	5.175	V	no
+line_reg_mV_per_V	^line_reg_mV_per_V:	<=	5	mV/V	no
+load_reg_mV_per_mA	^load_reg_mV_per_mA:	<=	2	mV/mA	no
+undershoot_mV	^undershoot_mV:	<=	150	mV	no
+overshoot_mV	^overshoot_mV:	<=	150	mV	no
+pm_min_deg	^pm_min_deg:	>=	45	deg	no
+gm_min_dB	^gm_min_dB:	>=	10	dB	no
+psrr_dc_dB	^psrr_dc_dB:	>=	40	dB	no
+psrr_10k_dB	^psrr_10k_dB:	>=	20	dB	no
+startup_time_us	^startup_time_us:	<=	100	us	no
+startup_overshoot_V	^startup_overshoot_V:	<=	5.5	V	no
+iout_limit_mA	^iout_limit_mA:	<=	80	mA	no
+uv_trip_V	^uv_trip_V:	>=	4.0	V	no
+ov_trip_V	^ov_trip_V:	<=	5.7	V	no
+iq_active_uA	^iq_active_uA:	<=	300	uA	no
+iq_retention_uA	^iq_retention_uA:	<=	10	uA	no
+pvt_all_pass	^pvt_all_pass:	>=	1	bool	no

@@ -1,0 +1,255 @@
+{
+  "block": "10",
+  "name": "top_integration",
+  "subckt": "pvdd_regulator",
+  "ports": ["bvdd", "pvdd", "gnd", "avbg", "ibias", "svdd", "en", "en_ret", "uv_flag", "ov_flag"],
+  "design_file": "design.cir",
+  "wave": 3,
+  "depends_on": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"],
+  "note": "18-point verification plan. ALL tests must pass. No exceptions.",
+  "includes": [
+    "00_error_amp/design.cir",
+    "01_pass_device/design.cir",
+    "02_feedback_network/design.cir",
+    "03_compensation/design.cir",
+    "04_current_limiter/design.cir",
+    "05_uv_ov_comparators/design.cir",
+    "06_level_shifter/design.cir",
+    "07_zener_clamp/design.cir",
+    "08_mode_control/design.cir",
+    "09_startup/design.cir"
+  ],
+  "system_specs": {
+    "bvdd_range":    { "min": 5.4, "max": 10.5, "unit": "V" },
+    "pvdd_nom":      5.0,
+    "pvdd_accuracy": { "min": 4.825, "max": 5.175, "unit": "V", "note": "+/-3.5% over full PVT and load" },
+    "iload_max":     50e-3,
+    "cload_internal":200e-12,
+    "avbg":          1.226,
+    "ibias":         1e-6,
+    "svdd":          2.2,
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "verification_tests": [
+    {
+      "id": 1,
+      "name": "dc_regulation",
+      "testbench": "tb_top_dc_reg.spice",
+      "setup": "BVDD=7V, sweep Iload 0 to 50mA",
+      "measure": "VPVDD at each load point",
+      "pass_fail": [
+        { "param": "vpvdd", "min": 4.825, "max": 5.175, "unit": "V" }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "line_regulation",
+      "testbench": "tb_top_line_reg.spice",
+      "setup": "Iload=10mA, sweep BVDD 5.4 to 10.5V",
+      "measure": "dVPVDD / dVBVDD",
+      "pass_fail": [
+        { "param": "dvpvdd_dvbvdd", "max": 5e-3, "unit": "V/V" }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "load_regulation",
+      "testbench": "tb_top_load_reg.spice",
+      "setup": "BVDD=7V, sweep Iload 0 to 50mA",
+      "measure": "dVPVDD / dILOAD",
+      "pass_fail": [
+        { "param": "dvpvdd_diload", "max": 2e-3, "unit": "V/A" }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "load_transient_undershoot",
+      "testbench": "tb_top_load_tran.spice",
+      "setup": "1mA -> 10mA step in 1us, BVDD=7V",
+      "measure": "Max undershoot on PVDD",
+      "pass_fail": [
+        { "param": "undershoot", "max": 150e-3, "unit": "V" }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "load_transient_overshoot",
+      "testbench": "tb_top_load_tran.spice",
+      "setup": "10mA -> 1mA step in 1us, BVDD=7V",
+      "measure": "Max overshoot on PVDD",
+      "pass_fail": [
+        { "param": "overshoot", "max": 150e-3, "unit": "V" }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "loop_stability",
+      "testbench": "tb_top_lstb.spice",
+      "setup": "Break loop at vfb, AC sweep, Iload = 0 / 1mA / 10mA / 50mA",
+      "measure": "Phase margin and gain margin at each load point",
+      "pass_fail": [
+        { "param": "phase_margin", "min": 45, "unit": "deg", "condition": "ALL load points" },
+        { "param": "gain_margin",  "min": 10, "unit": "dB",  "condition": "ALL load points" }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "psrr",
+      "testbench": "tb_top_psrr.spice",
+      "setup": "AC source on BVDD (DC=7V + AC=1V), measure at PVDD",
+      "measure": "PSRR = 20*log10(Vac_pvdd / Vac_bvdd)",
+      "pass_fail": [
+        { "param": "psrr_dc",  "min": 40, "unit": "dB" },
+        { "param": "psrr_10k", "min": 20, "unit": "dB" }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "startup_normal",
+      "testbench": "tb_top_startup.spice",
+      "setup": "BVDD ramp 0 -> 10.5V at 1 V/us",
+      "measure": "PVDD waveform",
+      "pass_fail": [
+        { "param": "monotonic",    "eq": true,   "unit": "bool" },
+        { "param": "no_oscillation","eq": true,  "unit": "bool" },
+        { "param": "settle_time",  "max": 100e-6,"unit": "s" }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "startup_fast",
+      "testbench": "tb_top_startup_fast.spice",
+      "setup": "BVDD ramp 0 -> 10.5V at 10 V/us",
+      "measure": "Max PVDD peak during startup",
+      "pass_fail": [
+        { "param": "pvdd_peak", "max": 5.5, "unit": "V" }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "dropout",
+      "testbench": "tb_top_dropout.spice",
+      "setup": "Iload=50mA, sweep BVDD 4.5 -> 6V",
+      "measure": "VPVDD vs VBVDD",
+      "pass_fail": [
+        { "param": "regulated_at_5p4v", "eq": true, "unit": "bool", "condition": "PVDD = 5.0V +/-3.5% at BVDD=5.4V" }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "current_limit",
+      "testbench": "tb_top_ilim.spice",
+      "setup": "Rload=0.1 ohm (near short), BVDD=7V",
+      "measure": "Output current",
+      "pass_fail": [
+        { "param": "iout_max", "max": 80e-3, "unit": "A" }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "uv_threshold",
+      "testbench": "tb_top_uv.spice",
+      "setup": "Sweep PVDD externally (disconnect regulator, force PVDD)",
+      "measure": "UV flag trip point",
+      "pass_fail": [
+        { "param": "uv_trip", "min": 4.0, "max": 4.6, "unit": "V" }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "ov_threshold",
+      "testbench": "tb_top_ov.spice",
+      "setup": "Sweep PVDD externally",
+      "measure": "OV flag trip point",
+      "pass_fail": [
+        { "param": "ov_trip", "min": 5.3, "max": 5.7, "unit": "V" }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "mode_transitions",
+      "testbench": "tb_top_modes.spice",
+      "setup": "BVDD ramp 0 -> 10.5V -> 0",
+      "measure": "All mode output signals",
+      "pass_fail": [
+        { "param": "transitions_clean",  "eq": true, "unit": "bool" },
+        { "param": "no_glitches",        "eq": true, "unit": "bool" },
+        { "param": "correct_sequence",   "eq": true, "unit": "bool" }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "pvt_corners",
+      "testbench": "tb_top_pvt.spice",
+      "setup": "Tests 1-8 repeated at SS/FF/SF/FS x -40/27/150C",
+      "measure": "All spec parameters at every PVT condition",
+      "pass_fail": [
+        { "param": "all_specs_pass_at_all_corners", "eq": true, "unit": "bool" }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "quiescent_current",
+      "testbench": "tb_top_iq.spice",
+      "setup": "BVDD=7V",
+      "measure": "Total current from BVDD in each mode",
+      "pass_fail": [
+        { "param": "iq_active",    "max": 300e-6, "unit": "A", "condition": "No load, active mode" },
+        { "param": "iq_retention", "max": 10e-6,  "unit": "A", "condition": "Retention mode" }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "retention_mode",
+      "testbench": "tb_top_retention.spice",
+      "setup": "BVDD=3.5V, Iload=0.5mA",
+      "measure": "PVDD voltage",
+      "pass_fail": [
+        { "param": "pvdd_tracks_bvdd", "eq": true, "unit": "bool", "condition": "PVDD = BVDD in bypass mode" }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "power_consumption",
+      "testbench": "tb_top_power.spice",
+      "setup": "All operating modes",
+      "measure": "Total power from BVDD in each mode",
+      "pass_fail": [
+        { "param": "documented", "eq": true, "unit": "bool", "note": "Report only — no numeric limit" }
+      ]
+    }
+  ],
+  "integration_order": [
+    "Step 1: Blocks 00+01+02+03 — run Tests 1-6",
+    "Step 2: Add Block 04 — run Test 11, re-verify Tests 1-6",
+    "Step 3: Add Block 05 — run Tests 12-13",
+    "Step 4: Add Blocks 06+08 — run Test 14",
+    "Step 5: Add Block 07 — run Test 9",
+    "Step 6: Add Block 09 — run Tests 8-9",
+    "Step 7: Run ALL 18 tests on complete regulator",
+    "Step 8: Run Test 15 (PVT corners) on complete regulator"
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_top_dc_reg.spice",
+    "tb_top_line_reg.spice",
+    "tb_top_load_reg.spice",
+    "tb_top_load_tran.spice",
+    "tb_top_lstb.spice",
+    "tb_top_psrr.spice",
+    "tb_top_startup.spice",
+    "tb_top_startup_fast.spice",
+    "tb_top_dropout.spice",
+    "tb_top_ilim.spice",
+    "tb_top_uv.spice",
+    "tb_top_ov.spice",
+    "tb_top_modes.spice",
+    "tb_top_pvt.spice",
+    "tb_top_iq.spice",
+    "tb_top_retention.spice",
+    "tb_top_power.spice",
+    "README.md",
+    "verification_summary.md"
+  ]
+}

@@ -1,0 +1,97 @@
+* Block 10: Top-Level Integration
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   bvdd    — battery supply input (5.4–10.5V)
+*   pvdd    — regulated 5.0V output
+*   gnd     — ground
+*   avbg    — bandgap reference output (1.226V, from on-chip bandgap)
+*   ibias   — 1 µA bias current from bandgap
+*   svdd    — 2.2V digital supply
+*   en      — global enable (SVDD domain)
+*   en_ret  — retention mode enable (SVDD domain)
+*   uv_flag — undervoltage flag output (SVDD domain)
+*   ov_flag — overvoltage flag output (SVDD domain)
+*
+* STATUS: EMPTY — instantiation pending completion of blocks 00–09
+*
+* This block instantiates all 10 sub-blocks and wires them together.
+* Do NOT redesign any sub-block here — fix issues in the originating block,
+* then update design.cir there and re-include it here.
+*
+* Include order matters for dependency resolution:
+*   Wave 1 first (00, 01, 05, 06), then Wave 2 (02, 03, 04), then Wave 3 (07, 08, 09).
+*
+* Internal nets:
+*   gate       — pass device gate (error amp output / startup drive / comp output)
+*   vfb        — feedback voltage (feedback network output)
+*   vref       — bandgap reference (avbg routed internally as vref)
+*   ea_en      — error amp enable (from mode control / startup)
+*   bypass_en  — bypass switch enable (from mode control)
+*   ref_sel    — reference select (from mode control)
+*   uvov_en    — UV/OV enable (from mode control)
+*   ilim_en    — current limiter enable (from mode control)
+*   startup_done — startup complete flag
+*   ilim_flag  — current limit active flag
+*   uv_int     — UV flag (internal, PVDD domain)
+*   ov_int     — OV flag (internal, PVDD domain)
+*
+.subckt pvdd_regulator bvdd pvdd gnd avbg ibias svdd en en_ret uv_flag ov_flag
+
+* Internal signal declarations (ngspice: no explicit net declaration needed)
+
+* =======================================================
+* Include all block design files
+* =======================================================
+* .include ../00_error_amp/design.cir
+* .include ../01_pass_device/design.cir
+* .include ../02_feedback_network/design.cir
+* .include ../03_compensation/design.cir
+* .include ../04_current_limiter/design.cir
+* .include ../05_uv_ov_comparators/design.cir
+* .include ../06_level_shifter/design.cir
+* .include ../07_zener_clamp/design.cir
+* .include ../08_mode_control/design.cir
+* .include ../09_startup/design.cir
+
+* =======================================================
+* Instantiate all blocks
+* =======================================================
+* Uncomment and complete after each block passes its own tests.
+
+* Block 01: Pass device (core pass element)
+* XM_pass gate bvdd pvdd pass_device
+
+* Block 00: Error amplifier
+* XEA avbg vfb gate pvdd gnd ibias ea_en error_amp
+
+* Block 02: Feedback network
+* XFB pvdd vfb gnd feedback_network
+
+* Block 03: Compensation
+* XCOMP gate pvdd gnd compensation
+
+* Block 04: Current limiter
+* XILIM gate bvdd pvdd gnd ilim_flag current_limiter
+
+* Block 05: UV/OV comparators
+* XUV pvdd avbg uv_int pvdd gnd uvov_en uv_comparator
+* XOV pvdd avbg ov_int pvdd gnd uvov_en ov_comparator
+
+* Block 06: Level shifters (UV/OV flags → SVDD domain)
+* XLSDN_UV uv_int uv_flag pvdd svdd gnd level_shifter_down
+* XLSDN_OV ov_int ov_flag pvdd svdd gnd level_shifter_down
+
+* Block 07: Zener clamp
+* XZC pvdd gnd zener_clamp
+
+* Block 08: Mode control
+* XMC bvdd pvdd svdd gnd avbg en_ret bypass_en ea_en ref_sel uvov_en ilim_en mode_control
+
+* Block 09: Startup
+* XSU bvdd pvdd gate gnd avbg startup_done ea_en startup
+
+* Internal load capacitor (200 pF, capless LDO)
+* Cload pvdd gnd 200e-12
+
+.ends pvdd_regulator
