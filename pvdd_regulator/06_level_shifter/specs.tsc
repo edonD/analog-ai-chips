@@ -1,0 +1,19 @@
+# Block 06: Level Shifter — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: delay_max_ns — worst propagation delay across all conditions (lower is better)
+#   Measured as max(tpLH, tpHL) at the worst-case corner (SS 150C, BVDD = 5.4V).
+#   Must be < 100 ns. Lower is better as long as all other specs pass.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+delay_max_ns	^delay_max_ns:	<=	100	ns	yes
+lth_out_high_margin_V	^lth_out_high_margin_V:	>=	0.2	V	no
+lth_out_low_V	^lth_out_low_V:	<=	0.2	V	no
+htl_out_high_margin_V	^htl_out_high_margin_V:	>=	0.2	V	no
+htl_out_low_V	^htl_out_low_V:	<=	0.2	V	no
+static_power_uA	^static_power_uA:	<=	5	uA	no
+works_bvdd_min	^works_bvdd_min:	>=	1	bool	no
+works_bvdd_max	^works_bvdd_max:	>=	1	bool	no
+works_ss_150c	^works_ss_150c:	>=	1	bool	no
+no_metastable	^no_metastable:	>=	1	bool	no

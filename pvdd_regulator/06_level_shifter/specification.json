@@ -1,0 +1,131 @@
+{
+  "block": "06",
+  "name": "level_shifter",
+  "subckts": {
+    "low_to_high": "level_shifter_up",
+    "high_to_low": "level_shifter_down"
+  },
+  "ports": {
+    "level_shifter_up":   ["in", "out", "bvdd", "svdd", "gnd"],
+    "level_shifter_down": ["in", "out", "pvdd", "svdd", "gnd"]
+  },
+  "design_file": "design.cir",
+  "wave": 1,
+  "depends_on": [],
+  "signals": {
+    "low_to_high": ["en (0/SVDD -> 0/BVDD)", "mode[1:0] (0/SVDD -> 0/BVDD)", "bypass_en (0/SVDD -> 0/BVDD)"],
+    "high_to_low": ["uv_flag (0/PVDD -> 0/SVDD)", "ov_flag (0/PVDD -> 0/SVDD)"]
+  },
+  "operating_conditions": {
+    "svdd": 2.2,
+    "pvdd_nom": 5.0,
+    "bvdd_range": { "min": 5.4, "max": 10.5, "unit": "V" },
+    "input_levels": "0 to SVDD (low-to-high) or 0 to PVDD (high-to-low)",
+    "load_cap": { "typ": 1e-12, "unit": "F" },
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "lth_out_high",
+      "param": "Low-to-high: output HIGH level",
+      "min_expr": "bvdd - 0.2",
+      "unit": "V",
+      "condition": "Output HIGH must be > BVDD - 0.2V at all BVDD values"
+    },
+    {
+      "id": "lth_out_low",
+      "param": "Low-to-high: output LOW level",
+      "max": 0.2,
+      "unit": "V",
+      "condition": "Output LOW must be < 0.2V"
+    },
+    {
+      "id": "htl_out_high",
+      "param": "High-to-low: output HIGH level",
+      "min_expr": "svdd - 0.2",
+      "unit": "V",
+      "condition": "Output HIGH must be > SVDD - 0.2V = 2.0V"
+    },
+    {
+      "id": "htl_out_low",
+      "param": "High-to-low: output LOW level",
+      "max": 0.2,
+      "unit": "V",
+      "condition": "Output LOW must be < 0.2V"
+    },
+    {
+      "id": "propagation_delay",
+      "param": "Propagation delay (both edges, both directions)",
+      "max": 100e-9,
+      "unit": "s",
+      "condition": "At all conditions"
+    },
+    {
+      "id": "works_bvdd_min",
+      "param": "Reliable switching at BVDD=5.4V",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Worst case: weak PMOS pull-up at minimum supply"
+    },
+    {
+      "id": "works_bvdd_max",
+      "param": "Reliable switching at BVDD=10.5V, no oxide breakdown",
+      "eq": true,
+      "unit": "bool",
+      "condition": "No device exceeds Vgs_max or Vds_max"
+    },
+    {
+      "id": "static_power",
+      "param": "Static power per shifter in both stable states",
+      "max": 5e-6,
+      "unit": "A",
+      "condition": "No DC crowbar current in either steady state"
+    },
+    {
+      "id": "works_ss_150c",
+      "param": "Reliable switching at SS 150C",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Worst case: high Vth, low mobility, SVDD=2.2V drive barely enough"
+    },
+    {
+      "id": "no_metastable",
+      "param": "No metastable states — output always resolves to rail",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Both stable states, all PVT corners"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_ls_logic.spice",
+      "measures": ["lth_out_high", "lth_out_low", "htl_out_high", "htl_out_low", "no_metastable"]
+    },
+    {
+      "file": "tb_ls_delay.spice",
+      "measures": ["propagation_delay"]
+    },
+    {
+      "file": "tb_ls_bvdd_sweep.spice",
+      "measures": ["works_bvdd_min", "works_bvdd_max", "delay vs BVDD from 5.4 to 10.5V"]
+    },
+    {
+      "file": "tb_ls_power.spice",
+      "measures": ["static_power"]
+    },
+    {
+      "file": "tb_ls_pvt.spice",
+      "measures": ["works_ss_150c", "all criteria at SS/FF/SF/FS, -40/27/150C"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_ls_logic.spice",
+    "tb_ls_delay.spice",
+    "tb_ls_bvdd_sweep.spice",
+    "tb_ls_power.spice",
+    "tb_ls_pvt.spice",
+    "README.md"
+  ]
+}
