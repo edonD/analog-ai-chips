@@ -1,0 +1,74 @@
+* tb_ls_power.spice — Static power measurement
+* Block 06: Level Shifter — TT 27C
+*
+.include design.cir
+.lib /home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+
+.option method=gear reltol=1e-4
+
+* Supplies with current measurement via Vxxxx naming
+Vsvdd svdd 0 2.2
+Vbvdd bvdd 0 7.0
+Vpvdd pvdd 0 5.0
+
+* Load
+Cload_up out_up 0 1p
+Cload_dn out_dn 0 1p
+
+* Input held at steady states for a long time
+* First half: input LOW (steady state 0), second half: input HIGH
+Vin_up in_up 0 PULSE(0 2.2 500n 1n 1n 500n 1200n)
+Vin_dn in_dn 0 PULSE(0 5.0 500n 1n 1n 500n 1200n)
+
+* DUT
+Xup in_up out_up bvdd svdd 0 level_shifter_up
+Xdn in_dn out_dn pvdd svdd 0 level_shifter_down
+
+.tran 1n 1200n
+
+* Measure supply current in both steady states
+* Input LOW: measure from 300n to 480n (well settled)
+.meas tran ibvdd_low AVG i(Vbvdd) FROM=300n TO=480n
+.meas tran isvdd_low AVG i(Vsvdd) FROM=300n TO=480n
+.meas tran ipvdd_low AVG i(Vpvdd) FROM=300n TO=480n
+
+* Input HIGH: measure from 700n to 950n (well settled)
+.meas tran ibvdd_high AVG i(Vbvdd) FROM=700n TO=950n
+.meas tran isvdd_high AVG i(Vsvdd) FROM=700n TO=950n
+.meas tran ipvdd_high AVG i(Vpvdd) FROM=700n TO=950n
+
+.control
+run
+
+echo "=== tb_ls_power results ==="
+
+* Up-shifter draws from BVDD and SVDD. Down-shifter from PVDD and SVDD.
+* Worst-case static current per shifter in uA
+let i_up_low = abs(ibvdd_low) * 1e6
+let i_up_high = abs(ibvdd_high) * 1e6
+let i_dn_low = abs(ipvdd_low) * 1e6
+let i_dn_high = abs(ipvdd_high) * 1e6
+
+echo "i_up_low_uA:" "$&i_up_low"
+echo "i_up_high_uA:" "$&i_up_high"
+echo "i_dn_low_uA:" "$&i_dn_low"
+echo "i_dn_high_uA:" "$&i_dn_high"
+
+* Worst case across all states and both shifters
+let worst = i_up_low
+if i_up_high > worst
+  let worst = i_up_high
+end
+if i_dn_low > worst
+  let worst = i_dn_low
+end
+if i_dn_high > worst
+  let worst = i_dn_high
+end
+
+echo "static_power_uA:" "$&worst"
+
+quit
+.endc
+
+.end

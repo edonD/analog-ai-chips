@@ -1,0 +1,76 @@
+* tb_ls_logic.spice — Logic function, output levels, metastability check
+* Block 06: Level Shifter — TT 27C, BVDD=7V nominal
+*
+.include design.cir
+.lib /home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+
+.option method=gear reltol=1e-4
+
+* Supplies
+Vsvdd svdd 0 2.2
+Vbvdd bvdd 0 7.0
+Vpvdd pvdd 0 5.0
+
+* Load capacitors
+Cload_up out_up 0 1p
+Cload_dn out_dn 0 1p
+
+* Input stimulus
+Vin_up in_up 0 PULSE(0 2.2 50n 1n 1n 200n 400n)
+Vin_dn in_dn 0 PULSE(0 5.0 50n 1n 1n 200n 400n)
+
+* DUT
+Xup in_up out_up bvdd svdd 0 level_shifter_up
+Xdn in_dn out_dn pvdd svdd 0 level_shifter_down
+
+.tran 0.1n 800n
+
+* Measure output levels
+.meas tran lth_high MAX v(out_up) FROM=100n TO=250n
+.meas tran lth_low  MIN v(out_up) FROM=300n TO=450n
+.meas tran htl_high MAX v(out_dn) FROM=100n TO=250n
+.meas tran htl_low  MIN v(out_dn) FROM=300n TO=450n
+
+* Check metastability: 70ns after rising edge, must be near rail
+.meas tran lth_at_120n FIND v(out_up) AT=120n
+.meas tran lth_at_320n FIND v(out_up) AT=320n
+.meas tran htl_at_120n FIND v(out_dn) AT=120n
+.meas tran htl_at_320n FIND v(out_dn) AT=320n
+
+.control
+run
+
+* Compute margins
+let lth_margin = lth_high - (7.0 - 0.2)
+let htl_margin = htl_high - (2.2 - 0.2)
+
+* Metastability check: settled within 70ns of edge
+* High state must be > supply - 0.5V, low state must be < 0.5V
+let meta_ok = 1
+
+* Check all settled values
+if lth_at_120n < 6.5
+  let meta_ok = 0
+end
+if lth_at_320n > 0.5
+  let meta_ok = 0
+end
+if htl_at_120n < 1.7
+  let meta_ok = 0
+end
+if htl_at_320n > 0.5
+  let meta_ok = 0
+end
+
+echo "lth_out_high_margin_V:" "$&lth_margin"
+echo "lth_out_low_V:" "$&lth_low"
+echo "htl_out_high_margin_V:" "$&htl_margin"
+echo "htl_out_low_V:" "$&htl_low"
+echo "no_metastable:" "$&meta_ok"
+
+wrdata waveform_logic.dat v(in_up) v(out_up) v(in_dn) v(out_dn)
+
+quit
+.endc
+
+.end
