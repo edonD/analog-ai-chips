@@ -278,35 +278,22 @@ def main():
     ax.plot([26, 116], [34.0, 34.0], color=BORDER, lw=0.95, zorder=2)
     ax.text(26.6, 34.9, "Support, calibration and offline assets", ha="left", va="bottom", fontsize=8.6, color=MUTED)
 
-    draw_panel(
-        ax,
-        4,
-        42,
-        15,
-        20,
-        SENSOR,
-        SENSOR_FILL,
-        "01",
-        "Sensor input",
-        "",
-        title_fs=9.5,
-        sub_fs=7.4,
-        badge_fs=7.2,
-    )
-    draw_card(
-        ax,
-        5.6,
-        47.5,
-        11.6,
-        11.0,
-        "MEMS\naccelerometer",
-        SENSOR,
-        lines=["ADXL355 or similar", "+/-2 g full scale", "+/-660 mV output"],
-        meta="external",
-        title_fs=8.8,
-        fs=7.0,
-    )
-    ax.text(11.4, 44.8, "on rotating machine", ha="center", va="center", fontsize=7.0, color=MUTED)
+    # -- Sensor input: clean monochrome block --
+    sx, sy, sw, sh = 4, 44, 15, 16
+    rounded_box(ax, sx, sy, sw, sh, fc="#f8faf9", ec="#c8d5ce", lw=1.1, radius=1.0, z=1.5)
+    cx = sx + sw / 2
+    ax.text(cx, sy + sh - 2.2, "MEMS", ha="center", va="center",
+            fontsize=13, color="#1a1a1a", family=MONO, weight="bold", zorder=5)
+    ax.text(cx, sy + sh - 4.0, "Accelerometer", ha="center", va="center",
+            fontsize=10, color="#1a1a1a", family=MONO, weight="bold", zorder=5)
+    ax.plot([sx + 2.5, sx + sw - 2.5], [sy + sh - 5.2, sy + sh - 5.2],
+            color="#c8d5ce", lw=0.8, zorder=3)
+    ax.text(cx, sy + sh - 6.8, "ADXL355", ha="center", va="center",
+            fontsize=9.5, color=MUTED, family=MONO, zorder=5)
+    ax.text(cx, sy + sh - 8.6, "+/-2 g  |  +/-660 mV", ha="center", va="center",
+            fontsize=7.5, color=MUTED, family=FONT, zorder=5)
+    ax.text(cx, sy + 1.8, "external sensor", ha="center", va="center",
+            fontsize=7.0, color="#8a9e90", family=FONT, zorder=5)
 
     draw_panel(
         ax,
