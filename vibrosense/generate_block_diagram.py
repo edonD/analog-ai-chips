@@ -159,21 +159,21 @@ def draw_card(ax, x, y, w, h, title, accent, lines=None, block=None, meta=None, 
 
 def draw_mini_row(ax, x, y, w, h, badge, label, accent):
     rounded_box(ax, x, y, w, h, fc="#fbfdff", ec=BORDER, lw=0.9, radius=0.42, z=4)
-    label_chip(ax, x + 0.45, y + 0.43, badge, fc=accent, tc="white", fs=7.3, mono=True, z=5)
+    label_chip(ax, x + 0.35, y + 0.38, badge, fc=accent, tc="white", fs=6.8, mono=True, z=5)
     ax.text(
-        x + 2.7,
+        x + 2.6,
         y + h / 2,
         label,
         ha="left",
         va="center",
-        fontsize=8.2,
+        fontsize=7.6,
         color=TEXT,
         family=FONT,
         zorder=6,
     )
 
 
-def draw_pill(ax, x, y, w, h, text, fc, tc):
+def draw_pill(ax, x, y, w, h, text, fc, tc, fs=7.0):
     rounded_box(ax, x, y, w, h, fc=fc, ec="none", lw=0, radius=0.45, z=5)
     ax.text(
         x + w / 2,
@@ -181,7 +181,7 @@ def draw_pill(ax, x, y, w, h, text, fc, tc):
         text,
         ha="center",
         va="center",
-        fontsize=7.4,
+        fontsize=fs,
         color=tc,
         family=FONT,
         weight="bold",
@@ -297,11 +297,12 @@ def main():
         9.6,
         "MEMS\naccelerometer",
         SENSOR,
-        lines=["ADXL355 or similar", "+/-2 g full scale", "+/-660 mV output"],
+        lines=["ADXL355 or similar", "+/-2 g, +/-660 mV"],
         meta="external",
-        title_fs=10.0,
+        title_fs=9.2,
+        fs=7.5,
     )
-    ax.text(11.4, 45.6, "mounted on rotating machine", ha="center", va="center", fontsize=8.0, color=MUTED)
+    ax.text(11.4, 45.6, "mounted on rotating machine", ha="center", va="center", fontsize=7.4, color=MUTED)
 
     draw_panel(
         ax,
@@ -323,10 +324,11 @@ def main():
         11.5,
         "PGA",
         ANALOG,
-        lines=["1x / 4x / 16x / 64x", "normalizes input"],
+        lines=["1x/4x/16x/64x", "normalizes input"],
         block="B02",
         meta="10 uW",
-        fs=8.0,
+        fs=7.4,
+        title_fs=9.8,
     )
     draw_card(
         ax,
@@ -336,10 +338,11 @@ def main():
         17.5,
         "BPF bank",
         ANALOG,
-        lines=["5 parallel spectral channels"],
+        lines=["5 spectral channels"],
         block="B03",
         meta="42.5 uW",
-        fs=8.0,
+        fs=7.4,
+        title_fs=9.8,
     )
     draw_card(
         ax,
@@ -347,13 +350,13 @@ def main():
         48.0,
         13.0,
         17.5,
-        "Envelope detectors",
+        "Envelope\ndetectors",
         ANALOG,
-        lines=["5 matched AC-to-DC channels", "rectify + low-pass", "~10 Hz output bandwidth"],
+        lines=["5x AC-to-DC", "rectify + LPF", "~10 Hz bandwidth"],
         block="B04",
-        meta="5x 21 uW",
-        fs=7.8,
-        title_fs=9.4,
+        meta="5x21 uW",
+        fs=7.0,
+        title_fs=8.8,
     )
     draw_card(
         ax,
@@ -363,10 +366,11 @@ def main():
         6.0,
         "Broadband statistics",
         ANALOG,
-        lines=["RMS | Crest factor | Kurtosis", "parallel branch from PGA output"],
+        lines=["RMS | Crest | Kurtosis  (from PGA)"],
         block="B05",
         meta="8 uW",
-        fs=7.8,
+        fs=7.4,
+        title_fs=9.2,
     )
     draw_card(
         ax,
@@ -374,12 +378,11 @@ def main():
         46.5,
         7.0,
         19.0,
-        "Feature vector",
+        "Feature\nvector",
         ANALOG,
-        lines=["8 analog features"],
-        meta="8 features",
-        fs=7.7,
-        title_fs=8.8,
+        lines=["8 analog", "features"],
+        fs=6.8,
+        title_fs=8.0,
     )
 
     row_y = [61.8, 58.8, 55.8, 52.8, 49.8]
@@ -421,10 +424,11 @@ def main():
         13.0,
         "Charge-domain\nMAC",
         CLASSIFIER,
-        lines=["8 x 4 MAC array", "capacitive weights", "winner-take-all readout"],
+        lines=["8x4 MAC array", "MIM cap weights", "winner-take-all"],
         block="B06",
         meta="<0.001 uW",
-        fs=7.8,
+        fs=7.0,
+        title_fs=9.0,
     )
     draw_card(
         ax,
@@ -435,8 +439,8 @@ def main():
         "Output classes",
         CLASSIFIER,
         lines=["4-way fault decision"],
-        fs=7.7,
-        title_fs=9.6,
+        fs=7.0,
+        title_fs=8.8,
     )
     draw_pill(ax, 87.8, 42.6, 3.0, 1.2, "Normal", "#eaf8f0", SENSOR)
     draw_pill(ax, 91.6, 42.6, 4.5, 1.2, "Imbalance", "#fff5db", "#9a6700")
@@ -463,11 +467,11 @@ def main():
         12.0,
         "Digital control",
         DIGITAL,
-        lines=["SPI configuration", "debounce / FSM", "class latch and IRQ"],
+        lines=["SPI config", "debounce / FSM", "class latch + IRQ"],
         block="B08",
         meta="1.4 uW",
-        fs=7.8,
-        title_fs=9.6,
+        fs=7.2,
+        title_fs=9.0,
     )
     draw_card(
         ax,
@@ -478,8 +482,8 @@ def main():
         "Wake path",
         DIGITAL,
         lines=["assert IRQ", "wake host MCU"],
-        fs=7.8,
-        title_fs=9.6,
+        fs=7.2,
+        title_fs=9.0,
     )
 
     draw_panel(
@@ -502,9 +506,9 @@ def main():
         9.4,
         "Host MCU\nand radio",
         SUPPORT,
-        lines=["sleeps until IRQ", "reads features on demand", "transmit on anomaly"],
-        fs=7.5,
-        title_fs=9.5,
+        lines=["sleeps until IRQ", "reads on demand", "transmit anomaly"],
+        fs=7.0,
+        title_fs=8.8,
     )
 
     draw_card(
@@ -515,10 +519,11 @@ def main():
         8.5,
         "Bias generator",
         SUPPORT,
-        lines=["shared analog reference current"],
+        lines=["shared reference current"],
         block="B00",
         meta="0.97 uW",
-        fs=8.0,
+        fs=7.4,
+        title_fs=9.2,
     )
     draw_card(
         ax,
@@ -528,10 +533,11 @@ def main():
         8.5,
         "OTA building block",
         SUPPORT,
-        lines=["reused across B02-B05"],
+        lines=["reused in B02-B05"],
         block="B01",
-        meta="0.90 uW each",
-        fs=8.0,
+        meta="0.90 uW ea",
+        fs=7.4,
+        title_fs=9.2,
     )
     draw_card(
         ax,
@@ -541,10 +547,11 @@ def main():
         8.5,
         "SAR ADC",
         ANALOG,
-        lines=["8-bit readback when host wakes"],
+        lines=["8-bit on-demand readback"],
         block="B07",
-        meta="on demand",
-        fs=8.0,
+        meta="28 uW act.",
+        fs=7.4,
+        title_fs=9.2,
     )
     draw_card(
         ax,
@@ -554,10 +561,11 @@ def main():
         8.5,
         "Offline training",
         OFFLINE,
-        lines=["Python + CWRU dataset", "weights loaded via SPI"],
+        lines=["CWRU dataset, weights via SPI"],
         block="B09",
         meta="128 weights",
-        fs=8.0,
+        fs=7.4,
+        title_fs=9.2,
     )
 
     arrow(ax, 17.5, 53.6, 29.0, 57.8, color=SENSOR, lw=2.4, rad=0.0, ms=16)
