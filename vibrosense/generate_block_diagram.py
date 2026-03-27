@@ -295,307 +295,171 @@ def main():
     ax.text(cx, sy + 1.8, "external sensor", ha="center", va="center",
             fontsize=7.0, color="#8a9e90", family=FONT, zorder=5)
 
-    draw_panel(
-        ax,
-        27,
-        38,
-        56,
-        32,
-        ANALOG,
-        ANALOG_FILL,
-        "02",
-        "Analog feature extraction",
-        "Convert continuous vibration into 8 low-rate analog features",
-    )
-    draw_card(
-        ax,
-        29.0,
-        52.0,
-        9.0,
-        11.5,
-        "PGA",
-        ANALOG,
-        lines=["1x/4x/16x/64x", "normalizes input"],
-        block="B02",
-        meta="10 uW",
-        fs=7.4,
-        title_fs=9.8,
-    )
-    draw_card(
-        ax,
-        40.0,
-        48.0,
-        17.0,
-        17.5,
-        "BPF bank",
-        ANALOG,
-        lines=["5 spectral channels"],
-        block="B03",
-        meta="42.5 uW",
-        fs=7.4,
-        title_fs=9.8,
-    )
-    draw_card(
-        ax,
-        59.0,
-        48.0,
-        13.0,
-        17.5,
-        "Envelope\ndetectors",
-        ANALOG,
-        lines=["5x AC-to-DC", "rectify + LPF", "~10 Hz bandwidth"],
-        block="B04",
-        meta="5x21 uW",
-        fs=7.0,
-        title_fs=8.8,
-    )
-    draw_card(
-        ax,
-        40.0,
-        39.8,
-        32.0,
-        6.0,
-        "Broadband statistics",
-        ANALOG,
-        lines=["RMS | Crest | Kurtosis  (from PGA)"],
-        block="B05",
-        meta="8 uW",
-        fs=7.4,
-        title_fs=9.2,
-    )
-    draw_card(
-        ax,
-        74.0,
-        46.5,
-        7.0,
-        19.0,
-        "Feature\nvector",
-        ANALOG,
-        lines=["8 analog", "features"],
-        fs=6.8,
-        title_fs=8.0,
-    )
+    # ── helper: monochrome sub-block inside the chip ──
+    C1 = "#1a1a1a"  # dark text
+    C2 = MUTED      # secondary text
+    C3 = "#d0d8e0"  # divider / border
+    BX = "#f5f7fa"  # block fill
 
-    row_y = [61.8, 58.8, 55.8, 52.8, 49.8]
-    band_labels = ["100-500 Hz", "0.5-2 kHz", "2-5 kHz", "5-10 kHz", "10-20 kHz"]
-    for idx, (y, label) in enumerate(zip(row_y, band_labels), start=1):
-        draw_mini_row(ax, 41.1, y, 14.6, 2.3, f"CH{idx}", label, ANALOG)
+    def mono_block(x, y, w, h, title, specs=None, sub=None, ec=C3):
+        rounded_box(ax, x, y, w, h, fc=BX, ec=ec, lw=1.0, radius=0.8, z=3)
+        cx = x + w / 2
+        # title — scale font to block width
+        tfs = min(11.5, w * 0.72)
+        ax.text(cx, y + h - 1.6, title, ha="center", va="center",
+                fontsize=tfs, color=C1, family=MONO, weight="bold", zorder=5)
+        # specs lines
+        if specs:
+            for i, s in enumerate(specs):
+                ax.text(cx, y + h - 3.2 - i * 1.5, s, ha="center", va="center",
+                        fontsize=min(7.8, w * 0.56), color=C2, family=FONT, zorder=5)
+        # subtle subtitle at bottom
+        if sub:
+            ax.text(cx, y + 1.0, sub, ha="center", va="center",
+                    fontsize=min(6.8, w * 0.48), color="#9aa5b0", family=FONT, zorder=5)
 
-    for idx, (fx, fy, label) in enumerate(
-        [
-            (74.7, 60.9, "E1"),
-            (77.9, 60.9, "E2"),
-            (74.7, 57.8, "E3"),
-            (77.9, 57.8, "E4"),
-            (74.7, 54.7, "E5"),
-            (77.9, 54.7, "RMS"),
-            (74.7, 51.6, "Crest"),
-            (77.9, 51.6, "Kurt."),
-        ]
-    ):
-        draw_pill(ax, fx, fy, 2.4 if idx < 5 else 3.0, 1.25, label, "#dbe7ff" if idx < 5 else "#edf2f7", ANALOG if idx < 5 else TEXT)
+    def mono_row(x, y, w, h, label):
+        rounded_box(ax, x, y, w, h, fc="#eef1f5", ec=C3, lw=0.7, radius=0.35, z=4)
+        ax.text(x + w / 2, y + h / 2, label, ha="center", va="center",
+                fontsize=7.2, color=C1, family=MONO, zorder=5)
 
-    draw_panel(
-        ax,
-        85,
-        38,
-        14,
-        32,
-        CLASSIFIER,
-        CLASSIFIER_FILL,
-        "03",
-        "Classifier",
-        "Charge-domain MAC + WTA",
-    )
-    draw_card(
-        ax,
-        87.0,
-        51.2,
-        10.0,
-        13.0,
-        "Charge-domain\nMAC",
-        CLASSIFIER,
-        lines=["8x4 MAC array", "MIM cap weights", "winner-take-all"],
-        block="B06",
-        meta="<0.001 uW",
-        fs=7.0,
-        title_fs=9.0,
-    )
-    draw_card(
-        ax,
-        87.0,
-        40.6,
-        10.0,
-        8.0,
-        "Output classes",
-        CLASSIFIER,
-        lines=["4-way fault decision"],
-        fs=7.0,
-        title_fs=8.8,
-    )
-    draw_pill(ax, 87.8, 42.6, 3.0, 1.2, "Normal", "#eaf8f0", SENSOR)
-    draw_pill(ax, 91.6, 42.6, 4.5, 1.2, "Imbalance", "#fff5db", "#9a6700")
-    draw_pill(ax, 87.8, 40.9, 3.4, 1.2, "Bearing", "#fdeaea", ALERT)
-    draw_pill(ax, 92.0, 40.9, 4.0, 1.2, "Looseness", "#fff0e5", "#b45309")
+    # ── 02: Analog feature extraction ──
+    # outer container
+    ax0, ay0, aw0, ah0 = 27, 38, 56, 32
+    rounded_box(ax, ax0, ay0, aw0, ah0, fc="#f8fafd", ec="#b8c8d8", lw=1.1, radius=1.0, z=1.5)
+    ax.text(ax0 + aw0 / 2, ay0 + ah0 - 1.6, "Analog Feature Extraction", ha="center", va="center",
+            fontsize=11, color=C1, family=MONO, weight="bold", zorder=5)
 
-    draw_panel(
-        ax,
-        101,
-        38,
-        15,
-        32,
-        DIGITAL,
-        DIGITAL_FILL,
-        "04",
-        "Wake logic",
-        "SPI, debounce and IRQ path",
-    )
-    draw_card(
-        ax,
-        103.0,
-        50.8,
-        11.0,
-        12.0,
-        "Digital control",
-        DIGITAL,
-        lines=["SPI config", "debounce / FSM", "class latch + IRQ"],
-        block="B08",
-        meta="1.4 uW",
-        fs=7.2,
-        title_fs=9.0,
-    )
-    draw_card(
-        ax,
-        103.0,
-        40.6,
-        11.0,
-        7.6,
-        "Wake path",
-        DIGITAL,
-        lines=["assert IRQ", "wake host MCU"],
-        fs=7.2,
-        title_fs=9.0,
-    )
+    # PGA
+    mono_block(29, 54, 9, 10, "PGA",
+               specs=["1x / 4x / 16x / 64x"],
+               sub="10 uW")
 
-    draw_panel(
-        ax,
-        121,
-        42,
-        15,
-        20,
-        SUPPORT,
-        SUPPORT_FILL,
-        "EXT",
-        "Host MCU",
-        "Wakes on IRQ",
-    )
-    draw_card(
-        ax,
-        123.0,
-        48.2,
-        10.8,
-        9.4,
-        "Host MCU\nand radio",
-        SUPPORT,
-        lines=["sleeps until IRQ", "reads on demand", "transmit anomaly"],
-        fs=7.0,
-        title_fs=8.8,
-    )
+    # BPF bank — 5 channel rows
+    mono_block(40, 48, 17, 18, "BPF Bank",
+               sub="42.5 uW")
+    bands = ["100-500 Hz", "0.5-2 kHz", "2-5 kHz", "5-10 kHz", "10-20 kHz"]
+    for i, b in enumerate(bands):
+        mono_row(41.2, 61.5 - i * 2.6, 14.6, 2.1, b)
 
-    draw_card(
-        ax,
-        29.0,
-        20.0,
-        17.5,
-        8.5,
-        "Bias generator",
-        SUPPORT,
-        lines=["shared reference current"],
-        block="B00",
-        meta="0.97 uW",
-        fs=7.4,
-        title_fs=9.2,
-    )
-    draw_card(
-        ax,
-        48.8,
-        20.0,
-        17.5,
-        8.5,
-        "OTA building block",
-        SUPPORT,
-        lines=["reused in B02-B05"],
-        block="B01",
-        meta="0.90 uW ea",
-        fs=7.4,
-        title_fs=9.2,
-    )
-    draw_card(
-        ax,
-        68.6,
-        20.0,
-        17.5,
-        8.5,
-        "SAR ADC",
-        ANALOG,
-        lines=["8-bit on-demand readback"],
-        block="B07",
-        meta="28 uW act.",
-        fs=7.4,
-        title_fs=9.2,
-    )
-    draw_card(
-        ax,
-        88.4,
-        20.0,
-        26.0,
-        8.5,
-        "Offline training",
-        OFFLINE,
-        lines=["CWRU dataset, weights via SPI"],
-        block="B09",
-        meta="128 weights",
-        fs=7.4,
-        title_fs=9.2,
-    )
+    # Envelope detectors
+    mono_block(59, 48, 13, 18, "Envelope\nDetectors",
+               specs=["5x rectify + LPF", "~10 Hz bandwidth"],
+               sub="5x 21 uW")
 
-    arrow(ax, 17.5, 53.6, 29.0, 57.8, color=SENSOR, lw=2.4, rad=0.0, ms=16)
-    arrow_label(ax, 22.4, 56.9, "analog vibration", color=SENSOR, fc=BG)
+    # Broadband: RMS / Crest / Kurtosis
+    mono_block(40, 40, 32, 5.5, "RMS  |  Crest  |  Kurtosis",
+               sub="8 uW")
 
-    arrow(ax, 38.0, 57.8, 40.0, 57.8, color=ANALOG, lw=1.8, ms=13)
-    arrow(ax, 57.0, 56.5, 59.0, 56.5, color=ANALOG, lw=1.8, ms=13)
-    arrow(ax, 72.0, 56.5, 74.0, 56.0, color=ANALOG, lw=1.8, ms=13)
-    arrow(ax, 34.0, 52.0, 45.0, 45.8, color=ANALOG, lw=1.5, rad=0.0, ms=12)
-    arrow(ax, 72.0, 42.8, 74.0, 50.0, color=ANALOG, lw=1.5, rad=0.0, ms=12)
+    # Feature vector column
+    fvx, fvy, fvw, fvh = 74, 47, 7, 19
+    rounded_box(ax, fvx, fvy, fvw, fvh, fc="#eef1f5", ec=C3, lw=0.9, radius=0.6, z=3)
+    ax.text(fvx + fvw / 2, fvy + fvh - 1.4, "8", ha="center", va="center",
+            fontsize=14, color=C1, family=MONO, weight="bold", zorder=5)
+    ax.text(fvx + fvw / 2, fvy + fvh - 3.2, "features", ha="center", va="center",
+            fontsize=7.5, color=C2, family=FONT, zorder=5)
+    labels_fv = ["E1", "E2", "E3", "E4", "E5", "RMS", "Crest", "Kurt"]
+    for i, lb in enumerate(labels_fv):
+        ax.text(fvx + fvw / 2, fvy + fvh - 5.0 - i * 1.6, lb, ha="center", va="center",
+                fontsize=6.5, color=C2, family=MONO, zorder=5)
 
-    arrow(ax, 81.0, 56.0, 87.0, 57.6, color=CLASSIFIER, lw=2.2, rad=0.0, ms=16)
-    arrow_label(ax, 84.0, 59.8, "8 features", color=CLASSIFIER, fc=CLASSIFIER_FILL, mono=True)
+    # ── 03: Classifier ──
+    cx0, cy0, cw0, ch0 = 85, 38, 14, 32
+    rounded_box(ax, cx0, cy0, cw0, ch0, fc="#f8f6fd", ec="#c4b8e0", lw=1.1, radius=1.0, z=1.5)
+    ax.text(cx0 + cw0 / 2, cy0 + ch0 - 1.6, "Classifier", ha="center", va="center",
+            fontsize=11, color=C1, family=MONO, weight="bold", zorder=5)
 
-    arrow(ax, 97.0, 57.6, 103.0, 57.0, color=DIGITAL, lw=2.1, ms=16)
-    arrow_label(ax, 100.0, 59.8, "4-class result", color=DIGITAL, fc=DIGITAL_FILL)
-    arrow(ax, 114.0, 44.4, 123.0, 52.6, color=ALERT, lw=2.4, ms=16)
-    arrow_label(ax, 118.5, 49.7, "IRQ", color=ALERT, fc="#fff1ef", mono=True)
+    mono_block(87, 52, 10, 13, "Charge-Domain\nMAC",
+               specs=["8x4 array", "MIM cap weights", "winner-take-all"],
+               sub="<0.001 uW", ec="#c4b8e0")
 
-    arrow(ax, 101.5, 28.5, 92.0, 51.2, color=OFFLINE, lw=1.2, rad=0.10, dashed=True, ms=12)
-    arrow_label(ax, 95.6, 40.0, "weights via SPI", color=OFFLINE, fc=BG)
+    # output classes
+    rounded_box(ax, 87, 40, 10, 9.5, fc=BX, ec="#c4b8e0", lw=0.9, radius=0.6, z=3)
+    ax.text(92, 48.2, "Output", ha="center", va="center",
+            fontsize=8.5, color=C1, family=MONO, weight="bold", zorder=5)
+    draw_pill(ax, 87.6, 45.8, 4.2, 1.3, "Normal", "#e8f5e9", "#2e7d32", fs=6.8)
+    draw_pill(ax, 92.4, 45.8, 4.2, 1.3, "Imbalance", "#fff8e1", "#9a6700", fs=6.2)
+    draw_pill(ax, 87.6, 43.8, 4.2, 1.3, "Bearing", "#ffebee", "#c62828", fs=6.8)
+    draw_pill(ax, 92.4, 43.8, 4.2, 1.3, "Looseness", "#fff3e0", "#e65100", fs=6.2)
+    ax.text(92, 41.2, "4-class fault decision", ha="center", va="center",
+            fontsize=6.5, color="#9aa5b0", family=FONT, zorder=5)
 
-    ax.text(
-        26.6,
-        17.2,
-        "Bias and OTA support are shown without internal bias nets to keep the architecture readable.",
-        ha="left",
-        va="center",
-        fontsize=8.0,
-        color=MUTED,
-    )
+    # ── 04: Digital / Wake logic ──
+    dx0, dy0, dw0, dh0 = 101, 38, 15, 32
+    rounded_box(ax, dx0, dy0, dw0, dh0, fc="#fdfaf5", ec="#d8ccaa", lw=1.1, radius=1.0, z=1.5)
+    ax.text(dx0 + dw0 / 2, dy0 + dh0 - 1.6, "Digital Control", ha="center", va="center",
+            fontsize=10, color=C1, family=MONO, weight="bold", zorder=5)
 
-    ax.text(26.6, 10.2, "Legend:", ha="left", va="center", fontsize=8.3, color=MUTED, weight="bold")
-    draw_pill(ax, 31.4, 9.65, 6.5, 1.15, "external", SENSOR_FILL, SENSOR)
-    draw_pill(ax, 39.0, 9.65, 8.6, 1.15, "analog core", ANALOG_FILL, ANALOG)
-    draw_pill(ax, 48.5, 9.65, 8.0, 1.15, "classifier", CLASSIFIER_FILL, CLASSIFIER)
-    draw_pill(ax, 57.5, 9.65, 6.8, 1.15, "digital", DIGITAL_FILL, DIGITAL)
-    draw_pill(ax, 65.4, 9.65, 12.2, 1.15, "support / offline", SUPPORT_FILL, SUPPORT)
-    ax.text(116.0, 10.2, "Main always-on budget: ~200-300 uW", ha="right", va="center", fontsize=8.3, color=MUTED)
+    mono_block(103, 52, 11, 12, "SPI + FSM",
+               specs=["config weights", "debounce", "class latch"],
+               sub="1.4 uW", ec="#d8ccaa")
+
+    mono_block(103, 40, 11, 9, "Wake Path",
+               specs=["assert IRQ", "wake host MCU"],
+               ec="#d8ccaa")
+
+    # ── Host MCU (external) ──
+    hx, hy, hw, hh = 121, 44, 15, 16
+    rounded_box(ax, hx, hy, hw, hh, fc="#f8faf9", ec="#c8d5ce", lw=1.1, radius=1.0, z=1.5)
+    hcx = hx + hw / 2
+    ax.text(hcx, hy + hh - 2.2, "Host MCU", ha="center", va="center",
+            fontsize=11, color=C1, family=MONO, weight="bold", zorder=5)
+    ax.plot([hx + 2.5, hx + hw - 2.5], [hy + hh - 3.8, hy + hh - 3.8],
+            color="#c8d5ce", lw=0.8, zorder=3)
+    ax.text(hcx, hy + hh - 5.4, "sleeps until IRQ", ha="center", va="center",
+            fontsize=7.5, color=C2, family=FONT, zorder=5)
+    ax.text(hcx, hy + hh - 7.0, "reads on demand", ha="center", va="center",
+            fontsize=7.5, color=C2, family=FONT, zorder=5)
+    ax.text(hcx, hy + hh - 8.6, "transmit anomaly", ha="center", va="center",
+            fontsize=7.5, color=C2, family=FONT, zorder=5)
+    ax.text(hcx, hy + 1.4, "external", ha="center", va="center",
+            fontsize=6.8, color="#8a9e90", family=FONT, zorder=5)
+
+    # ── Support row (bottom) ──
+    def support_block(x, y, w, h, title, line1, line2=""):
+        rounded_box(ax, x, y, w, h, fc="#f4f6f8", ec=C3, lw=0.9, radius=0.7, z=3)
+        cx = x + w / 2
+        ax.text(cx, y + h - 1.8, title, ha="center", va="center",
+                fontsize=8.5, color=C1, family=MONO, weight="bold", zorder=5)
+        ax.text(cx, y + h - 3.6, line1, ha="center", va="center",
+                fontsize=7.0, color=C2, family=FONT, zorder=5)
+        if line2:
+            ax.text(cx, y + h - 5.0, line2, ha="center", va="center",
+                    fontsize=7.0, color=C2, family=FONT, zorder=5)
+
+    support_block(29, 19, 17, 9, "Bias Generator", "507 nA reference", "0.97 uW")
+    support_block(48.5, 19, 17, 9, "OTA", "folded-cascode", "reused in B02-B05")
+    support_block(68, 19, 17, 9, "SAR ADC", "8-bit on-demand", "28 uW active")
+    support_block(88, 19, 26, 9, "Offline Training", "CWRU dataset  |  128 weights", "loaded via SPI")
+
+    # ── Arrows (monochrome) ──
+    A1 = "#5a6a78"  # arrow color
+    A2 = "#8090a0"  # secondary
+
+    arrow(ax, 19, 52, 29, 59, color=A1, lw=2.0, ms=15)
+    arrow_label(ax, 23, 56.5, "vibration signal", color=A1, fc=BG)
+
+    arrow(ax, 38, 59, 40, 59, color=A2, lw=1.5, ms=12)
+    arrow(ax, 57, 57, 59, 57, color=A2, lw=1.5, ms=12)
+    arrow(ax, 72, 57, 74, 56, color=A2, lw=1.5, ms=12)
+    arrow(ax, 34, 54, 45, 45.5, color=A2, lw=1.2, ms=10)
+    arrow(ax, 72, 42.8, 74, 50, color=A2, lw=1.2, ms=10)
+
+    arrow(ax, 81, 56, 87, 58, color=A1, lw=2.0, ms=15)
+    arrow_label(ax, 84, 59.5, "8 features", color=A1, fc=BG, mono=True)
+
+    arrow(ax, 97, 58, 103, 58, color=A1, lw=1.8, ms=14)
+    arrow_label(ax, 100, 60, "4-class", color=A1, fc=BG)
+
+    arrow(ax, 114, 44, 121, 52, color="#a03030", lw=2.2, ms=15)
+    arrow_label(ax, 117.5, 49, "IRQ", color="#a03030", fc="#fff5f5", mono=True)
+
+    arrow(ax, 101, 28, 92, 52, color=A2, lw=1.0, rad=0.08, dashed=True, ms=10)
+    arrow_label(ax, 95, 40, "weights via SPI", color=A2, fc=BG)
+
+    # ── Footer ──
+    ax.text(70, 10.5, "Total always-on power budget:  ~200-300 uW", ha="center", va="center",
+            fontsize=9, color=C2, family=FONT)
 
     out_dir = Path(__file__).resolve().parent
     fig.savefig(out_dir / "system_block_diagram.png", dpi=DPI, bbox_inches="tight", facecolor=BG, pad_inches=0.28)
