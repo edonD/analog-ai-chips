@@ -1,0 +1,21 @@
+# Block 03: Compensation — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: pm_min_deg — worst phase margin across ALL load points (higher is better)
+#   This is the headline number. A topology passes only if pm_min_deg >= 45 at every load,
+#   every corner, every temperature. pm_min_deg is the minimum across all of these.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+pm_min_deg	^pm_min_deg:	>=	45	deg	yes
+pm_0mA_deg	^pm_0mA_deg:	>=	45	deg	no
+pm_100uA_deg	^pm_100uA_deg:	>=	45	deg	no
+pm_1mA_deg	^pm_1mA_deg:	>=	45	deg	no
+pm_10mA_deg	^pm_10mA_deg:	>=	45	deg	no
+pm_50mA_deg	^pm_50mA_deg:	>=	45	deg	no
+gm_min_dB	^gm_min_dB:	>=	10	dB	no
+transient_undershoot_mV	^transient_undershoot_mV:	<=	150	mV	no
+transient_overshoot_mV	^transient_overshoot_mV:	<=	150	mV	no
+settling_time_us	^settling_time_us:	<=	10	us	no
+no_oscillation	^no_oscillation:	>=	1	bool	no
+pm_pvt_min_deg	^pm_pvt_min_deg:	>=	45	deg	no

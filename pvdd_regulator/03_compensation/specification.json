@@ -1,0 +1,152 @@
+{
+  "block": "03",
+  "name": "compensation",
+  "subckt": "compensation",
+  "ports": ["vout_gate", "pvdd", "gnd"],
+  "ports_optional": ["vfb"],
+  "design_file": "design.cir",
+  "wave": 2,
+  "depends_on": ["00", "01", "02"],
+  "note": "Hardest block. Output pole moves 1000x from no-load to 50mA. Must stabilize ALL load points simultaneously.",
+  "operating_conditions": {
+    "bvdd_range": { "min": 5.4, "max": 10.5, "unit": "V" },
+    "pvdd_nom": 5.0,
+    "cload": 200e-12,
+    "iload_points": [0, 100e-6, 1e-3, 10e-3, 50e-3],
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "output_pole_table": {
+    "note": "Output pole = 1/(2*pi*Rload*Cload) — moves 1000x across load range",
+    "0mA":    "< 1 kHz",
+    "100uA":  "~16 kHz",
+    "1mA":    "~160 kHz",
+    "10mA":   "~1.6 MHz",
+    "50mA":   "~8 MHz"
+  },
+  "pass_fail": [
+    {
+      "id": "pm_0mA",
+      "param": "Phase margin at Iload=0 mA",
+      "min": 45,
+      "unit": "deg",
+      "condition": "No-load (worst case for pole proximity)"
+    },
+    {
+      "id": "pm_100uA",
+      "param": "Phase margin at Iload=100 uA",
+      "min": 45,
+      "unit": "deg",
+      "condition": ""
+    },
+    {
+      "id": "pm_1mA",
+      "param": "Phase margin at Iload=1 mA",
+      "min": 45,
+      "unit": "deg",
+      "condition": ""
+    },
+    {
+      "id": "pm_10mA",
+      "param": "Phase margin at Iload=10 mA",
+      "min": 45,
+      "unit": "deg",
+      "condition": ""
+    },
+    {
+      "id": "pm_50mA",
+      "param": "Phase margin at Iload=50 mA",
+      "min": 45,
+      "unit": "deg",
+      "condition": "Full load"
+    },
+    {
+      "id": "gm_all_loads",
+      "param": "Gain margin at all load points",
+      "min": 10,
+      "unit": "dB",
+      "condition": "0 / 100uA / 1mA / 10mA / 50mA"
+    },
+    {
+      "id": "pm_pvt_corners",
+      "param": "Phase margin at all PVT corners",
+      "min": 45,
+      "unit": "deg",
+      "condition": "SS/FF/SF/FS at all load points"
+    },
+    {
+      "id": "pm_temperatures",
+      "param": "Phase margin at -40C and 150C",
+      "min": 45,
+      "unit": "deg",
+      "condition": "TT corner, all load points"
+    },
+    {
+      "id": "transient_undershoot",
+      "param": "Load transient undershoot",
+      "max": 150e-3,
+      "unit": "V",
+      "condition": "1mA -> 10mA step in 1us, BVDD=7V"
+    },
+    {
+      "id": "transient_overshoot",
+      "param": "Load transient overshoot",
+      "max": 150e-3,
+      "unit": "V",
+      "condition": "10mA -> 1mA step in 1us, BVDD=7V"
+    },
+    {
+      "id": "settling_time",
+      "param": "Settling time after load step",
+      "max": 10e-6,
+      "unit": "s",
+      "condition": "Settle to within 1% of final value"
+    },
+    {
+      "id": "no_oscillation",
+      "param": "Zero sustained ringing at any condition",
+      "eq": true,
+      "unit": "bool",
+      "condition": "All loads, all corners, all temperatures"
+    },
+    {
+      "id": "comp_cap_area",
+      "param": "Total compensation capacitor area",
+      "max": 50000,
+      "unit": "um^2",
+      "condition": "Keep area reasonable for on-chip implementation"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_comp_lstb.spice",
+      "measures": ["pm_0mA", "pm_100uA", "pm_1mA", "pm_10mA", "pm_50mA", "gm_all_loads"],
+      "note": "Use large inductor (1GH) in series at feedback node to break DC loop"
+    },
+    {
+      "file": "tb_comp_pm_vs_load.spice",
+      "measures": ["pm at parametric Iload sweep"]
+    },
+    {
+      "file": "tb_comp_pvt.spice",
+      "measures": ["pm_pvt_corners", "pm_temperatures"]
+    },
+    {
+      "file": "tb_comp_bvdd_sweep.spice",
+      "measures": ["PM vs BVDD from 5.4 to 10.5V"]
+    },
+    {
+      "file": "tb_comp_load_step.spice",
+      "measures": ["transient_undershoot", "transient_overshoot", "settling_time", "no_oscillation"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_comp_lstb.spice",
+    "tb_comp_pm_vs_load.spice",
+    "tb_comp_pvt.spice",
+    "tb_comp_bvdd_sweep.spice",
+    "tb_comp_load_step.spice",
+    "README.md"
+  ]
+}

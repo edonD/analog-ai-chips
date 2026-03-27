@@ -1,0 +1,46 @@
+* Block 03: Compensation Network
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   vout_gate — error amplifier output / pass device gate (compensation is applied here)
+*   pvdd      — regulated supply (5.0V)
+*   gnd       — ground
+*
+* STATUS: EMPTY — compensation topology and values not yet determined
+*
+* Context: This is a capless LDO (no external output capacitor).
+*   Internal Cload = 200 pF (from pass device source to GND).
+*   Load range: 0 mA to 50 mA.
+*   The right-half-plane zero from the pass device Cgd is a stability risk.
+*
+* Topology options:
+*   1. Miller compensation: Cc from gate to drain of pass device with nulling Rz.
+*      Cc ≈ 1–5 pF, Rz ≈ 10–50 kΩ.
+*      Sky130 cap: sky130_fd_pr__cap_mim_m3_1
+*      Sky130 res: sky130_fd_pr__res_xhigh_po
+*
+*   2. Nested Miller: additional inner compensation for high-gain amplifier.
+*
+*   3. Load-pole compensation: capacitor to ground at gate node to push output pole.
+*
+* Requirements:
+*   Phase margin  >= 45° at ALL loads (0 mA, 100 µA, 1 mA, 10 mA, 50 mA)
+*   Gain margin   >= 10 dB
+*   Transient undershoot <= 150 mV for 0→50 mA step
+*   Transient overshoot  <= 150 mV for 50→0 mA step
+*   Settling time        <= 10 µs
+*   No oscillation in transient across all loads and corners
+*
+* Note: vout_gate node is the compensation injection point.
+*   The compensation network connects between vout_gate and PVDD (or GND).
+*
+.subckt compensation vout_gate pvdd gnd
+
+* TODO: implement compensation here
+* A starting point: series Rc-Cc from vout_gate to pvdd
+*
+* Cc from gate to PVDD (or GND), Rz in series for zero placement:
+* XCc vout_gate mid sky130_fd_pr__cap_mim_m3_1 W=<W> L=<L>
+* XRz mid pvdd   sky130_fd_pr__res_xhigh_po   W=1e-6 L=<L>
+
+.ends compensation
