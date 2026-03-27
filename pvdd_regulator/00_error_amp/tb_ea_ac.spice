@@ -1,0 +1,79 @@
+* tb_ea_ac.spice — Open-loop gain and phase, UGB, phase margin
+* Block 00: Error Amplifier
+*
+* Method: Apply small AC signal at vfb (negative input) with DC bias at 1.226V.
+* Measure gain from vfb to vout_gate. Since vfb is the inverting input,
+* the gain Av = -Vout/Vfb (invert sign for magnitude).
+
+.lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include "design.cir"
+
+* --- Supplies and references ---
+Vpvdd pvdd 0 DC 5.0
+Vref  vref 0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias pvdd ibias DC 1u
+
+* --- Feedback input with AC stimulus ---
+Vfb   vfb  0 DC 1.226 AC 1
+
+* --- DUT ---
+Xea vref vfb vout_gate pvdd 0 ibias en error_amp
+
+* --- Load (100pF placeholder for pass device Cgs) ---
+Cload vout_gate 0 100p
+
+* --- Simulation ---
+.control
+  * First find DC operating point
+  op
+
+  * AC analysis: 10Hz to 100MHz
+  ac dec 100 10 100Meg
+
+  * Compute gain magnitude in dB and phase
+  * Since vfb is inverting input, gain = -v(vout_gate)/v(vfb)
+  * v(vfb) = 1 (AC source), so gain = -v(vout_gate)
+  let gain = v(vout_gate)
+  let gain_mag = abs(gain)
+  let gain_db = 20*log10(gain_mag)
+  let phase_deg = 180/PI * cph(gain)
+
+  * DC gain
+  let dc_gain = gain_db[0]
+  echo "=== AC Analysis Results ==="
+  print dc_gain
+
+  * Find UGB: where |gain| crosses 0dB (gain_mag crosses 1)
+  * Search from low frequency up
+  let n = length(gain_db)
+  let ugb_hz = 0
+  let pm_deg = 0
+  let found_ugb = 0
+  let idx = 0
+
+  * Find UGB by looking for first 0dB crossing
+  foreach freq_val frequency
+    if found_ugb = 0
+      if gain_db[idx] < 0
+        let ugb_hz = frequency[idx]
+        let pm_deg = phase_deg[idx] + 180
+        let found_ugb = 1
+      end
+    end
+    let idx = idx + 1
+  end
+
+  let ugb_khz = ugb_hz / 1000
+
+  echo "dc_gain: $&dc_gain"
+  echo "ugb_kHz: $&ugb_khz"
+  echo "phase_margin: $&pm_deg"
+
+  * Save data for plotting
+  wrdata ac_gain.dat gain_db phase_deg
+
+  quit
+.endc
+
+.end

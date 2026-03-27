@@ -1,31 +1,80 @@
-* Block 00: Error Amplifier
+* Block 00: Error Amplifier — PMOS-Input Folded-Cascode OTA
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Subcircuit ports:
-*   vref      — bandgap reference input (~1.226V)
-*   vfb       — feedback voltage from divider (~1.226V)
-*   vout_gate — output: drives pass device gate (0 to ~PVDD)
-*   pvdd      — positive supply (4.5-5.5V regulated domain)
-*   gnd       — ground
-*   ibias     — 1uA bias current input
-*   en        — enable (0=off, PVDD=on)
+* Topology: PMOS-input folded-cascode OTA
+*   - PMOS diff pair (Vcm=1.226V is well above GND, good for PMOS input)
+*   - NMOS folded-cascode current sources + cascode for high Rout
+*   - PMOS cascode mirror load for high Rout
+*   - All HV 5V/10.5V devices (sky130_fd_pr__pfet/nfet_g5v0d10v5)
 *
-* STATUS: EMPTY — topology not yet chosen
+* ibias convention: 1uA current flows INTO ibias pin (sunk internally to GND)
 *
 .subckt error_amp vref vfb vout_gate pvdd gnd ibias en
 
-* TODO: implement error amplifier circuit here
-* Candidate topologies:
-*   - Folded-cascode OTA (HV devices for 5V domain)
-*   - Two-stage Miller OTA
-*   - Recycling folded-cascode
-*
-* Requirements:
-*   DC gain     >= 60 dB
-*   UGB         200 kHz - 1 MHz (Cload = 100 pF placeholder)
-*   Phase margin >= 55 deg (OL into Cgs_pass)
-*   Iq          < 100 uA
-*   Voffset     < 5 mV
-*   All devices: sky130_fd_pr__*  (HV or cascoded 1.8V)
+* ================================================================
+* Enable: NMOS pass gate on ibias, PMOS pullup on output
+* ================================================================
+Men   ibias_en en  ibias   gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2u l=0.5u m=1
+Mpu   vout_gate en pvdd    pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4u l=0.5u m=1
+
+* ================================================================
+* Bias generation from 1uA ibias reference
+* ================================================================
+* NMOS diode: sinks 1uA from ibias_en, sets nb_ref (~Vgs_n for 1uA)
+Mbn0  ibias_en ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2u l=8u m=1
+
+* NMOS mirror: 15x ratio for fold current sources (15uA each)
+* Mn3/Mn4 below are the actual fold current sources, gate=nb_ref is ibias_en
+* But we need separate W for ratio. Use nb_ref = ibias_en directly.
+* Mn3/Mn4: W=30u L=8u → ratio (30/8)/(2/8) = 15:1 → 15uA each
+
+* PMOS bias generation: NMOS mirror sinks 20uA, through PMOS diode → sets pb_tail
+Mbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=40u l=8u m=1
+Mbp0   pb_tail pb_tail  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40u l=4u m=1
+
+* NMOS cascode bias: two stacked diode NMOS set ncb ≈ 2*Vgs_n
+* Branch current ~10uA (NMOS mirror 10:1)
+Mbn_cb ncb_top ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=8u m=1
+Mncbd1 ncb_top ncb_top ncb_bot gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=4u m=1
+Mncbd0 ncb_bot ncb_bot gnd     gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=4u m=1
+
+* PMOS cascode bias: two stacked diode PMOS set pcb ≈ PVDD - 2|Vgs_p|
+* Branch current ~10uA (NMOS sink)
+Mpcd1 pcb_mid pcb_mid pvdd    pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=4u m=1
+Mpcd0 pcb     pcb     pcb_mid pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=4u m=1
+Mbn_pc pcb    ibias_en gnd    gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20u l=8u m=1
+
+* ================================================================
+* PMOS differential input pair
+* ================================================================
+* Tail current source: mirrors pb_tail, 20uA
+Mtail tail_s pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40u l=4u m=1
+
+* Diff pair: M1(+)=vref, M2(-)=vfb
+* W=50u L=2u m=2 → effective W=100u, W*L=200um^2 for offset
+M1 fold_l vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50u l=2u m=2
+M2 fold_r vfb  tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50u l=2u m=2
+
+* ================================================================
+* NMOS folded-cascode (bottom half)
+* ================================================================
+* Cascode NMOS: common-gate, gate=ncb_top
+Mn1 fold_l ncb_top cas_l gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=2u m=1
+Mn2 fold_r ncb_top cas_r gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=2u m=1
+
+* Current source NMOS: gate=ibias_en (nb_ref), 15uA each
+Mn3 cas_l ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=30u l=8u m=1
+Mn4 cas_r ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=30u l=8u m=1
+
+* ================================================================
+* PMOS cascode mirror load (top half)
+* ================================================================
+* Upper PMOS mirror: left=diode (reference), right=mirror (output)
+Mp5 mid_l mid_l pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
+Mp6 mid_r mid_l pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
+
+* Lower PMOS cascode: gate=pcb
+Mp3 fold_l    pcb mid_l pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
+Mp4 vout_gate pcb mid_r pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
 
 .ends error_amp
