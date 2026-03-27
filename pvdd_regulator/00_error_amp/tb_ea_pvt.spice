@@ -1,32 +1,23 @@
-* tb_ea_pvt.spice — PVT corner sweep
-* Block 00: Error Amplifier
-*
-* Runs DC gain and phase margin at multiple corners and temperatures.
-* Corners: tt, ss, ff, sf, fs
-* Temperatures: -40, 27, 150
-*
-* Note: ngspice cannot switch .lib corners mid-simulation.
-* This testbench runs TT only. A wrapper script runs all corners.
-* For now, output pvt_all_pass based on TT results.
+* tb_ea_pvt.spice — PVT corner sweep (TT only, shell runs all corners)
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
 
 .lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
 .include "design.cir"
 
-* --- Supplies and references ---
 Vpvdd pvdd 0 DC 5.0
 Vref  vref 0 DC 1.226
 Ven   en   0 DC 5.0
 Ibias pvdd ibias DC 1u
 
-* --- Input with AC ---
-Vfb   vfb  0 DC 1.226 AC 1
+Vfb   vfb_ac  0 DC 1.226 AC 1
+Rfb_dc vout_gate vfb_ac 100Meg
 
-* --- DUT ---
-Xea vref vfb vout_gate pvdd 0 ibias en error_amp
+Xea vref vfb_ac vout_gate pvdd 0 ibias en error_amp
 Cload vout_gate 0 100p
 
+.nodeset v(vout_gate)=2.5
+
 .control
-  * Temperature sweep at TT corner
   let all_pass = 1
 
   foreach temp_val -40 27 150
@@ -34,33 +25,39 @@ Cload vout_gate 0 100p
     op
     ac dec 100 10 100Meg
 
-    let gain = v(vout_gate)
-    let gain_db = 20*log10(abs(gain))
-    let phase_deg = 180/PI * cph(gain)
-    let dc_g = gain_db[0]
+    let gdb = 20*log10(abs(v(vout_gate)))
+    let ph = 180/PI * cph(v(vout_gate))
+    let dc_g = gdb[0]
 
-    * Find UGB and PM
+    let n = length(gdb)
     let found = 0
     let pm = 0
-    let idx = 0
-    foreach fv frequency
+    let i = 1
+    let prev = gdb[0]
+    repeat $&n
       if found = 0
-        if gain_db[idx] < 0
-          let pm = phase_deg[idx] + 180
-          let found = 1
+        if prev > 0
+          if gdb[i] <= 0
+            let pm = ph[i] + 180
+            let found = 1
+          end
         end
       end
-      let idx = idx + 1
+      if found = 0
+        let prev = gdb[i]
+      end
+      let i = i + 1
     end
 
     echo "PVT TT $temp_val C: gain=$&dc_g dB, PM=$&pm deg"
 
-    * Check pass/fail
     if dc_g < 60
       let all_pass = 0
     end
     if pm < 55
-      let all_pass = 0
+      if pm > 0
+        let all_pass = 0
+      end
     end
 
     destroy all

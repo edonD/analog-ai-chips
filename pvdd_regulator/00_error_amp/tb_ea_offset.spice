@@ -1,47 +1,41 @@
-* tb_ea_offset.spice — Input offset voltage measurement
-* Block 00: Error Amplifier
+* tb_ea_offset.spice — Input offset voltage
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
 *
-* Method: Close a unity-gain feedback loop around the OTA.
-* Apply vref=1.226V, measure vfb at equilibrium. Offset = vfb - vref.
-* Use a large resistor for DC feedback to avoid loading issues.
+* Method: Close negative feedback (vout→vfb) with resistor.
+* In steady state, vfb ≈ vref + Vos.
+* Offset = |vfb - vref| at equilibrium.
 
 .lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
 .include "design.cir"
 
-* --- Supplies and references ---
 Vpvdd pvdd 0 DC 5.0
 Vref  vref 0 DC 1.226
 Ven   en   0 DC 5.0
 Ibias pvdd ibias DC 1u
 
-* --- DUT in unity-gain feedback ---
-* Connect output back to vfb through large resistor (DC feedback)
-* Small cap at vfb for stability
+* DUT with negative feedback (DC only)
 Xea vref vfb vout_gate pvdd 0 ibias en error_amp
 
-Rfb vout_gate vfb 10Meg
-Cfb vfb 0 1p
-
-* Load
+* Feedback: vout → vfb through resistive divider (same as LDO)
+* With gain ~ 93dB, offset ≈ (Vref - Vfb_ideal) / Av
+* Simple unity feedback: Rfb from vout to vfb
+Rfb vout_gate vfb 1Meg
 Cload vout_gate 0 100p
+Cfb vfb 0 10p
 
-* --- Simulation ---
 .control
-  * Use transient to let the feedback loop settle
-  tran 1u 5m uic
+  * Use DC analysis — the feedback loop should converge
+  op
 
-  * Measure settled value of vfb
-  let vfb_settled = v(vfb)[length(v(vfb))-1]
-  let vref_val = 1.226
-  let offset_v = vfb_settled - vref_val
-  let offset_mv = offset_v * 1000
-  let offset_abs = abs(offset_mv)
+  let vfb_val = v(vfb)
+  let vout_val = v(vout_gate)
+  let offset_v = vfb_val - 1.226
+  let offset_abs = abs(offset_v) * 1000
 
-  echo "=== Input Offset ==="
-  print vfb_settled offset_mv
+  echo "=== Offset Measurement ==="
+  print vfb_val vout_val offset_abs
 
   echo "input_offset_mV: $&offset_abs"
-
   quit
 .endc
 

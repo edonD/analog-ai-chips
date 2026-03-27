@@ -1,63 +1,31 @@
 * tb_ea_cmrr.spice — Common-mode rejection ratio
-* Block 00: Error Amplifier
-*
-* Method: Apply AC signal to both inputs simultaneously (common mode).
-* CMRR = Adm/Acm = differential gain / common-mode gain
-* Measure Acm, then CMRR_dB = Adm_dB - Acm_dB
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
 
 .lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
 .include "design.cir"
 
-* --- Supplies ---
 Vpvdd pvdd 0 DC 5.0
 Ven   en   0 DC 5.0
 Ibias pvdd ibias DC 1u
 
-* --- Common-mode input: both inputs get same AC signal ---
+* Common-mode AC on both inputs
 Vcm  cm  0 DC 1.226 AC 1
 Rvref cm vref 1
 Rvfb  cm vfb  1
 
-* --- DUT ---
 Xea vref vfb vout_gate pvdd 0 ibias en error_amp
 Cload vout_gate 0 100p
 
-* --- Simulation ---
+.nodeset v(vout_gate)=2.5
+
 .control
   ac dec 50 10 10Meg
 
-  * Common-mode gain
   let acm = abs(v(vout_gate))
   let acm_db = 20*log10(acm)
-
-  * DC common-mode gain
   let acm_dc = acm_db[0]
 
-  echo "=== CMRR Measurement ==="
-  echo "Common-mode gain at DC (dB):"
-  print acm_dc
-
-  * We need differential gain from tb_ea_ac to compute CMRR
-  * For now, estimate CMRR assuming Adm from separate measurement
-  * CMRR = Adm - Acm (both in dB)
-  * We'll compute CMRR in the run script using both measurements
-  * For self-contained result, also measure Adm here
-
-  * Reset and measure differential gain
-  reset
-  destroy all
-  alter Rvref = 1
-  alter Rvfb = 1
-
-  * Actually, let's do a two-step measurement in one testbench
-  * Step 1 already done (Acm). For step 2, we need differential.
-  * Since we can't easily reconfigure, output Acm and let run_block compute CMRR.
-
-  * Conservative: assume Adm ≈ 60dB minimum (from spec)
-  * Actual CMRR will be computed from dc_gain - acm_dc
-  * Output raw Acm for processing
   echo "acm_dc_dB: $&acm_dc"
-
   quit
 .endc
 

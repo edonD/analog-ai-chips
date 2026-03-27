@@ -1,0 +1,250 @@
+=== Block 00: Error Amplifier ===
+Run started: Fri Mar 27 23:38:20 UTC 2026
+
+--- Running tb_ea_dc.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_dc.spice — dc operating point, saturation check, iq
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+=== DC Operating Point ===
+v(vout_gate) = 5.456811e-01
+v(xea.tail_s) = 2.855554e+00
+v(xea.d1) = 9.162187e-01
+v(xea.d2) = 9.162187e-01
+v(xea.pb_tail) = 3.754764e+00
+iq_uA: 43.4905
+devices_in_sat: 1
+ngspice-42 done
+
+--- Running tb_ea_ac.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_ac.spice — open-loop gain, ugb, phase margin
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+=== AC Results ===
+dc_gain: 89.8842
+ugb_kHz: 331.131
+phase_margin: 56.8094
+ngspice-42 done
+
+--- Running tb_ea_swing.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_swing.spice — output voltage swing
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  5.00000e-01 Reference value :  1.46000e+00
+No. of Data Rows : 1501
+output_swing_low: 0.00486805
+output_swing_high: 4.99972
+ngspice-42 done
+
+--- Running tb_ea_offset.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_offset.spice — input offset voltage
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+=== Offset Measurement ===
+vfb_val = 1.226009e+00
+vout_val = 1.226009e+00
+offset_abs = 9.076422e-03
+input_offset_mV: 0.00907642
+ngspice-42 done
+
+--- Running tb_ea_cmrr.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_cmrr.spice — common-mode rejection ratio
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  1.00000e+01
+No. of Data Rows : 301
+acm_dc_dB: -20.6743
+ngspice-42 done
+
+--- Running tb_ea_psrr.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_psrr.spice — power supply rejection ratio
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  1.00000e+01
+No. of Data Rows : 301
+aps_dc_dB: -26.6701
+ngspice-42 done
+
+--- Running tb_ea_pvt.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Error: &n: no such variable.
+Error: Undefined number after command 'repeat', assume 1
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_pvt.spice — pvt corner sweep (tt only, shell runs all corners)
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT TT -40 C: gain=82.2236 dB, PM=0 deg
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT TT 27 C: gain=89.8842 dB, PM=0 deg
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT TT 150 C: gain=89.9022 dB, PM=0 deg
+pvt_all_pass: 1
+ngspice-42 done
+
+--- Running tb_ea_noise.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+Warning: Noise input source vfb has no AC value
+doAnalyses: ac input not found
+
+noise simulation(s) aborted
+Error: no such plot named noise2
+Warning from checkvalid: vector inoise_total is not available or has zero length.
+Error: RHS "inoise_total * 1e6" invalid
+Error: &inoise_uv: no such variable.
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_noise.spice — noise analysis
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+inoise_total_uVrms: 
+noise_analysis: done
+ngspice-42 done
+
+--- Post-processing CMRR and PSRR ---
+cmrr_dB: 110.6
+psrr_dB: 116.6
+
+--- Evaluation ---
+---
+* phase_margin_deg                      56.81  deg       (spec >= 55.0)  PASS
+  dc_gain_dB                            89.88  dB        (spec >= 60.0)  PASS
+  ugb_kHz                               331.1  kHz       (spec >= 200.0)  PASS
+  ugb_kHz_max                           331.1  kHz       (spec <= 1000.0)  PASS
+  output_swing_low_V                 0.004868  V         (spec <= 0.5)  PASS
+  output_swing_high_V                       5  V         (spec >= 4.5)  PASS
+  iq_uA                                 43.49  uA        (spec <= 100.0)  PASS
+  input_offset_mV                    0.009076  mV        (spec <= 5.0)  PASS
+  cmrr_dB                               110.6  dB        (spec >= 50.0)  PASS
+  psrr_dB                               116.6  dB        (spec >= 40.0)  PASS
+  devices_in_sat                            1  bool      (spec >= 1.0)  PASS
+  pvt_all_pass                              1  bool      (spec >= 1.0)  PASS
+specs_pass: 12/12
+primary (phase_margin_deg): 56.8094
+
+Run finished: Fri Mar 27 23:39:30 UTC 2026

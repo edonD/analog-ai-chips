@@ -1,74 +1,42 @@
 * tb_ea_dc.spice — DC operating point, saturation check, Iq
-* Block 00: Error Amplifier
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
 
 .lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
 .include "design.cir"
 
-* --- Supplies and references ---
 Vpvdd pvdd 0 DC 5.0
 Vref  vref 0 DC 1.226
 Vfb   vfb  0 DC 1.226
 Ven   en   0 DC 5.0
 Ibias pvdd ibias DC 1u
 
-* --- DUT ---
 Xea vref vfb vout_gate pvdd 0 ibias en error_amp
-
-* --- Load (100pF placeholder for pass device Cgs) ---
 Cload vout_gate 0 100p
 
-* --- Simulation ---
+.nodeset v(vout_gate)=2.5 v(xea.d2)=0.9
+
 .option savecurrents
 .control
   op
 
-  * Print operating point
   echo "=== DC Operating Point ==="
-  print v(vout_gate) v(vref) v(vfb) v(pvdd) v(en)
-  print v(xea.tail_s) v(xea.fold_l) v(xea.fold_r)
-  print v(xea.cas_l) v(xea.cas_r) v(xea.mid_l) v(xea.mid_r)
-  print v(xea.ibias_en) v(xea.ncb_top) v(xea.pcb)
+  print v(vout_gate) v(xea.tail_s) v(xea.d1) v(xea.d2) v(xea.pb_tail)
 
-  * Measure quiescent current from PVDD
+  * Quiescent current
   let iq = -i(vpvdd)
   let iq_ua = iq * 1e6
-  echo "=== Quiescent Current ==="
-  print iq_ua
+  echo "iq_uA: $&iq_ua"
 
-  * Check saturation: Vds > Vdsat + 50mV for key devices
-  * For PMOS: |Vds| > |Vdsat| + 0.05
-  * For NMOS: Vds > Vdsat + 0.05
-  * We check by looking at node voltages
-
+  * Saturation check: verify key nodes in reasonable range
   let vout = v(vout_gate)
-  let iq_val = iq_ua
-
-  * Output metrics for run.log
-  echo "iq_uA: $&iq_val"
-
-  * Saturation check: verify fold nodes are in reasonable range
-  * NMOS cascode bottom: cas_l, cas_r should be > ~0.3V (Vdsat)
-  * NMOS cascode top: fold_l, fold_r should be > cas + Vdsat
-  * PMOS cascode: mid_l, mid_r should be < PVDD - Vdsat
-  let v_cas_l = v(xea.cas_l)
-  let v_cas_r = v(xea.cas_r)
-  let v_fold_l = v(xea.fold_l)
-  let v_fold_r = v(xea.fold_r)
-  let v_mid_l = v(xea.mid_l)
-  let v_mid_r = v(xea.mid_r)
-
-  * Simple saturation heuristic: if fold nodes between 1V and 4V, devices likely in sat
+  let vd2 = v(xea.d2)
   let sat_ok = 1
-  if v_fold_l < 0.5
+
+  * Stage 1 output (d2) should be around 0.8-1.5V for NMOS mirror
+  if vd2 < 0.3
     let sat_ok = 0
   end
-  if v_fold_l > 4.5
-    let sat_ok = 0
-  end
-  if v_fold_r < 0.5
-    let sat_ok = 0
-  end
-  if v_fold_r > 4.5
+  if vd2 > 3.0
     let sat_ok = 0
   end
 

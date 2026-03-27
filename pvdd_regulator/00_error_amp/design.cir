@@ -60,8 +60,9 @@ XMp_ld vout_gate pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20 l=4 m=4
 * Miller compensation: Cc + Rc from vout_gate to d2
 * ================================================================
 * Cc = 5pF (Miller cap, moves dominant pole to stage 1 output)
-Cc d2 comp_mid 15p
-* Rc = 5k (nulling resistor to push RHP zero to LHP or infinity)
+Cc d2 comp_mid 30p
+* Rc nulling resistor: Rc ≈ 1/gm2 moves RHP zero to infinity
+* gm2 of Mcs ≈ 2*Id/Vov ≈ 2*20uA/0.2V = 200uS → 1/gm2 ≈ 5k
 Rc comp_mid vout_gate 5k
 
 .ends error_amp
