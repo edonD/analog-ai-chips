@@ -288,7 +288,7 @@ def main():
         SENSOR_FILL,
         "01",
         "Sensor input",
-        "External MEMS source",
+        "",
         title_fs=9.5,
         sub_fs=7.4,
         badge_fs=7.2,
