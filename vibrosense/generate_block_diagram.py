@@ -352,17 +352,33 @@ def main():
     mono_block(40, 40, 32, 5.5, "RMS  |  Crest  |  Kurtosis",
                sub="8 uW")
 
-    # Feature vector column
+    # Feature vector column — shows the 8 analog DC voltages that feed the classifier
     fvx, fvy, fvw, fvh = 74, 47, 7, 19
     rounded_box(ax, fvx, fvy, fvw, fvh, fc="#eef1f5", ec=C3, lw=0.9, radius=0.6, z=3)
-    ax.text(fvx + fvw / 2, fvy + fvh - 1.4, "8", ha="center", va="center",
-            fontsize=14, color=C1, family=MONO, weight="bold", zorder=5)
-    ax.text(fvx + fvw / 2, fvy + fvh - 3.2, "features", ha="center", va="center",
-            fontsize=7.5, color=C2, family=FONT, zorder=5)
-    labels_fv = ["E1", "E2", "E3", "E4", "E5", "RMS", "Crest", "Kurt"]
-    for i, lb in enumerate(labels_fv):
-        ax.text(fvx + fvw / 2, fvy + fvh - 5.0 - i * 1.6, lb, ha="center", va="center",
-                fontsize=6.5, color=C2, family=MONO, zorder=5)
+    fvcx = fvx + fvw / 2
+    ax.text(fvcx, fvy + fvh - 1.2, "Feature", ha="center", va="center",
+            fontsize=7.8, color=C1, family=MONO, weight="bold", zorder=5)
+    ax.text(fvcx, fvy + fvh - 2.5, "Vector", ha="center", va="center",
+            fontsize=7.8, color=C1, family=MONO, weight="bold", zorder=5)
+    ax.plot([fvx + 1.0, fvx + fvw - 1.0], [fvy + fvh - 3.3, fvy + fvh - 3.3],
+            color=C3, lw=0.7, zorder=4)
+    # 8 feature rows — each is a DC voltage line going to the classifier
+    fv_labels = [
+        ("Band 1", "100-500 Hz"),
+        ("Band 2", "0.5-2 kHz"),
+        ("Band 3", "2-5 kHz"),
+        ("Band 4", "5-10 kHz"),
+        ("Band 5", "10-20 kHz"),
+        ("RMS", "broadband"),
+        ("Crest", "peak/RMS"),
+        ("Kurt.", "impulsive"),
+    ]
+    for i, (name, desc) in enumerate(fv_labels):
+        fy = fvy + fvh - 4.4 - i * 1.7
+        ax.text(fvcx, fy, name, ha="center", va="center",
+                fontsize=6.2, color=C1, family=MONO, weight="bold", zorder=5)
+    ax.text(fvcx, fvy + 0.8, "8 DC voltages", ha="center", va="center",
+            fontsize=5.8, color="#9aa5b0", family=FONT, zorder=5)
 
     # ── 03: Classifier ──
     cx0, cy0, cw0, ch0 = 85, 38, 14, 32
