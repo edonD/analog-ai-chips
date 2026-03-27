@@ -198,6 +198,7 @@ C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1000 -940 0 1 {name=l_v
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1040 -630 0 0 {name=l_vbias3 lab=vbias}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1280 -840 0 1 {name=l_vbias4 lab=vbias}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1320 -810 0 0 {name=l_nbias4 lab=nbias}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1000 -600 0 1 {name=l_m6gate lab=gnd}
 N -20 -970 -20 -1140 {lab=vdd}
 N 240 -970 240 -1140 {lab=vdd}
 N -20 -1140 240 -1140 {lab=vdd}
