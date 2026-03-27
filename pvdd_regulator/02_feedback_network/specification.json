@@ -1,0 +1,90 @@
+{
+  "block": "02",
+  "name": "feedback_network",
+  "subckt": "feedback_network",
+  "ports": ["pvdd", "vfb", "gnd"],
+  "design_file": "design.cir",
+  "wave": 2,
+  "depends_on": ["00"],
+  "note": "Can test standalone with ideal 5V source on pvdd. Full verification needs closed loop with Blocks 00+01.",
+  "target_ratio": 0.2452,
+  "target_vfb_at_5v": 1.226,
+  "operating_conditions": {
+    "pvdd_range": { "min": 4.8, "max": 5.17, "unit": "V" },
+    "pvdd_nom": 5.0,
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "vfb_at_5v",
+      "param": "V_FB at PVDD=5.0V",
+      "min": 1.225,
+      "max": 1.227,
+      "unit": "V",
+      "condition": "TT 27C — adjust resistor sizing until exact"
+    },
+    {
+      "id": "vfb_temp_drift",
+      "param": "V_FB variation over temperature",
+      "max": 5e-3,
+      "unit": "V",
+      "condition": "-40C to 150C sweep at TT corner (ratio TC < 50 ppm/C)"
+    },
+    {
+      "id": "vfb_corner_drift",
+      "param": "V_FB variation across process corners",
+      "max": 10e-3,
+      "unit": "V",
+      "condition": "SS and FF corners at 27C"
+    },
+    {
+      "id": "divider_current",
+      "param": "Divider quiescent current",
+      "min": 10e-6,
+      "max": 15e-6,
+      "unit": "A",
+      "condition": "PVDD=5.0V, TT 27C"
+    },
+    {
+      "id": "noise_vfb",
+      "param": "Integrated noise at vfb (1Hz–1MHz)",
+      "max": 50e-6,
+      "unit": "Vrms",
+      "condition": "TT 27C"
+    },
+    {
+      "id": "no_model_errors",
+      "param": "All testbenches run without model errors",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Real Sky130 PDK devices only"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_fb_dc_ratio.spice",
+      "measures": ["vfb_at_5v", "divider_current"]
+    },
+    {
+      "file": "tb_fb_temp.spice",
+      "measures": ["vfb_temp_drift"]
+    },
+    {
+      "file": "tb_fb_corners.spice",
+      "measures": ["vfb_corner_drift"]
+    },
+    {
+      "file": "tb_fb_noise.spice",
+      "measures": ["noise_vfb"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_fb_dc_ratio.spice",
+    "tb_fb_temp.spice",
+    "tb_fb_corners.spice",
+    "tb_fb_noise.spice",
+    "README.md"
+  ]
+}

@@ -1,0 +1,40 @@
+* Block 02: Feedback Network
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   pvdd  — regulated supply to sense (5.0V nominal)
+*   vfb   — feedback output to error amp (-) input (~1.226V at regulation)
+*   gnd   — ground
+*
+* STATUS: EMPTY — resistor values not yet determined
+*
+* Topology: resistive voltage divider from PVDD to GND
+*   vfb = pvdd * R2 / (R1 + R2) = 1.226V when pvdd = 5.0V
+*   Ratio: R2/(R1+R2) = 1.226/5.0 = 0.2452
+*   With R1+R2 = 64 kΩ: R1 ≈ 48.32 kΩ, R2 ≈ 15.68 kΩ
+*   Divider current: 5.0V / 64kΩ ≈ 78 µA (must be 10–15 µA — adjust total R)
+*   For 12 µA target: R_total = 5.0V/12µA ≈ 417 kΩ
+*     R1 ≈ 314.5 kΩ, R2 ≈ 102.5 kΩ
+*
+* Device: sky130_fd_pr__res_xhigh_po (polysilicon, xhigh sheet resistance)
+*   Sheet resistance: ~2 kΩ/sq
+*   Use series strings to achieve high resistance values.
+*
+* Requirements:
+*   V_FB at PVDD=5.0V, TT 27°C     = 1.226V ± 1 mV
+*   V_FB drift over −40 to 150°C   <= 5 mV
+*   V_FB drift across PVT corners  <= 10 mV
+*   Divider current                 10–15 µA from PVDD
+*   Noise at VFB                    < 50 µV rms (10 Hz–100 kHz)
+*
+.subckt feedback_network pvdd vfb gnd
+
+* TODO: implement resistor divider here
+* Use sky130_fd_pr__res_xhigh_po for both R1 and R2.
+* Adjust values so vfb = pvdd * R2/(R1+R2) = 1.226V at pvdd = 5.0V.
+*
+* Example stub (values to be determined by simulation):
+* XR1 pvdd vfb sky130_fd_pr__res_xhigh_po W=1e-6 L=<value>
+* XR2 vfb gnd  sky130_fd_pr__res_xhigh_po W=1e-6 L=<value>
+
+.ends feedback_network

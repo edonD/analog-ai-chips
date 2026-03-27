@@ -1,0 +1,15 @@
+# Block 02: Feedback Network — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: vfb_error_mV — absolute error from 1.226V target (lower is better)
+#   vfb_error_mV = abs(V_FB - 1.226) * 1000  at PVDD=5.0V TT 27C
+#   Target: < 1 mV. Perfect: 0.000 mV.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+vfb_error_mV	^vfb_error_mV:	<=	1	mV	yes
+vfb_temp_drift_mV	^vfb_temp_drift_mV:	<=	5	mV	no
+vfb_corner_drift_mV	^vfb_corner_drift_mV:	<=	10	mV	no
+divider_current_uA	^divider_current_uA:	>=	10	uA	no
+divider_current_uA_max	^divider_current_uA:	<=	15	uA	no
+noise_vfb_uVrms	^noise_vfb_uVrms:	<=	50	uVrms	no
