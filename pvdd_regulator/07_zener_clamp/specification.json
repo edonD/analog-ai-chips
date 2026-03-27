@@ -1,0 +1,101 @@
+{
+  "block": "07",
+  "name": "zener_clamp",
+  "subckt": "zener_clamp",
+  "ports": ["pvdd", "gnd"],
+  "design_file": "design.cir",
+  "wave": 3,
+  "depends_on": [],
+  "note": "Sky130 has no real Zener — must build clamp from available devices. Severe TC problem with diode stacks.",
+  "operating_conditions": {
+    "pvdd_normal_range": { "min": 4.8, "max": 5.17, "unit": "V" },
+    "pvdd_overshoot_range": { "min": 5.5, "max": 7.0, "unit": "V" },
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "clamp_onset_tt27",
+      "param": "Clamp onset voltage at 1mA, TT 27C",
+      "min": 5.5,
+      "max": 6.2,
+      "unit": "V",
+      "condition": "V_pvdd at which Iclamp = 1mA, TT 27C"
+    },
+    {
+      "id": "clamp_at_10mA_tt27",
+      "param": "Clamp voltage at 10mA, TT 27C",
+      "max": 6.5,
+      "unit": "V",
+      "condition": "V_pvdd when Iclamp = 10mA — must not exceed this"
+    },
+    {
+      "id": "leakage_at_5v",
+      "param": "Leakage current at PVDD=5.0V",
+      "max": 1e-6,
+      "unit": "A",
+      "condition": "TT 27C — must not affect quiescent budget"
+    },
+    {
+      "id": "leakage_at_5p17v",
+      "param": "Leakage current at PVDD=5.17V",
+      "max": 5e-6,
+      "unit": "A",
+      "condition": "TT 27C — must not interfere with regulation at max normal PVDD"
+    },
+    {
+      "id": "clamp_onset_150c",
+      "param": "Clamp onset voltage at 150C",
+      "min": 5.0,
+      "unit": "V",
+      "condition": "At 1mA — must not drag down normal PVDD due to negative TC"
+    },
+    {
+      "id": "clamp_onset_m40c",
+      "param": "Clamp onset voltage at -40C",
+      "max": 7.0,
+      "unit": "V",
+      "condition": "At 1mA — must still clamp before approaching BVDD at cold corner"
+    },
+    {
+      "id": "transient_peak",
+      "param": "Peak voltage during 10V/us transient ramp",
+      "max": 6.5,
+      "unit": "V",
+      "condition": "10V/us ramp into 200pF Cload"
+    },
+    {
+      "id": "peak_current_at_7v",
+      "param": "Peak current capability at 7V (pulse)",
+      "min": 100e-3,
+      "unit": "A",
+      "condition": "Pulse rating — not DC"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_zc_iv.spice",
+      "measures": ["clamp_onset_tt27", "clamp_at_10mA_tt27", "leakage_at_5v", "leakage_at_5p17v"]
+    },
+    {
+      "file": "tb_zc_temp.spice",
+      "measures": ["clamp_onset_150c", "clamp_onset_m40c", "I-V at -40/27/85/150C"]
+    },
+    {
+      "file": "tb_zc_transient.spice",
+      "measures": ["transient_peak", "peak_current_at_7v"]
+    },
+    {
+      "file": "tb_zc_corners.spice",
+      "measures": ["Clamp voltage at SS/FF/SF/FS corners"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_zc_iv.spice",
+    "tb_zc_temp.spice",
+    "tb_zc_transient.spice",
+    "tb_zc_corners.spice",
+    "README.md"
+  ]
+}

@@ -1,0 +1,59 @@
+* Block 07: Zener Clamp
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   pvdd  — PVDD output node (clamp absorbs excess voltage here)
+*   gnd   — ground (clamp current flows to ground)
+*
+* STATUS: EMPTY — clamping topology not yet chosen
+*
+* Context: Sky130 has NO true Zener diode.
+*   Must build clamp from available devices.
+*   Sits in parallel with 200 pF Cload and feedback divider.
+*   Purely passive — draws zero current below clamp threshold.
+*   Always active (no enable pin).
+*
+* Topology options:
+*
+*   1. Diode-connected HV MOSFET stack:
+*      Stack N diode-connected sky130_fd_pr__nfet_g5v0d10v5 from PVDD to GND.
+*      Each drops ~Vth (~0.7–0.9V). Vth TC ≈ −1 mV/°C (better than PN junction).
+*      N = 7 → ~5.6–6.3V clamp. Characterize TC carefully.
+*
+*   2. Forward-biased PN diode stack:
+*      Use sky130_fd_pr__diode_pw2nd_05v5 or sky130_fd_pr__diode_pd2nw_05v5.
+*      Vf ≈ 0.65V per diode, TC ≈ −2 mV/°C per junction.
+*      N=9: 5.85V at 27°C → drops to ~2.4V at 150°C — FAILS.
+*      WARNING: pure diode stack fails the 150°C constraint. See Known Challenges.
+*
+*   3. MOSFET voltage clamp (resistor bias):
+*      NMOS with gate driven by resistive divider from PVDD.
+*      Turns on when PVDD > (divider threshold + Vth).
+*      Better TC, tunable threshold, but static divider current must be < 1 µA.
+*
+*   4. Hybrid: diode stack for fast transient + MOSFET for precision clamp onset.
+*
+* Requirements:
+*   Clamp onset (1 mA)  5.5–6.2V at TT 27°C
+*   Clamp at 10 mA      < 6.5V at TT 27°C
+*   Leakage at 5.0V     < 1 µA (1000 nA)
+*   Leakage at 5.17V    < 5 µA
+*   Clamp onset at 150°C   > 5.0V (must not drag normal PVDD)
+*   Clamp onset at −40°C   < 7.0V (must still protect)
+*   Transient peak (10 V/µs ramp, 200 pF Cload)  < 6.5V
+*   Peak current capability  > 100 mA (pulse)
+*
+.subckt zener_clamp pvdd gnd
+
+* TODO: implement voltage clamp here
+* Critical challenge: TC problem.
+*   Any stack with large TC will fail at 150°C (too low) or −40°C (too high).
+*   Start with diode-connected HV NMOS stack to characterize TC.
+*   Then add TC compensation if needed.
+*
+* Example starting point (not sized — investigate TC first):
+* XM1 pvdd  n1  n1  gnd sky130_fd_pr__nfet_g5v0d10v5 W=1e-6 L=0.5e-6
+* XM2 n1    n2  n2  gnd sky130_fd_pr__nfet_g5v0d10v5 W=1e-6 L=0.5e-6
+* ... (add more stages until clamp onset > 5.5V)
+
+.ends zener_clamp

@@ -1,0 +1,19 @@
+# Block 07: Zener Clamp — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: leakage_at_5v_nA — leakage at normal PVDD (lower is better)
+#   At PVDD = 5.0V TT 27C the clamp must draw < 1000 nA (1 uA).
+#   Minimize leakage while keeping the clamp onset above 5.5V at TT.
+#   If leakage is zero but clamp doesn't activate, that's a failure too — check all metrics.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+leakage_at_5v_nA	^leakage_at_5v_nA:	<=	1000	nA	yes
+clamp_onset_1mA_V	^clamp_onset_1mA_V:	>=	5.5	V	no
+clamp_onset_1mA_V_max	^clamp_onset_1mA_V:	<=	6.2	V	no
+clamp_at_10mA_V	^clamp_at_10mA_V:	<=	6.5	V	no
+leakage_at_5p17v_nA	^leakage_at_5p17v_nA:	<=	5000	nA	no
+clamp_onset_150c_V	^clamp_onset_150c_V:	>=	5.0	V	no
+clamp_onset_m40c_V	^clamp_onset_m40c_V:	<=	7.0	V	no
+transient_peak_V	^transient_peak_V:	<=	6.5	V	no
+peak_current_mA	^peak_current_mA:	>=	100	mA	no
