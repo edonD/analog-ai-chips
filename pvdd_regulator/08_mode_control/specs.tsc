@@ -1,0 +1,26 @@
+# Block 08: Mode Control — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: thresh_max_error_pct — max % deviation of any threshold from its nominal (lower is better)
+#   thresh_max_error_pct = max over all 4 thresholds of |actual - nominal| / nominal * 100
+#   Nominal values: 2.5V, 4.2V, 4.5V, 5.6V
+#   Must be < 15% at all PVT corners. Lower is better.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+thresh_max_error_pct	^thresh_max_error_pct:	<=	15	pct	yes
+thresh_por_V	^thresh_por_V:	>=	2.3	V	no
+thresh_por_V_max	^thresh_por_V:	<=	2.7	V	no
+thresh_ret_V	^thresh_ret_V:	>=	4.0	V	no
+thresh_ret_V_max	^thresh_ret_V:	<=	4.4	V	no
+thresh_pup_V	^thresh_pup_V:	>=	4.3	V	no
+thresh_pup_V_max	^thresh_pup_V:	<=	4.7	V	no
+thresh_act_V	^thresh_act_V:	>=	5.4	V	no
+thresh_act_V_max	^thresh_act_V:	<=	5.8	V	no
+hysteresis_min_mV	^hysteresis_min_mV:	>=	150	mV	no
+hysteresis_max_mV	^hysteresis_max_mV:	<=	250	mV	no
+monotonic	^monotonic:	>=	1	bool	no
+glitch_free	^glitch_free:	>=	1	bool	no
+works_fast_ramp	^works_fast_ramp:	>=	1	bool	no
+works_slow_ramp	^works_slow_ramp:	>=	1	bool	no
+iq_active_uA	^iq_active_uA:	<=	20	uA	no

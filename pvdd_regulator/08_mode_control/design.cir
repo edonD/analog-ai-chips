@@ -1,0 +1,63 @@
+* Block 08: Mode Control
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   bvdd      — battery supply input (0–10.5V), the signal being monitored
+*   pvdd      — regulated supply (5.0V, when available)
+*   svdd      — low-voltage digital supply (2.2V)
+*   gnd       — ground
+*   vref      — bandgap reference 1.226V
+*   en_ret    — retention enable input (SVDD domain, 0/2.2V)
+*   bypass_en — output: enable bypass switch (BVDD domain)
+*   ea_en     — output: enable error amplifier (PVDD domain)
+*   ref_sel   — output: reference select (0=5.0V target, 1=4.1V target)
+*   uvov_en   — output: enable UV/OV comparators
+*   ilim_en   — output: enable current limiter
+*   pass_off  — output: BVDD-domain hard shutoff (drives HV NMOS gate pull-up to BVDD during POR)
+*              NOTE: error amp (Block 00) runs from PVDD=5V and cannot pull pass gate above 5V.
+*              At BVDD=10.5V, pass device gate needs >=9.7V for full shutoff — unreachable from 5V.
+*              pass_off must drive a sky130_fd_pr__nfet_g5v0d10v5 pulling gate to BVDD.
+*              pass_off is HIGH (active) during POR (BVDD < 2.5V entry threshold).
+*
+* STATUS: EMPTY — threshold detection topology not yet chosen
+*
+* Operating modes (5 total):
+*   Mode 1: POR           BVDD 0–2.5V    PVDD=OFF
+*   Mode 2: Ret bypass    BVDD 2.5–4.2V  PVDD=BVDD (bypass)
+*   Mode 3: Ret regulate  BVDD 4.2–4.5V  PVDD=4.1V (regulated, low power)
+*   Mode 4: PU bypass     BVDD 4.5–5.0V  PVDD=BVDD (bypass)
+*   Mode 5: Active        BVDD > 5.6V    PVDD=5.0V (full regulation)
+*
+* Four threshold comparators needed:
+*   TH1 (POR):       BVDD = 2.5V ± 0.2V, hysteresis 200 mV
+*   TH2 (Ret):       BVDD = 4.2V ± 0.2V, hysteresis 200 mV
+*   TH3 (PU bypass): BVDD = 4.5V ± 0.2V, hysteresis 200 mV
+*   TH4 (Active):    BVDD = 5.6V ± 0.2V, hysteresis 200 mV
+*
+* Recommended topology:
+*   Single resistor ladder from BVDD to GND with 4 tap points.
+*   Four comparators (sky130 HV diff pair) each compare a tap to vref.
+*   Ensures monotonic threshold ordering by design (shared ladder).
+*   SR latches for hysteresis on each comparator output.
+*
+* Requirements:
+*   All 4 thresholds within ±15% of nominal across all PVT
+*   Each hysteresis 150–250 mV
+*   Glitch-free transitions (no intermediate states on outputs)
+*   Works at BVDD ramp rates 0.1–12 V/µs
+*   Quiescent current in active mode <= 20 µA from BVDD
+*   Known issue #m3: glitchy mode outputs cause PVDD oscillation — design clean.
+*
+.subckt mode_control bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off
+
+* TODO: implement mode control here
+* Build incrementally: one comparator at a time.
+* Start with TH4 (active mode threshold) since it is used in standalone testing.
+*
+* Step 1: single resistor ladder (BVDD → R_top → tap4 → ... → tap1 → R_bot → GND)
+* Step 2: comparator for TH4 — tap4 vs vref
+* Step 3: add hysteresis (SR latch or positive feedback)
+* Step 4: logic to generate ea_en, bypass_en, etc.
+* Step 5: add remaining 3 comparators
+
+.ends mode_control

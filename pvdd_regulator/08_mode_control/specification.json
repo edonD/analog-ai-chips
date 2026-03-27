@@ -1,0 +1,163 @@
+{
+  "block": "08",
+  "name": "mode_control",
+  "subckt": "mode_control",
+  "ports": ["bvdd", "pvdd", "svdd", "gnd", "vref", "en_ret", "bypass_en", "ea_en", "ref_sel", "uvov_en", "ilim_en"],
+  "design_file": "design.cir",
+  "wave": 3,
+  "depends_on": ["06"],
+  "operating_modes": [
+    { "mode": 1, "name": "POR",              "bvdd_range": "0 - 2.5V",    "pvdd": "OFF",    "iload_max": null },
+    { "mode": 2, "name": "retention_bypass", "bvdd_range": "2.5 - 4.2V", "pvdd": "BVDD",  "iload_max": "0.5mA" },
+    { "mode": 3, "name": "retention_reg",    "bvdd_range": "4.2 - 4.5V", "pvdd": "4.1V",   "iload_max": "0.5mA" },
+    { "mode": 4, "name": "powerup_bypass",   "bvdd_range": "4.5 - 5.0V", "pvdd": "BVDD",  "iload_max": "10mA" },
+    { "mode": 5, "name": "active_regulate",  "bvdd_range": "> 5.6V",      "pvdd": "5.0V",   "iload_max": "50mA" }
+  ],
+  "operating_conditions": {
+    "bvdd_ramp": { "min": 0, "max": 10.5, "unit": "V" },
+    "ramp_rates": [0.1, 1.0, 12.0],
+    "svdd": 2.2,
+    "vref": 1.226,
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "thresh_por",
+      "param": "BVDD threshold: POR -> retention bypass",
+      "min": 2.3,
+      "max": 2.7,
+      "unit": "V",
+      "condition": "BVDD rising, TT 27C"
+    },
+    {
+      "id": "thresh_ret",
+      "param": "BVDD threshold: retention bypass -> retention regulate",
+      "min": 4.0,
+      "max": 4.4,
+      "unit": "V",
+      "condition": "BVDD rising, TT 27C"
+    },
+    {
+      "id": "thresh_pup",
+      "param": "BVDD threshold: retention regulate -> power-up bypass",
+      "min": 4.3,
+      "max": 4.7,
+      "unit": "V",
+      "condition": "BVDD rising, TT 27C"
+    },
+    {
+      "id": "thresh_act",
+      "param": "BVDD threshold: power-up bypass -> active regulate",
+      "min": 5.4,
+      "max": 5.8,
+      "unit": "V",
+      "condition": "BVDD rising, TT 27C"
+    },
+    {
+      "id": "hysteresis_all",
+      "param": "Hysteresis at each threshold",
+      "min": 150e-3,
+      "max": 250e-3,
+      "unit": "V",
+      "condition": "All four comparators — falling threshold = rising - hysteresis"
+    },
+    {
+      "id": "thermometer_monotonic",
+      "param": "Monotonic threshold sequence (no out-of-order assertions)",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Comparators must assert in order as BVDD ramps up"
+    },
+    {
+      "id": "glitch_free",
+      "param": "Glitch-free output transitions",
+      "eq": true,
+      "unit": "bool",
+      "condition": "No spurious transitions on bypass_en, ea_en, ref_sel, uvov_en, ilim_en"
+    },
+    {
+      "id": "works_fast_ramp",
+      "param": "Reliable transitions at 12 V/us BVDD ramp",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Clean transitions, no missed thresholds"
+    },
+    {
+      "id": "works_slow_ramp",
+      "param": "Reliable transitions at 0.1 V/us BVDD ramp",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Clean transitions — no oscillation while BVDD dwells near threshold"
+    },
+    {
+      "id": "thresh_pvt",
+      "param": "All thresholds within +/-15% of nominal across PVT",
+      "max_pct_deviation": 15,
+      "unit": "%",
+      "condition": "SS/FF/SF/FS at -40/27/150C"
+    },
+    {
+      "id": "iq_active",
+      "param": "Quiescent current in active mode",
+      "max": 20e-6,
+      "unit": "A",
+      "condition": "From BVDD, BVDD=7V, active mode"
+    },
+    {
+      "id": "power_down_correct",
+      "param": "Correct reverse mode sequence on BVDD power-down",
+      "eq": true,
+      "unit": "bool",
+      "condition": "BVDD 10.5V -> 0 — transitions occur in reverse order with hysteresis"
+    },
+    {
+      "id": "response_time",
+      "param": "Comparator response time per threshold",
+      "max": 5e-6,
+      "unit": "s",
+      "condition": "From threshold crossing to output change"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_mc_ramp_normal.spice",
+      "measures": ["thresh_por", "thresh_ret", "thresh_pup", "thresh_act", "thermometer_monotonic", "glitch_free"]
+    },
+    {
+      "file": "tb_mc_fast_ramp.spice",
+      "measures": ["works_fast_ramp"]
+    },
+    {
+      "file": "tb_mc_slow_ramp.spice",
+      "measures": ["works_slow_ramp"]
+    },
+    {
+      "file": "tb_mc_power_down.spice",
+      "measures": ["power_down_correct"]
+    },
+    {
+      "file": "tb_mc_hysteresis.spice",
+      "measures": ["hysteresis_all"]
+    },
+    {
+      "file": "tb_mc_iq.spice",
+      "measures": ["iq_active"]
+    },
+    {
+      "file": "tb_mc_pvt.spice",
+      "measures": ["thresh_pvt", "all thresholds at SS/FF/SF/FS, -40/27/150C"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_mc_ramp_normal.spice",
+    "tb_mc_fast_ramp.spice",
+    "tb_mc_slow_ramp.spice",
+    "tb_mc_power_down.spice",
+    "tb_mc_hysteresis.spice",
+    "tb_mc_iq.spice",
+    "tb_mc_pvt.spice",
+    "README.md"
+  ]
+}
