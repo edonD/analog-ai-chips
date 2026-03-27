@@ -1,84 +1,65 @@
 * Block 06: Level Shifters
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Two subcircuits in this file:
+* Two subcircuits:
+*   1. level_shifter_up   — SVDD (2.2V) → BVDD (5.4–10.5V)
+*   2. level_shifter_down — PVDD (5.0V) → SVDD (2.2V)
 *
-* 1. level_shifter_up   — SVDD (2.2V) → BVDD (5.4–10.5V)
-* 2. level_shifter_down — PVDD (5.0V) → SVDD (2.2V)
-*
-* STATUS: EMPTY — topology not yet chosen
+* Both use cross-coupled PMOS topology for zero static current.
+* All devices are HV (g5v0d10v5) since SVDD=2.2V exceeds 1.8V oxide limit.
 *
 * ============================================================
 * Low-to-High Shifter: SVDD → BVDD
 * ============================================================
-* Ports:
-*   in   — input signal (0/SVDD = 0/2.2V)
-*   out  — output signal (0/BVDD = 0/5.4–10.5V)
-*   bvdd — high-voltage supply (5.4–10.5V)
-*   svdd — low-voltage supply (2.2V)
-*   gnd  — ground
-*
-* Recommended topology: classic cross-coupled PMOS level shifter
-*   Two HV PMOS (sky130_fd_pr__pfet_g5v0d10v5) cross-coupled from BVDD.
-*   Two HV NMOS (sky130_fd_pr__nfet_g5v0d10v5) pull-downs driven by in/in_b.
-*   Output is the drain of one PMOS (swings 0 to BVDD).
-*
-* Key challenge: at BVDD=5.4V, SS 150°C, SVDD NMOS overdrive is only ~1.3V.
-*   Size NMOS wide enough to overcome cross-coupled PMOS.
-*
-* Requirements:
-*   OUT HIGH >= BVDD − 0.2V
-*   OUT LOW  <= 0.2V
-*   Delay    <= 100 ns (worst case SS 150°C, BVDD=5.4V)
-*   Static I <= 5 µA per shifter in steady state
-*   Works at BVDD = 5.4V to 10.5V
+* Classic cross-coupled PMOS level shifter.
+* Non-inverting: in=SVDD → out=BVDD, in=0 → out=0.
 *
 .subckt level_shifter_up in out bvdd svdd gnd
+.param wn_up=10e-6
+.param wp_up=1e-6
 
-* TODO: implement low-to-high level shifter
-* Classic 4-transistor cross-coupled PMOS topology:
-*
-* Differential NMOS pull-downs (SVDD domain):
-* XMN1 n1 in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=<W> L=0.5e-6
-* XMN2 n2 in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=<W> L=0.5e-6
-*
-* Cross-coupled PMOS (BVDD domain):
-* XMP1 n1 n2 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=<W> L=0.5e-6
-* XMP2 n2 n1 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=<W> L=0.5e-6
-*
-* out = n2 (or buffered version)
-* Need to generate in_b (inverted in at SVDD level) from input.
+* Input inverter (SVDD domain, HV devices)
+XMN_INV in_b in  gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 W=2e-6 L=0.5e-6
+XMP_INV in_b in  svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6 L=0.5e-6
+
+* NMOS pull-downs (driven by SVDD-level signals)
+XMN1 n1 in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_up L=0.5e-6
+XMN2 n2 in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_up L=0.5e-6
+
+* Cross-coupled PMOS (BVDD domain)
+XMP1 n1 n2 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up L=0.5e-6
+XMP2 n2 n1 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up L=0.5e-6
+
+* Output connection (zero-ohm resistor)
+Rout out n2 0
 
 .ends level_shifter_up
 
 * ============================================================
 * High-to-Low Shifter: PVDD → SVDD
 * ============================================================
-* Ports:
-*   in   — input signal (0/PVDD = 0/5.0V)
-*   out  — output signal (0/SVDD = 0/2.2V)
-*   pvdd — high-voltage supply (~5.0V)
-*   svdd — low-voltage supply (2.2V)
-*   gnd  — ground
-*
-* Recommended topology: voltage-clamped inverter
-*   HV NMOS input stage (handles 5V input),
-*   output clamped to SVDD via PMOS load or cascode clamp.
-*   Protects all SVDD-domain (1.8V oxide) devices from seeing > 1.8V.
-*
-* Requirements:
-*   OUT HIGH >= SVDD − 0.2V (>= 2.0V)
-*   OUT LOW  <= 0.2V
-*   Delay    <= 100 ns
-*   Static I <= 5 µA
-*   1.8V devices must never see Vgs or Vds > 1.8V
+* Same cross-coupled PMOS topology, adapted for high-to-low.
+* NMOS driven by PVDD-domain signals (strong, Vgs up to 5V).
+* PMOS cross-coupled from SVDD.
+* Non-inverting: in=PVDD → out=SVDD, in=0 → out=0.
 *
 .subckt level_shifter_down in out pvdd svdd gnd
+.param wn_dn=2e-6
+.param wp_dn=1e-6
 
-* TODO: implement high-to-low level shifter
-* Voltage-clamped inverter:
-* HV NMOS (g5v0d10v5) with input from PVDD domain,
-* output tied to SVDD via PMOS load (svdd supply).
-* Cascode or clamp device to protect SVDD PMOS from seeing full PVDD.
+* Input inverter (PVDD domain, HV devices)
+XMN_INV in_b in  gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 W=2e-6 L=0.5e-6
+XMP_INV in_b in  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6 L=0.5e-6
+
+* NMOS pull-downs (driven by PVDD-level signals)
+XMN1 n1 in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_dn L=0.5e-6
+XMN2 n2 in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_dn L=0.5e-6
+
+* Cross-coupled PMOS (SVDD domain)
+XMP1 n1 n2 svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_dn L=0.5e-6
+XMP2 n2 n1 svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_dn L=0.5e-6
+
+* Output connection
+Rout out n2 0
 
 .ends level_shifter_down
