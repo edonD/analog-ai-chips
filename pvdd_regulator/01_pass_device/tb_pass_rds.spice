@@ -1,0 +1,21 @@
+* tb_pass_rds.spice — On-resistance, TT 27C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" tt
+.include "design.cir"
+.temp 27
+
+Vbvdd bvdd 0 5.4
+* Sweep drain near bvdd for small Vds
+Vdrain pvdd 0 5.0
+Vgate gate 0 0
+
+X1 gate bvdd pvdd pass_device
+
+.control
+op
+let vds = v(pvdd) - v(bvdd)
+let id_a = abs(i(Vdrain))
+let rds = abs(vds) / id_a
+echo rds_on_ohm: $&rds
+quit
+.endc
+.end

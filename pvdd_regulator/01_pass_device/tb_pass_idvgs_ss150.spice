@@ -1,0 +1,22 @@
+* tb_pass_idvgs_ss150.spice — Id vs Vgs at dropout, SS 150C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" ss
+.include "design.cir"
+.temp 150
+
+Vbvdd bvdd 0 5.4
+Vdrain pvdd 0 5.0
+Vgate gate 0 5.4
+
+X1 gate bvdd pvdd pass_device
+
+.dc Vgate 5.4 0 -0.01
+
+.control
+run
+let id_ma = abs(i(Vdrain)) * 1000
+let last_idx = length(id_ma) - 1
+let id_full = id_ma[last_idx]
+echo id_dropout_ss150: $&id_full
+quit
+.endc
+.end
