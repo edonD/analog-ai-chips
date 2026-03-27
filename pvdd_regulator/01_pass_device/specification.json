@@ -1,0 +1,127 @@
+{
+  "block": "01",
+  "name": "pass_device",
+  "subckt": "pass_device",
+  "ports": ["gate", "bvdd", "pvdd"],
+  "design_file": "design.cir",
+  "wave": 1,
+  "depends_on": [],
+  "note": "CHARACTERIZE THIS BLOCK FIRST — Cgs and gm feed Blocks 00 and 03",
+  "operating_conditions": {
+    "bvdd_range": { "min": 5.4, "max": 10.5, "unit": "V" },
+    "pvdd_nom": 5.0,
+    "iload_max": 50e-3,
+    "dropout_voltage": 400e-3,
+    "cload": 200e-12,
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "id_at_dropout_tt27",
+      "param": "Drain current at dropout, TT 27C",
+      "min": 50e-3,
+      "unit": "A",
+      "condition": "Vds=400mV, full gate drive (Vgs=max), TT 27C"
+    },
+    {
+      "id": "id_at_dropout_ss150",
+      "param": "Drain current at dropout, SS 150C",
+      "min": 50e-3,
+      "unit": "A",
+      "condition": "Vds=400mV, full gate drive, SS 150C — worst case"
+    },
+    {
+      "id": "total_width",
+      "param": "Total device width",
+      "max": 20e-3,
+      "unit": "m",
+      "condition": "Sum of all fingers/parallel devices — must be layout-feasible"
+    },
+    {
+      "id": "rds_on",
+      "param": "On-resistance",
+      "max": 20,
+      "unit": "ohm",
+      "condition": "At full gate drive, TT 27C"
+    },
+    {
+      "id": "cgs_documented",
+      "param": "Gate capacitance Cgs measured and reported",
+      "eq": true,
+      "unit": "bool",
+      "condition": "At operating point (Vgs=-1V, Vds=-0.4V nominal); value feeds Blocks 00 and 03"
+    },
+    {
+      "id": "gm_at_10mA_documented",
+      "param": "Transconductance gm at Iload=10mA measured and reported",
+      "eq": true,
+      "unit": "bool",
+      "condition": "gm value feeds loop gain calculation in Block 03"
+    },
+    {
+      "id": "leakage_off",
+      "param": "Leakage current (pass device OFF)",
+      "max": 1e-6,
+      "unit": "A",
+      "condition": "Vgs=0V, BVDD=7V"
+    },
+    {
+      "id": "no_convergence_errors",
+      "param": "All testbenches complete without errors",
+      "eq": true,
+      "unit": "bool",
+      "condition": "No model errors, no convergence failures"
+    }
+  ],
+  "characterization_outputs": {
+    "note": "These values must be reported in README.md and used as inputs to other blocks",
+    "required": ["W_total_mm", "L_um", "Cgs_pF", "gm_mA_per_V_at_10mA", "Rds_on_ohm", "Vdo_mV_at_50mA_TT27"]
+  },
+  "testbenches": [
+    {
+      "file": "tb_pass_idvds.spice",
+      "measures": ["Id vs Vds family curves at multiple Vgs"]
+    },
+    {
+      "file": "tb_pass_idvgs.spice",
+      "measures": ["id_at_dropout_tt27", "id_at_dropout_ss150", "total_width sizing"]
+    },
+    {
+      "file": "tb_pass_cgs.spice",
+      "measures": ["cgs_documented"]
+    },
+    {
+      "file": "tb_pass_gm.spice",
+      "measures": ["gm_at_10mA_documented"]
+    },
+    {
+      "file": "tb_pass_rds.spice",
+      "measures": ["rds_on"]
+    },
+    {
+      "file": "tb_pass_leakage.spice",
+      "measures": ["leakage_off"]
+    },
+    {
+      "file": "tb_pass_pvt.spice",
+      "measures": ["id_at_dropout at all SS/FF/SF/FS corners, -40/27/150C"]
+    },
+    {
+      "file": "tb_pass_soa.spice",
+      "measures": ["Safe operating area under transient stress"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_pass_idvds.spice",
+    "tb_pass_idvgs.spice",
+    "tb_pass_cgs.spice",
+    "tb_pass_gm.spice",
+    "tb_pass_rds.spice",
+    "tb_pass_leakage.spice",
+    "tb_pass_pvt.spice",
+    "tb_pass_soa.spice",
+    "README.md"
+  ]
+}

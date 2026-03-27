@@ -1,0 +1,15 @@
+# Block 01: Pass Device — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: id_dropout_ss150_mA — worst-case current delivery (higher is better)
+#   This is the hardest constraint. Everything else is characterization.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+id_dropout_ss150_mA	^id_dropout_ss150:	>=	50	mA	yes
+id_dropout_tt27_mA	^id_dropout_tt27:	>=	50	mA	no
+total_width_mm	^total_width_mm:	<=	20	mm	no
+rds_on_ohm	^rds_on_ohm:	<=	20	ohm	no
+leakage_off_uA	^leakage_off_uA:	<=	1	uA	no
+cgs_pF	^cgs_pF:	>=	0	pF	no
+gm_at_10mA_mA_per_V	^gm_at_10mA:	>=	0	mA/V	no

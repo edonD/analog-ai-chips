@@ -1,0 +1,35 @@
+* Block 01: Pass Device
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   gate  — gate drive from error amplifier (0 to ~BVDD)
+*   bvdd  — high-voltage supply input (5.4–10.5V battery)
+*   pvdd  — regulated output (5.0V nominal, source terminal of pass PMOS)
+*
+* STATUS: EMPTY — device sizing not yet determined
+*
+* Topology: parallel array of sky130_fd_pr__pfet_g5v0d10v5
+*   - Single gate drive, multiple fingers/devices in parallel
+*   - Source = bvdd, Drain = pvdd, Gate = gate
+*   - W/L ratio sets Rds_on and Ids at dropout
+*
+* Requirements:
+*   Ids(max)      >= 50 mA at Vgs = -4.0V, Vds = -0.3V (SS 150°C)
+*   Rds_on        <= 20 Ω  at Vgs = -5V, Ids = 50 mA
+*   Leakage (off) <= 1 µA  at Vgs = 0V (fully off)
+*   Total W       <= 20 mm (area constraint)
+*   All devices:  sky130_fd_pr__pfet_g5v0d10v5 only
+*
+.subckt pass_device gate bvdd pvdd
+
+* TODO: implement pass device here
+* Start with: 1 finger of W=4µm/L=0.5µm to characterize,
+*             then scale up to meet 50 mA requirement.
+*
+* Example (single device, not yet sized):
+* XM1 pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6 L=0.5e-6
+*
+* Key check: at VGS = (gate-bvdd) = -4V, VDS = (pvdd-bvdd) = -0.3V,
+*            Ids must be >= 50 mA at SS 150°C.
+
+.ends pass_device
