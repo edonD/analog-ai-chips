@@ -471,8 +471,8 @@ def main():
     arrow(ax, 114, 44, 121, 52, color="#a03030", lw=2.2, ms=15)
     arrow_label(ax, 117.5, 49, "IRQ", color="#a03030", fc="#fff5f5", mono=True)
 
-    arrow(ax, 101, 28, 92, 52, color=A2, lw=1.0, rad=0.08, dashed=True, ms=10)
-    arrow_label(ax, 95, 40, "weights via SPI", color=A2, fc=BG)
+    arrow(ax, 101, 28, 92, 52, color=A2, lw=1.0, rad=0.15, dashed=True, ms=10)
+    arrow_label(ax, 100.5, 37, "weights via SPI", color=A2, fc=BG)
 
     # ── Footer ──
     ax.text(70, 10.5, "Total always-on power budget:  ~200-300 uW", ha="center", va="center",
