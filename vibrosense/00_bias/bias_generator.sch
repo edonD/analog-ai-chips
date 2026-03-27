@@ -40,8 +40,8 @@ T {Comp Cap} 400 -510 0 0 0.35 0.35 {layer=4}
 T {C_comp} 400 -455 0 0 0.25 0.25 {layer=8}
 T {5 pF MIM} 400 -435 0 0 0.25 0.25 {layer=8}
 T {Anti-Deadlock} 940 -760 0 0 0.35 0.35 {layer=4}
-T {M6} 980 -680 0 0 0.3 0.3 {layer=8}
-T {0.5/0.5} 970 -656 0 0 0.25 0.25 {layer=8}
+T {M6} 940 -700 0 0 0.3 0.3 {layer=8}
+T {0.5/0.5} 940 -676 0 0 0.25 0.25 {layer=8}
 T {RC Startup} 1200 -1100 0 0 0.4 0.4 {layer=4}
 T {C_gs} 1220 -1020 0 0 0.25 0.25 {layer=8}
 T {MIM 25x50} 1210 -996 0 0 0.25 0.25 {layer=8}
@@ -198,7 +198,8 @@ C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1000 -940 0 1 {name=l_v
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1040 -630 0 0 {name=l_vbias3 lab=vbias}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1280 -840 0 1 {name=l_vbias4 lab=vbias}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1320 -810 0 0 {name=l_nbias4 lab=nbias}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1000 -600 0 1 {name=l_m6gate lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 960 -600 0 1 {name=l_m6gate lab=gnd}
+N 960 -600 1000 -600 {lab=gnd}
 N -20 -970 -20 -1140 {lab=vdd}
 N 240 -970 240 -1140 {lab=vdd}
 N -20 -1140 240 -1140 {lab=vdd}
