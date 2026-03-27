@@ -75,17 +75,18 @@ def label_chip(ax, x, y, text, fc, tc=TEXT, fs=8.6, mono=False, z=6):
     return width
 
 
-def draw_panel(ax, x, y, w, h, accent, fill, stage, title, subtitle):
+def draw_panel(ax, x, y, w, h, accent, fill, stage, title, subtitle,
+               title_fs=11.5, sub_fs=8.6, badge_fs=8.0):
     rounded_box(ax, x, y, w, h, fc=fill, ec=BORDER, lw=1.1, radius=1.0, z=1.5)
     ax.plot([x + 0.9, x + w - 0.9], [y + h - 1.5, y + h - 1.5], color=accent, lw=2.1, zorder=3)
-    stage_w = label_chip(ax, x + 1.0, y + h - 2.95, stage, fc=accent, tc="white", fs=8.0)
+    stage_w = label_chip(ax, x + 1.0, y + h - 2.95, stage, fc=accent, tc="white", fs=badge_fs)
     ax.text(
         x + 1.0 + stage_w + 0.8,
         y + h - 2.45,
         title,
         ha="left",
         va="center",
-        fontsize=11.5,
+        fontsize=title_fs,
         color=TEXT,
         family=FONT,
         weight="bold",
@@ -97,7 +98,7 @@ def draw_panel(ax, x, y, w, h, accent, fill, stage, title, subtitle):
         subtitle,
         ha="left",
         va="center",
-        fontsize=8.6,
+        fontsize=sub_fs,
         color=MUTED,
         family=FONT,
         zorder=5,
@@ -288,21 +289,24 @@ def main():
         "01",
         "Sensor input",
         "External MEMS source",
+        title_fs=9.5,
+        sub_fs=7.4,
+        badge_fs=7.2,
     )
     draw_card(
         ax,
-        5.4,
-        48.8,
-        12.0,
-        9.6,
+        5.6,
+        47.5,
+        11.6,
+        11.0,
         "MEMS\naccelerometer",
         SENSOR,
-        lines=["ADXL355 or similar", "+/-2 g, +/-660 mV"],
+        lines=["ADXL355 or similar", "+/-2 g full scale", "+/-660 mV output"],
         meta="external",
-        title_fs=9.2,
-        fs=7.5,
+        title_fs=8.8,
+        fs=7.0,
     )
-    ax.text(11.4, 45.6, "mounted on rotating machine", ha="center", va="center", fontsize=7.4, color=MUTED)
+    ax.text(11.4, 44.8, "on rotating machine", ha="center", va="center", fontsize=7.0, color=MUTED)
 
     draw_panel(
         ax,
