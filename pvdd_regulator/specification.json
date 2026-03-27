@@ -1,0 +1,461 @@
+{
+  "project": "PVDD 5V LDO Regulator",
+  "process": "SkyWater SKY130A",
+  "simulator": "ngspice",
+  "pdk_lib": "sky130.lib.spice",
+  "corners": ["tt", "ss", "ff", "sf", "fs"],
+  "temperatures": [-40, 27, 150],
+  "blocks": [
+    {
+      "id": "00",
+      "name": "error_amp",
+      "dir": "00_error_amp",
+      "subckt": "error_amp",
+      "ports": ["vref", "vfb", "vout_gate", "pvdd", "gnd", "ibias", "en"],
+      "wave": 1,
+      "depends_on": [],
+      "pass_fail": [
+        { "param": "dc_gain",          "min": 60,    "unit": "dB",   "condition": "DC, no load" },
+        { "param": "ugb",              "min": 200e3, "max": 1e6,     "unit": "Hz",  "condition": "Cload=100pF" },
+        { "param": "phase_margin",     "min": 55,    "unit": "deg",  "condition": "OL into Cgs_pass" },
+        { "param": "output_swing_low", "max": 0.5,   "unit": "V",    "condition": "PVDD=5V" },
+        { "param": "output_swing_high","min": 4.5,   "unit": "V",    "condition": "PVDD=5V, high=PVDD-0.5" },
+        { "param": "iq",               "max": 100e-6,"unit": "A",    "condition": "PVDD=5V, no load" },
+        { "param": "input_offset",     "max": 5e-3,  "unit": "V",    "condition": "TT 27C" },
+        { "param": "cmrr",             "min": 50,    "unit": "dB",   "condition": "DC" },
+        { "param": "psrr",             "min": 40,    "unit": "dB",   "condition": "DC, from PVDD" },
+        { "param": "all_devices_saturation", "eq": true, "unit": "bool", "condition": "Vds > Vdsat+50mV at nominal OP" },
+        { "param": "pvt_pass",         "eq": true,   "unit": "bool", "condition": "All above at SS/FF/SF/FS, -40/27/150C" }
+      ],
+      "testbenches": [
+        "tb_ea_dc.spice",
+        "tb_ea_ac.spice",
+        "tb_ea_offset.spice",
+        "tb_ea_cmrr.spice",
+        "tb_ea_psrr.spice"
+      ]
+    },
+    {
+      "id": "01",
+      "name": "pass_device",
+      "dir": "01_pass_device",
+      "subckt": "pass_device",
+      "ports": ["gate", "bvdd", "pvdd"],
+      "wave": 1,
+      "depends_on": [],
+      "pass_fail": [
+        { "param": "id_at_dropout_tt27",  "min": 50e-3,  "unit": "A",   "condition": "Vds=400mV, full gate drive, TT 27C" },
+        { "param": "id_at_dropout_ss150", "min": 50e-3,  "unit": "A",   "condition": "Vds=400mV, full gate drive, SS 150C" },
+        { "param": "total_width",          "max": 20e-3,  "unit": "m",   "condition": "Must be feasible" },
+        { "param": "cgs_documented",       "eq": true,    "unit": "bool","condition": "Value measured and reported for Blocks 00/03" },
+        { "param": "gm_at_10mA_documented","eq": true,    "unit": "bool","condition": "gm at 10 mA measured and reported" },
+        { "param": "rds_on",               "max": 20,     "unit": "ohm", "condition": "Full gate drive" },
+        { "param": "no_convergence_errors","eq": true,    "unit": "bool","condition": "All testbenches complete" }
+      ],
+      "testbenches": [
+        "tb_pass_idvds.spice",
+        "tb_pass_idvgs.spice",
+        "tb_pass_cgs.spice",
+        "tb_pass_gm.spice",
+        "tb_pass_rds.spice",
+        "tb_pass_pvt.spice",
+        "tb_pass_soa.spice"
+      ]
+    },
+    {
+      "id": "02",
+      "name": "feedback_network",
+      "dir": "02_feedback_network",
+      "subckt": "feedback_network",
+      "ports": ["pvdd", "vfb", "gnd"],
+      "wave": 2,
+      "depends_on": ["00"],
+      "pass_fail": [
+        { "param": "vfb_at_5v",        "min": 1.225,  "max": 1.227,  "unit": "V",    "condition": "PVDD=5.0V, TT 27C — adjust sizing until exact" },
+        { "param": "vfb_temp_drift",   "max": 5e-3,   "unit": "V",   "condition": "Over -40 to 150C (ratio TC < 50 ppm/C)" },
+        { "param": "vfb_corner_drift", "max": 10e-3,  "unit": "V",   "condition": "Across SS/FF corners" },
+        { "param": "divider_current",  "min": 10e-6,  "max": 15e-6,  "unit": "A",   "condition": "PVDD=5.0V" },
+        { "param": "noise_vfb_1hz_1mhz","max": 50e-6, "unit": "Vrms","condition": "Integrated 1Hz-1MHz" },
+        { "param": "no_model_errors",  "eq": true,    "unit": "bool","condition": "All testbenches run without errors" }
+      ],
+      "testbenches": [
+        "tb_fb_dc_ratio.spice",
+        "tb_fb_ratio_vs_temp.spice",
+        "tb_fb_corners.spice",
+        "tb_fb_noise.spice"
+      ]
+    },
+    {
+      "id": "03",
+      "name": "compensation",
+      "dir": "03_compensation",
+      "subckt": "compensation",
+      "ports": ["vout_gate", "pvdd", "gnd"],
+      "wave": 2,
+      "depends_on": ["00", "01", "02"],
+      "pass_fail": [
+        { "param": "phase_margin_0mA",    "min": 45,    "unit": "deg", "condition": "Iload=0 mA" },
+        { "param": "phase_margin_100uA",  "min": 45,    "unit": "deg", "condition": "Iload=100 uA" },
+        { "param": "phase_margin_1mA",    "min": 45,    "unit": "deg", "condition": "Iload=1 mA" },
+        { "param": "phase_margin_10mA",   "min": 45,    "unit": "deg", "condition": "Iload=10 mA" },
+        { "param": "phase_margin_50mA",   "min": 45,    "unit": "deg", "condition": "Iload=50 mA" },
+        { "param": "gain_margin_all_loads","min": 10,   "unit": "dB",  "condition": "All load points" },
+        { "param": "phase_margin_pvt",    "min": 45,    "unit": "deg", "condition": "SS/FF/SF/FS all loads" },
+        { "param": "phase_margin_temp",   "min": 45,    "unit": "deg", "condition": "-40C and 150C, all loads" },
+        { "param": "transient_undershoot","max": 150e-3,"unit": "V",   "condition": "1mA->10mA step in 1us" },
+        { "param": "transient_overshoot", "max": 150e-3,"unit": "V",   "condition": "10mA->1mA step in 1us" },
+        { "param": "settling_time",       "max": 10e-6, "unit": "s",   "condition": "Settle to 1% after load step" },
+        { "param": "no_oscillation",      "eq": true,   "unit": "bool","condition": "Zero sustained ringing at any condition" }
+      ],
+      "testbenches": [
+        "tb_comp_lstb.spice",
+        "tb_comp_pm_vs_load.spice",
+        "tb_comp_pvt.spice",
+        "tb_comp_bvdd_sweep.spice",
+        "tb_comp_load_step.spice"
+      ]
+    },
+    {
+      "id": "04",
+      "name": "current_limiter",
+      "dir": "04_current_limiter",
+      "subckt": "current_limiter",
+      "ports": ["gate", "bvdd", "pvdd", "gnd", "ilim_flag"],
+      "wave": 2,
+      "depends_on": ["00", "01", "02", "03"],
+      "pass_fail": [
+        { "param": "ilim_threshold_tt27",  "min": 60e-3, "max": 80e-3, "unit": "A",   "condition": "TT 27C" },
+        { "param": "ilim_threshold_ss150", "min": 50e-3, "unit": "A",   "condition": "SS 150C — must not limit below max load" },
+        { "param": "ilim_threshold_ff_40", "max": 100e-3,"unit": "A",   "condition": "FF -40C — must actually limit" },
+        { "param": "response_time",        "max": 10e-6, "unit": "s",   "condition": "From short to clamping" },
+        { "param": "pvdd_impact_at_50mA",  "max": 10e-3, "unit": "V",   "condition": "PVDD delta vs no-limiter at Iload=50mA" },
+        { "param": "sense_quiescent",      "max": 10e-6, "unit": "A",   "condition": "At Iload=0" },
+        { "param": "no_oscillation",       "eq": true,   "unit": "bool","condition": "Clean transient during limiting" },
+        { "param": "loop_stability",       "min": 45,    "unit": "deg", "condition": "PM > 45 deg with limiter at normal loads" }
+      ],
+      "testbenches": [
+        "tb_ilim_iv.spice",
+        "tb_ilim_trip.spice",
+        "tb_ilim_transient.spice",
+        "tb_ilim_normal.spice",
+        "tb_ilim_lstb.spice",
+        "tb_ilim_pvt.spice"
+      ]
+    },
+    {
+      "id": "05",
+      "name": "uv_ov_comparators",
+      "dir": "05_uv_ov_comparators",
+      "subckt_uv": "uv_comparator",
+      "subckt_ov": "ov_comparator",
+      "ports_uv": ["pvdd", "vref", "uv_flag", "vdd_comp", "gnd", "en"],
+      "ports_ov": ["pvdd", "vref", "ov_flag", "vdd_comp", "gnd", "en"],
+      "wave": 1,
+      "depends_on": [],
+      "pass_fail": [
+        { "param": "uv_threshold_falling_tt27","min": 4.0, "max": 4.5, "unit": "V", "condition": "TT 27C" },
+        { "param": "uv_hysteresis",        "min": 50e-3, "max": 150e-3,"unit": "V", "condition": "" },
+        { "param": "ov_threshold_rising_tt27","min": 5.25,"max": 5.7,  "unit": "V", "condition": "TT 27C" },
+        { "param": "ov_hysteresis",        "min": 50e-3, "max": 150e-3,"unit": "V", "condition": "" },
+        { "param": "uv_threshold_pvt",     "min": 4.0,   "max": 4.5,  "unit": "V", "condition": "All PVT corners" },
+        { "param": "ov_threshold_pvt",     "min": 5.25,  "max": 5.7,  "unit": "V", "condition": "All PVT corners" },
+        { "param": "response_time_uv",     "max": 5e-6,  "unit": "s",  "condition": "" },
+        { "param": "response_time_ov",     "max": 5e-6,  "unit": "s",  "condition": "" },
+        { "param": "power_per_comparator", "max": 5e-6,  "unit": "A",  "condition": "Quiescent" },
+        { "param": "output_rail_to_rail",  "eq": true,   "unit": "bool","condition": "Output swings 0 to supply" },
+        { "param": "no_oscillation",       "eq": true,   "unit": "bool","condition": "Clean switching with hysteresis" }
+      ],
+      "testbenches": [
+        "tb_uv_trip.spice",
+        "tb_ov_trip.spice",
+        "tb_comp_response.spice",
+        "tb_comp_power.spice",
+        "tb_comp_pvt.spice"
+      ]
+    },
+    {
+      "id": "06",
+      "name": "level_shifter",
+      "dir": "06_level_shifter",
+      "subckt_up": "level_shifter_up",
+      "subckt_down": "level_shifter_down",
+      "ports_up": ["in", "out", "bvdd", "svdd", "gnd"],
+      "ports_down": ["in", "out", "pvdd", "svdd", "gnd"],
+      "wave": 1,
+      "depends_on": [],
+      "pass_fail": [
+        { "param": "lth_out_high",     "min_offset_from": "bvdd", "min_offset": -0.2, "unit": "V",   "condition": "Low-to-high output HIGH > BVDD-0.2V" },
+        { "param": "lth_out_low",      "max": 0.2,   "unit": "V",   "condition": "Low-to-high output LOW < 0.2V" },
+        { "param": "htl_out_high",     "min_offset_from": "svdd", "min_offset": -0.2, "unit": "V",   "condition": "High-to-low output HIGH > SVDD-0.2V" },
+        { "param": "htl_out_low",      "max": 0.2,   "unit": "V",   "condition": "High-to-low output LOW < 0.2V" },
+        { "param": "propagation_delay","max": 100e-9,"unit": "s",   "condition": "All conditions" },
+        { "param": "works_bvdd_min",   "eq": true,   "unit": "bool","condition": "Reliable switching at BVDD=5.4V" },
+        { "param": "works_bvdd_max",   "eq": true,   "unit": "bool","condition": "Reliable switching at BVDD=10.5V, no breakdown" },
+        { "param": "static_power",     "max": 5e-6,  "unit": "A",   "condition": "Per shifter, both stable states" },
+        { "param": "works_ss150c",     "eq": true,   "unit": "bool","condition": "Reliable switching at SS 150C" },
+        { "param": "no_metastable",    "eq": true,   "unit": "bool","condition": "Output always resolves to rail" }
+      ],
+      "testbenches": [
+        "tb_ls_logic.spice",
+        "tb_ls_delay.spice",
+        "tb_ls_bvdd_sweep.spice",
+        "tb_ls_power.spice",
+        "tb_ls_pvt.spice"
+      ]
+    },
+    {
+      "id": "07",
+      "name": "zener_clamp",
+      "dir": "07_zener_clamp",
+      "subckt": "zener_clamp",
+      "ports": ["pvdd", "gnd"],
+      "wave": 3,
+      "depends_on": [],
+      "pass_fail": [
+        { "param": "clamp_onset_tt27",  "min": 5.5,   "max": 6.2,   "unit": "V",   "condition": "At 1 mA, TT 27C" },
+        { "param": "clamp_at_10mA_tt27","max": 6.5,   "unit": "V",   "condition": "At 10 mA, TT 27C" },
+        { "param": "leakage_at_5v",     "max": 1e-6,  "unit": "A",   "condition": "PVDD=5.0V, TT 27C" },
+        { "param": "leakage_at_5p17v",  "max": 5e-6,  "unit": "A",   "condition": "PVDD=5.17V, TT 27C" },
+        { "param": "clamp_onset_150c",  "min": 5.0,   "unit": "V",   "condition": "Must not drag down normal PVDD" },
+        { "param": "clamp_onset_m40c",  "max": 7.0,   "unit": "V",   "condition": "Must still provide protection" },
+        { "param": "transient_peak",    "max": 6.5,   "unit": "V",   "condition": "10V/us ramp, 200pF Cload" },
+        { "param": "peak_current_at_7v","min": 100e-3,"unit": "A",   "condition": "Pulse rating" }
+      ],
+      "testbenches": [
+        "tb_zc_iv.spice",
+        "tb_zc_temp.spice",
+        "tb_zc_transient.spice",
+        "tb_zc_corners.spice"
+      ]
+    },
+    {
+      "id": "08",
+      "name": "mode_control",
+      "dir": "08_mode_control",
+      "subckt": "mode_control",
+      "ports": ["bvdd", "pvdd", "svdd", "gnd", "vref", "en_ret", "bypass_en", "ea_en", "ref_sel", "uvov_en", "ilim_en"],
+      "wave": 3,
+      "depends_on": ["06"],
+      "pass_fail": [
+        { "param": "thresh_por",       "min": 2.3,   "max": 2.7,   "unit": "V",   "condition": "POR->retention bypass threshold" },
+        { "param": "thresh_ret",       "min": 4.0,   "max": 4.4,   "unit": "V",   "condition": "Ret bypass->ret regulate threshold" },
+        { "param": "thresh_pup",       "min": 4.3,   "max": 4.7,   "unit": "V",   "condition": "Ret regulate->PU bypass threshold" },
+        { "param": "thresh_act",       "min": 5.4,   "max": 5.8,   "unit": "V",   "condition": "PU bypass->active threshold" },
+        { "param": "hysteresis_all",   "min": 150e-3,"max": 250e-3,"unit": "V",   "condition": "All comparators" },
+        { "param": "thermometer_monotonic","eq": true,"unit": "bool","condition": "No out-of-order assertions" },
+        { "param": "glitch_free",      "eq": true,   "unit": "bool","condition": "No intermediate states on any output" },
+        { "param": "works_12vus_ramp", "eq": true,   "unit": "bool","condition": "Clean transitions at 12 V/us" },
+        { "param": "works_0p1vus_ramp","eq": true,   "unit": "bool","condition": "Clean transitions at 0.1 V/us" },
+        { "param": "thresh_pvt",       "min_pct": -15,"max_pct": 15,"unit": "%",  "condition": "All thresholds within +/-15% of nominal across PVT" },
+        { "param": "iq_active",        "max": 20e-6, "unit": "A",   "condition": "From BVDD in active mode" },
+        { "param": "power_down_transitions","eq": true,"unit":"bool","condition": "Correct reverse sequence with hysteresis" }
+      ],
+      "testbenches": [
+        "tb_mc_ramp.spice",
+        "tb_mc_fast_ramp.spice",
+        "tb_mc_slow_ramp.spice",
+        "tb_mc_power_down.spice",
+        "tb_mc_thresholds.spice",
+        "tb_mc_hysteresis.spice",
+        "tb_mc_pvt.spice"
+      ]
+    },
+    {
+      "id": "09",
+      "name": "startup",
+      "dir": "09_startup",
+      "subckt": "startup",
+      "ports": ["bvdd", "pvdd", "gate", "gnd", "vref", "startup_done", "ea_en"],
+      "wave": 3,
+      "depends_on": ["00", "01", "02", "03", "08"],
+      "pass_fail": [
+        { "param": "startup_time_no_load",  "max": 100e-6, "unit": "s",   "condition": "BVDD=7V, no load" },
+        { "param": "startup_time_50mA",     "max": 200e-6, "unit": "s",   "condition": "BVDD=7V, Iload=50mA" },
+        { "param": "pvdd_monotonic",        "eq": true,    "unit": "bool","condition": "No dips > 50 mV" },
+        { "param": "pvdd_overshoot",        "max": 200e-3, "unit": "V",   "condition": "Max overshoot above 5.0V" },
+        { "param": "handoff_glitch",        "max": 100e-3, "unit": "V",   "condition": "PVDD disturbance at switchover" },
+        { "param": "works_slow_ramp",       "eq": true,    "unit": "bool","condition": "0.1 V/us BVDD ramp" },
+        { "param": "works_fast_ramp",       "eq": true,    "unit": "bool","condition": "12 V/us BVDD ramp" },
+        { "param": "cold_crank_recovery",   "eq": true,    "unit": "bool","condition": "Clean re-start after BVDD dip" },
+        { "param": "leakage_after_startup", "max": 1e-6,   "unit": "A",   "condition": "Circuit fully disabled post-startup" },
+        { "param": "works_ss150c",          "eq": true,    "unit": "bool","condition": "Completes within 200 us" },
+        { "param": "no_overshoot_ff_m40c",  "max": 200e-3, "unit": "V",   "condition": "FF -40C, no overshoot > 200 mV" },
+        { "param": "no_latch_stuck",        "eq": true,    "unit": "bool","condition": "Always reaches regulation" }
+      ],
+      "testbenches": [
+        "tb_su_basic.spice",
+        "tb_su_handoff.spice",
+        "tb_su_50mA.spice",
+        "tb_su_fast_ramp.spice",
+        "tb_su_slow_ramp.spice",
+        "tb_su_cold_crank.spice",
+        "tb_su_leakage.spice",
+        "tb_su_pvt.spice"
+      ]
+    },
+    {
+      "id": "10",
+      "name": "top_integration",
+      "dir": "10_top_integration",
+      "subckt": "pvdd_regulator",
+      "ports": ["bvdd", "pvdd", "gnd", "avbg", "ibias", "svdd", "en", "en_ret", "uv_flag", "ov_flag"],
+      "wave": 3,
+      "depends_on": ["00","01","02","03","04","05","06","07","08","09"],
+      "verification_tests": [
+        {
+          "id": 1,
+          "name": "dc_regulation",
+          "testbench": "tb_top_dc_reg.spice",
+          "param": "vpvdd",
+          "min": 4.825, "max": 5.175, "unit": "V",
+          "condition": "BVDD=7V, Iload=0 to 50mA"
+        },
+        {
+          "id": 2,
+          "name": "line_regulation",
+          "testbench": "tb_top_line_reg.spice",
+          "param": "dvpvdd_dvbvdd",
+          "max": 5e-3, "unit": "V/V",
+          "condition": "Iload=10mA, BVDD 5.4-10.5V"
+        },
+        {
+          "id": 3,
+          "name": "load_regulation",
+          "testbench": "tb_top_load_reg.spice",
+          "param": "dvpvdd_diload",
+          "max": 2e-3, "unit": "V/A",
+          "condition": "BVDD=7V, Iload=0 to 50mA"
+        },
+        {
+          "id": 4,
+          "name": "load_transient_undershoot",
+          "testbench": "tb_top_load_tran.spice",
+          "param": "undershoot",
+          "max": 150e-3, "unit": "V",
+          "condition": "1mA->10mA in 1us"
+        },
+        {
+          "id": 5,
+          "name": "load_transient_overshoot",
+          "testbench": "tb_top_load_tran.spice",
+          "param": "overshoot",
+          "max": 150e-3, "unit": "V",
+          "condition": "10mA->1mA in 1us"
+        },
+        {
+          "id": 6,
+          "name": "loop_stability",
+          "testbench": "tb_top_lstb.spice",
+          "params": [
+            { "param": "phase_margin", "min": 45,  "unit": "deg", "condition": "All load points: 0/1/10/50 mA" },
+            { "param": "gain_margin",  "min": 10,  "unit": "dB",  "condition": "All load points" }
+          ]
+        },
+        {
+          "id": 7,
+          "name": "psrr",
+          "testbench": "tb_top_psrr.spice",
+          "params": [
+            { "param": "psrr_dc",   "min": 40, "unit": "dB" },
+            { "param": "psrr_10k",  "min": 20, "unit": "dB" }
+          ]
+        },
+        {
+          "id": 8,
+          "name": "startup_normal",
+          "testbench": "tb_top_startup.spice",
+          "params": [
+            { "param": "monotonic",     "eq": true,   "unit": "bool" },
+            { "param": "settle_time",   "max": 100e-6,"unit": "s" },
+            { "param": "no_oscillation","eq": true,   "unit": "bool" }
+          ],
+          "condition": "BVDD ramp 0->10.5V at 1 V/us"
+        },
+        {
+          "id": 9,
+          "name": "startup_fast",
+          "testbench": "tb_top_startup_fast.spice",
+          "param": "pvdd_overshoot_peak",
+          "max": 5.5, "unit": "V",
+          "condition": "BVDD ramp 0->10.5V at 10 V/us"
+        },
+        {
+          "id": 10,
+          "name": "dropout",
+          "testbench": "tb_top_dropout.spice",
+          "param": "regulated_at_bvdd_5p4v",
+          "eq": true, "unit": "bool",
+          "condition": "Iload=50mA, BVDD=5.4V"
+        },
+        {
+          "id": 11,
+          "name": "current_limit",
+          "testbench": "tb_top_ilim.spice",
+          "param": "iout_max",
+          "max": 80e-3, "unit": "A",
+          "condition": "Rload=0.1 ohm, BVDD=7V"
+        },
+        {
+          "id": 12,
+          "name": "uv_threshold",
+          "testbench": "tb_top_uv.spice",
+          "param": "uv_trip_point",
+          "min": 4.0, "max": 4.6, "unit": "V",
+          "condition": "Sweep PVDD externally"
+        },
+        {
+          "id": 13,
+          "name": "ov_threshold",
+          "testbench": "tb_top_ov.spice",
+          "param": "ov_trip_point",
+          "min": 5.3, "max": 5.7, "unit": "V",
+          "condition": "Sweep PVDD externally"
+        },
+        {
+          "id": 14,
+          "name": "mode_transitions",
+          "testbench": "tb_top_modes.spice",
+          "params": [
+            { "param": "transitions_clean", "eq": true, "unit": "bool" },
+            { "param": "no_glitches",       "eq": true, "unit": "bool" },
+            { "param": "correct_sequence",  "eq": true, "unit": "bool" }
+          ],
+          "condition": "BVDD ramp 0->10.5V->0"
+        },
+        {
+          "id": 15,
+          "name": "pvt_corners",
+          "testbench": "tb_top_pvt.spice",
+          "param": "all_tests_1_to_8_pass_at_all_corners",
+          "eq": true, "unit": "bool",
+          "condition": "SS/FF/SF/FS x -40/27/150C"
+        },
+        {
+          "id": 16,
+          "name": "quiescent_current",
+          "testbench": "tb_top_iq.spice",
+          "params": [
+            { "param": "iq_active",    "max": 300e-6, "unit": "A", "condition": "BVDD=7V, no load" },
+            { "param": "iq_retention", "max": 10e-6,  "unit": "A", "condition": "Retention mode" }
+          ]
+        },
+        {
+          "id": 17,
+          "name": "retention_mode",
+          "testbench": "tb_top_retention.spice",
+          "param": "pvdd_tracks_bvdd",
+          "eq": true, "unit": "bool",
+          "condition": "BVDD=3.5V, Iload=0.5mA (bypass mode)"
+        },
+        {
+          "id": 18,
+          "name": "power_consumption",
+          "testbench": "tb_top_power.spice",
+          "param": "total_power_documented",
+          "eq": true, "unit": "bool",
+          "condition": "Document power in each operating mode — no numeric pass/fail limit"
+        }
+      ]
+    }
+  ]
+}

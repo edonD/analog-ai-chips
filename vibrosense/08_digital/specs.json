@@ -1,0 +1,144 @@
+{
+  "block": "08_digital",
+  "description": "VibroSense-1 Digital Control Block — SKY130A",
+  "specs": [
+    {
+      "id": "SPI_RW",
+      "description": "SPI read/write all 14 registers correctly",
+      "requirement": "All RW register read-backs match written data (masked to valid bits)",
+      "pass_criterion": "zero mismatches across all addresses 0x00-0x0D"
+    },
+    {
+      "id": "SPI_RO",
+      "description": "Read-only register enforcement",
+      "requirement": "STATUS (0x0C) and ADC_DATA (0x0E) ignore SPI writes",
+      "pass_criterion": "write-then-read returns original value, not 0xFF"
+    },
+    {
+      "id": "SPI_RESET",
+      "description": "All registers hold correct reset values after rst_n deassertion",
+      "requirement": "See register map in program.md for reset values",
+      "pass_criterion": "all 14 registers read reset value within 1 cycle of rst_n release"
+    },
+    {
+      "id": "SPI_OOB",
+      "description": "Out-of-range address (0x0F) silently ignored",
+      "requirement": "Write to 0x0F ignored; read from 0x0F returns 0x00",
+      "pass_criterion": "read returns 0x00, no exception"
+    },
+    {
+      "id": "FSM_DURATIONS",
+      "description": "FSM phase durations match parameters exactly",
+      "requirement": "SAMPLE=64, EVALUATE=128, COMPARE=4, WAIT=804 cycles",
+      "pass_criterion": "measured durations == parameters (tolerance: +-0)"
+    },
+    {
+      "id": "FSM_PERIOD",
+      "description": "Total FSM period = 1000 cycles",
+      "requirement": "SAMPLE + EVALUATE + COMPARE + WAIT = 1000",
+      "pass_criterion": "1000 exactly"
+    },
+    {
+      "id": "FSM_NOOVERLAP",
+      "description": "FSM phases are mutually exclusive",
+      "requirement": "At most one of fsm_sample/fsm_evaluate/fsm_compare high at any cycle",
+      "pass_criterion": "zero overlap cycles in 10 consecutive periods"
+    },
+    {
+      "id": "FSM_DONE",
+      "description": "fsm_done pulses exactly 1 clock at COMPARE->WAIT boundary",
+      "requirement": "fsm_done = 1 for exactly 1 clock, at cnt=195",
+      "pass_criterion": "width = 1 cycle exactly"
+    },
+    {
+      "id": "FSM_RESET",
+      "description": "Reset during FSM operation clears all outputs",
+      "requirement": "All phase signals go to 0 within 1 clk of rst_n assertion",
+      "pass_criterion": "all outputs = 0 immediately after rst_n"
+    },
+    {
+      "id": "DEB_COUNT",
+      "description": "Debounce counter behavior matches specification",
+      "requirement": "IRQ asserts after debounce_val consecutive anomaly detections",
+      "pass_criterion": "IRQ asserts on exactly the Nth consecutive detection (N = debounce_val)"
+    },
+    {
+      "id": "DEB_RESET",
+      "description": "Normal classification resets debounce counter",
+      "requirement": "Any class_result=0 resets detect_count to 0",
+      "pass_criterion": "counter resets, N consecutive anomalies needed again"
+    },
+    {
+      "id": "DEB_ZERO",
+      "description": "debounce_val=0: IRQ asserts on first detection",
+      "requirement": "With DEBOUNCE register = 0, first anomaly immediately triggers IRQ",
+      "pass_criterion": "irq_n = 0 on first fsm_done with class_result != 0"
+    },
+    {
+      "id": "DEB_CLASSCHANGE",
+      "description": "Class change resets debounce counter",
+      "requirement": "Switching from class A to class B (both non-zero) resets counter",
+      "pass_criterion": "counter = 1 after class change, must reach debounce_val again"
+    },
+    {
+      "id": "DEB_TIMING",
+      "description": "IRQ asserts/deasserts within 1 clock cycle",
+      "requirement": "IRQ_N changes within same fsm_done clock cycle",
+      "pass_criterion": "< 2 clock cycle latency for both assert and deassert"
+    },
+    {
+      "id": "STATUS_CAPTURE",
+      "description": "STATUS register captures class_result on class_valid pulse",
+      "requirement": "STATUS[3:0] = class_result, STATUS[7] = 1 when class_valid pulses",
+      "pass_criterion": "read returns 0x80|class_result"
+    },
+    {
+      "id": "STATUS_RTOC",
+      "description": "STATUS[7] read-to-clear",
+      "requirement": "First SPI read of STATUS returns valid bit set; second read returns it clear",
+      "pass_criterion": "first read = 0x8X, second read = 0x0X"
+    },
+    {
+      "id": "ADC_START",
+      "description": "ADC_CTRL[2] start bit self-clears after 1 cycle",
+      "requirement": "Write ADC_CTRL with start=1; read back shows start=0 next cycle",
+      "pass_criterion": "start bit = 0 after 1 clock"
+    },
+    {
+      "id": "ADC_DATA",
+      "description": "ADC_DATA captures adc_data_in when ADC not busy",
+      "requirement": "adc_data_in value appears in ADC_DATA register when adc_busy_in deasserts",
+      "pass_criterion": "SPI read of 0x0E returns correct value"
+    },
+    {
+      "id": "GATE_COUNT",
+      "description": "Total synthesized gate count < 5000",
+      "requirement": "After Yosys abc optimization",
+      "pass_criterion": "< 5000 cells (hard fail: > 10000)"
+    },
+    {
+      "id": "POWER",
+      "description": "Estimated power at 1 MHz < 10 uW",
+      "requirement": "Dynamic + leakage at 1.8V, 1 MHz, 25C",
+      "pass_criterion": "< 10 uW (estimated ~0.5 uW)"
+    },
+    {
+      "id": "FMAX",
+      "description": "Maximum operating frequency > 5 MHz",
+      "requirement": "After synthesis timing analysis",
+      "pass_criterion": "> 5 MHz (estimated > 15 MHz based on critical path)"
+    },
+    {
+      "id": "NO_LATCHES",
+      "description": "Zero latches synthesized",
+      "requirement": "All storage must be flip-flops",
+      "pass_criterion": "Yosys reports 0 latches"
+    },
+    {
+      "id": "NO_XZ",
+      "description": "No X/Z on any output after reset release",
+      "requirement": "All outputs have defined values within 1 cycle of rst_n deassertion",
+      "pass_criterion": "no undefined values in simulation"
+    }
+  ]
+}

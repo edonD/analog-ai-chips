@@ -1,0 +1,17 @@
+{
+  "power_active_uw": 4.7103600000000005,
+  "power_sleep_uw": 0.00037799999999999997,
+  "power_sleep_nw": 0.378,
+  "wakeup_time_us": 3.0,
+  "fom_walden_fJ_per_conv": 2602.1308576795827,
+  "pass_active": true,
+  "pass_sleep": true,
+  "pass_wakeup": true,
+  "breakdown_uw": {
+    "preamp_bias": 3.5999999999999996,
+    "vcm_divider": 1.08,
+    "comparator_dynamic": 0.008,
+    "sar_logic": 0.004,
+    "cap_dac_switching": 0.018359999999999998
+  }
+}

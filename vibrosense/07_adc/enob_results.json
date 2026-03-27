@@ -1,0 +1,13 @@
+{
+  "sndr_db": 49.50054207552344,
+  "enob_bits": 7.930322603907549,
+  "thd_db": -100.0,
+  "sfdr_db": 66.04966671974326,
+  "sample_rate_ksps": 10.0,
+  "fin_hz": 4892.578,
+  "npts": 1024,
+  "pass_enob": true,
+  "pass_sample_rate": true,
+  "ideal_enob_bits": 7.98,
+  "enob_loss_bits": 0.049677396092451254
+}

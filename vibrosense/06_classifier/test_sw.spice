@@ -1,0 +1,18 @@
+* Test voltage-controlled switch syntax
+.model sw_ideal SW vt=0.9 vh=0.1 ron=100 roff=1e10
+
+Vvdd vdd 0 dc 1.8
+Vctrl ctrl 0 dc 1.8
+
+* SW: node+ node- ctrl+ ctrl- model
+S1 out_node 0 ctrl 0 sw_ideal
+
+Rin out_node vdd 1k
+
+.op
+.control
+  run
+  echo "V(out_node) = $&v(out_node)"
+  quit
+.endc
+.end

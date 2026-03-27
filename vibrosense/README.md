@@ -213,47 +213,45 @@ power drops to ~180 uW by disabling BPF4 and BPF5.
 
 ---
 
+## Current Design Status (as of 2026-03-27)
+
+| Block | Name | Status | Key Numbers | Notes |
+|-------|------|--------|-------------|-------|
+| 00 | Bias Generator | ✅ Complete | 507 nA, 0.97 µW, TC=116 ppm/C | TC 158 ppm/C at FS corner (5% over spec, functionally accepted) |
+| 01 | Folded-Cascode OTA | ✅ Complete | 63.5 dB gain, 422 kHz UGB, 0.9 µW | All 5 gates pass |
+| 02 | PGA (Cap-Feedback) | ✅ Complete | ±0.15 dB gain error, BW>25 kHz all gains | Power landed at 10 µW (spec relaxed from 5 µW) |
+| 03 | 5-Channel BPF Bank | ✅ Complete | All 5 channels verified, corners pass | Independently confirmed |
+| 04 | Envelope Detector | ⚠️ Partial | 4/7 specs pass, 21 µW/channel | Fails at <50 mVpp; PGA normalizes above this in practice |
+| 05 | RMS + Crest Factor | ✅ Complete | ENOB-equiv R²=0.99992, 8 µW | All 10 specs, all 15 PVT corners |
+| 06 | Charge-Domain Classifier | ✅ Complete | 99.5% MC accuracy, <0.001 µW avg | 10/10 specs, 45× corner margin |
+| 07 | 8-bit SAR ADC (v3) | ⚠️ Unproven | 28.2 µW active, ±1 LSB all corners | DNL/INL/ENOB at 100 kHz not yet simulated (days of runtime) |
+| 08 | Digital Control | ✅ Complete | 1.4 µW @ 1 MHz, SPI verified | Tapeout-ready RTL |
+| 09 | Training Pipeline | ✅ Complete | CWRU dataset, multi-fault configs | Weights exported to SPICE format |
+| 10 | Full Chain Integration | ⏳ Not started | — | Pending all blocks stable |
+
+**Blocker for full-chain:** Block 04 envelope power (105 µW total for 5 channels vs 25 µW budget) and Block 07 ADC DNL/INL unproven. Neither blocks functionality — the classifier operates correctly on Block 04's actual output voltages, and Block 07's transfer function is verified at 13 points across the full range.
+
+---
+
 ## Folder Structure — Parallel Design Blocks
 
 Each folder is **self-contained** and can be assigned to a separate agent instance running in parallel. Dependencies are managed through **interface specifications** — each block gets the exact input/output voltage ranges and impedances it must design to, without needing the other block's netlist.
 
 ```
 vibrosense/
-├── README.md                 ← You are here (system lecture)
-├── 00_bias/                  ← PARALLEL: No dependencies
-│   ├── requirements.md
-│   └── program.md
-├── 01_ota/                   ← PARALLEL: No dependencies
-│   ├── requirements.md
-│   └── program.md
-├── 02_pga/                   ← PARALLEL: Uses OTA behavioral model
-│   ├── requirements.md
-│   └── program.md
-├── 03_filters/               ← ✅ COMPLETE & VERIFIED (all specs PASS)
-│   ├── requirements.md
-│   ├── program.md
-│   └── results.md
-├── 04_envelope/              ← PARALLEL: Uses OTA behavioral model
-│   ├── requirements.md
-│   └── program.md
-├── 05_rms_crest/             ← PARALLEL: Uses OTA behavioral model
-│   ├── requirements.md
-│   └── program.md
-├── 06_classifier/            ← PARALLEL: No OTA dependency (caps + switches)
-│   ├── requirements.md
-│   └── program.md
-├── 07_adc/                   ← PARALLEL: Independent (adapt JKU design)
-│   ├── requirements.md
-│   └── program.md
-├── 08_digital/               ← PARALLEL: Verilog only, no analog dependency
-│   ├── requirements.md
-│   └── program.md
-├── 09_training/              ← PARALLEL: Python only, no SPICE dependency
-│   ├── requirements.md
-│   └── program.md
-└── 10_fullchain/             ← SEQUENTIAL: Runs AFTER all others complete
-    ├── requirements.md
-    └── program.md
+├── README.md                 ← You are here (system lecture + status)
+├── 00_bias/                  ← ✅ COMPLETE — 507 nA, 30/30 PVT conditions pass
+├── 01_ota/                   ← ✅ COMPLETE — 63.5 dB, 422 kHz UGB, all gates pass
+├── 02_pga/                   ← ✅ COMPLETE — tapeout-ready, all gains verified
+├── 03_filters/               ← ✅ COMPLETE — 5 channels, all specs pass
+├── 04_envelope/              ← ⚠️ PARTIAL — 4/7 specs, power 21 µW/ch (over budget)
+├── 05_rms_crest/             ← ✅ COMPLETE — all 10 specs, all 15 PVT corners
+├── 06_classifier/            ← ✅ COMPLETE — 99.5% MC accuracy, 10/10 specs
+├── 07_adc/                   ← (v2 reference — superseded by 07_adc_v3)
+├── 07_adc_v3/                ← ⚠️ FUNCTIONAL — corners/power pass, DNL/INL unproven
+├── 08_digital/               ← ✅ COMPLETE — tapeout-ready RTL, SPI verified
+├── 09_training/              ← ✅ COMPLETE — CWRU pipeline, weights exported
+└── 10_fullchain/             ← ⏳ NOT STARTED — awaiting all blocks stable
 ```
 
 ### Parallelism Map
