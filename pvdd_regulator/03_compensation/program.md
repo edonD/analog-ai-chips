@@ -2,37 +2,39 @@
 
 ## Absolute Rules
 
-**READ THESE BEFORE DOING ANYTHING. VIOLATIONS WILL INVALIDATE THE ENTIRE DESIGN.**
-
-1. **USE THE REAL SKY130 PDK MODELS. ALWAYS.** Every capacitor and resistor in the compensation network must be an instantiated Sky130 device (`sky130_fd_pr__cap_mim_m3_1`, `sky130_fd_pr__res_xhigh_po`, MOS caps, etc.). **No ideal capacitors. No ideal resistors. No behavioral elements.**
-2. **NO BEHAVIORAL MODELS, NO PYTHON APPROXIMATIONS, NO IDEAL COMPONENTS IN THE DESIGN.** Only testbench stimulus sources and load elements may be ideal.
-3. **ALL SIMULATIONS IN NGSPICE.** Fix convergence with `.option` settings — do not switch simulators.
-4. **EVERY SPEC MUST BE VERIFIED BY SIMULATION, NOT BY CALCULATION.** Phase margin must be measured from AC simulation, not estimated from hand analysis.
-5. **WHEN THINGS GET HARD, YOU PUSH THROUGH.** This is the hardest block in the LDO. The output pole moves 1000x with load. You will need to iterate many times. Do not give up and use a behavioral model.
+1. **Real Sky130 PDK only.** Every capacitor and resistor in the compensation network must be an instantiated Sky130 device. No ideal capacitors or resistors.
+2. **No behavioral models.** Only testbench stimulus sources and load elements may be ideal.
+3. **ngspice only.** Fix convergence with `.option` settings.
+4. **Every spec verified by simulation.** Phase margin must be measured from AC simulation, not estimated from hand analysis.
+5. **Push through difficulty.** This is the hardest block. The output pole moves 1000x with load. You will iterate many times. Do not give up.
 
 ---
 
 ## Purpose
 
-The compensation network ensures the PVDD LDO feedback loop is stable (phase margin > 45 degrees, gain margin > 10 dB) across ALL operating conditions:
-- Load current: 0 mA (no load) to 50 mA (full load)
+The compensation network ensures the PVDD LDO feedback loop is stable (PM > 45 deg, GM > 10 dB) across ALL operating conditions:
+- Load current: 0 mA to 50 mA
 - Temperature: -40C to 150C
 - Process corners: SS, TT, FF, SF, FS
 - Input voltage: BVDD = 5.4V to 10.5V
 
-**Why this is the hardest block:**
+---
 
-The LDO output pole is at: f_out = 1 / (2*pi * Rload * Cload)
+## Why This Is the Hardest Block
+
+The LDO output pole is at: `f_out = 1 / (2*pi * Rload * Cload)`
 
 | Load Current | Effective Rload | Output Pole Frequency |
 |-------------|----------------|----------------------|
-| 0 mA (no load) | ~infinity (leakage) | < 1 kHz |
+| 0 mA | ~infinity | < 1 kHz |
 | 100 uA | 50 kohm | ~16 kHz |
 | 1 mA | 5 kohm | ~160 kHz |
 | 10 mA | 500 ohm | ~1.6 MHz |
 | 50 mA | 100 ohm | ~8 MHz |
 
-The output pole moves by a factor of 1000x from no-load to full-load. A compensation scheme that works at one load point may be completely unstable at another. **The compensation must stabilize the loop at ALL load points simultaneously.**
+The output pole moves by 1000x from no-load to full-load. A compensation scheme that works at one load may be completely unstable at another. **The compensation must stabilize the loop at ALL load points simultaneously.**
+
+In addition, the gate pole (set by error amp output impedance and pass device Cgs) creates a second critical pole. The interaction between these two load-dependent poles is what makes LDO compensation fundamentally different from -- and harder than -- standard two-stage op-amp compensation.
 
 ---
 
@@ -43,10 +45,10 @@ The output pole moves by a factor of 1000x from no-load to full-load. A compensa
 | `vout_gate` | Connection | 0 to ~PVDD | Error amp output / pass device gate node |
 | `pvdd` | Connection | 5.0V | PVDD output node |
 | `gnd` | Supply | 0V | Ground |
-| `vfb` | Connection | ~1.226V | Feedback node (optional, for lead compensation) |
+| `vfb` | Connection | ~1.226V | Feedback node (if needed for lead compensation) |
 
 **Connections in the LDO:**
-- The compensation network connects between the error amp output (`vout_gate` from Block 00) and other nodes (PVDD, GND, or vfb) depending on the topology chosen.
+- The compensation network connects between the error amp output (`vout_gate`) and other nodes (PVDD, GND, or vfb) depending on the topology chosen.
 - It physically sits between Block 00 (error amp) and Block 01 (pass device).
 
 ---
@@ -66,207 +68,72 @@ The output pole moves by a factor of 1000x from no-load to full-load. A compensa
 
 ---
 
-## Topology
+## Operating Conditions
 
-**Miller compensation (Type I)** is the recommended starting point. If insufficient, escalate to Type II or Type III.
-
-### Strategy 1: Miller Compensation (Start Here)
-
-Connect a capacitor (Cc) from the error amp output (`vout_gate`) to the PVDD output node. This creates a Miller effect that:
-1. Pushes the dominant pole (gate pole) to lower frequency.
-2. Pushes the output pole to higher frequency (pole splitting).
-
-```
-    Error Amp Output (vout_gate)
-         |
-        [Cc]  (Miller cap, ~5-50 pF)
-         |
-    PVDD output node
-```
-
-**Optional: series resistor for zero.** Add Rz in series with Cc to create a left-half-plane zero that boosts phase margin:
-
-```
-    vout_gate ---[Rz]---[Cc]--- pvdd
-```
-
-The zero is at: fz = 1 / (2*pi * Rz * Cc)
-
-Place fz near the output pole at mid-load to help at both extremes.
-
-### Strategy 2: Dominant-Pole Compensation (Backup)
-
-If Miller compensation cannot stabilize across all loads, add a large capacitor at the error amp output to make the gate pole absolutely dominant:
-
-```
-    vout_gate ---[Cg]--- gnd    (Cg >> Cgs_pass)
-```
-
-This is simple but severely limits bandwidth and transient response.
-
-### Strategy 3: Adaptive Bias (Advanced)
-
-Sense the load current and increase the error amp bias at high loads. This moves the error amp pole out, tracking the output pole as it moves with load. This is how the best capless LDOs work, but adds complexity.
-
-**Start with Strategy 1 (Miller + Rz). Only escalate if it fails across the full load range.**
+- **Full loop includes:** Error amp (Block 00) + pass device (Block 01) + feedback divider (Block 02) + 200 pF Cload + compensation network.
+- **Load range:** Rload from ~100 ohm (50 mA) to open circuit (no load, just leakage).
+- **BVDD:** 5.4 to 10.5V.
+- **Corners:** SS/TT/FF/SF/FS at -40C, 27C, 150C.
 
 ---
 
-## Device Selection
+## Known Challenges
 
-| Component | Device | Parameters |
-|-----------|--------|-----------|
-| Miller cap (Cc) | `sky130_fd_pr__cap_mim_m3_1` | W, L sized for 5-50 pF (~2 fF/um^2) |
-| Series resistor (Rz) | `sky130_fd_pr__res_xhigh_po` | Value TBD (1-100 kohm range) |
-| Extra gate cap (if needed) | MOS cap: `sky130_fd_pr__nfet_g5v0d10v5` as cap | Gate to source/drain/bulk shorted |
+1. **The output pole moves 1000x with load.** At no-load, the output pole is at ~1 kHz. At 50 mA, it is at ~8 MHz. Any fixed compensation must handle this entire range.
 
-**SPICE instantiation example:**
-```spice
-.lib "/path/to/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+2. **The gate pole also moves.** The error amp output impedance varies with operating point, so the gate pole (Rout_EA * Cgs_pass) is not fixed either.
 
-* Miller compensation cap: 20 pF
-* Area = C / density = 20pF / 2fF/um^2 = 10000 um^2
-* W = 100u, L = 100u gives 10000 um^2 = 20 pF
-XCc vout_gate_rz pvdd sky130_fd_pr__cap_mim_m3_1 W=100u L=100u
+3. **No ESR zero to help.** This is an internal-cap-only LDO (200 pF on-chip). There is no external cap with ESR to provide a stabilizing zero.
 
-* Series zero resistor: 10 kohm
-XRz vout_gate vout_gate_rz sky130_fd_pr__res_xhigh_po W=1u L=5u
+4. **Worst-case load points.** Light load (no-load) tends to have the worst PM because the output pole is slowest and closest to the crossover frequency. But mid-load can also be problematic if the two poles collide near UGB.
 
-* Alternative: MOS cap at gate (if dominant-pole approach needed)
-* XCg vout_gate vout_gate gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=50u L=50u nf=1
-```
+5. **Area budget.** Large compensation caps consume die area. A 50 pF MIM cap is 25,000 um^2. The total compensation area should stay under 50,000 um^2.
 
-**MIM cap sizing reference:**
-| Target Capacitance | Area (um^2) | Example W x L |
-|-------|------|------|
-| 5 pF | 2,500 | 50u x 50u |
-| 10 pF | 5,000 | 71u x 71u |
-| 20 pF | 10,000 | 100u x 100u |
-| 50 pF | 25,000 | 158u x 158u |
+6. **Transient vs. AC.** A design with 45 deg PM in AC analysis may still ring in transient if the poles move during the transient. Verify with both AC and transient simulations.
 
 ---
 
-## Sizing Procedure
+## What to Explore
 
-**IMPORTANT: This procedure requires completed Block 00 (error amp), Block 01 (pass device), and Block 02 (feedback network). You cannot size compensation without the full loop.**
+The agent is free to choose any compensation strategy that achieves PM > 45 deg at all loads. **Do not limit yourself to Miller compensation.** Some approaches worth investigating:
 
-1. **Step 1: Build the uncompensated loop.** Connect error amp + pass device + feedback divider + 200pF Cload. Apply V_REF = 1.226V. Set BVDD = 7V. NO compensation yet.
+- **Miller compensation (Cc from gate to output)** -- the classic approach. Creates pole-splitting. Optionally add a series resistor (Rz) for a left-half-plane zero. Simple but may not stabilize all loads.
+- **Miller with nulling resistor** -- Rz in series with Cc to place a zero that tracks the non-dominant pole.
+- **Dominant-pole at gate** -- add large cap at error amp output to make gate pole absolutely dominant. Simple but kills bandwidth.
+- **Adaptive biasing** -- sense load current and increase error amp bias at high loads. Moves the gate pole out to track the output pole. How the best capless LDOs work.
+- **Multi-loop compensation** -- separate fast inner loop and slow outer loop.
+- **Pole-zero tracking** -- compensation that automatically adjusts with load.
+- **Nested Miller** -- if using a two-stage error amp.
+- **Feed-forward capacitor** -- from vfb to vout_gate for phase lead.
+- **Cascode compensation** -- separate the Miller cap feedback path through a cascode node for better pole-splitting.
 
-2. **Step 2: Measure uncompensated loop.** Break the loop at the feedback node (vfb). Inject AC stimulus. Run `.ac dec 100 1 100meg`. Measure loop gain and phase at Iload = 0, 1mA, 10mA, 50mA. Record pole locations and crossover frequency. **It WILL be unstable at some or all loads.**
+**The agent should explore topologies that achieve PM > 45 deg across the full 0-50 mA load range. The topology that works is the right topology.**
 
-3. **Step 3: Identify the poles.**
-   - Gate pole: f_gate = 1 / (2*pi * Rout_EA * (Cgs_pass + Cc))
-   - Output pole: f_out = gm_pass / (2*pi * Cload) at light load, or 1/(2*pi * Rload * Cload)
-   - The problem: at no-load, output pole is slow (~kHz) and gate pole is fast. At full-load, output pole is fast (~MHz) and may collide with UGB.
+---
 
-4. **Step 4: Choose Cc.** Start with Cc = 10 pF. The Miller effect multiplies Cc by the pass device gain (gm_pass * Rload), creating a dominant pole at the gate. Simulate loop stability at all loads. Increase Cc if PM < 45 deg at light load. Decrease if bandwidth is too low.
+## Dependencies
 
-5. **Step 5: Add Rz for zero.** If PM < 45 deg at some load (typically mid-load where poles are closest), add Rz in series with Cc. Choose Rz to place the zero near the problematic pole: fz = 1/(2*pi * Rz * Cc). Start with Rz = 1/(gm_pass) ~ 1/gm of pass device at mid-load. Simulate.
+**Wave 2 block -- requires ALL of the following:**
+- Block 00 (error amp) -- `design.cir` must exist and simulate
+- Block 01 (pass device) -- `design.cir` must exist with characterized Cgs, gm
+- Block 02 (feedback network) -- `design.cir` must exist with correct ratio
 
-6. **Step 6: Sweep all loads.** Parametric sweep Rload from 100 ohm (50mA) to 100 kohm (50uA). Phase margin must be > 45 deg at EVERY point.
-
-7. **Step 7: Corner/temperature sweep.** Run at SS/FF/SF/FS and -40/27/150C. The worst case is typically SS corner at 150C (lowest gm, slowest loop) or FF at -40C (highest gm, risk of ringing).
-
-8. **Step 8: Transient verification.** Run load step (1mA to 10mA in 1us). Confirm no oscillation, undershoot < 150 mV, settling < 10 us. The AC analysis tells you PM; the transient tells you if the AC analysis was right.
-
-9. **Step 9: Iterate.** If any condition fails, adjust Cc and Rz. If Miller compensation alone cannot stabilize all loads, consider:
-   - Adding a second compensation path
-   - Adding a feed-forward capacitor from vfb to vout_gate
-   - Implementing adaptive biasing in the error amp
-   - Using a cascode-compensated topology
+The compensation network cannot be designed in isolation. It is meaningless without the full loop.
 
 ---
 
 ## Testbench Requirements
 
-| Testbench File | Measures | Key Setup |
-|---------------|----------|-----------|
-| `tb_comp_lstb.spice` | Loop gain and phase margin (LSTB method) | Break loop at vfb, AC sweep, measure T(s) = loop gain |
-| `tb_comp_load_sweep.spice` | PM and GM vs load current | Parametric: Rload = 100, 500, 1k, 5k, 10k, 50k, 100k ohm |
-| `tb_comp_pvt.spice` | PM at all 5 corners and 3 temperatures | 15 simulation runs minimum |
-| `tb_comp_transient.spice` | Load step response (time domain) | 1mA -> 10mA and 10mA -> 1mA steps, 1us edge |
-| `tb_comp_bode.spice` | Full Bode plot of open-loop transfer function | For design visualization and debugging |
-| `tb_comp_bvdd_sweep.spice` | PM vs BVDD (5.4 to 10.5V) | Verify stability across input range |
+| Measurement | What to Report |
+|-------------|---------------|
+| Loop gain and phase margin (LSTB) | PM and GM at each load point |
+| PM vs load current sweep | Parametric: Iload = 0, 0.1, 1, 10, 50 mA |
+| PM at all PVT corners | 5 corners x 3 temperatures = 15 conditions minimum |
+| PM vs BVDD | Sweep BVDD 5.4 to 10.5V |
+| Load step transient | 1mA to 10mA and 10mA to 1mA, 1us edge |
+| Full Bode plot | Open-loop gain and phase for visualization |
 
-**Critical: Loop-breaking technique for ngspice.** Use a large inductor (1GH) in series with vfb to break the DC loop while passing AC:
-
-```spice
-* Loop stability testbench (Middlebrook method simplified)
-* Break the loop at the feedback node
-Lbreak vfb_int vfb 1G
-Cbreak vfb_int gnd 1G
-
-* AC injection
-Vac_inj vfb_int vfb_sense dc 0 ac 1
-
-* The feedback divider connects pvdd to vfb_sense
-* The error amp sees vfb
-```
-
----
-
-## Simulation Procedure
-
-**PDK include:**
-```spice
-.lib "/path/to/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
-```
-
-**Loop stability measurement (simplified break-loop):**
-```spice
-.include "../00_error_amp/design.cir"
-.include "../01_pass_device/design.cir"
-.include "../02_feedback_network/design.cir"
-
-* Supplies
-V_BVDD bvdd gnd 7.0
-V_REF  vref gnd 1.226
-I_BIAS pvdd ibias 1u
-
-* Instantiate blocks
-Xea  vref vfb vout_gate pvdd gnd ibias en error_amp
-Xpass vout_gate bvdd pvdd pass_device
-
-* Compensation (the block under test)
-XCc vout_gate_rz pvdd sky130_fd_pr__cap_mim_m3_1 W=100u L=100u
-XRz vout_gate vout_gate_rz sky130_fd_pr__res_xhigh_po W=1u L=5u
-
-* Output load
-Cload pvdd gnd 200p
-Rload pvdd gnd 1k         * 5 mA operating point
-
-* Feedback with loop break
-Xfb pvdd vfb_sense gnd feedback_network
-Lbreak vfb vfb_sense 1G
-Vac vfb_sense vfb_ac dc 0 ac 1
-
-* Enable
-Ven en gnd 5.0
-
-.ac dec 100 1 100meg
-
-.control
-run
-let loop_gain_db = db(v(vfb_ac))
-let loop_phase = 180/PI * ph(v(vfb_ac))
-plot loop_gain_db loop_phase
-meas ac pm find loop_phase when loop_gain_db=0
-meas ac gm_cross find loop_gain_db when loop_phase=-180
-let gm_db = -gm_cross
-print pm gm_db
-.endc
-```
-
-**Convergence options:**
-```spice
-.option reltol=1e-4
-.option abstol=1e-12
-.option vntol=1e-6
-.option gmin=1e-12
-.option method=gear
-.option itl1=500
-.option itl4=200
-```
+**Note on loop-breaking:** In ngspice, use a large inductor (1GH) in series at the feedback node to break the DC loop while passing AC. The agent may use any valid loop-breaking technique.
 
 ---
 
@@ -282,8 +149,8 @@ print pm gm_db
 | Gain margin at ALL loads | >= 10 dB |
 | PM at SS/FF/SF/FS corners, all loads | >= 45 deg |
 | PM at -40C and 150C, all loads | >= 45 deg |
-| Load transient undershoot (1mA -> 10mA) | < 150 mV |
-| Load transient overshoot (10mA -> 1mA) | < 150 mV |
+| Load transient undershoot (1->10 mA) | < 150 mV |
+| Load transient overshoot (10->1 mA) | < 150 mV |
 | Settling time | < 10 us to within 1% |
 | No oscillation at any condition | Zero sustained ringing in any transient |
 
@@ -291,25 +158,9 @@ print pm gm_db
 
 ---
 
-## Dependencies
-
-**Wave 2 block — requires ALL of the following:**
-- Block 00 (error amp) — `design.cir` must exist and simulate correctly
-- Block 01 (pass device) — `design.cir` must exist with characterized Cgs, gm
-- Block 02 (feedback network) — `design.cir` must exist with correct ratio
-
-The compensation network cannot be designed in isolation. It is meaningless without the full loop.
-
----
-
 ## Deliverables
 
-1. `design.cir` — Compensation network subcircuit. Definition: `.subckt compensation vout_gate pvdd gnd` (or `.subckt compensation vout_gate pvdd vfb gnd` if lead compensation is used)
-2. `tb_comp_lstb.spice` — Loop stability testbench
-3. `tb_comp_load_sweep.spice` — PM vs load parametric sweep
-4. `tb_comp_pvt.spice` — PVT corner sweep
-5. `tb_comp_transient.spice` — Load step transient testbench
-6. `tb_comp_bode.spice` — Full Bode plot testbench
-7. `tb_comp_bvdd_sweep.spice` — PM vs BVDD testbench
-8. `README.md` — Design report: compensation topology chosen, Cc and Rz values, PM at every load/corner/temp data point, Bode plots, transient waveforms, explanation of why it works
-9. `*.png` — Plots: Bode plot (gain + phase), PM vs load current graph, transient step responses, corner overlay plots
+1. `design.cir` -- Compensation network subcircuit: `.subckt compensation vout_gate pvdd gnd` (add `vfb` pin if lead compensation is used)
+2. Testbench files for every measurement listed above
+3. `README.md` -- Design report: topology chosen, component values, PM at every load/corner/temp, Bode plots, transient waveforms, explanation of why the chosen approach works
+4. `*.png` -- Plots: Bode (gain + phase), PM vs load current, transient step responses, corner overlays
