@@ -1,0 +1,22 @@
+# Block 05: UV/OV Comparators — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: threshold_error_mV — max absolute threshold deviation from nominal (lower is better)
+#   threshold_error_mV = max(|UV_actual - 4.3|, |OV_actual - 5.5|) * 1000
+#   Perfect: 0.000 mV. Must be low enough that thresholds stay in window across all PVT.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+threshold_error_mV	^threshold_error_mV:	<=	200	mV	yes
+uv_thresh_falling_V	^uv_thresh_falling_V:	>=	4.0	V	no
+uv_thresh_falling_V_max	^uv_thresh_falling_V:	<=	4.5	V	no
+uv_hysteresis_mV	^uv_hysteresis_mV:	>=	50	mV	no
+uv_hysteresis_mV_max	^uv_hysteresis_mV:	<=	150	mV	no
+ov_thresh_rising_V	^ov_thresh_rising_V:	>=	5.25	V	no
+ov_thresh_rising_V_max	^ov_thresh_rising_V:	<=	5.7	V	no
+ov_hysteresis_mV	^ov_hysteresis_mV:	>=	50	mV	no
+ov_hysteresis_mV_max	^ov_hysteresis_mV:	<=	150	mV	no
+response_time_us	^response_time_us:	<=	5	us	no
+power_per_comp_uA	^power_per_comp_uA:	<=	5	uA	no
+uv_pvt_in_window	^uv_pvt_in_window:	>=	1	bool	no
+ov_pvt_in_window	^ov_pvt_in_window:	>=	1	bool	no

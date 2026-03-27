@@ -1,0 +1,144 @@
+{
+  "block": "05",
+  "name": "uv_ov_comparators",
+  "subckts": {
+    "uv": "uv_comparator",
+    "ov": "ov_comparator"
+  },
+  "ports": {
+    "uv": ["pvdd", "vref", "uv_flag", "vdd_comp", "gnd", "en"],
+    "ov": ["pvdd", "vref", "ov_flag", "vdd_comp", "gnd", "en"]
+  },
+  "design_file": "design.cir",
+  "wave": 1,
+  "depends_on": [],
+  "note": "Two separate comparators. Both need hysteresis to prevent chattering. Always-on: must be low power.",
+  "operating_conditions": {
+    "pvdd_range": { "min": 0, "max": 6.0, "unit": "V" },
+    "vref": 1.226,
+    "supply": "PVDD or BVDD — designer choice (UV must work when PVDD is low)",
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "uv_threshold_tt27",
+      "param": "UV threshold (falling edge) at TT 27C",
+      "min": 4.0,
+      "max": 4.5,
+      "unit": "V",
+      "condition": "PVDD falling, TT 27C — uv_flag asserts"
+    },
+    {
+      "id": "uv_hysteresis",
+      "param": "UV comparator hysteresis",
+      "min": 50e-3,
+      "max": 150e-3,
+      "unit": "V",
+      "condition": "uv_flag de-asserts at threshold + hysteresis (PVDD rising)"
+    },
+    {
+      "id": "ov_threshold_tt27",
+      "param": "OV threshold (rising edge) at TT 27C",
+      "min": 5.25,
+      "max": 5.7,
+      "unit": "V",
+      "condition": "PVDD rising, TT 27C — ov_flag asserts"
+    },
+    {
+      "id": "ov_hysteresis",
+      "param": "OV comparator hysteresis",
+      "min": 50e-3,
+      "max": 150e-3,
+      "unit": "V",
+      "condition": "ov_flag de-asserts at threshold - hysteresis (PVDD falling)"
+    },
+    {
+      "id": "uv_threshold_pvt",
+      "param": "UV threshold across all PVT corners",
+      "min": 4.0,
+      "max": 4.5,
+      "unit": "V",
+      "condition": "SS/FF/SF/FS at -40/27/150C — must stay in window"
+    },
+    {
+      "id": "ov_threshold_pvt",
+      "param": "OV threshold across all PVT corners",
+      "min": 5.25,
+      "max": 5.7,
+      "unit": "V",
+      "condition": "SS/FF/SF/FS at -40/27/150C — must stay in window"
+    },
+    {
+      "id": "response_time_uv",
+      "param": "UV comparator response time",
+      "max": 5e-6,
+      "unit": "s",
+      "condition": "From PVDD crossing threshold to uv_flag transition"
+    },
+    {
+      "id": "response_time_ov",
+      "param": "OV comparator response time",
+      "max": 5e-6,
+      "unit": "s",
+      "condition": "From PVDD crossing threshold to ov_flag transition"
+    },
+    {
+      "id": "power_per_comparator",
+      "param": "Quiescent current per comparator",
+      "max": 5e-6,
+      "unit": "A",
+      "condition": "Each comparator independently, always-on"
+    },
+    {
+      "id": "output_rail_to_rail",
+      "param": "Output swings rail-to-rail",
+      "eq": true,
+      "unit": "bool",
+      "condition": "HIGH > supply - 0.2V, LOW < 0.2V"
+    },
+    {
+      "id": "no_oscillation_at_threshold",
+      "param": "Clean switching — no oscillation at threshold",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Hysteresis prevents chattering when PVDD hovers near threshold"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_uv_trip.spice",
+      "measures": ["uv_threshold_tt27", "uv_hysteresis"]
+    },
+    {
+      "file": "tb_ov_trip.spice",
+      "measures": ["ov_threshold_tt27", "ov_hysteresis"]
+    },
+    {
+      "file": "tb_comp_response.spice",
+      "measures": ["response_time_uv", "response_time_ov"]
+    },
+    {
+      "file": "tb_comp_power.spice",
+      "measures": ["power_per_comparator"]
+    },
+    {
+      "file": "tb_comp_output_swing.spice",
+      "measures": ["output_rail_to_rail"]
+    },
+    {
+      "file": "tb_comp_pvt.spice",
+      "measures": ["uv_threshold_pvt", "ov_threshold_pvt"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_uv_trip.spice",
+    "tb_ov_trip.spice",
+    "tb_comp_response.spice",
+    "tb_comp_power.spice",
+    "tb_comp_output_swing.spice",
+    "tb_comp_pvt.spice",
+    "README.md"
+  ]
+}

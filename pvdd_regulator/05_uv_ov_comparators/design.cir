@@ -1,0 +1,72 @@
+* Block 05: UV/OV Comparators
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Two subcircuits in this file:
+*
+* 1. UV comparator:
+*    Trips when PVDD falls below ~4.3V (undervoltage).
+*    uv_flag goes HIGH when PVDD < UV threshold.
+*    Has ~100 mV hysteresis to prevent chattering.
+*
+* 2. OV comparator:
+*    Trips when PVDD rises above ~5.5V (overvoltage).
+*    ov_flag goes HIGH when PVDD > OV threshold.
+*    Has ~100 mV hysteresis to prevent chattering.
+*
+* STATUS: EMPTY — topology not yet chosen
+*
+* Topology: resistive divider from PVDD tapping Vref (1.226V) crossing.
+*   UV: PVDD * R2/(R1+R2) = 1.226V at PVDD = 4.3V
+*     R2/(R1+R2) = 1.226/4.3 = 0.2851
+*   OV: PVDD * R2/(R1+R2) = 1.226V at PVDD = 5.5V
+*     R2/(R1+R2) = 1.226/5.5 = 0.2229
+*   Comparator: HV differential pair comparing divided PVDD to vref.
+*
+* Requirements:
+*   UV threshold (falling)    4.0–4.5V (nominal 4.3V)
+*   UV hysteresis             50–150 mV
+*   OV threshold (rising)     5.25–5.7V (nominal 5.5V)
+*   OV hysteresis             50–150 mV
+*   Response time             <= 5 µs
+*   Power per comparator      <= 5 µA from vdd_comp
+*   Threshold error across PVT  within ±200 mV of nominal
+*
+* ============================================================
+* UV Comparator
+* ============================================================
+* Ports:
+*   pvdd     — PVDD supply to sense and to power the comparator
+*   vref     — bandgap reference 1.226V
+*   uv_flag  — output: HIGH when PVDD < UV threshold
+*   vdd_comp — comparator supply (may be PVDD or BVDD)
+*   gnd      — ground
+*   en       — enable (HIGH = active, LOW = comparator off)
+*
+.subckt uv_comparator pvdd vref uv_flag vdd_comp gnd en
+
+* TODO: implement UV comparator
+* Divider from PVDD, compare to vref.
+* When V_div < vref: PVDD < 4.3V → uv_flag = 1 (HIGH).
+* Add hysteresis: positive feedback NMOS or resistive feedback.
+
+.ends uv_comparator
+
+* ============================================================
+* OV Comparator
+* ============================================================
+* Ports:
+*   pvdd     — PVDD supply to sense and to power the comparator
+*   vref     — bandgap reference 1.226V
+*   ov_flag  — output: HIGH when PVDD > OV threshold
+*   vdd_comp — comparator supply
+*   gnd      — ground
+*   en       — enable (HIGH = active, LOW = comparator off)
+*
+.subckt ov_comparator pvdd vref ov_flag vdd_comp gnd en
+
+* TODO: implement OV comparator
+* Divider from PVDD, compare to vref.
+* When V_div > vref: PVDD > 5.5V → ov_flag = 1 (HIGH).
+* Add hysteresis.
+
+.ends ov_comparator
