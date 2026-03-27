@@ -1,0 +1,50 @@
+* Testbench: Quiescent current per comparator from vdd_comp
+* PVDD at 5V nominal, both comparators in non-tripped state
+
+.title TB_COMP_POWER
+
+.lib "sky130.lib.spice" tt
+.include "design.cir"
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+.temp 27
+
+* --- UV comparator (PVDD=5V → not tripped) ---
+V_pvdd_uv pvdd_uv 0 DC 5.0
+V_vdd_uv vdd_uv 0 DC 1.8
+V_vref_uv vref_uv 0 DC 1.226
+V_en_uv en_uv 0 DC 1.8
+X_uv pvdd_uv vref_uv uv_flag vdd_uv 0 en_uv uv_comparator
+
+* --- OV comparator (PVDD=5V → not tripped) ---
+V_pvdd_ov pvdd_ov 0 DC 5.0
+V_vdd_ov vdd_ov 0 DC 1.8
+V_vref_ov vref_ov 0 DC 1.226
+V_en_ov en_ov 0 DC 1.8
+X_ov pvdd_ov vref_ov ov_flag vdd_ov 0 en_ov ov_comparator
+
+.tran 0.1u 50u
+
+.control
+run
+
+echo "=== Power Testbench ==="
+
+let n = length(time) - 1
+let i_uv = abs(i(V_vdd_uv)[n]) * 1e6
+let i_ov = abs(i(V_vdd_ov)[n]) * 1e6
+
+echo "UV supply current:" $&i_uv "uA"
+echo "OV supply current:" $&i_ov "uA"
+
+let max_i = i_uv
+if ( i_ov > max_i )
+  let max_i = i_ov
+end
+echo ""
+echo "power_per_comp_uA:" $&max_i
+
+quit
+.endc
+
+.end

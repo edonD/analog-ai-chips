@@ -1,0 +1,73 @@
+* Testbench: Response time for both comparators
+* Step PVDD through thresholds, measure flag propagation delay
+
+.title TB_COMP_RESPONSE
+
+.lib "sky130.lib.spice" tt
+.include "design.cir"
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+.temp 27
+
+* --- Supplies ---
+V_vdd vdd_comp 0 DC 1.8
+V_vref vref 0 DC 1.226
+V_en en 0 DC 1.8
+
+* --- UV: step PVDD from 5V to 3.5V at t=50us ---
+V_pvdd_uv pvdd_uv 0 PWL(0 5.0 49.9u 5.0 50u 3.5 100u 3.5)
+X_uv pvdd_uv vref uv_flag vdd_comp 0 en uv_comparator
+C_uv uv_flag 0 1p
+
+* --- OV: step PVDD from 5V to 6V at t=50us ---
+V_pvdd_ov pvdd_ov 0 PWL(0 5.0 49.9u 5.0 50u 6.0 100u 6.0)
+X_ov pvdd_ov vref ov_flag vdd_comp 0 en ov_comparator
+C_ov ov_flag 0 1p
+
+.tran 10n 100u
+
+.control
+run
+set wr_vecnames
+set wr_singlescale
+wrdata response_data.txt v(pvdd_uv) v(uv_flag) v(pvdd_ov) v(ov_flag)
+
+echo "=== Response Time Testbench ==="
+
+* UV: flag should go HIGH after step at 50us
+meas tran t_uv WHEN v(uv_flag)=0.9 RISE=1 TD=49u
+if ( t_uv > 49e-6 )
+  let uv_delay = (t_uv - 50e-6) * 1e6
+  if ( uv_delay < 0 )
+    let uv_delay = 0.001
+  end
+  echo "UV delay:" $&uv_delay "us"
+else
+  let uv_delay = 99
+  echo "UV did not trip!"
+end
+
+* OV: flag should go HIGH after step at 50us
+meas tran t_ov WHEN v(ov_flag)=0.9 RISE=1 TD=49u
+if ( t_ov > 49e-6 )
+  let ov_delay = (t_ov - 50e-6) * 1e6
+  if ( ov_delay < 0 )
+    let ov_delay = 0.001
+  end
+  echo "OV delay:" $&ov_delay "us"
+else
+  let ov_delay = 99
+  echo "OV did not trip!"
+end
+
+let max_delay = uv_delay
+if ( ov_delay > max_delay )
+  let max_delay = ov_delay
+end
+echo ""
+echo "response_time_us:" $&max_delay
+
+quit
+.endc
+
+.end

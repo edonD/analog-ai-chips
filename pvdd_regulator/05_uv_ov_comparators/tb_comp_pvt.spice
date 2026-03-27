@@ -1,0 +1,63 @@
+* Testbench: UV and OV thresholds at TT 27C
+* PVT sweep across corners done by wrapper script changing .lib
+
+.title TB_COMP_PVT
+
+.lib "sky130.lib.spice" tt
+.include "design.cir"
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+.temp 27
+
+V_vdd vdd_comp 0 DC 1.8
+V_vref vref 0 DC 1.226
+V_en en 0 DC 1.8
+
+* --- PVDD triangle 0→6→0V ---
+V_pvdd pvdd 0 PWL(0 0 100u 6.0 200u 0)
+
+X_uv pvdd vref uv_flag vdd_comp 0 en uv_comparator
+C_uv uv_flag 0 1p
+
+X_ov pvdd vref ov_flag vdd_comp 0 en ov_comparator
+C_ov ov_flag 0 1p
+
+.tran 0.1u 200u
+
+.control
+run
+
+echo "=== PVT Corner Testbench (TT 27C) ==="
+
+* UV: flag goes LOW during rising phase (de-assertion), HIGH during falling phase
+meas tran uv_fall FIND v(pvdd) WHEN v(uv_flag)=0.9 CROSS=2
+
+* OV: flag goes HIGH during rising phase (assertion)
+meas tran ov_rise FIND v(pvdd) WHEN v(ov_flag)=0.9 CROSS=1
+
+echo ""
+echo "uv_thresh_falling_V:" $&uv_fall
+echo "ov_thresh_rising_V:" $&ov_rise
+
+let uv_ok = 1
+let ov_ok = 1
+if ( uv_fall < 4.0 )
+  let uv_ok = 0
+end
+if ( uv_fall > 4.5 )
+  let uv_ok = 0
+end
+if ( ov_rise < 5.25 )
+  let ov_ok = 0
+end
+if ( ov_rise > 5.7 )
+  let ov_ok = 0
+end
+
+echo "uv_pvt_in_window:" $&uv_ok
+echo "ov_pvt_in_window:" $&ov_ok
+
+quit
+.endc
+
+.end
