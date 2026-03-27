@@ -238,34 +238,13 @@ Every circuit block in the VibroSense-1 chip, from transistor sizing to simulati
 
 **Status:** 7/7 specs PASS | **Power:** 0.97 uW | [Full report](vibrosense/00_bias/README.md)
 
+### Schematic
+
+![Bias Generator Schematic](vibrosense/00_bias/bias_generator.png)
+
 ### Topology
 
 OTA-regulated beta-multiplier with TC-compensated series resistors, dominant-pole compensation, and an RC-timed startup circuit. The OTA forces V(out_n) = V(nbias), eliminating Vds mismatch in the PMOS mirror for 12.5x better supply rejection than a simple beta-multiplier.
-
-```
-                         VDD (1.8V)
-                          |
-              +-----------+-----------+-----------+
-              |           |           |           |
-         M3 (P)      M4 (P)     M7 (P)      OTA (Mo1-Mo5)
-        W=4 L=4     W=4 L=4    W=4 L=4     regulates vbias
-       (vbias)      (vbias)    (vbias)       |
-              |           |           |     forces V(out_n) = V(nbias)
-            nbias       out_n     iref_out
-              |           |           |
-         M1 (N)      M2 (N)     (OUTPUT → downstream blocks)
-        W=2 L=4     W=8 L=4
-       diode-conn   (K=4)
-              |           |
-             GND      R1a (xhigh_po, TC~0)
-                          |
-                      R1b (iso_pw, TC~3460 ppm/C)
-                          |
-                         GND
-
-         Startup: C_gs (MIM) → R_gs (xhigh_po) → Msw (shorts vbias↔nbias)
-         Anti-deadlock: M6 (subthreshold NMOS leaker, gate=GND)
-```
 
 ### Device Sizing
 
@@ -299,6 +278,8 @@ OTA-regulated beta-multiplier with TC-compensated series resistors, dominant-pol
 | Startup time | <10 us | **~8 us** | within spec | PASS |
 | Power consumption | <15 uW | **0.97 uW** | 15.5x | PASS |
 | Monte Carlo 3-sigma | within spec | **+/-3.9%** | all in band | PASS |
+
+![Dashboard](vibrosense/00_bias/plot_dashboard.png)
 
 **Corner Analysis (5 corners, 3 temps, 2 supplies = 30 conditions):**
 
@@ -335,38 +316,13 @@ All 30 PVT conditions pass the Iref = 400-600 nA specification. SF/FS corners ma
 
 **Status:** ALL specs PASS | **Power:** 0.90 uW per instance | [Full report](vibrosense/01_ota/README.md)
 
+### Schematic
+
+![OTA Folded-Cascode Schematic](vibrosense/01_ota/schematic/ota_foldcasc.png)
+
 ### Topology
 
 NMOS-input folded-cascode with PMOS cascode output stage. Single-stage inherently stable architecture.
-
-```
-                         VDD (1.8V)
-                          |
-              +-----------+-----------+
-              |                       |
-         M3 (P, x20)            M4 (P, x20)         M12, M13 (P)
-        fold current            fold current         bias mirrors
-              |                       |
-         M5 (P)                  M6 (P)
-        PMOS cascode            PMOS cascode
-              |                       |
-         M7 (N)                  M8 (N) ─────► vout
-        NMOS cascode            NMOS cascode
-              |                       |
-         M9 (N)                 M10 (N)
-        current src             current src
-              |                       |
-              +-----------+-----------+
-                          |
-                         GND
-
-                   M11 (N, tail = 501 nA)
-                  +-------+-------+
-                  |               |
-                M1 (N)          M2 (N)
-               vinp             vinn
-            (W=5, L=14)      (W=5, L=14)
-```
 
 ### Device Sizing
 
@@ -395,6 +351,8 @@ NMOS-input folded-cascode with PMOS cascode output stage. Single-stage inherentl
 | CMRR @ DC | >=60 dB | **82.3 dB** | PASS |
 | Supply current | <=2.0 uA | **0.501 uA** | PASS (4x margin) |
 | Power @ 1.8V | <=3.6 uW | **0.90 uW** | PASS (4x margin) |
+
+![OTA Bode Plot](vibrosense/01_ota/report_bode.png)
 
 **Corner robustness:** Worst-case gain 61.4 dB (SF), worst-case UGB 29.7 kHz (SS) — all corners pass.
 
@@ -431,24 +389,13 @@ NMOS-input folded-cascode with PMOS cascode output stage. Single-stage inherentl
 
 **Status:** ALL specs PASS (tapeout-ready schematic) | **Power:** 10.0 uW | [Full report](vibrosense/02_pga/README.md)
 
+### Schematic
+
+![PGA Schematic](vibrosense/02_pga/pga.png)
+
 ### Topology
 
 Capacitive-feedback inverting amplifier with switched MIM input capacitors and CMOS 2-to-4 decoder. Gain = Cin/Cf, set by MIM cap ratios — inherently PVT-stable.
-
-```
-  g1, g0 ──► [CMOS 2-to-4 Decoder] ──► sel0..sel3
-                 (28 transistors)
-                        │
-  vin ──[1pF Cin1]── mid1 ──[NMOS sw, sel0]─┐
-      ──[4pF Cin2]── mid2 ──[NMOS sw, sel1]─┤
-      ──[16pF Cin3]─ mid3 ──[NMOS sw, sel2]─┼── inn ──[1pF Cf]── vout
-      ──[64pF Cin4]─ mid4 ──[NMOS sw, sel3]─┘           │
-                                                    [100G ohm pseudo-R]
-                                                         │
-                                                   [OTA (ota_pga_v2)]
-                                                   UGB = 422 kHz
-                                                   vcm = 0.9V
-```
 
 ### Gain Settings
 
@@ -480,6 +427,8 @@ Capacitive-feedback inverting amplifier with switched MIM input capacitors and C
 | BW @ 16x | >25 kHz | **~27 kHz** | PASS |
 | BW @ 64x | >6 kHz | **~7 kHz** | PASS |
 
+![PGA Gain Response](vibrosense/02_pga/plot_ac_all_gains.png)
+
 **Cin4 (64 pF) dominates layout: ~179 x 179 um.** Estimated die area: ~250 x 250 um.
 
 ---
@@ -490,28 +439,23 @@ Capacitive-feedback inverting amplifier with switched MIM input capacitors and C
 
 **Status:** ALL specs PASS (independently verified) | **Power:** 42.5 uW | [Full report](vibrosense/03_filters/README.md)
 
+### Schematics
+
+**Single BPF channel (pseudo-differential Tow-Thomas):**
+
+![BPF Channel Schematic](vibrosense/03_filters/bpf_pseudo_diff.png)
+
+**Bias current DAC (4-bit, per channel):**
+
+![Bias DAC Schematic](vibrosense/03_filters/bias_dac_real.png)
+
+**Top-level 5-channel filter bank:**
+
+![Filter Bank Top Schematic](vibrosense/03_filters/filter_bank_top.png)
+
 ### Topology
 
 Five pseudo-differential Tow-Thomas biquad filters. Each channel uses 6 folded-cascode OTAs (3 per path) and 4 integration capacitors. Pseudo-differential topology achieves complete HD2 cancellation (-129 to -162 dBc).
-
-```
-  Per channel (6 OTAs, 4 caps, 4 pseudo-resistors):
-
-  vinp ──[OTA1p, +gm]──┬──(C1p)──[OTA2p, +gm]──┬──(C2p)──┐
-                        │                        │         │
-                      [PR1p]                   [PR2p]      │
-                        │                        │         │
-                       VCM                      VCM    [OTA3p, feedback]
-                                                           │
-  vinn ──[OTA1n, +gm]──┬──(C1n)──[OTA2n, +gm]──┬──(C2n)──┘
-                        │                        │
-                      [PR1n]                   [PR2n]
-                        │                        │
-                       VCM                      VCM
-
-  Differential output: bp_outp (int1p) - bp_outn (int1n)
-  f0 = gm / (2*pi*sqrt(C1*C2)),  Q = sqrt(C1/C2)
-```
 
 ### Frequency Bands (ISO 10816)
 
@@ -562,16 +506,13 @@ Five pseudo-differential Tow-Thomas biquad filters. Each channel uses 6 folded-c
 
 **Status:** 4/7 specs PASS | **Power:** 21.0 uW per channel | [Full report](vibrosense/04_envelope/README.md)
 
+### Schematic
+
+![Envelope Detector Schematic](vibrosense/04_envelope/envelope_det.png)
+
 ### Topology
 
 Dual-OTA precision half-wave rectifier followed by a 5-transistor Gm-C low-pass filter.
-
-```
-  vin (AC) ──► [OTA1: tracks vin when > vcm] ──┐
-               [OTA2: clamps to vcm when < vcm] ┼── rect ── [5T OTA LPF] ── vout (DC)
-               [NMOS sink: proportional discharge]┘     fc = 9.3 Hz
-                                                        C = 50 nF
-```
 
 ### Device Sizing (per channel)
 
@@ -599,6 +540,8 @@ Dual-OTA precision half-wave rectifier followed by a 5-transistor Gm-C low-pass 
 | Power per channel | <10 uW | 21.0 uW | FAIL (2.1x over) |
 | Min detectable signal | <=10 mVpp | ~20 mVpp | FAIL |
 
+![Envelope Amplitude Sweep](vibrosense/04_envelope/amplitude_sweep.png)
+
 **Corner robustness:** Excellent — only +/-0.7% variation across 5 process corners. Transfer function R^2 = 0.99999 (monotonic, classifier-friendly).
 
 **Power fix path:** OTAs biased at 1500 nA for 477 kHz UGB — signals only need ~50 kHz. Reducing to 200-500 nA per channel drops power to 8-12 uW (documented in design program).
@@ -611,22 +554,13 @@ Dual-OTA precision half-wave rectifier followed by a 5-transistor Gm-C low-pass 
 
 **Status:** 10/10 specs PASS across all 15 PVT corners | **Power:** 8.0 uW | [Full report](vibrosense/05_rms_crest/README.md)
 
+### Schematic
+
+![RMS/Crest Factor Schematic](vibrosense/05_rms_crest/rms_crest.png)
+
 ### Topology
 
 Single-pair MOSFET square-law squarer exploiting strong-inversion Id = (K/2)(Vgs-Vth)^2 physics. No inverter circuit needed — works for ANY symmetric waveform.
-
-```
-                    RMS Path
-  inp ──► [Signal NFET, W=0.84 L=6] ──► Rsig=100k ──► LPF (3.18M + 1nF) ──► rms_out
-  vcm ──► [Ref NFET, W=0.84 L=6]   ──► Rref=100k ──► LPF (3.18M + 1nF) ──► rms_ref
-          (matched pair)
-          dI = (K/2) * V^2  →  after LPF: mean(dI) proportional to RMS^2
-
-                    Peak Path
-  inp ──► [5T OTA comparator] ──► [NMOS source follower] ──► Chold (500 pF) ──► peak_out
-                                                              [NMOS pseudo-R discharge]
-                                                              [NMOS reset switch (MCU)]
-```
 
 ### Device Count
 
@@ -656,6 +590,9 @@ Single-pair MOSFET square-law squarer exploiting strong-inversion Id = (K/2)(Vgs
 | Crest factor (triangle) | ideal=1.732 | **1.655** (4.5% err) | PASS |
 | Total power | <25 uW | **8.0 uW** | PASS (68% margin) |
 
+![RMS Linearity](vibrosense/05_rms_crest/plot_rms_linearity.png)
+![Crest Factor](vibrosense/05_rms_crest/plot_crest_factor.png)
+
 **PVT robustness:** All 15 corners (5 process x 3 temp) pass. Worst-case power: 11.4 uW (SF/85C). Worst-case RMS accuracy: 2.8% (SS/85C).
 
 ### Interface
@@ -678,24 +615,11 @@ Single-pair MOSFET square-law squarer exploiting strong-inversion Id = (K/2)(Vgs
 
 **Status:** 10/10 specs PASS | **Power:** <0.001 uW @ 10 Hz | [Full report](vibrosense/06_classifier/README.md)
 
-### How It Works
+### Schematic
 
-```
-  8 Feature Inputs                 4x MAC Units              Winner-Take-All
-  (0-1.8V analog)              (8 in x 4-bit wt)              (3 comparators)
-        │                            │                              │
-  ┌─────┤     SAMPLE (phi_s)         │        EVALUATE (phi_e)      │
-  │     │     TGs charge caps        │        charge redistrib.     │
-  │     ▼     Q = C_w * V_f          ▼        Vbl = Sum/Ctot        ▼
-  │  ┌──────┐                   ┌─────────┐                   ┌──────────┐
-  │  │MAC_0 │  Normal weights   │ Vbl_0   │──┐                │ StrongARM│
-  │  │MAC_1 │  Imbalance wts    │ Vbl_1   │──┤  Binary tree   │ 10 trans │
-  │  │MAC_2 │  Bearing weights  │ Vbl_2   │──┤  of 3 comps    │ each     │──► class[1:0]
-  │  │MAC_3 │  Looseness wts    │ Vbl_3   │──┘                │          │    (2-bit)
-  │  └──────┘                   └─────────┘                   └──────────┘
-  │  32 MIM caps each            Charge sharing                 Winner
-  │  (50/100/200/400 fF)         IS the dot product             selection
-```
+![Classifier Schematic](vibrosense/06_classifier/classifier_schematic.png)
+
+### How It Works
 
 **Three clock phases:**
 1. **SAMPLE (phi_s):** TGs charge each cap to input voltage. Q_stored = C_weight x V_feature
@@ -740,6 +664,10 @@ Total bitline capacitance per MAC: 6.36 pF (including bottom-plate parasitic).
 | Weight precision | >=4 bits | **4.0 bits** | at spec |
 | Power @ 10 Hz | <5 uW | **<0.001 uW** | >5000x |
 
+![MAC Linearity](vibrosense/06_classifier/plots/p1_fullscale_linearity.png)
+![WTA Classification](vibrosense/06_classifier/plots/p3_wta_classification.png)
+![Monte Carlo](vibrosense/06_classifier/plots/p4_monte_carlo.png)
+
 **Why 0.11% corner variation?** Charge-domain output depends on **capacitor ratios**, not transistor parameters (gm, Vth). MIM ratios are inherently process-insensitive. This is the fundamental advantage of charge-domain compute.
 
 ### Interface
@@ -758,6 +686,20 @@ Total bitline capacitance per MAC: 6.36 pF (including bottom-plate parasitic).
 **Purpose:** On-demand digital readout — not on the always-on signal path. Activated only when MCU wakes and requests a raw waveform snapshot.
 
 **Status:** 9/13 specs PASS (DNL/INL/ENOB not yet measured) | **Power:** 28.2 uW active, 34.5 nW sleep | [Full report](vibrosense/07_adc_v3/README.md)
+
+### Schematics
+
+**SAR ADC top-level:**
+
+![SAR ADC Schematic](vibrosense/07_adc_v3/v3_sar_adc.png)
+
+**Three-stage comparator:**
+
+![Comparator Schematic](vibrosense/07_adc_v3/v3_comparator.png)
+
+**Capacitor DAC:**
+
+![Cap DAC Schematic](vibrosense/07_adc_v3/v3_cap_dac.png)
 
 ### Topology
 
@@ -835,23 +777,15 @@ Charge-redistribution SAR with a three-stage comparator (pre-amp + StrongARM + S
 
 **Status:** ALL specs PASS — TAPEOUT READY | **Power:** ~1.4 uW @ 1 MHz | [Full report](vibrosense/08_digital/README.md)
 
-### Architecture (5 sub-modules)
+### Schematic / Architecture
 
-```
-  SCK/MOSI/CS_n ──► [SPI Slave] ──► [Register File] ──► weights, gain, tune, thresh
-                     Mode 0           16 x 8-bit         │
-                     Toggle CDC       with behaviors      │
-                                                          ▼
-                    [Clock Divider] ◄── clk        [FSM Classifier]
-                     /2, /4, /8, /16                1000-cycle counter
-                                                    SAMPLE(64)/EVALUATE(128)/
-                                                    COMPARE(4)/WAIT(804)
-                                                          │
-                                                    [Debounce Filter]
-                                                    N consecutive matches
-                                                          │
-                                                       irq_n ──► MCU
-```
+![Digital Top-Level](vibrosense/08_digital/digital_top.png)
+
+![Architecture Diagram](vibrosense/08_digital/img/architecture.png)
+
+![FSM States](vibrosense/08_digital/img/fsm_states.png)
+
+### Architecture (5 sub-modules)
 
 ### Register Map
 
@@ -896,6 +830,10 @@ Charge-redistribution SAR with a three-stage comparator (pre-amp + StrongARM + S
 
 **Status:** ALL specs PASS | [Full report](vibrosense/09_training/README.md)
 
+### How Detection Works
+
+![How Detection Works](vibrosense/09_training/results/how_detection_works.png)
+
 ### How Faults Map to Frequencies
 
 | Fault Type | Excited Band | Key Feature |
@@ -927,6 +865,9 @@ Charge-redistribution SAR with a three-stage comparator (pre-amp + StrongARM + S
 | RMS | 40 | 50 | 50 | 110 |
 | Crest Factor | 40 | 80 | 80 | 60 |
 | Kurtosis | 60 | 90 | 40 | 60 |
+
+![Capacitor Map](vibrosense/09_training/results/capacitor_map.png)
+![Confusion Matrix](vibrosense/09_training/results/confusion_matrix.png)
 
 The weights directly encode fault physics: Inner Race has max cap (130 fF) on BPF3 (its excitation band); Outer Race has max (150 fF) on BPF5 and zero on BPF3. Weights are not fixed in silicon — they are loaded via SPI at runtime.
 
