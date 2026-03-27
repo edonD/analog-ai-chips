@@ -1,0 +1,31 @@
+* tb_pass_idvgs.spice — Id vs Vgs at dropout, TT 27C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" tt
+.include "design.cir"
+.temp 27
+
+Vbvdd bvdd 0 5.4
+Vdrain pvdd 0 5.0
+Vgate gate 0 5.4
+
+X1 gate bvdd pvdd pass_device
+
+.dc Vgate 5.4 0 -0.01
+
+.control
+run
+let id_ma = abs(i(Vdrain)) * 1000
+wrdata idvgs_dropout v(gate) id_ma
+
+* Get current at gate=0 (last point in sweep)
+let last_idx = length(id_ma) - 1
+let id_full = id_ma[last_idx]
+echo id_dropout_tt27: $&id_full
+
+echo total_width_mm: 1.0
+
+* Also run SS 150C
+shell ngspice -b tb_pass_idvgs_ss150.spice
+
+quit
+.endc
+.end

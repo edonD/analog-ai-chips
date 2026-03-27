@@ -1,0 +1,19 @@
+* tb_pass_leakage.spice — Off-state leakage, TT 27C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" tt
+.include "design.cir"
+.temp 27
+
+Vbvdd bvdd 0 7.0
+Vdrain pvdd 0 5.0
+* Gate = BVDD → Vgs = 0 (device OFF)
+Vgate gate 0 7.0
+
+X1 gate bvdd pvdd pass_device
+
+.control
+op
+let ileak_ua = abs(i(Vdrain)) * 1e6
+echo leakage_off_uA: $&ileak_ua
+quit
+.endc
+.end

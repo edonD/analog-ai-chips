@@ -1,0 +1,29 @@
+* tb_pass_cgs.spice — Gate capacitance, TT 27C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" tt
+.include "design.cir"
+.temp 27
+
+Vbvdd bvdd 0 5.4
+Vdrain pvdd 0 5.0
+* Bias at Vgs ~ -1V (gate=4.4V) with AC stimulus
+Vgate gate 0 dc 4.4 ac 1
+
+X1 gate bvdd pvdd pass_device
+
+.ac dec 10 1k 1meg
+
+.control
+run
+* Cgs = Im(Ig) / (2*pi*f)
+let cgs_f = imag(i(Vgate)) / (2 * 3.14159265 * frequency)
+let cgs_pf = abs(cgs_f) * 1e12
+wrdata cgs_vs_freq frequency cgs_pf
+
+* Extract at 1MHz (last point)
+let last_idx = length(cgs_pf) - 1
+let cgs_val = cgs_pf[last_idx]
+echo cgs_pF: $&cgs_val
+
+quit
+.endc
+.end

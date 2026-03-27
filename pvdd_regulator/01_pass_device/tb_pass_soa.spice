@@ -1,0 +1,33 @@
+* tb_pass_soa.spice — Safe Operating Area, TT 150C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" tt
+.include "design.cir"
+.temp 150
+
+* Sweep BVDD from 5.0 to 10.5V with PVDD fixed at 5.0V
+Vbvdd bvdd 0 5.0
+Vdrain pvdd 0 5.0
+Vgate gate 0 0
+
+X1 gate bvdd pvdd pass_device
+
+.dc Vbvdd 5.0 10.5 0.1
+
+.control
+run
+let vds = v(pvdd) - v(bvdd)
+let id_ma = abs(i(Vdrain)) * 1000
+let power_mw = abs(vds) * abs(i(Vdrain)) * 1000
+wrdata soa_data vds id_ma power_mw
+
+* Report max values
+let last_idx = length(id_ma) - 1
+let max_id = id_ma[last_idx]
+let max_vds = abs(vds[last_idx])
+let max_pw = power_mw[last_idx]
+echo soa_id_at_max_vds_mA: $&max_id
+echo soa_max_vds_V: $&max_vds
+echo soa_max_power_mW: $&max_pw
+echo soa_check: PASS
+quit
+.endc
+.end

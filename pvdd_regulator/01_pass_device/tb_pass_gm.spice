@@ -1,0 +1,27 @@
+* tb_pass_gm.spice — Transconductance, TT 27C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" tt
+.include "design.cir"
+.temp 27
+
+Vbvdd bvdd 0 5.4
+Vdrain pvdd 0 5.0
+Vgate gate 0 5.4
+
+X1 gate bvdd pvdd pass_device
+
+.dc Vgate 5.4 0 -0.005
+
+.control
+run
+let id_a = abs(i(Vdrain))
+let id_ma = id_a * 1000
+let gm_raw = deriv(id_a)
+let gm_mav = abs(gm_raw) * 1000
+wrdata gm_vs_id v(gate) id_ma gm_mav
+
+* Use python to find gm at Id=10mA
+shell python3 -c "d=[l.split() for l in open('gm_vs_id') if l.strip() and not l.startswith('#')]; id_ma=[abs(float(r[1])) for r in d]; gm=[abs(float(r[2])) for r in d]; best=min(range(len(id_ma)), key=lambda i: abs(id_ma[i]-10)); print('gm_at_10mA: ' + str(round(gm[best],2)))"
+
+quit
+.endc
+.end

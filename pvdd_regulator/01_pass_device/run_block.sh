@@ -25,11 +25,13 @@ run_tb() {
 
 run_tb tb_pass_idvds.spice
 run_tb tb_pass_idvgs.spice
+# tb_pass_idvgs_ss150 is called by tb_pass_idvgs
 run_tb tb_pass_cgs.spice
 run_tb tb_pass_gm.spice
 run_tb tb_pass_rds.spice
 run_tb tb_pass_leakage.spice
 run_tb tb_pass_pvt.spice
+# tb_pass_pvt_ss and _ff are called by tb_pass_pvt
 run_tb tb_pass_soa.spice
 
 echo "--- Evaluation ---"

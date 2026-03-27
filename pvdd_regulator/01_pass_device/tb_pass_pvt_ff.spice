@@ -1,0 +1,31 @@
+* tb_pass_pvt_ff.spice — FF corner PVT
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" ff
+.include "design.cir"
+
+Vbvdd bvdd 0 5.4
+Vdrain pvdd 0 5.0
+Vgate gate 0 0
+
+X1 gate bvdd pvdd pass_device
+
+.control
+set temp = -40
+op
+let id_ma = abs(i(Vdrain)) * 1000
+echo pvt_id_ff_m40_mA: $&id_ma
+
+reset
+set temp = 27
+op
+let id_ma = abs(i(Vdrain)) * 1000
+echo pvt_id_ff27_mA: $&id_ma
+
+reset
+set temp = 150
+op
+let id_ma = abs(i(Vdrain)) * 1000
+echo pvt_id_ff150_mA: $&id_ma
+
+quit
+.endc
+.end
