@@ -4,7 +4,9 @@
 
 > Input: 2.5-40V automotive battery (BVDD) | Output: 5.0V +/-3.5% | Load: 50 mA | Dropout: 400 mV | Temp: -40 to 175C
 
-Based on the HVC 3rd-generation power system architecture (TDK-Micronas HVCM family).
+**Process:** SkyWater SKY130A (130 nm CMOS) | **Simulator:** ngspice
+
+Reference design based on TDK-Micronas HVCM power system architecture. Reimplemented in the open-source Sky130 PDK.
 
 ---
 
@@ -76,6 +78,66 @@ The regulator operates in 5 modes depending on BVDD voltage, managed by the mode
 | 5 | **Active regulate** | > 5.6V | 5.0V | 50 mA | Full regulation, all specs guaranteed |
 
 UV is released at BVDD = 3.73V.
+
+---
+
+## Ideal External Sources
+
+The bandgap reference and current reference are shared chip resources — modeled as ideal sources for this design. Values from the HVCM IREF and bandgap concept documentation.
+
+### Bandgap Voltage Reference (AVBG)
+
+```spice
+* Ideal bandgap — use V_AVBG as DC source in testbenches
+* Typical: 1.226V | Min: 1.219V | Max: 1.246V
+* TC: 11 ppm/C typical (trimmed)
+V_AVBG avbg gnd 1.226
+```
+
+| Parameter | Min | Typ | Max | Unit |
+|-----------|-----|-----|-----|------|
+| Voltage (trimmed) | 1.219 | 1.226 | 1.246 | V |
+| TC (trimmed) | -- | 11 | 57 | ppm/C |
+| Drift (-40 to 175C) | -- | 3 | 15 | mV |
+
+### Bias Current Reference (IREF)
+
+```spice
+* Ideal 1uA PMOS current source — use I_BIAS in testbenches
+* Typical: 1.0 uA | Min: 0.947 uA | Max: 1.033 uA
+* Accuracy: +/-2% trimmed, +/-4.3% untrimmed
+I_BIAS avdd bias_p 1u
+```
+
+| Parameter | Min | Typ | Max | Unit |
+|-----------|-----|-----|-----|------|
+| 1 uA output (trimmed) | 0.947 | 1.0 | 1.033 | uA |
+| 5 uA output (trimmed) | 4.909 | 5.0 | 5.105 | uA |
+| TC (trimmed) | +7 | -10 | +45 | ppm/C |
+| Accuracy (trimmed) | -- | -- | +/-2% | -- |
+
+### Supply Domains
+
+```spice
+* BVDD: automotive battery — the regulator input (variable, 2.5-40V)
+* SVDD: low-voltage domain for digital control (ideal 2.2V for testbenches)
+V_BVDD bvdd gnd 12       * nominal, sweep 2.5-40V
+V_SVDD svdd gnd 2.2      * fixed ideal supply
+```
+
+### Sky130 Considerations
+
+The original HVCM design uses GF130BCD with 40V PDMOS devices. Sky130 has different HV options:
+
+| Device | Sky130 | GF130BCD (original) |
+|--------|--------|---------------------|
+| HV NMOS | `sky130_fd_pr__nfet_g5v0d10v5` (10.5V) | 40V NDMOS |
+| HV PMOS | `sky130_fd_pr__pfet_g5v0d10v5` (10.5V) | 40V PDMOS |
+| Max supply | ~10.5V | 40V |
+| Standard NMOS | `sky130_fd_pr__nfet_01v8` (1.8V) | 5V NMOS |
+| Standard PMOS | `sky130_fd_pr__pfet_01v8` (1.8V) | 5V PMOS |
+
+**Key adaptation:** Sky130's max HV device rating is 10.5V, not 40V. The regulator input range must be reduced to **5.4-10.5V** (or use the 1.8V devices with a pre-regulator concept). The core LDO architecture (error amp, compensation, feedback, UV/OV) translates directly.
 
 ---
 
