@@ -1,525 +1,608 @@
-"""
-VibroSense-1 System Block Diagram Generator — v6 (Final Polish)
-Publication-quality chip architecture diagram.
-4800x2800 px, dark theme, clean 4-column horizontal flow.
-"""
+"""Generate a cleaner, publication-style system architecture diagram for VibroSense-1."""
+
+from pathlib import Path
 
 import matplotlib
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
-import numpy as np
-
-# ══════════════════════════════════════════════════
-# COLOR PALETTE
-# ══════════════════════════════════════════════════
-BG        = '#0d1117'
-BG_LIGHT  = '#161b22'
-C_EXT     = '#4ade80'
-C_ANA     = '#22d3ee'
-C_CLASS   = '#a78bfa'
-C_DIG     = '#f59e0b'
-C_SUP     = '#6b7280'
-C_TRAIN   = '#c084fc'
-C_ALERT   = '#ef4444'
-C_TXT     = '#ffffff'
-C_DIM     = '#94a3b8'
-C_ARROW   = '#cbd5e1'
-C_BROAD   = '#60a5fa'
-
-BAND_COLORS = ['#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399']
-CLASS_COLORS = {
-    'Normal': '#4ade80', 'Imbalance': '#fbbf24',
-    'Bearing': '#ef4444', 'Looseness': '#fb923c',
-}
-
-FONT  = 'Segoe UI'
-FMONO = 'Consolas'
-DPI   = 200
-FW, FH = 24, 14
 
 
-def draw_block(ax, x, y, w, h, title, specs, color,
-               block_num=None, title_size=17, spec_size=12.5,
-               border_width=2.5, fill_alpha=0.13):
-    ax.add_patch(FancyBboxPatch(
-        (x - 0.05, y - 0.05), w + 0.10, h + 0.10,
-        boxstyle="round,pad=0.3",
-        fc=color, ec='none', alpha=fill_alpha * 0.3, lw=0, zorder=1))
-    ax.add_patch(FancyBboxPatch(
-        (x, y), w, h, boxstyle="round,pad=0.3",
-        fc=color, ec='none', alpha=fill_alpha, lw=0, zorder=2))
-    ax.add_patch(FancyBboxPatch(
-        (x, y), w, h, boxstyle="round,pad=0.3",
-        fc='none', ec=color, alpha=0.80, lw=border_width, zorder=3))
-    if block_num is not None:
-        bx, by = x + 0.18, y + h - 0.50
-        ax.add_patch(FancyBboxPatch(
-            (bx, by), 0.80, 0.35,
-            boxstyle="round,pad=0.04",
-            fc=color, ec='none', alpha=0.30, lw=0, zorder=4))
-        ax.text(bx + 0.40, by + 0.175, f'B{block_num:02d}',
-                size=10.5, family=FMONO, color=color,
-                ha='center', va='center', weight='bold', alpha=0.90, zorder=5)
-    cx = x + w / 2
-    cy = y + h / 2 + (0.28 if specs else 0)
-    ax.text(cx, cy, title, size=title_size, family=FONT, color=C_TXT,
-            ha='center', va='center', weight='bold', zorder=5,
-            linespacing=1.3)
-    if specs:
-        ax.text(cx, cy - 0.55, specs, size=spec_size, family=FONT,
-                color=C_DIM, ha='center', va='center', zorder=5,
-                linespacing=1.3)
+BG = "#f6f8fb"
+CHIP_BG = "#fcfdff"
+CARD_BG = "#ffffff"
+TEXT = "#132238"
+MUTED = "#5f6f82"
+BORDER = "#d5deea"
+GRID = "#e8edf4"
+LINE = "#8fa1b5"
+
+SENSOR = "#1f8f68"
+ANALOG = "#2563eb"
+CLASSIFIER = "#7c4dff"
+DIGITAL = "#b7791f"
+SUPPORT = "#6b7a90"
+OFFLINE = "#8b5cf6"
+ALERT = "#c0392b"
+
+SENSOR_FILL = "#eef8f3"
+ANALOG_FILL = "#eef4ff"
+CLASSIFIER_FILL = "#f5f0ff"
+DIGITAL_FILL = "#fff5e7"
+SUPPORT_FILL = "#f4f6f9"
+
+FONT = "DejaVu Sans"
+MONO = "DejaVu Sans Mono"
+
+DPI = 200
+FIG_W = 21
+FIG_H = 13
 
 
-def draw_band_block(ax, x, y, w, h, label, color):
-    ax.add_patch(FancyBboxPatch(
-        (x, y), w, h, boxstyle="round,pad=0.12",
-        fc=color, ec='none', alpha=0.13, lw=0, zorder=2))
-    ax.add_patch(FancyBboxPatch(
-        (x, y), w, h, boxstyle="round,pad=0.12",
-        fc='none', ec=color, alpha=0.70, lw=2.0, zorder=3))
-    ax.text(x + w / 2, y + h / 2, label,
-            size=13, family=FONT, color=C_TXT,
-            ha='center', va='center', weight='bold', zorder=5)
+def rounded_box(ax, x, y, w, h, fc, ec, lw=1.2, radius=0.9, z=1, alpha=1.0):
+    patch = FancyBboxPatch(
+        (x, y),
+        w,
+        h,
+        boxstyle=f"round,pad=0.02,rounding_size={radius}",
+        facecolor=fc,
+        edgecolor=ec,
+        linewidth=lw,
+        alpha=alpha,
+        zorder=z,
+    )
+    ax.add_patch(patch)
+    return patch
 
 
-def arrow(ax, x1, y1, x2, y2, color=C_ARROW, lw=2.0, ms=22, alpha=0.85,
-          conn='arc3,rad=0', ls='-'):
-    ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
-                arrowprops=dict(
-                    arrowstyle='->', color=color, lw=lw,
-                    connectionstyle=conn, mutation_scale=ms,
-                    alpha=alpha, linestyle=ls),
-                zorder=4)
+def label_chip(ax, x, y, text, fc, tc=TEXT, fs=8.6, mono=False, z=6):
+    width = max(3.2, 0.24 * len(text) + 1.0)
+    rounded_box(ax, x, y, width, 1.05, fc=fc, ec="none", lw=0, radius=0.35, z=z)
+    ax.text(
+        x + width / 2,
+        y + 0.52,
+        text,
+        ha="center",
+        va="center",
+        fontsize=fs,
+        color=tc,
+        family=MONO if mono else FONT,
+        weight="bold",
+        zorder=z + 1,
+    )
+    return width
 
 
-def dashed_arrow(ax, x1, y1, x2, y2, color=C_SUP, lw=1.0, rad=0):
-    arrow(ax, x1, y1, x2, y2, color=color, lw=lw, ms=14, alpha=0.40,
-          conn=f'arc3,rad={rad}', ls='--')
+def draw_panel(ax, x, y, w, h, accent, fill, stage, title, subtitle):
+    rounded_box(ax, x, y, w, h, fc=fill, ec=BORDER, lw=1.1, radius=1.0, z=1.5)
+    ax.plot([x + 0.9, x + w - 0.9], [y + h - 1.5, y + h - 1.5], color=accent, lw=2.1, zorder=3)
+    stage_w = label_chip(ax, x + 1.0, y + h - 2.95, stage, fc=accent, tc="white", fs=8.0)
+    ax.text(
+        x + 1.0 + stage_w + 0.8,
+        y + h - 2.45,
+        title,
+        ha="left",
+        va="center",
+        fontsize=11.5,
+        color=TEXT,
+        family=FONT,
+        weight="bold",
+        zorder=5,
+    )
+    ax.text(
+        x + 1.0,
+        y + h - 4.1,
+        subtitle,
+        ha="left",
+        va="center",
+        fontsize=8.6,
+        color=MUTED,
+        family=FONT,
+        zorder=5,
+    )
+
+
+def draw_card(ax, x, y, w, h, title, accent, lines=None, block=None, meta=None, fs=8.5, title_fs=10.2):
+    rounded_box(ax, x, y, w, h, fc=CARD_BG, ec=BORDER, lw=1.0, radius=0.7, z=3)
+    badge_bottom = y + h  # track where badge ends for title placement
+    if block:
+        badge_y = y + h - 1.55
+        label_chip(ax, x + 0.8, badge_y, block, fc=accent, tc="white", fs=7.6, mono=True, z=5)
+        badge_bottom = badge_y
+    if meta:
+        ax.text(
+            x + w - 0.65,
+            y + h - 1.0,
+            meta,
+            ha="right",
+            va="center",
+            fontsize=7.2,
+            color=MUTED,
+            family=MONO,
+            zorder=5,
+        )
+    title_x = x + 0.9
+    title_y = badge_bottom - 1.1 if block else y + h - 1.35
+    ax.text(
+        title_x,
+        title_y,
+        title,
+        ha="left",
+        va="top",
+        fontsize=title_fs,
+        color=TEXT,
+        family=FONT,
+        weight="bold",
+        zorder=5,
+        linespacing=1.15,
+    )
+    # count newlines in title to offset lines properly
+    n_title_lines = title.count("\n") + 1
+    title_text_bottom = title_y - n_title_lines * (title_fs * 0.12 + 0.35)
+    if lines:
+        top = title_text_bottom - 0.45
+        for idx, line in enumerate(lines):
+            ax.text(
+                title_x,
+                top - idx * (fs * 0.16 + 0.72),
+                line,
+                ha="left",
+                va="center",
+                fontsize=fs,
+                color=MUTED,
+                family=FONT,
+                zorder=5,
+            )
+
+
+def draw_mini_row(ax, x, y, w, h, badge, label, accent):
+    rounded_box(ax, x, y, w, h, fc="#fbfdff", ec=BORDER, lw=0.9, radius=0.42, z=4)
+    label_chip(ax, x + 0.45, y + 0.43, badge, fc=accent, tc="white", fs=7.3, mono=True, z=5)
+    ax.text(
+        x + 2.7,
+        y + h / 2,
+        label,
+        ha="left",
+        va="center",
+        fontsize=8.2,
+        color=TEXT,
+        family=FONT,
+        zorder=6,
+    )
+
+
+def draw_pill(ax, x, y, w, h, text, fc, tc):
+    rounded_box(ax, x, y, w, h, fc=fc, ec="none", lw=0, radius=0.45, z=5)
+    ax.text(
+        x + w / 2,
+        y + h / 2,
+        text,
+        ha="center",
+        va="center",
+        fontsize=7.4,
+        color=tc,
+        family=FONT,
+        weight="bold",
+        zorder=6,
+    )
+
+
+def arrow(ax, x1, y1, x2, y2, color=LINE, lw=1.5, rad=0.0, dashed=False, ms=14):
+    ax.annotate(
+        "",
+        xy=(x2, y2),
+        xytext=(x1, y1),
+        arrowprops=dict(
+            arrowstyle="-|>",
+            color=color,
+            lw=lw,
+            mutation_scale=ms,
+            linestyle="--" if dashed else "-",
+            connectionstyle=f"arc3,rad={rad}",
+            shrinkA=3,
+            shrinkB=3,
+        ),
+        zorder=4.5,
+    )
+
+
+def arrow_label(ax, x, y, text, color=MUTED, fs=7.5, fc=BG, mono=False):
+    width = max(2.5, 0.2 * len(text) + 0.7)
+    rounded_box(ax, x - width / 2, y - 0.52, width, 1.04, fc=fc, ec="none", lw=0, radius=0.25, z=5, alpha=0.96)
+    ax.text(
+        x,
+        y,
+        text,
+        ha="center",
+        va="center",
+        fontsize=fs,
+        color=color,
+        family=MONO if mono else FONT,
+        zorder=6,
+    )
+
+
+def draw_background(ax):
+    for gx in range(4, 138, 4):
+        ax.plot([gx, gx], [8, 82], color=GRID, lw=0.45, zorder=0)
+    for gy in range(8, 84, 4):
+        ax.plot([3, 137], [gy, gy], color=GRID, lw=0.45, zorder=0)
 
 
 def main():
-    fig, ax = plt.subplots(figsize=(FW, FH), dpi=DPI)
+    plt.rcParams["font.family"] = FONT
+    fig, ax = plt.subplots(figsize=(FIG_W, FIG_H), dpi=DPI)
     fig.patch.set_facecolor(BG)
     ax.set_facecolor(BG)
-    ax.set_xlim(-0.5, 24.5)
-    ax.set_ylim(-1.2, 14.0)
-    ax.set_aspect('equal')
-    ax.axis('off')
+    ax.set_xlim(0, 140)
+    ax.set_ylim(0, 92)
+    ax.axis("off")
 
-    # Subtle dot grid
-    for gx in np.arange(0, 25, 1.0):
-        for gy in np.arange(0, 14, 1.0):
-            ax.plot(gx, gy, '.', color=BG_LIGHT, ms=0.5, zorder=0)
+    draw_background(ax)
 
-    # Border
-    ax.add_patch(FancyBboxPatch(
-        (-0.3, -1.0), 24.6, 14.6,
-        boxstyle="round,pad=0.2",
-        fc='none', ec=C_DIM, alpha=0.12, lw=1.0, zorder=0))
+    ax.text(
+        70,
+        87.0,
+        "VibroSense-1 System Architecture",
+        ha="center",
+        va="center",
+        fontsize=24.5,
+        color=TEXT,
+        weight="bold",
+    )
+    ax.text(
+        70,
+        83.8,
+        "SkyWater SKY130A | 1.8 V | <300 uW always-on | 4-class bearing fault detection",
+        ha="center",
+        va="center",
+        fontsize=12.0,
+        color=MUTED,
+    )
+    ax.plot([24, 116], [81.0, 81.0], color=BORDER, lw=1.0, zorder=1)
 
-    # ══════════════════════════════════════════════
-    # TITLE  (Issue #3: larger text ~28-30pt)
-    # ══════════════════════════════════════════════
-    ax.text(12.0, 13.15, 'VibroSense-1  System Architecture',
-            size=30, family=FONT, color=C_TXT, ha='center',
-            weight='bold', zorder=5)
-    ax.text(12.0, 12.50,
-            'SkyWater SKY130A  |  1.8 V  |  <300 \u00b5W Always-On  |  4-Class Bearing Fault Detection',
-            size=16, family=FONT, color=C_DIM, ha='center', zorder=5)
-    ax.plot([3.0, 21.0], [12.05, 12.05], color=C_DIM, lw=0.6, alpha=0.22)
+    rounded_box(ax, 24, 14, 94, 62, fc=CHIP_BG, ec="#bcc9d8", lw=1.25, radius=1.2, z=1)
+    ax.text(26, 73.8, "VIBROSENSE-1 CHIP", ha="left", va="center", fontsize=9.6, color=TEXT, weight="bold")
+    ax.text(
+        116.0,
+        73.8,
+        "Always-on analog path with lightweight wake logic",
+        ha="right",
+        va="center",
+        fontsize=8.6,
+        color=MUTED,
+    )
+    ax.plot([26, 116], [34.0, 34.0], color=BORDER, lw=0.95, zorder=2)
+    ax.text(26.6, 34.9, "Support, calibration and offline assets", ha="left", va="bottom", fontsize=8.6, color=MUTED)
 
-    # ══════════════════════════════════════════════
-    # BAND LAYOUT
-    # ══════════════════════════════════════════════
-    band_h = 0.85
-    band_gap = 0.35
-    total_5 = 5 * band_h + 4 * band_gap
-    BAND_TOP_Y = 11.2  # top edge of band 1
+    draw_panel(
+        ax,
+        4,
+        42,
+        15,
+        20,
+        SENSOR,
+        SENSOR_FILL,
+        "01",
+        "Sensor input",
+        "External MEMS source",
+    )
+    draw_card(
+        ax,
+        5.4,
+        48.8,
+        12.0,
+        9.6,
+        "MEMS\naccelerometer",
+        SENSOR,
+        lines=["ADXL355 or similar", "+/-2 g full scale", "+/-660 mV output"],
+        meta="external",
+        title_fs=10.0,
+    )
+    ax.text(11.4, 45.6, "mounted on rotating machine", ha="center", va="center", fontsize=8.0, color=MUTED)
 
-    band_ys = []
-    for i in range(5):
-        by = BAND_TOP_Y - i * (band_h + band_gap) - band_h
-        band_ys.append(by)
-    band_centers = [by + band_h / 2 for by in band_ys]
-    BAND_BOTTOM = band_ys[4]  # bottom edge of band 5
+    draw_panel(
+        ax,
+        27,
+        38,
+        56,
+        32,
+        ANALOG,
+        ANALOG_FILL,
+        "02",
+        "Analog feature extraction",
+        "Convert continuous vibration into 8 low-rate analog features",
+    )
+    draw_card(
+        ax,
+        29.0,
+        52.0,
+        9.0,
+        11.5,
+        "PGA",
+        ANALOG,
+        lines=["1x / 4x / 16x / 64x", "normalizes input"],
+        block="B02",
+        meta="10 uW",
+        fs=8.0,
+    )
+    draw_card(
+        ax,
+        40.0,
+        48.0,
+        17.0,
+        17.5,
+        "BPF bank",
+        ANALOG,
+        lines=["5 parallel spectral channels"],
+        block="B03",
+        meta="42.5 uW",
+        fs=8.0,
+    )
+    draw_card(
+        ax,
+        59.0,
+        48.0,
+        13.0,
+        17.5,
+        "Envelope detectors",
+        ANALOG,
+        lines=["5 matched AC-to-DC channels", "rectify + low-pass", "~10 Hz output bandwidth"],
+        block="B04",
+        meta="5x 21 uW",
+        fs=7.8,
+        title_fs=9.4,
+    )
+    draw_card(
+        ax,
+        40.0,
+        39.8,
+        32.0,
+        6.0,
+        "Broadband statistics",
+        ANALOG,
+        lines=["RMS | Crest factor | Kurtosis", "parallel branch from PGA output"],
+        block="B05",
+        meta="8 uW",
+        fs=7.8,
+    )
+    draw_card(
+        ax,
+        74.0,
+        46.5,
+        7.0,
+        19.0,
+        "Feature vector",
+        ANALOG,
+        lines=["8 analog features"],
+        meta="8 features",
+        fs=7.7,
+        title_fs=8.8,
+    )
 
-    # ──────────────────────────────────────────────
-    # COLUMN 1: MEMS + PGA
-    # ──────────────────────────────────────────────
-    col1_x = 0.3
-    col1_w = 2.8
+    row_y = [61.8, 58.8, 55.8, 52.8, 49.8]
+    band_labels = ["100-500 Hz", "0.5-2 kHz", "2-5 kHz", "5-10 kHz", "10-20 kHz"]
+    for idx, (y, label) in enumerate(zip(row_y, band_labels), start=1):
+        draw_mini_row(ax, 41.1, y, 14.6, 2.3, f"CH{idx}", label, ANALOG)
 
-    # MEMS
-    mems_h = 1.7
-    mems_y = band_centers[0] - 0.2
-    draw_block(ax, col1_x, mems_y, col1_w, mems_h,
-               'MEMS\nAccelerometer', '\u00b12 g  |  \u00b1660 mV', C_EXT,
-               title_size=16, border_width=2.5)
-    ax.text(col1_x + col1_w / 2, mems_y + mems_h + 0.22,
-            'ADXL355 (external)', size=11.5, family=FONT,
-            color=C_EXT, ha='center', alpha=0.65, zorder=5)
+    for idx, (fx, fy, label) in enumerate(
+        [
+            (74.7, 60.9, "E1"),
+            (77.9, 60.9, "E2"),
+            (74.7, 57.8, "E3"),
+            (77.9, 57.8, "E4"),
+            (74.7, 54.7, "E5"),
+            (77.9, 54.7, "RMS"),
+            (74.7, 51.6, "Crest"),
+            (77.9, 51.6, "Kurt."),
+        ]
+    ):
+        draw_pill(ax, fx, fy, 2.4 if idx < 5 else 3.0, 1.25, label, "#dbe7ff" if idx < 5 else "#edf2f7", ANALOG if idx < 5 else TEXT)
 
-    # PGA
-    pga_h = 2.2
-    pga_y = (band_centers[1] + band_centers[3]) / 2 - pga_h / 2
-    draw_block(ax, col1_x, pga_y, col1_w, pga_h,
-               'PGA', '1 / 4 / 16 / 64\u00d7\n10 \u00b5W  |  49 T', C_ANA,
-               block_num=2, title_size=17)
+    draw_panel(
+        ax,
+        85,
+        38,
+        14,
+        32,
+        CLASSIFIER,
+        CLASSIFIER_FILL,
+        "03",
+        "Classifier",
+        "Charge-domain MAC + WTA",
+    )
+    draw_card(
+        ax,
+        87.0,
+        51.2,
+        10.0,
+        13.0,
+        "Charge-domain\nMAC",
+        CLASSIFIER,
+        lines=["8 x 4 MAC array", "capacitive weights", "winner-take-all readout"],
+        block="B06",
+        meta="<0.001 uW",
+        fs=7.8,
+    )
+    draw_card(
+        ax,
+        87.0,
+        40.6,
+        10.0,
+        8.0,
+        "Output classes",
+        CLASSIFIER,
+        lines=["4-way fault decision"],
+        fs=7.7,
+        title_fs=9.6,
+    )
+    draw_pill(ax, 87.8, 42.6, 3.0, 1.2, "Normal", "#eaf8f0", SENSOR)
+    draw_pill(ax, 91.6, 42.6, 4.5, 1.2, "Imbalance", "#fff5db", "#9a6700")
+    draw_pill(ax, 87.8, 40.9, 3.4, 1.2, "Bearing", "#fdeaea", ALERT)
+    draw_pill(ax, 92.0, 40.9, 4.0, 1.2, "Looseness", "#fff0e5", "#b45309")
 
-    # MEMS -> PGA
-    arrow(ax, col1_x + col1_w / 2, mems_y,
-          col1_x + col1_w / 2, pga_y + pga_h,
-          C_EXT, lw=2.8, ms=22)
+    draw_panel(
+        ax,
+        101,
+        38,
+        15,
+        32,
+        DIGITAL,
+        DIGITAL_FILL,
+        "04",
+        "Wake logic",
+        "SPI, debounce and IRQ path",
+    )
+    draw_card(
+        ax,
+        103.0,
+        50.8,
+        11.0,
+        12.0,
+        "Digital control",
+        DIGITAL,
+        lines=["SPI configuration", "debounce / FSM", "class latch and IRQ"],
+        block="B08",
+        meta="1.4 uW",
+        fs=7.8,
+        title_fs=9.6,
+    )
+    draw_card(
+        ax,
+        103.0,
+        40.6,
+        11.0,
+        7.6,
+        "Wake path",
+        DIGITAL,
+        lines=["assert IRQ", "wake host MCU"],
+        fs=7.8,
+        title_fs=9.6,
+    )
 
-    # ──────────────────────────────────────────────
-    # COLUMN 2: BPF BANK + RMS/CREST below
-    # ──────────────────────────────────────────────
-    bpf_x = 4.5
-    bpf_w = 3.3
+    draw_panel(
+        ax,
+        121,
+        42,
+        15,
+        20,
+        SUPPORT,
+        SUPPORT_FILL,
+        "EXT",
+        "Host MCU",
+        "Wakes on IRQ",
+    )
+    draw_card(
+        ax,
+        123.0,
+        48.2,
+        10.8,
+        9.4,
+        "Host MCU\nand radio",
+        SUPPORT,
+        lines=["sleeps until IRQ", "reads features on demand", "transmit on anomaly"],
+        fs=7.5,
+        title_fs=9.5,
+    )
 
-    ax.text(bpf_x + bpf_w / 2, BAND_TOP_Y + 0.55,
-            'Block 03: BPF Bank',
-            size=16, family=FONT, color=C_ANA, ha='center',
-            weight='bold', zorder=5)
-    ax.text(bpf_x + bpf_w / 2, BAND_TOP_Y + 0.15,
-            '42.5 \u00b5W  |  ~500 T',
-            size=11.5, family=FONT, color=C_DIM, ha='center', zorder=5)
+    draw_card(
+        ax,
+        29.0,
+        20.0,
+        17.5,
+        8.5,
+        "Bias generator",
+        SUPPORT,
+        lines=["shared analog reference current"],
+        block="B00",
+        meta="0.97 uW",
+        fs=8.0,
+    )
+    draw_card(
+        ax,
+        48.8,
+        20.0,
+        17.5,
+        8.5,
+        "OTA building block",
+        SUPPORT,
+        lines=["reused across B02-B05"],
+        block="B01",
+        meta="0.90 uW each",
+        fs=8.0,
+    )
+    draw_card(
+        ax,
+        68.6,
+        20.0,
+        17.5,
+        8.5,
+        "SAR ADC",
+        ANALOG,
+        lines=["8-bit readback when host wakes"],
+        block="B07",
+        meta="on demand",
+        fs=8.0,
+    )
+    draw_card(
+        ax,
+        88.4,
+        20.0,
+        26.0,
+        8.5,
+        "Offline training",
+        OFFLINE,
+        lines=["Python + CWRU dataset", "weights loaded via SPI"],
+        block="B09",
+        meta="128 weights",
+        fs=8.0,
+    )
 
-    # Issue #5: larger band labels
-    band_labels = [
-        'BPF 1:  100\u2013500 Hz',
-        'BPF 2:  0.5\u20132 kHz',
-        'BPF 3:  2\u20135 kHz',
-        'BPF 4:  5\u201310 kHz',
-        'BPF 5:  10\u201320 kHz',
-    ]
-    for i in range(5):
-        draw_band_block(ax, bpf_x, band_ys[i], bpf_w, band_h,
-                        band_labels[i], BAND_COLORS[i])
+    arrow(ax, 17.5, 53.6, 29.0, 57.8, color=SENSOR, lw=2.4, rad=0.0, ms=16)
+    arrow_label(ax, 22.4, 56.9, "analog vibration", color=SENSOR, fc=BG)
 
-    # PGA -> BPF fan-out
-    pga_out_x = col1_x + col1_w
-    pga_out_y = pga_y + pga_h / 2
-    for i in range(5):
-        dy = band_centers[i] - pga_out_y
-        if abs(dy) < 1.0:
-            rad = 0.0
-        elif dy > 0:
-            rad = 0.15
-        else:
-            rad = -0.12
-        arrow(ax, pga_out_x, pga_out_y, bpf_x, band_centers[i],
-              BAND_COLORS[i], lw=1.8, ms=16, alpha=0.60,
-              conn=f'arc3,rad={rad}')
+    arrow(ax, 38.0, 57.8, 40.0, 57.8, color=ANALOG, lw=1.8, ms=13)
+    arrow(ax, 57.0, 56.5, 59.0, 56.5, color=ANALOG, lw=1.8, ms=13)
+    arrow(ax, 72.0, 56.5, 74.0, 56.0, color=ANALOG, lw=1.8, ms=13)
+    arrow(ax, 34.0, 52.0, 45.0, 45.8, color=ANALOG, lw=1.5, rad=0.0, ms=12)
+    arrow(ax, 72.0, 42.8, 74.0, 50.0, color=ANALOG, lw=1.5, rad=0.0, ms=12)
 
-    # RMS / Crest / Kurtosis -- below bands
-    rms_w, rms_h = 3.3, 1.5
-    rms_x = bpf_x
-    rms_y = BAND_BOTTOM - 0.7 - rms_h
-    draw_block(ax, rms_x, rms_y, rms_w, rms_h,
-               'RMS | Crest | Kurtosis',
-               '3 broadband features\n8 \u00b5W  |  10 T', C_ANA,
-               block_num=5, title_size=14, spec_size=10.5)
+    arrow(ax, 81.0, 56.0, 87.0, 57.6, color=CLASSIFIER, lw=2.2, rad=0.0, ms=16)
+    arrow_label(ax, 84.0, 59.8, "8 features", color=CLASSIFIER, fc=CLASSIFIER_FILL, mono=True)
 
-    # ─────────────────────────────────────────────────
-    # Issue #4: Clean broadband dashed path PGA -> RMS -> Feature Vector
-    # Route: PGA bottom -> down left side -> horizontal -> into RMS left
-    # ─────────────────────────────────────────────────
-    bb_turn_y = rms_y + rms_h / 2  # same height as RMS center
-    bb_x = col1_x + col1_w * 0.25  # left side, clear of blocks
-    # Vertical segment from PGA bottom going down
-    ax.plot([bb_x, bb_x], [pga_y, bb_turn_y],
-            color=C_BROAD, lw=2.2, alpha=0.50, ls='--', zorder=4)
-    # Horizontal segment going right to RMS
-    ax.plot([bb_x, rms_x], [bb_turn_y, bb_turn_y],
-            color=C_BROAD, lw=2.2, alpha=0.50, ls='--', zorder=4)
-    # Arrowhead entering RMS
-    arrow(ax, rms_x - 0.5, bb_turn_y, rms_x, bb_turn_y,
-          C_BROAD, lw=2.2, ms=18, alpha=0.55)
+    arrow(ax, 97.0, 57.6, 103.0, 57.0, color=DIGITAL, lw=2.1, ms=16)
+    arrow_label(ax, 100.0, 59.8, "4-class result", color=DIGITAL, fc=DIGITAL_FILL)
+    arrow(ax, 114.0, 44.4, 123.0, 52.6, color=ALERT, lw=2.4, ms=16)
+    arrow_label(ax, 118.5, 49.7, "IRQ", color=ALERT, fc="#fff1ef", mono=True)
 
-    # Issue #1: Remove the overlapping "Broadband path" label entirely.
-    # The dashed blue line speaks for itself.
+    arrow(ax, 101.5, 28.5, 92.0, 51.2, color=OFFLINE, lw=1.2, rad=0.10, dashed=True, ms=12)
+    arrow_label(ax, 95.6, 40.0, "weights via SPI", color=OFFLINE, fc=BG)
 
-    # ──────────────────────────────────────────────
-    # COLUMN 3a: ENVELOPE DETECTORS
-    # ──────────────────────────────────────────────
-    env_x = 9.0
-    env_w = 2.6
+    ax.text(
+        26.6,
+        17.2,
+        "Bias and OTA support are shown without internal bias nets to keep the architecture readable.",
+        ha="left",
+        va="center",
+        fontsize=8.0,
+        color=MUTED,
+    )
 
-    ax.text(env_x + env_w / 2, BAND_TOP_Y + 0.55,
-            'Block 04: Envelope Det.',
-            size=16, family=FONT, color=C_ANA, ha='center',
-            weight='bold', zorder=5)
-    ax.text(env_x + env_w / 2, BAND_TOP_Y + 0.15,
-            '21 \u00b5W each  |  DC extraction',
-            size=11.5, family=FONT, color=C_DIM, ha='center', zorder=5)
+    ax.text(26.6, 10.2, "Legend:", ha="left", va="center", fontsize=8.3, color=MUTED, weight="bold")
+    draw_pill(ax, 31.4, 9.65, 6.5, 1.15, "external", SENSOR_FILL, SENSOR)
+    draw_pill(ax, 39.0, 9.65, 8.6, 1.15, "analog core", ANALOG_FILL, ANALOG)
+    draw_pill(ax, 48.5, 9.65, 8.0, 1.15, "classifier", CLASSIFIER_FILL, CLASSIFIER)
+    draw_pill(ax, 57.5, 9.65, 6.8, 1.15, "digital", DIGITAL_FILL, DIGITAL)
+    draw_pill(ax, 65.4, 9.65, 12.2, 1.15, "support / offline", SUPPORT_FILL, SUPPORT)
+    ax.text(116.0, 10.2, "Main always-on budget: ~200-300 uW", ha="right", va="center", fontsize=8.3, color=MUTED)
 
-    env_labels = ['Env Det 1', 'Env Det 2', 'Env Det 3', 'Env Det 4', 'Env Det 5']
-    for i in range(5):
-        draw_band_block(ax, env_x, band_ys[i], env_w, band_h,
-                        env_labels[i], BAND_COLORS[i])
-        arrow(ax, bpf_x + bpf_w, band_centers[i],
-              env_x, band_centers[i],
-              BAND_COLORS[i], lw=2.0, ms=17, alpha=0.70)
-
-    # ──────────────────────────────────────────────
-    # COLUMN 3b: 8-FEATURE VECTOR
-    # Issue #6: larger feature labels, evenly spaced
-    # ──────────────────────────────────────────────
-    fv_x = 12.6
-    fv_w = 1.9
-    fv_top = band_centers[0] + 0.7
-    fv_bot = rms_y - 0.1
-    fv_h = fv_top - fv_bot
-
-    ax.add_patch(FancyBboxPatch(
-        (fv_x, fv_bot), fv_w, fv_h,
-        boxstyle="round,pad=0.15",
-        fc=C_CLASS, ec=C_CLASS, alpha=0.06, lw=2.0, ls='--', zorder=2))
-
-    ax.text(fv_x + fv_w / 2, fv_top + 0.55,
-            '8-Feature', size=17, family=FONT, color=C_CLASS,
-            ha='center', weight='bold', zorder=5)
-    ax.text(fv_x + fv_w / 2, fv_top + 0.12,
-            'Vector', size=17, family=FONT, color=C_CLASS,
-            ha='center', weight='bold', zorder=5)
-
-    feature_labels = [
-        'E\u2081 band', 'E\u2082 band', 'E\u2083 band', 'E\u2084 band', 'E\u2085 band',
-        'RMS', 'Crest', 'Kurt.'
-    ]
-    feature_colors = BAND_COLORS + [C_BROAD] * 3
-    # Evenly space all 8 features within the box
-    feat_margin = 0.35
-    feat_avail = fv_h - 2 * feat_margin
-    feat_spacing = feat_avail / 7
-    feat_ys = []
-    for i in range(8):
-        fy = fv_top - feat_margin - i * feat_spacing
-        feat_ys.append(fy)
-        ax.text(fv_x + fv_w / 2, fy, feature_labels[i],
-                size=11.5, family=FMONO, color=feature_colors[i],
-                ha='center', va='center', weight='bold',
-                alpha=0.90, zorder=6)
-
-    # Envelope -> Feature Vector
-    for i in range(5):
-        arrow(ax, env_x + env_w, band_centers[i],
-              fv_x, feat_ys[i],
-              BAND_COLORS[i], lw=1.5, ms=14, alpha=0.55)
-
-    # Issue #4: RMS -> Feature Vector — clean and visible
-    for i in range(3):
-        ry = rms_y + rms_h / 2 + (i - 1) * 0.35
-        arrow(ax, rms_x + rms_w, ry,
-              fv_x, feat_ys[5 + i],
-              C_BROAD, lw=2.0, ms=16, alpha=0.65)
-
-    # ──────────────────────────────────────────────
-    # COLUMN 3c: CLASSIFIER
-    # ──────────────────────────────────────────────
-    cls_x, cls_w, cls_h = 15.5, 3.2, 4.5
-    cls_cy = (fv_top + fv_bot) / 2
-    cls_y = cls_cy - cls_h / 2
-    draw_block(ax, cls_x, cls_y, cls_w, cls_h,
-               'Charge-Domain\nMAC Classifier',
-               '4-class output\n702 T  |  260 caps\n< 0.001 \u00b5W',
-               C_CLASS, block_num=6, title_size=17, spec_size=12,
-               border_width=2.5)
-
-    # Feature Vector -> Classifier
-    arrow(ax, fv_x + fv_w, cls_cy,
-          cls_x, cls_cy,
-          C_CLASS, lw=3.0, ms=24)
-    ax.text((fv_x + fv_w + cls_x) / 2, cls_cy + 0.42,
-            '8\u00d74 MAC', size=14, family=FMONO, color=C_CLASS,
-            ha='center', alpha=0.70, zorder=5)
-
-    # ──────────────────────────────────────────────
-    # COLUMN 4: DIGITAL + IRQ + 4 CLASSES
-    # ──────────────────────────────────────────────
-    dig_x, dig_w, dig_h = 20.0, 3.6, 2.2
-    dig_y = band_centers[0] - 0.5
-    draw_block(ax, dig_x, dig_y, dig_w, dig_h,
-               'Digital Control',
-               'SPI | FSM | Debounce | IRQ\n645 cells  |  1.4 \u00b5W',
-               C_DIG, block_num=8, title_size=17, spec_size=12)
-
-    # Classifier -> Digital
-    arrow(ax, cls_x + cls_w, cls_y + cls_h * 0.80,
-          dig_x, dig_y + dig_h / 2,
-          C_DIG, lw=2.5, ms=20, conn='arc3,rad=-0.12')
-    ax.text((cls_x + cls_w + dig_x) / 2,
-            (cls_y + cls_h * 0.80 + dig_y + dig_h / 2) / 2 + 0.55,
-            'Class result', size=12, family=FONT, color=C_DIM,
-            ha='center', zorder=5)
-
-    # IRQ
-    irq_y = dig_y + dig_h * 0.65
-    arrow(ax, dig_x + dig_w, irq_y, 24.0, irq_y,
-          C_ALERT, lw=3.0, ms=26)
-    ax.text(24.05, irq_y + 0.25, 'IRQ', size=18, family=FMONO,
-            color=C_ALERT, ha='left', weight='bold', zorder=5)
-    ax.text(24.05, irq_y - 0.25, 'Wake MCU', size=11.5, family=FONT,
-            color=C_DIM, ha='left', zorder=5)
-
-    # 4 Output Classes
-    oc_x = 20.0
-    oc_w = 3.6
-    class_h = 0.70
-    class_gap = 0.32
-    oc_top_y = dig_y - 1.2
-
-    ax.text(oc_x + oc_w / 2, oc_top_y + 0.55,
-            '4 Output Classes', size=15, family=FONT, color=C_DIM,
-            ha='center', weight='bold', zorder=5)
-
-    class_names = ['Normal', 'Imbalance', 'Bearing', 'Looseness']
-    class_centers_y = []
-    for i, name in enumerate(class_names):
-        cy = oc_top_y - i * (class_h + class_gap)
-        cc = CLASS_COLORS[name]
-        ax.add_patch(FancyBboxPatch(
-            (oc_x, cy), oc_w, class_h,
-            boxstyle="round,pad=0.08",
-            fc=cc, ec=cc, alpha=0.12, lw=2.0, zorder=2))
-        ax.text(oc_x + oc_w / 2, cy + class_h / 2, name,
-                size=15, family=FONT, color=cc, ha='center',
-                va='center', weight='bold', zorder=5)
-        class_centers_y.append(cy + class_h / 2)
-
-    # Classifier -> classes
-    mid_class_y = (class_centers_y[1] + class_centers_y[2]) / 2
-    arrow(ax, cls_x + cls_w, cls_cy,
-          oc_x, mid_class_y,
-          C_CLASS, lw=1.8, ms=17, conn='arc3,rad=0.15', alpha=0.55)
-
-    # ══════════════════════════════════════════════
-    # POWER BUDGET
-    # ══════════════════════════════════════════════
-    pwr_x = 20.2
-    pwr_y = class_centers_y[-1] - class_h / 2 - 1.6
-    ax.add_patch(FancyBboxPatch(
-        (pwr_x, pwr_y), 3.2, 1.2,
-        boxstyle="round,pad=0.15",
-        fc=C_DIG, ec=C_DIG, alpha=0.08, lw=1.5, zorder=2))
-    ax.text(pwr_x + 1.6, pwr_y + 0.85, 'Power Budget',
-            size=15, family=FONT, color=C_DIG, ha='center',
-            weight='bold', zorder=5)
-    ax.text(pwr_x + 1.6, pwr_y + 0.45, 'Total: ~200 \u00b5W',
-            size=14, family=FONT, color=C_TXT, ha='center', zorder=5)
-    ax.text(pwr_x + 1.6, pwr_y + 0.15, 'always-on analog path',
-            size=10.5, family=FONT, color=C_DIM, ha='center', zorder=5)
-
-    # ══════════════════════════════════════════════
-    # SUPPORT ROW
-    # Issue #2: Remove messy bias lines, add text note on B00 instead
-    # ══════════════════════════════════════════════
-    sep_y = 3.6
-    ax.plot([0.3, 23.5], [sep_y, sep_y], color=C_DIM, lw=0.6,
-            alpha=0.18, ls='--', zorder=1)
-    ax.text(0.8, sep_y + 0.22,
-            'SUPPORT  &  OFFLINE', size=10.5, family=FONT,
-            color=C_DIM, ha='left', alpha=0.40, weight='bold', zorder=5)
-
-    SUP_CY = 2.0
-    s_h = 1.5
-
-    b00_x, b00_w = 0.5, 4.2
-    b00_y = SUP_CY - s_h / 2
-    draw_block(ax, b00_x, b00_y, b00_w, s_h,
-               'Bias Generator',
-               '507 nA ref  |  0.97 \u00b5W\nBias \u2192 all analog blocks', C_SUP,
-               block_num=0, title_size=14, spec_size=10.5,
-               border_width=1.5, fill_alpha=0.08)
-
-    # Issue #2: No bias bus lines drawn — the text note inside B00 is sufficient
-
-    b01_x, b01_w = 5.7, 4.2
-    b01_y = SUP_CY - s_h / 2
-    draw_block(ax, b01_x, b01_y, b01_w, s_h,
-               'OTA (Building Block)',
-               '0.90 \u00b5W each', C_SUP,
-               block_num=1, title_size=14, spec_size=10.5,
-               border_width=1.5, fill_alpha=0.08)
-    ax.text(b01_x + b01_w / 2, b01_y - 0.28,
-            'Reused in B02\u2013B05', size=9.5, family=FONT,
-            color=C_SUP, ha='center', alpha=0.50, style='italic', zorder=5)
-
-    b07_x, b07_w = 10.9, 4.2
-    b07_y = SUP_CY - s_h / 2
-    draw_block(ax, b07_x, b07_y, b07_w, s_h,
-               'SAR ADC',
-               '8-bit  |  28 \u00b5W active', C_ANA,
-               block_num=7, title_size=14, spec_size=10.5,
-               border_width=1.5, fill_alpha=0.08)
-    ax.text(b07_x + b07_w / 2, b07_y - 0.28,
-            'On-demand (not always-on)  |  sleep mode', size=9.5,
-            family=FONT, color=C_ANA, ha='center', alpha=0.50,
-            style='italic', zorder=5)
-
-    b09_x, b09_w = 16.1, 4.5
-    b09_y = SUP_CY - s_h / 2
-    draw_block(ax, b09_x, b09_y, b09_w, s_h,
-               'Training (Offline)',
-               'Python  |  CWRU dataset\n128 weights via SPI', C_TRAIN,
-               block_num=9, title_size=14, spec_size=10.5,
-               border_width=1.5, fill_alpha=0.08)
-
-    dashed_arrow(ax, b09_x + b09_w / 2, b09_y + s_h,
-                 cls_x + cls_w / 2, cls_y,
-                 C_TRAIN, lw=1.2, rad=-0.10)
-    # "Weights" label with background for readability
-    wlx = (b09_x + b09_w / 2 + cls_x + cls_w / 2) / 2 + 0.6
-    wly = (b09_y + s_h + cls_y) / 2 + 0.15
-    ax.add_patch(FancyBboxPatch(
-        (wlx - 0.60, wly - 0.20), 1.2, 0.40,
-        boxstyle="round,pad=0.05",
-        fc=BG, ec='none', alpha=0.75, lw=0, zorder=4))
-    ax.text(wlx, wly, 'Weights', size=12, family=FONT, color=C_TRAIN,
-            ha='center', alpha=0.70, zorder=5, weight='bold')
-
-    dashed_arrow(ax, dig_x + dig_w / 2, dig_y,
-                 b09_x + b09_w * 0.7, b09_y + s_h,
-                 C_DIG, lw=0.9, rad=0.15)
-    ax.text(dig_x + 0.3, (dig_y + b09_y + s_h) / 2 + 0.8,
-            'SPI', size=10.5, family=FMONO, color=C_DIG,
-            ha='center', alpha=0.50, zorder=5)
-
-    dashed_arrow(ax, b07_x + b07_w / 2, b07_y + s_h,
-                 rms_x + rms_w / 2, rms_y,
-                 C_SUP, lw=0.9)
-
-    # ══════════════════════════════════════════════
-    # LEGEND  (Issue #3: larger text)
-    # ══════════════════════════════════════════════
-    legend_items = [
-        ('External / Sensor', C_EXT),
-        ('Analog Signal Path', C_ANA),
-        ('Classifier', C_CLASS),
-        ('Digital', C_DIG),
-        ('Support / Offline', C_SUP),
-    ]
-    for i, (label, color) in enumerate(legend_items):
-        lx = 1.5 + i * 4.0
-        ax.plot(lx, -0.7, 's', color=color, ms=11, alpha=0.60, zorder=5)
-        ax.text(lx + 0.35, -0.7, label, size=11.5, family=FONT, color=color,
-                ha='left', va='center', alpha=0.70, zorder=5)
-
-    ax.text(23.0, -0.7, 'T = transistors', size=10.5, family=FONT,
-            color=C_DIM, ha='center', alpha=0.45, zorder=5)
-
-    # ══════════════════════════════════════════════
-    # SAVE
-    # ══════════════════════════════════════════════
-    out = r'C:\Users\derguti\analog-ai-chips\vibrosense\system_block_diagram.png'
-    fig.savefig(out, dpi=DPI, bbox_inches='tight', facecolor=BG,
-                edgecolor='none', pad_inches=0.4)
+    out_dir = Path(__file__).resolve().parent
+    fig.savefig(out_dir / "system_block_diagram.png", dpi=DPI, bbox_inches="tight", facecolor=BG, pad_inches=0.28)
+    fig.savefig(out_dir / "system_block_diagram.svg", bbox_inches="tight", facecolor=BG, pad_inches=0.28)
     plt.close(fig)
-    print(f'Saved: {out}  ({FW * DPI}x{FH * DPI} px)')
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
