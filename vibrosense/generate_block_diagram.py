@@ -301,17 +301,18 @@ def main():
     C3 = "#d0d8e0"  # divider / border
     BX = "#f5f7fa"  # block fill
 
-    def mono_block(x, y, w, h, title, specs=None, sub=None, ec=C3):
+    BLOCK_TITLE_FS = 9.5  # uniform title size for all blocks
+
+    def mono_block(x, y, w, h, title, specs=None, sub=None, ec=C3, spec_offset=0, title_fs=None):
         rounded_box(ax, x, y, w, h, fc=BX, ec=ec, lw=1.0, radius=0.8, z=3)
         cx = x + w / 2
-        # title — scale font to block width
-        tfs = min(11.5, w * 0.72)
+        tfs = title_fs if title_fs else BLOCK_TITLE_FS
         ax.text(cx, y + h - 1.6, title, ha="center", va="center",
                 fontsize=tfs, color=C1, family=MONO, weight="bold", zorder=5)
         # specs lines
         if specs:
             for i, s in enumerate(specs):
-                ax.text(cx, y + h - 3.2 - i * 1.5, s, ha="center", va="center",
+                ax.text(cx, y + h - 3.2 - spec_offset - i * 1.5, s, ha="center", va="center",
                         fontsize=min(7.8, w * 0.56), color=C2, family=FONT, zorder=5)
         # subtle subtitle at bottom
         if sub:
@@ -345,7 +346,7 @@ def main():
     # Envelope detectors
     mono_block(59, 48, 13, 18, "Envelope\nDetectors",
                specs=["5x rectify + LPF", "~10 Hz bandwidth"],
-               sub="5x 21 uW")
+               sub="5x 21 uW", spec_offset=1.8)
 
     # Broadband: RMS / Crest / Kurtosis
     mono_block(40, 40, 32, 5.5, "RMS  |  Crest  |  Kurtosis",
