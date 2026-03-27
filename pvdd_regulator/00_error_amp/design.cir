@@ -1,80 +1,67 @@
-* Block 00: Error Amplifier — PMOS-Input Folded-Cascode OTA
+* Block 00: Error Amplifier — Two-Stage Miller OTA
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Topology: PMOS-input folded-cascode OTA
-*   - PMOS diff pair (Vcm=1.226V is well above GND, good for PMOS input)
-*   - NMOS folded-cascode current sources + cascode for high Rout
-*   - PMOS cascode mirror load for high Rout
-*   - All HV 5V/10.5V devices (sky130_fd_pr__pfet/nfet_g5v0d10v5)
+* Topology: Two-stage Miller-compensated OTA
+*   Stage 1: PMOS diff pair + NMOS mirror load → ~40-50 dB
+*   Stage 2: NMOS common-source + PMOS load → ~30-40 dB
+*   Miller cap (Cc) + nulling resistor (Rc) for compensation
+*   Total gain > 60 dB, drives 100pF Cgs_pass load
 *
-* ibias convention: 1uA current flows INTO ibias pin (sunk internally to GND)
+* All HV 5V/10.5V devices. Dims in microns (hsa SCALE=1e-6).
+* ibias: 1uA INTO ibias pin, sunk to GND internally.
 *
 .subckt error_amp vref vfb vout_gate pvdd gnd ibias en
 
 * ================================================================
-* Enable: NMOS pass gate on ibias, PMOS pullup on output
+* Enable
 * ================================================================
-Men   ibias_en en  ibias   gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2u l=0.5u m=1
-Mpu   vout_gate en pvdd    pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4u l=0.5u m=1
-
-* ================================================================
-* Bias generation from 1uA ibias reference
-* ================================================================
-* NMOS diode: sinks 1uA from ibias_en, sets nb_ref (~Vgs_n for 1uA)
-Mbn0  ibias_en ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2u l=8u m=1
-
-* NMOS mirror: 15x ratio for fold current sources (15uA each)
-* Mn3/Mn4 below are the actual fold current sources, gate=nb_ref is ibias_en
-* But we need separate W for ratio. Use nb_ref = ibias_en directly.
-* Mn3/Mn4: W=30u L=8u → ratio (30/8)/(2/8) = 15:1 → 15uA each
-
-* PMOS bias generation: NMOS mirror sinks 20uA, through PMOS diode → sets pb_tail
-Mbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=40u l=8u m=1
-Mbp0   pb_tail pb_tail  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40u l=4u m=1
-
-* NMOS cascode bias: two stacked diode NMOS set ncb ≈ 2*Vgs_n
-* Branch current ~10uA (NMOS mirror 10:1)
-Mbn_cb ncb_top ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=8u m=1
-Mncbd1 ncb_top ncb_top ncb_bot gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=4u m=1
-Mncbd0 ncb_bot ncb_bot gnd     gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=4u m=1
-
-* PMOS cascode bias: two stacked diode PMOS set pcb ≈ PVDD - 2|Vgs_p|
-* Branch current ~10uA (NMOS sink)
-Mpcd1 pcb_mid pcb_mid pvdd    pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=4u m=1
-Mpcd0 pcb     pcb     pcb_mid pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=4u m=1
-Mbn_pc pcb    ibias_en gnd    gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20u l=8u m=1
+XMen   ibias_en en  ibias   gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20 l=1 m=1
+XMpu   vout_gate en pvdd    pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20 l=1 m=1
 
 * ================================================================
-* PMOS differential input pair
+* Bias: NMOS reference (1uA)
 * ================================================================
-* Tail current source: mirrors pb_tail, 20uA
-Mtail tail_s pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40u l=4u m=1
-
-* Diff pair: M1(+)=vref, M2(-)=vfb
-* W=50u L=2u m=2 → effective W=100u, W*L=200um^2 for offset
-M1 fold_l vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50u l=2u m=2
-M2 fold_r vfb  tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50u l=2u m=2
+XMbn0  ibias_en ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20 l=8 m=1
 
 * ================================================================
-* NMOS folded-cascode (bottom half)
+* Bias: PMOS tail (10uA)
 * ================================================================
-* Cascode NMOS: common-gate, gate=ncb_top
-Mn1 fold_l ncb_top cas_l gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=2u m=1
-Mn2 fold_r ncb_top cas_r gnd sky130_fd_pr__nfet_g5v0d10v5 w=20u l=2u m=1
-
-* Current source NMOS: gate=ibias_en (nb_ref), 15uA each
-Mn3 cas_l ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=30u l=8u m=1
-Mn4 cas_r ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=30u l=8u m=1
+XMbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20 l=8 m=10
+XMbp0   pb_tail pb_tail  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20 l=4 m=2
 
 * ================================================================
-* PMOS cascode mirror load (top half)
+* Stage 1: PMOS diff pair + NMOS current mirror load
 * ================================================================
-* Upper PMOS mirror: left=diode (reference), right=mirror (output)
-Mp5 mid_l mid_l pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
-Mp6 mid_r mid_l pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
+* Tail current source: 10uA
+XMtail tail_s pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20 l=4 m=2
 
-* Lower PMOS cascode: gate=pcb
-Mp3 fold_l    pcb mid_l pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
-Mp4 vout_gate pcb mid_r pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20u l=2u m=1
+* PMOS diff pair: M1(+)=vref, M2(-)=vfb
+* Large W*L for matching; W=50 L=4 m=2 → eff W=100um, WL=400um^2
+XM1 d1  vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50 l=4 m=2
+XM2 d2  vfb  tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50 l=4 m=2
+
+* NMOS current mirror load: left=diode, right=output
+* Long L for high ro and gain
+XMn_l d1 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20 l=8 m=2
+XMn_r d2 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20 l=8 m=2
+
+* ================================================================
+* Stage 2: NMOS common-source + PMOS active load
+* ================================================================
+* CS amplifier: gate=d2 (stage 1 output), drain=vout_gate
+* Sized to match PMOS load current at d2 ≈ 0.9V
+XMcs vout_gate d2  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20 l=1 m=1
+
+* PMOS current source load: mirrors from pb_tail
+* ~20uA for good slew rate into 100pF load
+XMp_ld vout_gate pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20 l=4 m=4
+
+* ================================================================
+* Miller compensation: Cc + Rc from vout_gate to d2
+* ================================================================
+* Cc = 5pF (Miller cap, moves dominant pole to stage 1 output)
+Cc d2 comp_mid 15p
+* Rc = 5k (nulling resistor to push RHP zero to LHP or infinity)
+Rc comp_mid vout_gate 5k
 
 .ends error_amp
