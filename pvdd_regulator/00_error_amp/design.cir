@@ -1,0 +1,31 @@
+* Block 00: Error Amplifier
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   vref      — bandgap reference input (~1.226V)
+*   vfb       — feedback voltage from divider (~1.226V)
+*   vout_gate — output: drives pass device gate (0 to ~PVDD)
+*   pvdd      — positive supply (4.5-5.5V regulated domain)
+*   gnd       — ground
+*   ibias     — 1uA bias current input
+*   en        — enable (0=off, PVDD=on)
+*
+* STATUS: EMPTY — topology not yet chosen
+*
+.subckt error_amp vref vfb vout_gate pvdd gnd ibias en
+
+* TODO: implement error amplifier circuit here
+* Candidate topologies:
+*   - Folded-cascode OTA (HV devices for 5V domain)
+*   - Two-stage Miller OTA
+*   - Recycling folded-cascode
+*
+* Requirements:
+*   DC gain     >= 60 dB
+*   UGB         200 kHz - 1 MHz (Cload = 100 pF placeholder)
+*   Phase margin >= 55 deg (OL into Cgs_pass)
+*   Iq          < 100 uA
+*   Voffset     < 5 mV
+*   All devices: sky130_fd_pr__*  (HV or cascoded 1.8V)
+
+.ends error_amp

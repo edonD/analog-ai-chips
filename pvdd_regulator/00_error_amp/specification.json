@@ -1,0 +1,147 @@
+{
+  "block": "00",
+  "name": "error_amp",
+  "subckt": "error_amp",
+  "ports": ["vref", "vfb", "vout_gate", "pvdd", "gnd", "ibias", "en"],
+  "design_file": "design.cir",
+  "wave": 1,
+  "depends_on": [],
+  "supply": "pvdd",
+  "supply_range": { "min": 4.5, "max": 5.5, "unit": "V" },
+  "operating_conditions": {
+    "pvdd_nom": 5.0,
+    "vref": 1.226,
+    "ibias": 1e-6,
+    "cload_placeholder_pF": 100,
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "dc_gain",
+      "param": "DC open-loop gain",
+      "min": 60,
+      "unit": "dB",
+      "condition": "DC, no load, PVDD=5V, TT 27C"
+    },
+    {
+      "id": "ugb",
+      "param": "Unity-gain bandwidth",
+      "min": 200e3,
+      "max": 1e6,
+      "unit": "Hz",
+      "condition": "Cload=100pF (placeholder for Cgs_pass), PVDD=5V"
+    },
+    {
+      "id": "phase_margin",
+      "param": "Phase margin (open-loop into Cgs)",
+      "min": 55,
+      "unit": "deg",
+      "condition": "Error amp alone, Cload=100pF"
+    },
+    {
+      "id": "output_swing_low",
+      "param": "Output voltage swing low",
+      "max": 0.5,
+      "unit": "V",
+      "condition": "vout_gate must pull to < 0.5V (pass device fully ON)"
+    },
+    {
+      "id": "output_swing_high",
+      "param": "Output voltage swing high",
+      "min": 4.5,
+      "unit": "V",
+      "condition": "vout_gate must reach > PVDD-0.5V = 4.5V (pass device OFF)"
+    },
+    {
+      "id": "iq",
+      "param": "Quiescent current",
+      "max": 100e-6,
+      "unit": "A",
+      "condition": "From PVDD, PVDD=5V, en=PVDD"
+    },
+    {
+      "id": "input_offset",
+      "param": "Input offset voltage",
+      "max": 5e-3,
+      "unit": "V",
+      "condition": "TT 27C, contributes directly to PVDD error"
+    },
+    {
+      "id": "cmrr",
+      "param": "CMRR",
+      "min": 50,
+      "unit": "dB",
+      "condition": "At DC"
+    },
+    {
+      "id": "psrr",
+      "param": "PSRR from PVDD supply",
+      "min": 40,
+      "unit": "dB",
+      "condition": "At DC"
+    },
+    {
+      "id": "all_devices_in_saturation",
+      "param": "All devices in saturation",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Vds > Vdsat + 50mV at nominal operating point, TT 27C"
+    },
+    {
+      "id": "input_cm_range_covers_vref",
+      "param": "Input CM range includes 1.226V",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Both inputs at 1.226V, all devices biased correctly"
+    },
+    {
+      "id": "pvt_pass",
+      "param": "All above criteria pass at all PVT corners",
+      "eq": true,
+      "unit": "bool",
+      "condition": "SS/FF/SF/FS at -40C, 27C, 150C"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_ea_dc.spice",
+      "measures": ["operating_point", "all_devices_in_saturation", "iq"]
+    },
+    {
+      "file": "tb_ea_ac.spice",
+      "measures": ["dc_gain", "ugb", "phase_margin"]
+    },
+    {
+      "file": "tb_ea_swing.spice",
+      "measures": ["output_swing_low", "output_swing_high"]
+    },
+    {
+      "file": "tb_ea_offset.spice",
+      "measures": ["input_offset"]
+    },
+    {
+      "file": "tb_ea_cmrr.spice",
+      "measures": ["cmrr"]
+    },
+    {
+      "file": "tb_ea_psrr.spice",
+      "measures": ["psrr"]
+    },
+    {
+      "file": "tb_ea_pvt.spice",
+      "measures": ["pvt_pass"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_ea_dc.spice",
+    "tb_ea_ac.spice",
+    "tb_ea_swing.spice",
+    "tb_ea_offset.spice",
+    "tb_ea_cmrr.spice",
+    "tb_ea_psrr.spice",
+    "tb_ea_pvt.spice",
+    "README.md"
+  ]
+}
