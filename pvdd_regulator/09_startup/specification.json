@@ -1,0 +1,156 @@
+{
+  "block": "09",
+  "name": "startup",
+  "subckt": "startup",
+  "ports": ["bvdd", "pvdd", "gate", "gnd", "vref", "startup_done", "ea_en"],
+  "design_file": "design.cir",
+  "wave": 3,
+  "depends_on": ["00", "01", "02", "03", "08"],
+  "note": "Must solve chicken-and-egg: error amp needs PVDD, PVDD needs error amp. Must fully disable after startup.",
+  "bvdd_ramp_profiles": [
+    { "name": "normal",     "profile": "0 -> 10.5V", "rate": "1 V/us" },
+    { "name": "fast",       "profile": "0 -> 10.5V", "rate": "12 V/us" },
+    { "name": "slow",       "profile": "0 -> 10.5V", "rate": "0.1 V/us" },
+    { "name": "cold_crank", "profile": "10.5V -> 3V -> 7V", "rate": "varies" }
+  ],
+  "operating_conditions": {
+    "bvdd_range": { "min": 0, "max": 10.5, "unit": "V" },
+    "pvdd_target": 5.0,
+    "iload_range": { "min": 0, "max": 50e-3, "unit": "A" },
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150],
+    "note": "vref (1.226V) may not be valid until PVDD is established — startup must not depend on accurate vref"
+  },
+  "pass_fail": [
+    {
+      "id": "startup_time_no_load",
+      "param": "Startup time at no load",
+      "max": 100e-6,
+      "unit": "s",
+      "condition": "BVDD=7V, Iload=0, 1 V/us ramp — time from BVDD reaching 5.6V to PVDD within 1%"
+    },
+    {
+      "id": "startup_time_50mA",
+      "param": "Startup time at full load",
+      "max": 200e-6,
+      "unit": "s",
+      "condition": "BVDD=7V, Iload=50mA — worst case"
+    },
+    {
+      "id": "pvdd_monotonic",
+      "param": "PVDD ramp is monotonic",
+      "eq": true,
+      "unit": "bool",
+      "condition": "No dips greater than 50 mV during startup ramp"
+    },
+    {
+      "id": "pvdd_overshoot",
+      "param": "PVDD overshoot above 5.0V during startup",
+      "max": 200e-3,
+      "unit": "V",
+      "condition": "Max PVDD - 5.0V at any point during startup"
+    },
+    {
+      "id": "handoff_glitch",
+      "param": "PVDD disturbance at startup-to-regulation handoff",
+      "max": 100e-3,
+      "unit": "V",
+      "condition": "At the moment startup circuit releases and error amp takes control"
+    },
+    {
+      "id": "works_slow_ramp",
+      "param": "Startup completes at 0.1 V/us BVDD ramp",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Startup circuit does not depend on dV/dt"
+    },
+    {
+      "id": "works_fast_ramp",
+      "param": "Startup completes at 12 V/us BVDD ramp without excess overshoot",
+      "eq": true,
+      "unit": "bool",
+      "condition": "No overshoot > 200 mV at fast ramp"
+    },
+    {
+      "id": "cold_crank_recovery",
+      "param": "Clean re-start after cold crank (BVDD dip and recovery)",
+      "eq": true,
+      "unit": "bool",
+      "condition": "BVDD 10.5V -> 3V -> 7V — PVDD recovers cleanly"
+    },
+    {
+      "id": "leakage_after_startup",
+      "param": "Startup circuit current after startup is complete",
+      "max": 1e-6,
+      "unit": "A",
+      "condition": "Circuit must fully disable — no residual current drain"
+    },
+    {
+      "id": "works_ss_150c",
+      "param": "Startup completes within 200us at SS 150C",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Worst case: highest Vth, lowest mobility"
+    },
+    {
+      "id": "no_overshoot_ff_m40c",
+      "param": "No overshoot > 200 mV at FF -40C",
+      "max": 200e-3,
+      "unit": "V",
+      "condition": "FF -40C: fastest corner, risk of aggressive drive"
+    },
+    {
+      "id": "no_latch_stuck",
+      "param": "No latch-up or stuck states — always reaches regulation",
+      "eq": true,
+      "unit": "bool",
+      "condition": "All BVDD profiles, all PVT corners"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_su_basic.spice",
+      "measures": ["startup_time_no_load", "pvdd_monotonic", "pvdd_overshoot"]
+    },
+    {
+      "file": "tb_su_handoff.spice",
+      "measures": ["handoff_glitch"]
+    },
+    {
+      "file": "tb_su_50mA.spice",
+      "measures": ["startup_time_50mA"]
+    },
+    {
+      "file": "tb_su_fast_ramp.spice",
+      "measures": ["works_fast_ramp", "no_overshoot_ff_m40c"]
+    },
+    {
+      "file": "tb_su_slow_ramp.spice",
+      "measures": ["works_slow_ramp"]
+    },
+    {
+      "file": "tb_su_cold_crank.spice",
+      "measures": ["cold_crank_recovery"]
+    },
+    {
+      "file": "tb_su_leakage.spice",
+      "measures": ["leakage_after_startup"]
+    },
+    {
+      "file": "tb_su_pvt.spice",
+      "measures": ["works_ss_150c", "no_latch_stuck", "all criteria at SS/FF/SF/FS, -40/27/150C"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_su_basic.spice",
+    "tb_su_handoff.spice",
+    "tb_su_50mA.spice",
+    "tb_su_fast_ramp.spice",
+    "tb_su_slow_ramp.spice",
+    "tb_su_cold_crank.spice",
+    "tb_su_leakage.spice",
+    "tb_su_pvt.spice",
+    "README.md"
+  ]
+}

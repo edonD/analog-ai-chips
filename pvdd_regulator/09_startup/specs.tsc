@@ -1,0 +1,20 @@
+# Block 09: Startup — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: startup_time_ss150_us — startup time at SS 150C with no load (lower is better)
+#   Worst-case startup time. Must be < 200 us (100 us no-load, 200 us at 50mA).
+#   No-load SS 150C is the binding scenario. Minimize it.
+#
+metric	grep_pattern	operator	threshold	unit	primary
+startup_time_ss150_us	^startup_time_ss150_us:	<=	100	us	yes
+startup_time_50mA_us	^startup_time_50mA_us:	<=	200	us	no
+pvdd_monotonic	^pvdd_monotonic:	>=	1	bool	no
+pvdd_overshoot_mV	^pvdd_overshoot_mV:	<=	200	mV	no
+handoff_glitch_mV	^handoff_glitch_mV:	<=	100	mV	no
+works_slow_ramp	^works_slow_ramp:	>=	1	bool	no
+works_fast_ramp	^works_fast_ramp:	>=	1	bool	no
+cold_crank_ok	^cold_crank_ok:	>=	1	bool	no
+leakage_after_uA	^leakage_after_uA:	<=	1	uA	no
+no_overshoot_ff_m40	^no_overshoot_ff_m40:	>=	1	bool	no
+no_latch_stuck	^no_latch_stuck:	>=	1	bool	no

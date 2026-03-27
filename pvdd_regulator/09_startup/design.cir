@@ -1,0 +1,70 @@
+* Block 09: Startup Circuit
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   bvdd         — battery supply (energy source for bootstrap)
+*   pvdd         — PVDD rail being bootstrapped (sense and output)
+*   gate         — pass device gate node (startup drives this)
+*   gnd          — ground
+*   vref         — bandgap reference 1.226V (may NOT be valid during startup)
+*   startup_done — output: digital flag, HIGH when startup is complete
+*   ea_en        — output: error amplifier enable, asserted at handoff
+*
+* STATUS: EMPTY — startup mechanism not yet chosen
+*
+* Problem: chicken-and-egg bootstrap.
+*   Error amp runs from PVDD. PVDD is made by pass device controlled by error amp.
+*   At power-on PVDD=0 → error amp has no supply → gate floating → PVDD stays 0.
+*
+* Solution options:
+*   1. Current-limited gate pulldown (simplest):
+*      Weak NMOS from gate to GND partially turns on pass PMOS.
+*      PVDD charges through pass device. When PVDD crosses threshold,
+*      pulldown disables and error amp takes over.
+*      Recommended starting point.
+*
+*   2. Bootstrap resistor from BVDD:
+*      Resistor from BVDD to error amp supply provides trickle current.
+*      Simple but wastes current permanently unless switched off.
+*
+*   3. Dedicated startup amplifier:
+*      HV amp from BVDD, coarse regulation then handoff.
+*      Most robust, most complex.
+*
+* Key constraints:
+*   - vref may NOT be valid during startup (bandgap not yet powered).
+*     Use BVDD-derived or Vth-based threshold detection only.
+*   - Convergence: startup from zero IC is hardest SPICE convergence scenario.
+*     Use .ic V(pvdd)=0 V(gate)=0 and uic option.
+*   - After startup: leakage <= 1 µA (circuit must FULLY disable).
+*
+* Requirements:
+*   Startup time (no load, BVDD=7V)   <= 100 µs
+*   Startup time (50 mA, BVDD=7V)     <= 200 µs
+*   PVDD monotonic ramp                no dips > 50 mV
+*   PVDD overshoot                     < 200 mV above 5.0V
+*   Handoff glitch                     < 100 mV
+*   Works at BVDD ramp 0.1–12 V/µs
+*   Cold crank recovery (BVDD dip)     clean re-start
+*   Quiescent after startup            < 1 µA
+*
+.subckt startup bvdd pvdd gate gnd vref startup_done ea_en
+
+* TODO: implement startup circuit
+*
+* Recommended first attempt: current-limited gate pulldown
+*
+* Step 1: NMOS from gate to GND (weak, limited by series R).
+*   When BVDD > threshold and PVDD < 5V:
+*   Rg pulls gate low → PMOS pass device partially on → PVDD charges.
+*
+* Step 2: threshold detector for startup_done.
+*   When PVDD > ~4.8V: assert startup_done, assert ea_en, disable pulldown.
+*   Use BVDD-derived divider + HV comparator (NOT vref — may be invalid).
+*
+* Example skeleton:
+* XR_gate gate gnd_pull sky130_fd_pr__res_xhigh_po W=1e-6 L=<L>
+* XMN_pull gnd_pull gnd_pull gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=<W> L=<L>
+* ... threshold detector and handoff logic below
+
+.ends startup
