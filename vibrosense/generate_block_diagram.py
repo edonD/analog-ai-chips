@@ -78,7 +78,7 @@ def label_chip(ax, x, y, text, fc, tc=TEXT, fs=8.6, mono=False, z=6):
 def draw_panel(ax, x, y, w, h, accent, fill, stage, title, subtitle,
                title_fs=11.5, sub_fs=8.6, badge_fs=8.0):
     rounded_box(ax, x, y, w, h, fc=fill, ec=BORDER, lw=1.1, radius=1.0, z=1.5)
-    ax.plot([x + 0.9, x + w - 0.9], [y + h - 1.5, y + h - 1.5], color=accent, lw=2.1, zorder=3)
+    # top accent line removed for cleaner look
     stage_w = label_chip(ax, x + 1.0, y + h - 2.95, stage, fc=accent, tc="white", fs=badge_fs)
     ax.text(
         x + 1.0 + stage_w + 0.8,
