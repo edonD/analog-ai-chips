@@ -1,0 +1,113 @@
+{
+  "block": "04",
+  "name": "current_limiter",
+  "subckt": "current_limiter",
+  "ports": ["gate", "bvdd", "pvdd", "gnd", "ilim_flag"],
+  "design_file": "design.cir",
+  "wave": 2,
+  "depends_on": ["00", "01", "02", "03"],
+  "note": "Must be completely transparent under normal 0-50mA operation. Activates only above 60-80mA threshold.",
+  "operating_conditions": {
+    "bvdd_range": { "min": 5.4, "max": 10.5, "unit": "V" },
+    "pvdd_nom": 5.0,
+    "iload_normal_max": 50e-3,
+    "ilim_target": 70e-3,
+    "corners": ["tt", "ss", "ff", "sf", "fs"],
+    "temperatures": [-40, 27, 150]
+  },
+  "pass_fail": [
+    {
+      "id": "ilim_tt27",
+      "param": "Current limit threshold at TT 27C",
+      "min": 60e-3,
+      "max": 80e-3,
+      "unit": "A",
+      "condition": "TT 27C, BVDD=7V"
+    },
+    {
+      "id": "ilim_ss150",
+      "param": "Current limit threshold at SS 150C",
+      "min": 50e-3,
+      "unit": "A",
+      "condition": "SS 150C — must NOT limit below max load current"
+    },
+    {
+      "id": "ilim_ff_m40",
+      "param": "Current limit threshold at FF -40C",
+      "max": 100e-3,
+      "unit": "A",
+      "condition": "FF -40C — must actually limit at this corner"
+    },
+    {
+      "id": "response_time",
+      "param": "Response time from short to clamping",
+      "max": 10e-6,
+      "unit": "s",
+      "condition": "Hard short applied at output, BVDD=7V"
+    },
+    {
+      "id": "pvdd_impact_50mA",
+      "param": "PVDD change due to limiter presence at Iload=50mA",
+      "max": 10e-3,
+      "unit": "V",
+      "condition": "Delta PVDD with vs without limiter in circuit at 50mA"
+    },
+    {
+      "id": "sense_quiescent",
+      "param": "Sense element quiescent current at Iload=0",
+      "max": 10e-6,
+      "unit": "A",
+      "condition": "No load, limiter not active"
+    },
+    {
+      "id": "no_oscillation_during_limiting",
+      "param": "No oscillation during current limiting",
+      "eq": true,
+      "unit": "bool",
+      "condition": "Clean transient, no ringing when limiter is active"
+    },
+    {
+      "id": "loop_stability_unaffected",
+      "param": "Loop stability with limiter present",
+      "min": 45,
+      "unit": "deg",
+      "condition": "Phase margin > 45 deg at normal loads (0-50mA) with limiter in circuit"
+    }
+  ],
+  "testbenches": [
+    {
+      "file": "tb_ilim_iv.spice",
+      "measures": ["Iout vs Vout with Rload swept to near 0"]
+    },
+    {
+      "file": "tb_ilim_trip.spice",
+      "measures": ["ilim_tt27", "ilim_ss150", "ilim_ff_m40"]
+    },
+    {
+      "file": "tb_ilim_transient.spice",
+      "measures": ["response_time", "no_oscillation_during_limiting"]
+    },
+    {
+      "file": "tb_ilim_normal.spice",
+      "measures": ["pvdd_impact_50mA", "sense_quiescent"]
+    },
+    {
+      "file": "tb_ilim_lstb.spice",
+      "measures": ["loop_stability_unaffected"]
+    },
+    {
+      "file": "tb_ilim_pvt.spice",
+      "measures": ["ilim threshold at all SS/FF/SF/FS corners, -40/27/150C"]
+    }
+  ],
+  "deliverables": [
+    "design.cir",
+    "tb_ilim_iv.spice",
+    "tb_ilim_trip.spice",
+    "tb_ilim_transient.spice",
+    "tb_ilim_normal.spice",
+    "tb_ilim_lstb.spice",
+    "tb_ilim_pvt.spice",
+    "README.md"
+  ]
+}

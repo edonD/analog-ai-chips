@@ -1,0 +1,19 @@
+# Block 04: Current Limiter — Spec Tracker
+# Tab-separated. Do not edit manually — source of truth is specification.json.
+# Testbenches must print metrics in the format: "metric_name: value"
+#
+# primary metric: ilim_ss150_mA — limit threshold at SS 150C (higher is better, must stay > 50mA)
+#   This is the binding worst-case constraint: the limiter must not trip below 50mA
+#   at the slow/hot corner, while still tripping below 100mA at the fast/cold corner.
+#   Maximize ilim_ss150_mA (keep it as far above 50mA as possible).
+#
+metric	grep_pattern	operator	threshold	unit	primary
+ilim_ss150_mA	^ilim_ss150_mA:	>=	50	mA	yes
+ilim_tt27_mA	^ilim_tt27_mA:	>=	60	mA	no
+ilim_tt27_mA_max	^ilim_tt27_mA:	<=	80	mA	no
+ilim_ff_m40_mA	^ilim_ff_m40_mA:	<=	100	mA	no
+response_time_us	^response_time_us:	<=	10	us	no
+pvdd_impact_mV	^pvdd_impact_mV:	<=	10	mV	no
+sense_quiescent_uA	^sense_quiescent_uA:	<=	10	uA	no
+loop_pm_with_limiter_deg	^loop_pm_with_limiter_deg:	>=	45	deg	no
+no_oscillation	^no_oscillation:	>=	1	bool	no

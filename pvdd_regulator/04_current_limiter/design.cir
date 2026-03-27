@@ -1,0 +1,43 @@
+* Block 04: Current Limiter
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+*
+* Subcircuit ports:
+*   gate     — pass device gate node (limiter overrides this when tripped)
+*   bvdd     — high-voltage supply (5.4–10.5V)
+*   pvdd     — regulated output (5.0V)
+*   gnd      — ground
+*   ilim_flag — digital output: 1 when current limit is active
+*
+* STATUS: EMPTY — sense topology not yet chosen
+*
+* Topology options:
+*   1. Sense-resistor + comparator:
+*      Small Rs (sky130_fd_pr__res_xhigh_po) in the source path.
+*      When Vsense > Vref_ilim, pull gate HIGH (turn off pass device).
+*      Trip point: Ilim = Vref_ilim / Rs.
+*
+*   2. Mirror-sense: replicate a scaled copy of pass device,
+*      compare mirror current against reference. No Rs in main path.
+*
+*   3. Replica bias: use a small-signal replica to sense gate current.
+*
+* Requirements:
+*   Ilim at TT 27°C        60–80 mA
+*   Ilim at SS 150°C       >= 50 mA (must NOT trip below spec load)
+*   Ilim at FF −40°C       <= 100 mA (must trip before damage)
+*   Response time          <= 10 µs from overcurrent to gate pull-up
+*   PVDD impact (normal)   <= 10 mV (sense resistor drop at 50 mA)
+*   Quiescent current      <= 10 µA from BVDD or PVDD
+*   Does not degrade loop PM below 45° in closed loop
+*
+.subckt current_limiter gate bvdd pvdd gnd ilim_flag
+
+* TODO: implement current limiter here
+* Key design decision: where to insert the sense element.
+* The pass device source is at BVDD; drain is PVDD.
+* A sense resistor in the source path: Rs between M_pass source and BVDD.
+* When I_load * Rs > Vth_comp, comparator pulls gate toward BVDD (off).
+*
+* ilim_flag should be driven HI (PVDD domain) when limiting is active.
+
+.ends current_limiter
