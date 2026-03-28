@@ -1,0 +1,146 @@
+* tb_comp_load_step.spice — Load step transient: 1mA→10mA and 10mA→1mA
+
+* Parasitic model for poly resistor
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub 0.05f
+c1 r1 sub 0.05f
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+.temp 27
+
+.include "../00_error_amp/design.cir"
+.include "../01_pass_device/design.cir"
+.include "design.cir"
+
+* Supplies
+Vbvdd bvdd 0 DC 7.0
+Vavbg avbg 0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias bvdd ibias DC 1u
+
+* Error amplifier
+Xea avbg vfb vout_gate bvdd 0 ibias en error_amp
+
+* Compensation
+Xcomp vout_gate pvdd 0 compensation
+
+* Pass device
+Xpass vout_gate bvdd pvdd pass_device
+
+* Load cap
+Cload pvdd 0 200p
+
+* Feedback divider (closed loop)
+Rtop pvdd vfb 314.75k
+Rbot vfb 0 102.25k
+
+* Load current step: 1mA for 50u, ramp to 10mA in 1us, hold 30u, ramp back in 1us
+Iload pvdd 0 PWL(0 1m 49u 1m 50u 10m 79u 10m 80u 1m 120u 1m)
+
+.nodeset v(pvdd)=5.0 v(vout_gate)=5.5 v(vfb)=1.226
+
+.option reltol=1e-4 abstol=1e-12 vntol=1e-6 gmin=1e-12 method=gear
+
+.control
+  tran 10n 120u
+
+  * Find undershoot (1mA→10mA step at t=10u)
+  * pvdd should be ~5V. Find min after t=10u
+  let pvdd_trace = v(pvdd)
+  let npts = length(pvdd_trace)
+  let vmin = 5.0
+  let vmax = 5.0
+  let i = 0
+
+  * Find min pvdd after t=50u (undershoot from 1→10mA step)
+  dowhile i < npts
+    if time[i] > 50e-6
+      if time[i] < 75e-6
+        if pvdd_trace[i] < vmin
+          let vmin = pvdd_trace[i]
+        end
+      end
+    end
+    let i = i + 1
+  end
+
+  * Find max pvdd after t=80u (overshoot from 10→1mA step)
+  let i = 0
+  dowhile i < npts
+    if time[i] > 80e-6
+      if time[i] < 110e-6
+        if pvdd_trace[i] > vmax
+          let vmax = pvdd_trace[i]
+        end
+      end
+    end
+    let i = i + 1
+  end
+
+  * Get steady-state PVDD
+  let pvdd_ss = pvdd_trace[npts-1]
+
+  let undershoot = (5.0 - vmin) * 1000
+  let overshoot = (vmax - 5.0) * 1000
+
+  echo "=== Load Step Results ==="
+  echo "pvdd_ss    = $&pvdd_ss V"
+  echo "pvdd_min   = $&vmin V (during 1→10mA step)"
+  echo "pvdd_max   = $&vmax V (during 10→1mA step)"
+  echo "transient_undershoot_mV: $&undershoot"
+  echo "transient_overshoot_mV: $&overshoot"
+
+  * Check for oscillation: count zero-crossings around steady state after settling
+  let osc_count = 0
+  let settled_val = 5.0
+  let i = 0
+  let prev_above = 1
+  dowhile i < npts
+    if time[i] > 100e-6
+      if pvdd_trace[i] > settled_val
+        if prev_above = 0
+          let osc_count = osc_count + 1
+          let prev_above = 1
+        end
+      end
+      if pvdd_trace[i] < settled_val
+        if prev_above = 1
+          let prev_above = 0
+        end
+      end
+    end
+    let i = i + 1
+  end
+
+  if osc_count < 3
+    echo "no_oscillation: 1"
+  else
+    echo "no_oscillation: 0"
+    echo "oscillation_count: $&osc_count"
+  end
+
+  * Settling time: time for pvdd to be within 1% of final after step
+  * Check 10mA→1mA step at t=80u
+  let settle_thr = pvdd_ss * 0.01
+  let settle_time = 40e-6
+  let i = npts - 1
+  dowhile i > 0
+    if time[i] > 80e-6
+      let err = abs(pvdd_trace[i] - pvdd_ss)
+      if err > settle_thr
+        let settle_time = time[i] - 80e-6
+        let i = 0
+      end
+    end
+    let i = i - 1
+  end
+  let settle_us = settle_time * 1e6
+  echo "settling_time_us: $&settle_us"
+
+  wrdata load_step.dat pvdd_trace
+
+  quit
+.endc
+
+.end

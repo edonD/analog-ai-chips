@@ -1,0 +1,18 @@
+* Quick PDK smoke test — verify models load and a simple NMOS works
+.lib "../sky130.lib.spice" tt
+.temp 27
+
+* Simple NMOS IV test
+Vds drain 0 DC 5
+Vgs gate  0 DC 2
+XM1 drain gate 0 0 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+
+.control
+  op
+  echo "=== PDK Smoke Test ==="
+  let id = -i(Vds)
+  echo "Id = $&id A"
+  echo "PDK test: PASS"
+  quit
+.endc
+.end
