@@ -16,8 +16,8 @@
 * Low-to-High Shifter: SVDD → BVDD
 * ============================================================
 .subckt level_shifter_up in out bvdd svdd gnd
-.param wn_up=10
-.param wp_up=3
+.param wn_up=15
+.param wp_up=4
 .param wp_up_o=5
 .param winv_n=2
 .param winv_p=4
