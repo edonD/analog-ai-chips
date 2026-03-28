@@ -1,0 +1,23 @@
+* sky130_res_models.spice — Local resistor model setup for Block 02
+* Includes sky130_fd_pr__res_xhigh_po from the Sky130A PDK libs.ref
+* with required parasitic subcircuit and process parameters.
+*
+* Usage: .include "sky130_res_models.spice" in testbenches
+
+* --- Process variation parameters (nominal = 0 for TT) ---
+.param sky130_fd_pr__res_xhigh_po__var_mult = 0
+.param sky130_fd_pr__res_high_po__var_mult = 0
+.param sky130_fd_pr__res_high_po__var = 0
+.param MC_MM_SWITCH = 0
+.param crpf_precision = 0.001
+.param crpfsw_precision_1_1 = 0.001
+
+* --- Parasitic capacitance subcircuit for poly resistors ---
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub
++ w=1 l=1
+c1 r0 sub {0.1e-15*w*l}
+c2 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+* --- Main xhigh_po resistor model (from PDK libs.ref) ---
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__res_xhigh_po.model.spice"

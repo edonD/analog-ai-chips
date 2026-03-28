@@ -1,0 +1,30 @@
+* tb_fb_noise.spice — Noise spectral density and integrated noise at vfb
+* Block 02: Feedback Network
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+
+Xfb pvdd vfb 0 feedback_network
+
+.control
+op
+
+* Noise analysis: measure noise at vfb node due to Vpvdd source
+* Frequency range 1 Hz to 1 MHz
+noise v(vfb) Vpvdd dec 100 1 1e6
+
+* Get the integrated noise
+setplot noise1
+let total_noise = integ(onoise_spectrum)
+let noise_rms = sqrt(total_noise)
+let noise_uvrms = noise_rms * 1e6
+
+echo "=== Noise Analysis (TT 27C) ==="
+echo "noise_vfb_uVrms: $&noise_uvrms"
+
+quit
+.endc
+
+.end

@@ -1,0 +1,30 @@
+* tb_fb_dc_ratio.spice — DC ratio and divider current measurement
+* Block 02: Feedback Network
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+
+Xfb pvdd vfb 0 feedback_network
+
+.control
+op
+
+echo "=== DC Ratio Test (TT 27C, PVDD=5.0V) ==="
+
+let vfb_val = v(vfb)
+let ratio = v(vfb) / 5.0
+let i_div = -i(Vpvdd)
+let i_div_ua = i_div * 1e6
+let vfb_error = abs(v(vfb) - 1.226) * 1000
+
+echo "vfb_V: $&vfb_val"
+echo "ratio: $&ratio"
+echo "divider_current_uA: $&i_div_ua"
+echo "vfb_error_mV: $&vfb_error"
+
+quit
+.endc
+
+.end
