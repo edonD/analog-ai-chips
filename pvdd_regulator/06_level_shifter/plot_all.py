@@ -78,27 +78,23 @@ def plot_delay_vs_bvdd():
 
     # Extract BVDD sweep delays from the bvdd_sweep testbench
     bvdd_vals = [5.4, 7.0, 10.5]
+    suffixes = ['54', '70', '105']
     delays = []
 
-    # Parse tplh_up values from bvdd sweep sections
-    sections = log.split('=== BVDD=')
-    for bv in bvdd_vals:
-        found = False
-        for sec in sections:
-            if sec.startswith(f'{bv}V') or sec.startswith(f'{bv:.1f}V'):
-                # Look for delay measurement
-                m = re.search(r'tplh_up\s+=\s+(\S+)', sec)
-                if m:
-                    delays.append(float(m.group(1)) * 1e9)
-                    found = True
-                    break
-        if not found:
+    for sfx in suffixes:
+        # Parse tplh and tphl, take the max as the delay for this BVDD
+        tplh_m = re.search(rf'tplh_up_{sfx}_ns:\s+(\S+)', log)
+        tphl_m = re.search(rf'tphl_up_{sfx}_ns:\s+(\S+)', log)
+        if tplh_m and tphl_m:
+            tplh = float(tplh_m.group(1))
+            tphl = float(tphl_m.group(1))
+            delays.append(max(tplh, tphl))
+        else:
             delays.append(None)
 
-    # If we couldn't parse individual delays, use summary
     if any(d is None for d in delays):
-        # Use a simple default based on the PVT result
-        delays = [27.7, 6.6, 5.7]  # Approximate from run.log
+        print("ERROR: Could not parse BVDD sweep delays from run.log — skipping delay_vs_bvdd plot")
+        return
 
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.bar([str(v) for v in bvdd_vals], delays, color=['#e74c3c', '#3498db', '#2ecc71'],
@@ -138,14 +134,18 @@ def plot_delay_pvt():
     if m:
         delays.append(float(m.group(1)))
     else:
-        delays.append(6.6)
+        delays.append(None)
 
-    # SS worst case
+    # SS worst case (last delay_max_ns from PVT sweep)
     m = re.findall(r'^delay_max_ns:\s+(\S+)', log, re.MULTILINE)
     if m:
         delays.append(float(m[-1]))
     else:
-        delays.append(27.7)
+        delays.append(None)
+
+    if any(d is None for d in delays):
+        print("ERROR: Could not parse PVT delays from run.log — skipping delay_pvt plot")
+        return
 
     fig, ax = plt.subplots(figsize=(8, 5))
     colors = ['#3498db', '#e74c3c']

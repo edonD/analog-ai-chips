@@ -36,9 +36,15 @@ reset
 run
 meas tran up_high_54 MAX v(out_up) FROM=100n TO=250n
 meas tran up_low_54  MIN v(out_up) FROM=300n TO=450n
+meas tran tplh_54 TRIG v(in_up) VAL=1.1 RISE=1 TARG v(out_up) VAL=2.7 RISE=1
+meas tran tphl_54 TRIG v(in_up) VAL=1.1 FALL=1 TARG v(out_up) VAL=2.7 FALL=1
 echo "=== BVDD=5.4V ==="
 echo "up_out_high_54:" "$&up_high_54"
 echo "up_out_low_54:" "$&up_low_54"
+let d_lh_54 = tplh_54 * 1e9
+let d_hl_54 = tphl_54 * 1e9
+echo "tplh_up_54_ns:" "$&d_lh_54"
+echo "tphl_up_54_ns:" "$&d_hl_54"
 let w54 = 1
 if up_high_54 < 5.2
   let w54 = 0
@@ -54,9 +60,15 @@ reset
 run
 meas tran up_high_70 MAX v(out_up) FROM=100n TO=250n
 meas tran up_low_70  MIN v(out_up) FROM=300n TO=450n
+meas tran tplh_70 TRIG v(in_up) VAL=1.1 RISE=1 TARG v(out_up) VAL=3.5 RISE=1
+meas tran tphl_70 TRIG v(in_up) VAL=1.1 FALL=1 TARG v(out_up) VAL=3.5 FALL=1
 echo "=== BVDD=7.0V ==="
 echo "up_out_high_70:" "$&up_high_70"
 echo "up_out_low_70:" "$&up_low_70"
+let d_lh_70 = tplh_70 * 1e9
+let d_hl_70 = tphl_70 * 1e9
+echo "tplh_up_70_ns:" "$&d_lh_70"
+echo "tphl_up_70_ns:" "$&d_hl_70"
 
 * === BVDD = 10.5V ===
 alterparam bvdd_val = 10.5
@@ -64,9 +76,15 @@ reset
 run
 meas tran up_high_105 MAX v(out_up) FROM=100n TO=250n
 meas tran up_low_105  MIN v(out_up) FROM=300n TO=450n
+meas tran tplh_105 TRIG v(in_up) VAL=1.1 RISE=1 TARG v(out_up) VAL=5.25 RISE=1
+meas tran tphl_105 TRIG v(in_up) VAL=1.1 FALL=1 TARG v(out_up) VAL=5.25 FALL=1
 echo "=== BVDD=10.5V ==="
 echo "up_out_high_105:" "$&up_high_105"
 echo "up_out_low_105:" "$&up_low_105"
+let d_lh_105 = tplh_105 * 1e9
+let d_hl_105 = tphl_105 * 1e9
+echo "tplh_up_105_ns:" "$&d_lh_105"
+echo "tphl_up_105_ns:" "$&d_hl_105"
 let w105 = 1
 if up_high_105 < 10.3
   let w105 = 0

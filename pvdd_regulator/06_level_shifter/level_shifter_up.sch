@@ -27,7 +27,7 @@ model=nfet_g5v0d10v5
 spiceprefix=X
 }
 C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 560 -380 0 0 {name=XMN1
-W=10
+W=15
 L=1
 nf=1
 mult=1
@@ -35,7 +35,7 @@ model=nfet_g5v0d10v5
 spiceprefix=X
 }
 C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 760 -380 0 0 {name=XMN2
-W=10
+W=15
 L=1
 nf=1
 mult=1
@@ -51,7 +51,7 @@ model=pfet_g5v0d10v5
 spiceprefix=X
 }
 C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 760 -640 0 0 {name=XMP2
-W=4
+W=5
 L=0.5
 nf=1
 mult=1
@@ -70,8 +70,6 @@ C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 540 -380 0 1 {name=l_in
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 740 -380 0 1 {name=l_inb1 sig_type=std_logic lab=in_b}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 380 -600 0 0 {name=l_inb2 sig_type=std_logic lab=in_b}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 580 -530 0 1 {name=l_n1a sig_type=std_logic lab=n1}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 740 -640 0 1 {name=l_n1b sig_type=std_logic lab=n1}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 540 -640 0 1 {name=l_out_xc sig_type=std_logic lab=out}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 780 -530 0 0 {name=l_out1 sig_type=std_logic lab=out}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 900 -530 0 0 {name=l_out2 sig_type=std_logic lab=out}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 340 -900 0 0 {name=l_bvdd1 sig_type=std_logic lab=bvdd}
@@ -106,3 +104,13 @@ N 580 -350 580 -260 {lab=gnd}
 N 780 -350 780 -260 {lab=gnd}
 N 340 -260 580 -260 {lab=gnd}
 N 580 -260 780 -260 {lab=gnd}
+N 540 -640 500 -640 {lab=out}
+N 500 -640 500 -470 {lab=out}
+N 500 -470 810 -470 {lab=out}
+N 810 -470 810 -530 {lab=out}
+N 810 -530 780 -530 {lab=out}
+N 740 -640 720 -640 {lab=n1}
+N 720 -640 720 -490 {lab=n1}
+N 720 -490 560 -490 {lab=n1}
+N 560 -490 560 -530 {lab=n1}
+N 560 -530 580 -530 {lab=n1}
