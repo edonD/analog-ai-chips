@@ -56,6 +56,7 @@ T {pb_tail} -385 -565 0 0 0.3 0.3 {layer=8}
 T {XMbn_pb} -280 -340 0 0 0.25 0.25 {layer=13}
 T {W=20 L=8 m=20} -280 -318 0 0 0.2 0.2 {layer=5}
 T {20x mirror} -280 -296 0 0 0.18 0.18 {}
+T {B=GND} -330 -265 0 0 0.2 0.2 {layer=7}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -410 -400 0 0 {name=XMbn_pb
 L=8
 W=20
@@ -74,6 +75,7 @@ T {ibias_en} -535 -410 2 0 0.25 0.25 {layer=8}
 T {XMbn0} -600 -340 0 0 0.25 0.25 {layer=13}
 T {W=20 L=8 m=1} -600 -318 0 0 0.2 0.2 {layer=5}
 T {1 uA ref} -600 -296 0 0 0.18 0.18 {}
+T {B=GND} -490 -265 0 0 0.2 0.2 {layer=7}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -570 -400 0 0 {name=XMbn0
 L=8
 W=20
@@ -124,6 +126,7 @@ T {tail_s} 185 -590 0 0 0.25 0.25 {layer=8}
 * --- XM1: diff pair + (vref) ---
 T {XM1 (+)} 55 -470 0 0 0.28 0.28 {layer=13}
 T {W=80 L=4 m=2} 55 -448 0 0 0.2 0.2 {layer=5}
+T {B=PVDD} 140 -545 0 0 0.2 0.2 {layer=7}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 110 -510 0 0 {name=XM1
 L=4
 W=80
@@ -142,6 +145,7 @@ T {vref} -5 -525 0 0 0.3 0.3 {layer=8}
 * --- XM2: diff pair - (vfb) ---
 T {XM2 (-)} 275 -470 0 0 0.28 0.28 {layer=13}
 T {W=80 L=4 m=2} 275 -448 0 0 0.2 0.2 {layer=5}
+T {B=PVDD} 240 -545 0 0 0.2 0.2 {layer=7}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 250 -510 0 1 {name=XM2
 L=4
 W=80
@@ -161,6 +165,7 @@ T {vfb} 370 -525 2 0 0.3 0.3 {layer=8}
 T {XMn_l} 55 -170 0 0 0.25 0.25 {layer=13}
 T {W=20 L=8 m=2} 55 -148 0 0 0.2 0.2 {layer=5}
 T {diode} 55 -128 0 0 0.18 0.18 {}
+T {B=GND} 140 -215 0 0 0.2 0.2 {layer=7}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 110 -250 0 0 {name=XMn_l
 L=8
 W=20
@@ -181,6 +186,7 @@ T {d1} 135 -360 0 0 0.3 0.3 {layer=8}
 T {XMn_r} 275 -170 0 0 0.25 0.25 {layer=13}
 T {W=20 L=8 m=2} 275 -148 0 0 0.2 0.2 {layer=5}
 T {mirror} 275 -128 0 0 0.18 0.18 {}
+T {B=GND} 240 -215 0 0 0.2 0.2 {layer=7}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 250 -250 0 1 {name=XMn_r
 L=8
 W=20
@@ -249,6 +255,7 @@ C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 650 -680 0 0 {name=l_pb
 T {XMcs} 700 -170 0 0 0.25 0.25 {layer=13}
 T {W=20 L=1 m=1} 700 -148 0 0 0.2 0.2 {layer=5}
 T {CS amp} 700 -128 0 0 0.18 0.18 {}
+T {B=GND} 800 -215 0 0 0.2 0.2 {layer=7}
 C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 770 -250 0 0 {name=XMcs
 L=1
 W=20
@@ -275,32 +282,17 @@ C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 920 -350 2 0 {name=l_vg
 * XMpu: PMOS pullup drives vout_gate to PVDD when en=LOW
 * ================================================================
 
-T {ENABLE} -650 10 0 0 0.4 0.4 {layer=4}
-T {en=HIGH: normal operation} -650 40 0 0 0.2 0.2 {layer=5}
-T {en=LOW: bias off, vout->PVDD} -650 60 0 0 0.2 0.2 {layer=5}
+T {ENABLE} -650 10 0 0 0.45 0.45 {layer=4}
 
-T {XMen} -620 170 0 0 0.22 0.22 {layer=13}
-T {W=20 L=1} -620 190 0 0 0.18 0.18 {layer=5}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -570 120 0 0 {name=XMen
-L=1
-W=20
-nf=1
-mult=1
-model=nfet_g5v0d10v5
-spiceprefix=X
-}
-N -550 150 -550 220 {lab=gnd}
-C {/usr/share/xschem/xschem_library/devices/gnd.sym} -550 220 0 0 {name=lg6 lab=GND}
-N -550 90 -550 80 {lab=ibias_en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -550 80 2 0 {name=l_ibe sig_type=std_logic lab=ibias_en}
-N -590 120 -640 120 {lab=en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -640 120 0 0 {name=l_e1 sig_type=std_logic lab=en}
-T {ibias flows through} -495 110 0 0 0.18 0.18 {}
-T {when en=HIGH} -495 130 0 0 0.18 0.18 {}
+T {en} -670 120 0 0 0.35 0.35 {layer=8}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -640 130 0 0 {name=l_en_main sig_type=std_logic lab=en}
+N -640 130 -600 130 {lab=en}
 
-T {XMpu} -450 170 0 0 0.22 0.22 {layer=13}
-T {W=20 L=1} -450 190 0 0 0.18 0.18 {layer=5}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} -410 120 0 0 {name=XMpu
+* --- XMpu: PMOS pullup (en=LOW → vout_gate pulled to PVDD) ---
+T {XMpu} -530 30 0 0 0.25 0.25 {layer=13}
+T {W=20 L=1 m=1} -530 52 0 0 0.2 0.2 {layer=5}
+T {B=PVDD} -470 85 0 0 0.2 0.2 {layer=7}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} -510 100 0 0 {name=XMpu
 L=1
 W=20
 nf=1
@@ -308,14 +300,35 @@ mult=1
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-N -390 90 -390 60 {lab=pvdd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -390 60 2 0 {name=l_pv4 sig_type=std_logic lab=pvdd}
-N -390 150 -390 180 {lab=vout_gate}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -390 180 0 0 {name=l_vg2 sig_type=std_logic lab=vout_gate}
-N -430 120 -480 120 {lab=en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -480 120 0 0 {name=l_e2 sig_type=std_logic lab=en}
-T {pulls vout_gate} -340 110 0 0 0.18 0.18 {}
-T {to PVDD when en=LOW} -340 130 0 0 0.18 0.18 {}
+N -490 70 -490 40 {lab=pvdd}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -490 40 2 0 {name=l_pv4 sig_type=std_logic lab=pvdd}
+N -490 130 -490 170 {lab=vout_gate}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -490 170 0 0 {name=l_vg2 sig_type=std_logic lab=vout_gate}
+N -530 100 -600 100 {lab=en}
+N -600 100 -600 130 {lab=en}
+T {en=LOW: pulls} -430 120 0 0 0.18 0.18 {}
+T {vout_gate to PVDD} -430 140 0 0 0.18 0.18 {}
+
+* --- XMen: NMOS bias switch (en=HIGH → ibias flows to ibias_en) ---
+T {XMen} -530 195 0 0 0.25 0.25 {layer=13}
+T {W=20 L=1 m=1} -530 217 0 0 0.2 0.2 {layer=5}
+T {B=GND} -470 255 0 0 0.2 0.2 {layer=7}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -510 260 0 0 {name=XMen
+L=1
+W=20
+nf=1
+mult=1
+model=nfet_g5v0d10v5
+spiceprefix=X
+}
+N -490 290 -490 340 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/gnd.sym} -490 340 0 0 {name=lg6 lab=GND}
+N -490 230 -490 200 {lab=ibias_en}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -490 200 2 0 {name=l_ibe sig_type=std_logic lab=ibias_en}
+N -530 260 -600 260 {lab=en}
+N -600 130 -600 260 {lab=en}
+T {en=HIGH: passes} -430 250 0 0 0.18 0.18 {}
+T {ibias to bias chain} -430 270 0 0 0.18 0.18 {}
 
 * ================================================================
 * CHARACTERIZATION
