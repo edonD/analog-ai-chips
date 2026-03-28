@@ -1,0 +1,23 @@
+* tb_fb_temp_data.spice — Generate temperature data for plotting
+* Block 02: Feedback Network
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Xfb pvdd vfb 0 feedback_network
+
+.temp -40 -30 -20 -10 0 10 20 27 30 40 50 60 70 80 90 100 110 120 130 140 150
+
+.control
+* Run DC sweep over temperature using the .temp list
+* ngspice will run separate analyses for each temperature
+op
+
+* Save the VFB value
+wrdata temp_vfb_data.txt v(vfb)
+
+quit
+.endc
+
+.end

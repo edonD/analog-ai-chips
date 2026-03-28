@@ -1,12 +1,8 @@
 * tb_fb_mc.spice — Monte Carlo mismatch analysis (200 runs)
 * Block 02: Feedback Network
 *
-* The sky130 xhigh_po model includes mismatch via:
-*   res_match = (body_pelgrom/sqrt(w*l*mult)) * MC_MM_SWITCH * AGAUSS(0,1,1)
-*   rend has a similar AGAUSS term
-* Set MC_MM_SWITCH=1 to enable mismatch.
-*
-* We use ngspice's .param + repeat approach to run 200 iterations.
+* The sky130 xhigh_po model includes mismatch via AGAUSS terms
+* controlled by MC_MM_SWITCH.
 
 .include "sky130_res_models.spice"
 .include "design.cir"
@@ -17,7 +13,8 @@ Xfb pvdd vfb 0 feedback_network
 .control
 * Enable mismatch
 alterparam MC_MM_SWITCH = 1
-reset
+
+set wr_vecnames
 
 let mc_runs = 200
 let vfb_results = vector(mc_runs)
@@ -28,7 +25,6 @@ repeat $&mc_runs
   op
   let vfb_results[run] = v(vfb)
   let run = run + 1
-  destroy all
 end
 
 * Compute statistics
@@ -37,16 +33,20 @@ let vfb_std = stddev(vfb_results)
 let vfb_min = vecmin(vfb_results)
 let vfb_max = vecmax(vfb_results)
 let vfb_3sigma = vfb_std * 3 * 1000
+let vfb_std_mV = vfb_std * 1000
 
 echo "=== Monte Carlo Mismatch (200 runs, TT 27C) ==="
 echo "mc_vfb_mean_V: $&vfb_mean"
-echo "mc_vfb_std_mV: $&vfb_std"
+echo "mc_vfb_std_mV: $&vfb_std_mV"
 echo "mc_vfb_min_V: $&vfb_min"
 echo "mc_vfb_max_V: $&vfb_max"
 echo "mc_vfb_3sigma_mV: $&vfb_3sigma"
 
-* Save results for plotting
-wrdata mc_vfb_data.txt vfb_results
+* Save all results for plotting
+* Write one value per line using echo
+compose run_idx start=0 stop=199 step=1
+let mc_data = vfb_results
+wrdata mc_vfb_data.txt mc_data vs run_idx
 
 quit
 .endc

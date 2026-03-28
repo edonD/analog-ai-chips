@@ -24,10 +24,6 @@ Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 r
 
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
@@ -152,7 +148,12 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1
-Reset re-loads circuit * tb_fb_mcUsing SPARSE 1.3 as Direct Linear Solver
+Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+
+Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+
+Doing analysis at TEMP = 27.00000Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -169,8 +170,12 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-.spice — monte carlo mismatch analysis (200 runs)
+0 and TNOM = 27.000000
 
+
+No. of Data Rows : 1
+Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
@@ -305,9 +310,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_Using SPARSE 1.3 as Direct Linear Solver
+Reset re-loads circuiUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -324,8 +327,10 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-fb_mc.spice — monte carlo mismatch analysis (200 runs)
+t * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
+Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
@@ -459,11 +464,8 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 No. of Data Rows : 1
 Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
-Doing anaUsing SPARSE 1.3 as Direct Linear Solver
-Using SPARSE 1.3 as Direct Linear Solver
+CiUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -480,7 +482,9 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-lysis at TEMP = 27.000000 and TNOM = 27.000000
+rcuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1
@@ -613,13 +617,8 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 No. of Data Rows : 1
 Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
-
 
-No. of Data Rows :Using SPARSE 1.3 as Direct Linear Solver
+Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runsUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -636,7 +635,13 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
- 1
+Using SPARSE 1.3 as Direct Linear Solver
+)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
 Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
@@ -772,8 +777,7 @@ Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
-No. of Data Rows : 1
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatchUsing SPARSE 1.3 as Direct Linear Solver
+No. ofUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -790,7 +794,8 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
- analysis (200 runs)
+ Data Rows : 1
+Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
@@ -926,9 +931,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_fb_mc.spice — monte carlo misUsing SPARSE 1.3 as Direct Linear Solver
+Reset re-loads circuit * tb_fb_mc.spice — monte caUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -945,7 +948,9 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-match analysis (200 runs)
+rlo mismatch analysis (200 runs)
+
+Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
@@ -1080,11 +1085,8 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 No. of Data Rows : 1
 Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
-Doing analysis at TEMP = 27.000000 and TUsing SPARSE 1.3 as Direct Linear Solver
-Using SPARSE 1.3 as Direct Linear Solver
+Circuit: * tb_fb_mc.spice — monUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -1101,9 +1103,11 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-NOM = 27.000000
+te carlo mismatch analysis (200 runs)
 
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
+
 No. of Data Rows : 1
 Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
@@ -1236,12 +1240,9 @@ No. of Data Rows : 1
 Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
-
 
-No. of Data Rows : 1
-Reset re-loads circuit * tb_Using SPARSE 1.3 as Direct Linear Solver
+Doing analysis at TEMP = 27.Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -1258,8 +1259,12 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-fb_mc.spice — monte carlo mismatch analysis (200 runs)
+000000 and TNOM = 27.000000
 
+
+No. of Data Rows : 1
+Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
@@ -1394,9 +1399,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: Using SPARSE 1.3 as Direct Linear Solver
+Reset re-loads cUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -1413,7 +1416,9 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-* tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+ircuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+
+Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
@@ -1547,11 +1552,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-DoinUsing SPARSE 1.3 as Direct Linear Solver
+Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runsUsing SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -1568,13 +1569,8 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-Using SPARSE 1.3 as Direct Linear Solver
-g analysis at TEMP = 27.000000 and TNOM = 27.000000
-
+)
 
-No. of Data Rows : 1
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
@@ -1706,9 +1702,12 @@ Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 r
 Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
 
+No. of Data Rows : 1
+Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
 
-No. of Data RUsing SPARSE 1.3 as Direct Linear Solver
+Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
@@ -1719,10 +1718,7 @@ Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
 Using SPARSE 1.3 as Direct Linear Solver
-ows : 1
-Reset re-loads circuit * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
-
-Circuit: * tb_fb_mc.spice — monte carlo mismatch analysis (200 runs)
+ runs)
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
@@ -1809,9 +1805,9 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 No. of Data Rows : 1
 === Monte Carlo Mismatch (200 runs, TT 27C) ===
-mc_vfb_mean_V: 1.22588
-mc_vfb_std_mV: 0.00263115
-mc_vfb_min_V: 1.21948
-mc_vfb_max_V: 1.23246
-mc_vfb_3sigma_mV: 7.89345
+mc_vfb_mean_V: 1.2262
+mc_vfb_std_mV: 2.57337
+mc_vfb_min_V: 1.21974
+mc_vfb_max_V: 1.23578
+mc_vfb_3sigma_mV: 7.72011
 ngspice-42 done
