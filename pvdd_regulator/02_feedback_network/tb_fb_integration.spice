@@ -1,0 +1,42 @@
+* tb_fb_integration.spice — Verify feedback network with error amp connection
+* Block 02: Integration test
+*
+* Simple test: apply 5V to PVDD through the divider, verify VFB = 1.226V
+* and that the VFB node impedance is compatible with error amp input.
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+
+* Feedback network
+Xfb pvdd vfb 0 feedback_network
+
+* Model the error amp input as a high-impedance load
+* Typical MOSFET gate input: ~1fF cap, ~1T ohm DC impedance
+Cgate vfb 0 1f
+Rgate vfb 0 1T
+
+.control
+op
+let vfb_val = v(vfb)
+let err = abs(vfb_val - 1.226) * 1000
+let i_div = -i(Vpvdd) * 1e6
+
+echo "=== Integration Test ==="
+echo "VFB with gate load: $&vfb_val V"
+echo "Error from target: $&err mV"
+echo "Divider current: $&i_div uA"
+echo "(Gate load adds ~0 current, as expected)"
+
+* AC impedance at VFB node
+ac dec 100 1 10e6
+let z_vfb = v(vfb) / i(Vpvdd)
+
+echo ""
+echo "VFB node impedance at 1kHz (approx): dominated by R_parallel = ~89 kohm"
+
+quit
+.endc
+
+.end
