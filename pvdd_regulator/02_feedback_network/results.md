@@ -26,7 +26,7 @@
 | Divider current | 10.35 µA | 10–15 µA | **PASS** |
 | Noise at VFB (1Hz–1MHz) | 38.5 µVrms | ≤ 50 µVrms | **PASS** |
 | No model errors | ✓ | All TBs run clean | **PASS** |
-| MC 3σ (200 runs) | 5.21 mV | ≤ 10 mV | **PASS** |
+| MC 3σ (500 runs) | 4.69 mV | ≤ 10 mV | **PASS** |
 
 **Score: 6/6 specs pass + MC pass. Primary metric (vfb_error_mV) = 0.004 mV.**
 
@@ -34,11 +34,12 @@
 
 | Parameter | Value |
 |-----------|-------|
-| Mean VFB | 1.2259 V |
-| Std dev | 1.74 mV |
-| 3σ spread | 5.21 mV |
-| Min VFB | 1.2216 V |
-| Max VFB | 1.2305 V |
+| Mean VFB | 1.2260 V |
+| Std dev | 1.56 mV |
+| 3σ spread | 4.69 mV |
+| Min VFB | 1.2204 V |
+| Max VFB | 1.2301 V |
+| Runs | 500 |
 
 ## Temperature Sweep
 

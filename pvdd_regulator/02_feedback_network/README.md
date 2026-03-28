@@ -9,7 +9,7 @@
 | Corner drift (SS/FF) | **0 mV** | ≤ 10 mV |
 | Divider current | **10.35 µA** | 10–15 µA |
 | Noise (1Hz–1MHz) | **38.5 µVrms** | ≤ 50 µVrms |
-| MC 3σ (200 runs) | **5.21 mV** | ≤ 10 mV |
+| MC 3σ (500 runs) | **4.69 mV** | ≤ 10 mV |
 | Parasitic cap at VFB | **~0.14 pF** | ≤ 2 pF |
 
 **Result: 6/6 specs PASS + MC PASS.**
@@ -58,9 +58,10 @@ Total drift across -40 to 150°C: **0.07 mV**. Matched TC coefficients make the 
 
 | Statistic | Value |
 |-----------|-------|
-| Mean | 1.2259 V |
-| σ | 1.74 mV |
-| 3σ | 5.21 mV |
+| Mean | 1.2260 V |
+| σ | 1.56 mV |
+| 3σ | 4.69 mV |
+| Runs | 500 |
 
 3σ < 10 mV spec → **PASS**.
 
