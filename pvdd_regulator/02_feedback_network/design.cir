@@ -12,16 +12,16 @@
 *
 * Device: sky130_fd_pr__res_xhigh_po (P- polysilicon, ~2 kΩ/sq, low TC)
 *   Same type for both R_TOP and R_BOT → first-order TC cancellation
-*   w = 2.0 µm for both (wider for better Pelgrom matching, 3σ < 10 mV)
+*   w = 2.0 µm for both (wider for better Pelgrom matching)
 *
-* Final sizing:
-*   R_TOP ≈ 316 kΩ (w=2.0, l=307)
-*   R_BOT ≈ 103 kΩ (w=2.0, l=99.82)
-*   R_total ≈ 419 kΩ → I_div ≈ 11.9 µA at 5V
+* Low-Iq variant (scaled 15% higher R for ~10.4 µA divider current):
+*   R_TOP ≈ 363 kΩ (w=2.0, l=353)
+*   R_BOT ≈ 118 kΩ (w=2.0, l=114.78)
+*   R_total ≈ 481 kΩ → I_div ≈ 10.4 µA at 5V
 *
 .subckt feedback_network pvdd vfb gnd
 
-XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=2.0 l=307
-XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=2.0 l=99.82
+XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=2.0 l=353
+XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=2.0 l=114.78
 
 .ends feedback_network

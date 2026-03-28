@@ -1,11 +1,11 @@
-* Fine sweep l_bot around 99.8
+* Fine sweep around l_bot=114.8 with l_top=353
 
 .include "sky130_res_models.spice"
 
-.param l_bot_val = 99.8
+.param l_bot_val = 114.8
 
 .subckt feedback_network_sweep pvdd vfb gnd
-XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=2.0 l=307
+XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=2.0 l=353
 XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=2.0 l=l_bot_val
 .ends feedback_network_sweep
 
@@ -13,12 +13,13 @@ Vpvdd pvdd 0 DC 5.0
 Xfb pvdd vfb 0 feedback_network_sweep
 
 .control
-foreach lb 99.75 99.76 99.77 99.78 99.79 99.80 99.81 99.82 99.83 99.84 99.85
+foreach lb 114.76 114.78 114.80 114.82 114.84 114.86
   alterparam l_bot_val = $lb
   reset
   op
   let err = abs(v(vfb) - 1.226) * 1000
-  echo "l_bot=$lb  VFB=$&v(vfb)  error_mV=$&err"
+  let idiv = -i(Vpvdd) * 1e6
+  echo "l_bot=$lb  VFB=$&v(vfb)  error_mV=$&err  Idiv_uA=$&idiv"
   destroy all
 end
 quit

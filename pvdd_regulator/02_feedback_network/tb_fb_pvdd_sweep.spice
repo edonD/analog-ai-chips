@@ -1,0 +1,39 @@
+* tb_fb_pvdd_sweep.spice — VFB vs PVDD sweep (4.8 to 5.17V)
+* Verifies divider linearity across operating PVDD range
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Xfb pvdd vfb 0 feedback_network
+
+.control
+* Sweep PVDD from 4.5 to 5.5V
+dc Vpvdd 4.5 5.5 0.01
+
+* Print key values
+let ratio = v(vfb) / v(pvdd)
+let vfb_at_48 = v(vfb)[30]
+let vfb_at_50 = v(vfb)[50]
+let vfb_at_517 = v(vfb)[67]
+
+echo "=== PVDD Sweep ==="
+echo "vfb_at_4.8V: $&vfb_at_48"
+echo "vfb_at_5.0V: $&vfb_at_50"
+echo "vfb_at_5.17V: $&vfb_at_517"
+
+* Check linearity: ratio should be constant
+let ratio_48 = vfb_at_48 / 4.8
+let ratio_50 = vfb_at_50 / 5.0
+let ratio_517 = vfb_at_517 / 5.17
+echo "ratio_at_4.8V: $&ratio_48"
+echo "ratio_at_5.0V: $&ratio_50"
+echo "ratio_at_5.17V: $&ratio_517"
+
+* Save data for plotting
+wrdata pvdd_sweep_data.txt v(vfb) vs v(pvdd)
+
+quit
+.endc
+
+.end

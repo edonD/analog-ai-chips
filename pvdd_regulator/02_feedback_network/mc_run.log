@@ -1805,9 +1805,9 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 No. of Data Rows : 1
 === Monte Carlo Mismatch (200 runs, TT 27C) ===
-mc_vfb_mean_V: 1.2262
-mc_vfb_std_mV: 2.57337
-mc_vfb_min_V: 1.21974
-mc_vfb_max_V: 1.23578
-mc_vfb_3sigma_mV: 7.72011
+mc_vfb_mean_V: 1.22603
+mc_vfb_std_mV: 2.22055
+mc_vfb_min_V: 1.21968
+mc_vfb_max_V: 1.23187
+mc_vfb_3sigma_mV: 6.66165
 ngspice-42 done
