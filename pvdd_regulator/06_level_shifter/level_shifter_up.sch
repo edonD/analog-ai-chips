@@ -82,6 +82,12 @@ C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 580 -380 0 0 {name=l_gn
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 780 -380 0 0 {name=l_gnd_body3 sig_type=std_logic lab=gnd}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 580 -640 0 0 {name=l_bvdd_body1 sig_type=std_logic lab=bvdd}
 C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 780 -640 0 0 {name=l_bvdd_body2 sig_type=std_logic lab=bvdd}
+T {body=SVDD} 350 -675 0 0 0.25 0.25 {layer=5}
+T {body=GND} 350 -525 0 0 0.25 0.25 {layer=5}
+T {body=GND} 590 -395 0 0 0.25 0.25 {layer=5}
+T {body=GND} 790 -395 0 0 0.25 0.25 {layer=5}
+T {body=BVDD} 590 -655 0 0 0.25 0.25 {layer=5}
+T {body=BVDD} 790 -655 0 0 0.25 0.25 {layer=5}
 C {/usr/share/xschem/xschem_library/devices/title.sym} 240 -200 0 0 {name=l1 author="Claude AI"}
 N 240 -900 340 -900 {lab=bvdd}
 N 240 -860 340 -860 {lab=svdd}
