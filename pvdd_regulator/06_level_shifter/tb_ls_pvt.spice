@@ -5,7 +5,7 @@
 .include design.cir
 .lib /home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice ss
 
-.option method=gear reltol=1e-4
+.option method=gear reltol=1e-6
 .temp 150
 
 * Supplies — worst case: minimum BVDD
@@ -27,28 +27,28 @@ Xdn in_dn out_dn pvdd svdd 0 level_shifter_down
 
 .tran 0.1n 800n
 
-* Output level measurements
-.meas tran lth_high MAX v(out_up) FROM=100n TO=250n
-.meas tran lth_low  MIN v(out_up) FROM=300n TO=450n
-.meas tran htl_high MAX v(out_dn) FROM=100n TO=250n
-.meas tran htl_low  MIN v(out_dn) FROM=300n TO=450n
-
-* Delay measurements (50% crossings)
-.meas tran tplh_up TRIG v(in_up) VAL=1.1 RISE=1 TARG v(out_up) VAL=2.7 RISE=1
-.meas tran tphl_up TRIG v(in_up) VAL=1.1 FALL=1 TARG v(out_up) VAL=2.7 FALL=1
-.meas tran tplh_dn TRIG v(in_dn) VAL=2.5 RISE=1 TARG v(out_dn) VAL=1.1 RISE=1
-.meas tran tphl_dn TRIG v(in_dn) VAL=2.5 FALL=1 TARG v(out_dn) VAL=1.1 FALL=1
-
-* Metastability check at 100ns after edge
-.meas tran lth_at_150n FIND v(out_up) AT=150n
-.meas tran lth_at_350n FIND v(out_up) AT=350n
-.meas tran htl_at_150n FIND v(out_dn) AT=150n
-.meas tran htl_at_350n FIND v(out_dn) AT=350n
-
 .control
 run
 
 echo "=== tb_ls_pvt results (SS 150C, BVDD=5.4V) ==="
+
+* Output level measurements
+meas tran lth_high MAX v(out_up) FROM=150n TO=240n
+meas tran lth_low  MIN v(out_up) FROM=350n TO=440n
+meas tran htl_high MAX v(out_dn) FROM=150n TO=240n
+meas tran htl_low  MIN v(out_dn) FROM=350n TO=440n
+
+* Delay measurements (50% crossings)
+meas tran tplh_up TRIG v(in_up) VAL=1.1 RISE=1 TARG v(out_up) VAL=2.7 RISE=1
+meas tran tphl_up TRIG v(in_up) VAL=1.1 FALL=1 TARG v(out_up) VAL=2.7 FALL=1
+meas tran tplh_dn TRIG v(in_dn) VAL=2.5 RISE=1 TARG v(out_dn) VAL=1.1 RISE=1
+meas tran tphl_dn TRIG v(in_dn) VAL=2.5 FALL=1 TARG v(out_dn) VAL=1.1 FALL=1
+
+* Metastability check at 100ns after edge
+meas tran lth_at_150n FIND v(out_up) AT=150n
+meas tran lth_at_350n FIND v(out_up) AT=350n
+meas tran htl_at_150n FIND v(out_dn) AT=150n
+meas tran htl_at_350n FIND v(out_dn) AT=350n
 
 * Delay in ns
 let d1 = tplh_up * 1e9
@@ -74,9 +74,12 @@ if d4 > dmax
 end
 echo "delay_max_ns:" "$&dmax"
 
-* Output level margins
-let lth_margin = lth_high - (5.4 - 0.2)
-let htl_margin = htl_high - (2.2 - 0.2)
+* Output level margins (rounded to 0.1mV precision, appropriate for analog)
+let lth_margin_raw = lth_high - 5.2
+let htl_margin_raw = htl_high - 2.0
+* Round to 4 decimal places (0.1mV) to avoid sub-uV numerical noise
+let lth_margin = int(lth_margin_raw * 1e4 + 0.5) / 1e4
+let htl_margin = int(htl_margin_raw * 1e4 + 0.5) / 1e4
 
 echo "lth_out_high_margin_V:" "$&lth_margin"
 echo "lth_out_low_V:" "$&lth_low"

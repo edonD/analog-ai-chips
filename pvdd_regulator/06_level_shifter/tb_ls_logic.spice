@@ -25,30 +25,27 @@ Xdn in_dn out_dn pvdd svdd 0 level_shifter_down
 
 .tran 0.1n 800n
 
-* Measure output levels
-.meas tran lth_high MAX v(out_up) FROM=100n TO=250n
-.meas tran lth_low  MIN v(out_up) FROM=300n TO=450n
-.meas tran htl_high MAX v(out_dn) FROM=100n TO=250n
-.meas tran htl_low  MIN v(out_dn) FROM=300n TO=450n
-
-* Check metastability: 70ns after rising edge, must be near rail
-.meas tran lth_at_120n FIND v(out_up) AT=120n
-.meas tran lth_at_320n FIND v(out_up) AT=320n
-.meas tran htl_at_120n FIND v(out_dn) AT=120n
-.meas tran htl_at_320n FIND v(out_dn) AT=320n
-
 .control
 run
 
+* Measure output levels (inside control block so variables are accessible)
+meas tran lth_high MAX v(out_up) FROM=100n TO=250n
+meas tran lth_low  MIN v(out_up) FROM=300n TO=450n
+meas tran htl_high MAX v(out_dn) FROM=100n TO=250n
+meas tran htl_low  MIN v(out_dn) FROM=300n TO=450n
+
+* Metastability: check well after edges
+meas tran lth_at_120n FIND v(out_up) AT=120n
+meas tran lth_at_320n FIND v(out_up) AT=320n
+meas tran htl_at_120n FIND v(out_dn) AT=120n
+meas tran htl_at_320n FIND v(out_dn) AT=320n
+
 * Compute margins
-let lth_margin = lth_high - (7.0 - 0.2)
-let htl_margin = htl_high - (2.2 - 0.2)
+let lth_margin = lth_high - 6.8
+let htl_margin = htl_high - 2.0
 
-* Metastability check: settled within 70ns of edge
-* High state must be > supply - 0.5V, low state must be < 0.5V
+* Metastability check
 let meta_ok = 1
-
-* Check all settled values
 if lth_at_120n < 6.5
   let meta_ok = 0
 end
