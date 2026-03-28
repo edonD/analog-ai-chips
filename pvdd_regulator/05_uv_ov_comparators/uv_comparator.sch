@@ -30,10 +30,10 @@ T {HYSTERESIS} -320 -700 0 0 0.45 0.45 {layer=4}
 T {R_hyst = 2.5 Meg} -320 -660 0 0 0.3 0.3 {layer=7}
 T {Feedback: out_n to mid_uv} -320 -630 0 0 0.3 0.3 {}
 T {Positive feedback for clean switching} -320 -600 0 0 0.25 0.25 {layer=5}
-C {res.sym} -320 -380 0 1 {name=R_hyst value=2.5M}
-N -420 -380 -350 -380 {}
-N -290 -380 -170 -380 {}
-T {out_n} -160 -390 0 0 0.3 0.3 {layer=8}
+C {res.sym} -250 -350 0 0 {name=R_hyst value=2.5M}
+N -420 -380 -250 -380 {}
+N -250 -320 -170 -320 {}
+T {out_n} -160 -330 0 0 0.3 0.3 {layer=8}
 T {BIAS} -100 -700 0 0 0.45 0.45 {layer=4}
 T {~1 uA self-biased} -100 -660 0 0 0.3 0.3 {}
 C {res.sym} -30 -550 0 0 {name=R_bias value=800k}
@@ -45,7 +45,6 @@ N -70 -430 -70 -460 {}
 N -70 -460 -30 -460 {}
 N -30 -400 -30 -360 {}
 C {gnd.sym} -30 -360 0 0 {name=l2 lab=GND}
-N -10 -430 -10 -360 {}
 T {bias_n} 0 -470 0 0 0.3 0.3 {layer=8}
 T {NMOS DIFFERENTIAL PAIR} 200 -700 0 0 0.5 0.5 {layer=4}
 T {+ PMOS CURRENT MIRROR LOAD} 200 -660 0 0 0.45 0.45 {layer=4}
@@ -81,16 +80,12 @@ N 550 -320 570 -320 {}
 N 300 -260 550 -260 {}
 N 425 -260 425 -230 {}
 T {tail} 435 -265 0 0 0.3 0.3 {layer=13}
-N 320 -320 320 -160 {}
-N 570 -320 570 -160 {}
 C {nmos4.sym} 405 -180 0 0 {name=XMtail model=sky130_fd_pr__nfet_01v8 w=1u l=4u m=1 spiceprefix=X}
 N 425 -210 425 -230 {}
 N 385 -180 345 -180 {}
 T {bias_n} 285 -190 0 0 0.3 0.3 {layer=8}
 N 425 -150 425 -120 {}
 C {gnd.sym} 425 -120 0 0 {name=l3 lab=GND}
-N 425 -180 445 -180 {}
-N 445 -180 445 -120 {}
 T {ENABLE + NOR OUTPUT} 750 -700 0 0 0.5 0.5 {layer=4}
 T {uv_flag = NOR(out_n, en_bar)} 750 -660 0 0 0.35 0.35 {layer=13}
 T {HIGH when PVDD < threshold} 750 -630 0 0 0.3 0.3 {layer=5}
@@ -139,7 +134,8 @@ N 1100 -280 1100 -220 {}
 N 970 -310 970 -340 {}
 N 1080 -310 1080 -340 {}
 N 970 -340 1080 -340 {}
-N 1025 -340 1000 -370 {}
+N 1025 -340 1000 -340 {}
+N 1000 -340 1000 -370 {}
 N 1080 -340 1210 -340 {}
 C {iopin.sym} 1210 -340 0 0 {name=p_out lab=uv_flag}
 T {uv_flag} 1220 -370 0 0 0.5 0.5 {layer=4}

@@ -30,11 +30,11 @@ T {HYSTERESIS} -320 -660 0 0 0.45 0.45 {layer=4}
 T {R_hyst = 8 Meg} -320 -620 0 0 0.3 0.3 {layer=7}
 T {Feedback: ov_flag to mid_ov} -320 -590 0 0 0.3 0.3 {}
 T {Positive feedback for clean switching} -320 -560 0 0 0.25 0.25 {layer=5}
-C {res.sym} -320 -360 0 1 {name=R_hyst value=8M}
-N -420 -360 -350 -360 {}
-N -290 -360 -170 -360 {}
-T {ov_flag} -160 -370 0 0 0.3 0.3 {layer=7}
-T {(from output)} -160 -345 0 0 0.2 0.2 {layer=5}
+C {res.sym} -250 -330 0 0 {name=R_hyst value=8M}
+N -420 -360 -250 -360 {}
+N -250 -300 -170 -300 {}
+T {ov_flag} -160 -310 0 0 0.3 0.3 {layer=7}
+T {(from output)} -160 -285 0 0 0.2 0.2 {layer=5}
 T {BIAS} -100 -660 0 0 0.45 0.45 {layer=4}
 T {~1 uA self-biased} -100 -620 0 0 0.3 0.3 {}
 C {res.sym} -30 -530 0 0 {name=R_bias value=800k}
@@ -46,7 +46,6 @@ N -70 -410 -70 -440 {}
 N -70 -440 -30 -440 {}
 N -30 -380 -30 -340 {}
 C {gnd.sym} -30 -340 0 0 {name=l2 lab=GND}
-N -10 -410 -10 -340 {}
 T {bias_n} 0 -450 0 0 0.3 0.3 {layer=8}
 T {NMOS DIFFERENTIAL PAIR} 200 -660 0 0 0.5 0.5 {layer=4}
 T {+ PMOS CURRENT MIRROR LOAD} 200 -620 0 0 0.45 0.45 {layer=4}
@@ -83,16 +82,12 @@ N 550 -300 570 -300 {}
 N 300 -240 550 -240 {}
 N 425 -240 425 -210 {}
 T {tail} 435 -245 0 0 0.3 0.3 {layer=13}
-N 320 -300 320 -140 {}
-N 570 -300 570 -140 {}
 C {nmos4.sym} 405 -160 0 0 {name=XMtail model=sky130_fd_pr__nfet_01v8 w=1u l=4u m=1 spiceprefix=X}
 N 425 -190 425 -210 {}
 N 385 -160 345 -160 {}
 T {bias_n} 285 -170 0 0 0.3 0.3 {layer=8}
 N 425 -130 425 -100 {}
 C {gnd.sym} 425 -100 0 0 {name=l3 lab=GND}
-N 425 -160 445 -160 {}
-N 445 -160 445 -100 {}
 T {ENABLE + NOR OUTPUT} 750 -660 0 0 0.5 0.5 {layer=4}
 T {ov_flag = NOR(out_n, en_bar)} 750 -620 0 0 0.35 0.35 {layer=13}
 T {HIGH when PVDD > threshold} 750 -590 0 0 0.3 0.3 {layer=5}
@@ -141,7 +136,8 @@ N 1100 -260 1100 -200 {}
 N 970 -290 970 -320 {}
 N 1080 -290 1080 -320 {}
 N 970 -320 1080 -320 {}
-N 1025 -320 1000 -350 {}
+N 1025 -320 1000 -320 {}
+N 1000 -320 1000 -350 {}
 N 1080 -320 1210 -320 {}
 C {iopin.sym} 1210 -320 0 0 {name=p_out lab=ov_flag}
 T {ov_flag} 1220 -350 0 0 0.5 0.5 {layer=4}

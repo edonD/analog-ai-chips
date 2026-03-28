@@ -82,10 +82,11 @@ def build_uv():
     s += T("Feedback: out_n to mid_uv", -320, -630, 0.3)
     s += T("Positive feedback for clean switching", -320, -600, 0.25, 5)
 
-    s += C("res.sym", -320, mid_y, 0, 1, "name=R_hyst value=2.5M")
-    s += N(rx + 80, mid_y, -320 - 30, mid_y)
-    s += N(-320 + 30, mid_y, -170, mid_y)
-    s += T("out_n", -160, mid_y - 10, 0.3, 8)
+    rhyst_x = -250
+    s += C("res.sym", rhyst_x, mid_y + 30, props="name=R_hyst value=2.5M")
+    s += N(rx + 80, mid_y, rhyst_x, mid_y)          # horizontal to top pin
+    s += N(rhyst_x, mid_y + 60, -170, mid_y + 60)   # horizontal from bottom pin
+    s += T("out_n", -160, mid_y + 50, 0.3, 8)
 
     # ===== BIAS =====
     s += T("BIAS", -100, -700, 0.45, 4)
@@ -102,7 +103,6 @@ def build_uv():
     s += N(bx - 40, -460, bx, -460)
     s += N(bx, -400, bx, -360)
     s += C("gnd.sym", bx, -360, props="name=l2 lab=GND")
-    s += N(bx + 20, -430, bx + 20, -360)
     s += T("bias_n", bx + 30, -470, 0.3, 8)
 
     # ===== DIFF PAIR + MIRROR =====
@@ -153,9 +153,6 @@ def build_uv():
     tail_cx = (m1x + m2x) // 2 + 20
     s += N(tail_cx, tail_y, tail_cx, tail_y + 30)
     s += T("tail", tail_cx + 10, tail_y - 5, 0.3, 13)
-    body_gnd_y = tail_y + 100
-    s += N(m1x + 40, m1y, m1x + 40, body_gnd_y)
-    s += N(m2x + 40, m2y, m2x + 40, body_gnd_y)
 
     # Tail current source
     tx, ty = tail_cx - 20, tail_y + 80
@@ -165,8 +162,6 @@ def build_uv():
     s += T("bias_n", tx - 120, ty - 10, 0.3, 8)
     s += N(tx + 20, ty + 30, tx + 20, ty + 60)
     s += C("gnd.sym", tx + 20, ty + 60, props="name=l3 lab=GND")
-    s += N(tx + 20, ty, tx + 40, ty)
-    s += N(tx + 40, ty, tx + 40, ty + 60)
 
     # ===== OUTPUT STAGE =====
     s += T("ENABLE + NOR OUTPUT", 750, -700, 0.5, 4)
@@ -232,7 +227,8 @@ def build_uv():
     s += N(nn2x + 20, nn2y - 30, nn2x + 20, out_y)
     s += N(nn1x + 20, out_y, nn2x + 20, out_y)
     nor_cx = (nn1x + nn2x) // 2 + 20
-    s += N(nor_cx, out_y, np2x + 20, np2y + 30)
+    s += N(nor_cx, out_y, np2x + 20, out_y)           # horizontal to align
+    s += N(np2x + 20, out_y, np2x + 20, np2y + 30)    # vertical up to PMOS drain
 
     s += N(nn2x + 20, out_y, nn2x + 150, out_y)
     s += C("iopin.sym", nn2x + 150, out_y, 0, 0, "name=p_out lab=uv_flag")
@@ -293,11 +289,12 @@ def build_ov():
     s += T("Feedback: ov_flag to mid_ov", -320, -590, 0.3)
     s += T("Positive feedback for clean switching", -320, -560, 0.25, 5)
 
-    s += C("res.sym", -320, mid_y, 0, 1, "name=R_hyst value=8M")
-    s += N(rx + 80, mid_y, -320 - 30, mid_y)
-    s += N(-320 + 30, mid_y, -170, mid_y)
-    s += T("ov_flag", -160, mid_y - 10, 0.3, 7)
-    s += T("(from output)", -160, mid_y + 15, 0.2, 5)
+    rhyst_x = -250
+    s += C("res.sym", rhyst_x, mid_y + 30, props="name=R_hyst value=8M")
+    s += N(rx + 80, mid_y, rhyst_x, mid_y)          # horizontal to top pin
+    s += N(rhyst_x, mid_y + 60, -170, mid_y + 60)   # horizontal from bottom pin
+    s += T("ov_flag", -160, mid_y + 50, 0.3, 7)
+    s += T("(from output)", -160, mid_y + 75, 0.2, 5)
 
     # Bias
     s += T("BIAS", -100, -660, 0.45, 4)
@@ -314,7 +311,6 @@ def build_ov():
     s += N(bx - 40, -440, bx, -440)
     s += N(bx, -380, bx, -340)
     s += C("gnd.sym", bx, -340, props="name=l2 lab=GND")
-    s += N(bx + 20, -410, bx + 20, -340)
     s += T("bias_n", bx + 30, -450, 0.3, 8)
 
     # Diff pair + mirror
@@ -364,8 +360,6 @@ def build_ov():
     tail_cx = (m1x + m2x) // 2 + 20
     s += N(tail_cx, tail_y, tail_cx, tail_y + 30)
     s += T("tail", tail_cx + 10, tail_y - 5, 0.3, 13)
-    s += N(m1x + 40, m1y, m1x + 40, tail_y + 100)
-    s += N(m2x + 40, m2y, m2x + 40, tail_y + 100)
 
     tx, ty = tail_cx - 20, tail_y + 80
     s += C("nmos4.sym", tx, ty, props="name=XMtail model=sky130_fd_pr__nfet_01v8 w=1u l=4u m=1 spiceprefix=X")
@@ -374,8 +368,6 @@ def build_ov():
     s += T("bias_n", tx - 120, ty - 10, 0.3, 8)
     s += N(tx + 20, ty + 30, tx + 20, ty + 60)
     s += C("gnd.sym", tx + 20, ty + 60, props="name=l3 lab=GND")
-    s += N(tx + 20, ty, tx + 40, ty)
-    s += N(tx + 40, ty, tx + 40, ty + 60)
 
     # Output stage
     s += T("ENABLE + NOR OUTPUT", 750, -660, 0.5, 4)
@@ -439,7 +431,8 @@ def build_ov():
     s += N(nn2x + 20, nn2y - 30, nn2x + 20, out_y)
     s += N(nn1x + 20, out_y, nn2x + 20, out_y)
     nor_cx = (nn1x + nn2x) // 2 + 20
-    s += N(nor_cx, out_y, np2x + 20, np2y + 30)
+    s += N(nor_cx, out_y, np2x + 20, out_y)           # horizontal to align
+    s += N(np2x + 20, out_y, np2x + 20, np2y + 30)    # vertical up to PMOS drain
 
     s += N(nn2x + 20, out_y, nn2x + 150, out_y)
     s += C("iopin.sym", nn2x + 150, out_y, 0, 0, "name=p_out lab=ov_flag")
