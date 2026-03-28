@@ -1,19 +1,19 @@
-* Fine sweep around l_bot=114.8 with l_top=353
+* Fine sweep w=3.0 around l_bot=174.2
 
 .include "sky130_res_models.spice"
 
-.param l_bot_val = 114.8
+.param l_bot_val = 174.2
 
 .subckt feedback_network_sweep pvdd vfb gnd
-XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=2.0 l=353
-XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=2.0 l=l_bot_val
+XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=3.0 l=536
+XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=3.0 l=l_bot_val
 .ends feedback_network_sweep
 
 Vpvdd pvdd 0 DC 5.0
 Xfb pvdd vfb 0 feedback_network_sweep
 
 .control
-foreach lb 114.76 114.78 114.80 114.82 114.84 114.86
+foreach lb 174.10 174.15 174.20 174.25 174.30 174.35
   alterparam l_bot_val = $lb
   reset
   op
