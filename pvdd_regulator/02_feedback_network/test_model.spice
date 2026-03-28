@@ -1,0 +1,18 @@
+* Quick model test — verify sky130_fd_pr__res_xhigh_po loads and gives sensible R
+.include "sky130_res_models.spice"
+
+V1 top 0 DC 1.0
+XR1 top bot 0 sky130_fd_pr__res_xhigh_po w=1.0 l=100
+R_load bot 0 1G
+
+.control
+op
+let i_r = -i(V1)
+let r_val = 1.0 / i_r
+echo "Current through resistor: $&i_r"
+echo "Resistance: $&r_val"
+echo "Bot voltage: $&v(bot)"
+quit
+.endc
+
+.end

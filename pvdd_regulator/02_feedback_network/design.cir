@@ -22,6 +22,6 @@
 .subckt feedback_network pvdd vfb gnd
 
 XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=1.0 l=149
-XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=1.0 l=48
+XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=1.0 l=48.45
 
 .ends feedback_network

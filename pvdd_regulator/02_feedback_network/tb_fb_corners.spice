@@ -1,79 +1,47 @@
 * tb_fb_corners.spice — VFB across process corners
 * Block 02: Feedback Network
 *
-* Since the xhigh_po resistor model uses var_mult for process variation,
-* we simulate corners by varying this parameter.
-* TT: var_mult=0, SS: var_mult=+0.05 (5% high R), FF: var_mult=-0.05 (5% low R)
-* SF/FS: ±0.025 asymmetric (one resistor high, one low — but in a ratio
-*   divider with matched types, SF/FS cancel out)
+* For matched resistor dividers, corner drift is very small because
+* both R_TOP and R_BOT use the same model and shift together.
 
 .include "sky130_res_models.spice"
 .include "design.cir"
 
 Vpvdd pvdd 0 DC 5.0
-
 Xfb pvdd vfb 0 feedback_network
 
 .control
 echo "=== Process Corner Analysis ==="
 
-* TT corner (nominal)
-alterparam sky130_fd_pr__res_xhigh_po__var_mult = 0
-reset
+* TT (var_mult = 0)
 op
 echo "vfb_tt_V: $&v(vfb)"
-let vfb_tt = v(vfb)
-destroy all
+set vfb_tt_str = "$&v(vfb)"
 
-* SS corner (+5% resistance — slower process)
+* SS corner (+5% resistance)
 alterparam sky130_fd_pr__res_xhigh_po__var_mult = 0.05
 reset
 op
 echo "vfb_ss_V: $&v(vfb)"
-let vfb_ss = v(vfb)
-destroy all
+set vfb_ss_str = "$&v(vfb)"
 
-* FF corner (-5% resistance — faster process)
+* FF corner (-5% resistance)
 alterparam sky130_fd_pr__res_xhigh_po__var_mult = -0.05
 reset
 op
 echo "vfb_ff_V: $&v(vfb)"
-let vfb_ff = v(vfb)
-destroy all
+set vfb_ff_str = "$&v(vfb)"
 
-* SF corner (+2.5%)
-alterparam sky130_fd_pr__res_xhigh_po__var_mult = 0.025
-reset
-op
-echo "vfb_sf_V: $&v(vfb)"
-let vfb_sf = v(vfb)
-destroy all
+* Compute drift using shell variables
+let vtt = $vfb_tt_str
+let vss = $vfb_ss_str
+let vff = $vfb_ff_str
+let drift_ss = abs(vss - vtt) * 1000
+let drift_ff = abs(vff - vtt) * 1000
 
-* FS corner (-2.5%)
-alterparam sky130_fd_pr__res_xhigh_po__var_mult = -0.025
-reset
-op
-echo "vfb_fs_V: $&v(vfb)"
-let vfb_fs = v(vfb)
-destroy all
+echo "drift_ss_mV: $&drift_ss"
+echo "drift_ff_mV: $&drift_ff"
 
-* Reset to nominal
-alterparam sky130_fd_pr__res_xhigh_po__var_mult = 0
-reset
-op
-let vfb_nom = v(vfb)
-
-* Compute max corner drift
-* With matched resistor types, the ratio should be very stable across corners
-* The main variation is from end effects (rhead vs rbody have different var dependencies)
-let drift_ss = abs(vfb_ss - vfb_nom) * 1000
-let drift_ff = abs(vfb_ff - vfb_nom) * 1000
-let max_drift = vecmax(vector(2))
-
-echo "vfb_corner_drift_ss_mV: $&drift_ss"
-echo "vfb_corner_drift_ff_mV: $&drift_ff"
-
-* Report the larger of SS/FF drift
 if drift_ss > drift_ff
   echo "vfb_corner_drift_mV: $&drift_ss"
 else
