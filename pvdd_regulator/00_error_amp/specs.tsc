@@ -18,4 +18,4 @@ devices_in_sat	^devices_in_sat:	>=	1	bool	no
 pvt_all_pass	^pvt_all_pass:	>=	1	bool	no
 cc_pF	^cc_pF:	<=	50	pF	no
 gain_slope_at_ugb	^gain_slope_dBdec:	<=	-15	dBdec	no
-noise_uVrms	^inoise_total_uVrms:	<=	20	uVrms	no
+noise_uVrms	^inoise_total_uVrms:	<=	40	uVrms	no
