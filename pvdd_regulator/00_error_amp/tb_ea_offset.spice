@@ -1,0 +1,42 @@
+* tb_ea_offset.spice — Input offset voltage
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
+*
+* Method: Close negative feedback (vout→vfb) with resistor.
+* In steady state, vfb ≈ vref + Vos.
+* Offset = |vfb - vref| at equilibrium.
+
+.lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Vref  vref 0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias pvdd ibias DC 1u
+
+* DUT with negative feedback (DC only)
+Xea vref vfb vout_gate pvdd 0 ibias en error_amp
+
+* Feedback: vout → vfb through resistive divider (same as LDO)
+* With gain ~ 93dB, offset ≈ (Vref - Vfb_ideal) / Av
+* Simple unity feedback: Rfb from vout to vfb
+Rfb vout_gate vfb 1Meg
+Cload vout_gate 0 100p
+Cfb vfb 0 10p
+
+.control
+  * Use DC analysis — the feedback loop should converge
+  op
+
+  let vfb_val = v(vfb)
+  let vout_val = v(vout_gate)
+  let offset_v = vfb_val - 1.226
+  let offset_abs = abs(offset_v) * 1000
+
+  echo "=== Offset Measurement ==="
+  print vfb_val vout_val offset_abs
+
+  echo "input_offset_mV: $&offset_abs"
+  quit
+.endc
+
+.end

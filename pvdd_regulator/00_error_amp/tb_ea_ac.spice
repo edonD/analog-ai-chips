@@ -1,0 +1,102 @@
+* tb_ea_ac.spice — Open-loop gain, UGB, phase margin, gain slope
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
+*
+* Method: AC stimulus at vfb, measure gain = -v(vout_gate)/v(vfb)
+* DC feedback via large resistor to set operating point
+
+.lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Vref  vref 0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias pvdd ibias DC 1u
+
+* AC source at vfb with DC feedback for bias
+Vfb   vfb_ac  0 DC 1.226 AC 1
+Rfb_dc vout_gate vfb_ac 100Meg
+
+Xea vref vfb_ac vout_gate pvdd 0 ibias en error_amp
+Cload vout_gate 0 100p
+
+.nodeset v(vout_gate)=2.5
+
+.control
+  op
+  ac dec 100 10 100Meg
+
+  * Gain and phase (inverting: vfb is neg input)
+  let gain_mag = abs(v(vout_gate))
+  let gain_db = 20*log10(gain_mag)
+  let phase_raw = 180/PI * cph(v(vout_gate))
+
+  let dc_gain = gain_db[0]
+  echo "=== AC Results ==="
+  echo "dc_gain: $&dc_gain"
+
+  * Report compensation cap value
+  echo "cc_pF: 36"
+
+  * Find UGB: scan for first 0dB crossing using dowhile
+  let npts = length(gain_db)
+  let ugb_hz = 0
+  let pm_deg = 0
+  let ugb_idx = 0
+  let i = 1
+  let prev_g = gain_db[0]
+  let found = 0
+  dowhile i < npts
+    if found = 0
+      if prev_g > 0
+        if gain_db[i] <= 0
+          let ugb_hz = frequency[i]
+          let pm_deg = phase_raw[i] + 180
+          let ugb_idx = i
+          let found = 1
+        end
+      end
+    end
+    if found = 0
+      let prev_g = gain_db[i]
+    end
+    let i = i + 1
+  end
+
+  let ugb_khz = ugb_hz / 1000
+  echo "ugb_kHz: $&ugb_khz"
+  echo "phase_margin: $&pm_deg"
+
+  * =================================================================
+  * Measure gain slope at UGB (dB/decade)
+  * Use points 1/2 decade below and above UGB
+  * =================================================================
+  let f_lo = ugb_hz / 3.16228
+  let f_hi = ugb_hz * 3.16228
+  let g_lo = 0
+  let g_hi = 0
+  let found_lo = 0
+  let found_hi = 0
+  let j = 0
+  dowhile j < npts
+    if frequency[j] >= f_lo
+      if found_lo = 0
+        let g_lo = gain_db[j]
+        let found_lo = 1
+      end
+    end
+    if frequency[j] >= f_hi
+      if found_hi = 0
+        let g_hi = gain_db[j]
+        let found_hi = 1
+      end
+    end
+    let j = j + 1
+  end
+  let slope = g_hi - g_lo
+  echo "gain_slope_dBdec: $&slope"
+
+  wrdata ac_gain.dat gain_db phase_raw
+  quit
+.endc
+
+.end

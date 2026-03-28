@@ -1,0 +1,118 @@
+* tb_ea_dc.spice — DC operating point, saturation check, Iq
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
+
+.lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Vref  vref 0 DC 1.226
+Vfb   vfb  0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias pvdd ibias DC 1u
+
+Xea vref vfb vout_gate pvdd 0 ibias en error_amp
+Cload vout_gate 0 100p
+
+.nodeset v(vout_gate)=2.5 v(xea.d2)=0.9
+
+.option savecurrents
+.control
+  op
+
+  echo "=== DC Operating Point ==="
+  print v(vout_gate) v(xea.tail_s) v(xea.d1) v(xea.d2) v(xea.pb_tail)
+
+  * Quiescent current
+  let iq = -i(vpvdd)
+  let iq_ua = iq * 1e6
+  echo "iq_uA: $&iq_ua"
+
+  * =================================================================
+  * Real saturation check: Vds vs Vdsat for every key device
+  * =================================================================
+  echo "=== Saturation Check ==="
+  let sat_ok = 1
+
+  * --- Diff pair M1 (PMOS): Vsd = V(tail_s) - V(d1) ---
+  let m1_vsd = v(xea.tail_s) - v(xea.d1)
+  let m1_vdsat = @m.xea.xm1.msky130_fd_pr__pfet_g5v0d10v5[vdsat]
+  let m1_margin = m1_vsd - abs(m1_vdsat)
+  echo "M1(diff+): Vsd=$&m1_vsd Vdsat=$&m1_vdsat margin=$&m1_margin"
+  if m1_margin < 0.05
+    let sat_ok = 0
+    echo "  WARNING: M1 NOT in saturation (margin < 50mV)"
+  end
+
+  * --- Diff pair M2 (PMOS): Vsd = V(tail_s) - V(d2) ---
+  let m2_vsd = v(xea.tail_s) - v(xea.d2)
+  let m2_vdsat = @m.xea.xm2.msky130_fd_pr__pfet_g5v0d10v5[vdsat]
+  let m2_margin = m2_vsd - abs(m2_vdsat)
+  echo "M2(diff-): Vsd=$&m2_vsd Vdsat=$&m2_vdsat margin=$&m2_margin"
+  if m2_margin < 0.05
+    let sat_ok = 0
+    echo "  WARNING: M2 NOT in saturation (margin < 50mV)"
+  end
+
+  * --- NMOS mirror left (diode-connected) ---
+  let mnl_vds = v(xea.d1)
+  let mnl_vdsat = @m.xea.xmn_l.msky130_fd_pr__nfet_g5v0d10v5[vdsat]
+  let mnl_margin = mnl_vds - abs(mnl_vdsat)
+  echo "Mn_l(mirror): Vds=$&mnl_vds Vdsat=$&mnl_vdsat margin=$&mnl_margin"
+  if mnl_margin < 0.05
+    let sat_ok = 0
+    echo "  WARNING: Mn_l NOT in saturation"
+  end
+
+  * --- NMOS mirror right ---
+  let mnr_vds = v(xea.d2)
+  let mnr_vdsat = @m.xea.xmn_r.msky130_fd_pr__nfet_g5v0d10v5[vdsat]
+  let mnr_margin = mnr_vds - abs(mnr_vdsat)
+  echo "Mn_r(mirror): Vds=$&mnr_vds Vdsat=$&mnr_vdsat margin=$&mnr_margin"
+  if mnr_margin < 0.05
+    let sat_ok = 0
+    echo "  WARNING: Mn_r NOT in saturation"
+  end
+
+  * --- Stage 2 CS amp (NMOS) ---
+  let mcs_vds = v(vout_gate)
+  let mcs_vdsat = @m.xea.xmcs.msky130_fd_pr__nfet_g5v0d10v5[vdsat]
+  let mcs_margin = mcs_vds - abs(mcs_vdsat)
+  echo "Mcs(CS): Vds=$&mcs_vds Vdsat=$&mcs_vdsat margin=$&mcs_margin"
+  if mcs_margin < 0.05
+    let sat_ok = 0
+    echo "  WARNING: Mcs NOT in saturation"
+  end
+
+  * --- Stage 2 PMOS load ---
+  let mpld_vsd = 5.0 - v(vout_gate)
+  let mpld_vdsat = @m.xea.xmp_ld.msky130_fd_pr__pfet_g5v0d10v5[vdsat]
+  let mpld_margin = mpld_vsd - abs(mpld_vdsat)
+  echo "Mp_ld(load): Vsd=$&mpld_vsd Vdsat=$&mpld_vdsat margin=$&mpld_margin"
+  if mpld_margin < 0.05
+    let sat_ok = 0
+    echo "  WARNING: Mp_ld NOT in saturation"
+  end
+
+  * --- Tail current source (PMOS) ---
+  let mtail_vsd = 5.0 - v(xea.tail_s)
+  let mtail_vdsat = @m.xea.xmtail.msky130_fd_pr__pfet_g5v0d10v5[vdsat]
+  let mtail_margin = mtail_vsd - abs(mtail_vdsat)
+  echo "Mtail: Vsd=$&mtail_vsd Vdsat=$&mtail_vdsat margin=$&mtail_margin"
+  if mtail_margin < 0.05
+    let sat_ok = 0
+    echo "  WARNING: Mtail NOT in saturation"
+  end
+
+  echo "devices_in_sat: $&sat_ok"
+
+  * Extract gm of second stage for Rc sizing reference
+  let gm2 = @m.xea.xmcs.msky130_fd_pr__nfet_g5v0d10v5[gm]
+  let gm2_uAV = gm2 * 1e6
+  echo "gm2_uAV: $&gm2_uAV"
+  let rc_opt = 1.0/gm2
+  echo "rc_optimal_ohm: $&rc_opt"
+
+  quit
+.endc
+
+.end

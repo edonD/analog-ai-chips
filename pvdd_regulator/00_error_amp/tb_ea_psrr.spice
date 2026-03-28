@@ -1,0 +1,30 @@
+* tb_ea_psrr.spice — Power Supply Rejection Ratio
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
+
+.lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0 AC 1
+Vref  vref 0 DC 1.226
+Vfb   vfb  0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias pvdd ibias DC 1u
+
+Xea vref vfb vout_gate pvdd 0 ibias en error_amp
+Cload vout_gate 0 100p
+
+.nodeset v(vout_gate)=2.5
+
+.control
+  ac dec 50 10 10Meg
+
+  let aps = abs(v(vout_gate))
+  let aps_db = 20*log10(aps)
+  let aps_dc = aps_db[0]
+
+  echo "aps_dc_dB: $&aps_dc"
+  wrdata psrr.dat aps_db
+  quit
+.endc
+
+.end

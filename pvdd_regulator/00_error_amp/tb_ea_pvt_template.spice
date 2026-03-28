@@ -1,0 +1,62 @@
+* tb_ea_pvt_template.spice — PVT corner sweep template
+* Block 00: Error Amplifier (Two-Stage Miller OTA)
+* CORNER_PLACEHOLDER will be replaced by sed in run_block.sh
+
+.lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" CORNER_PLACEHOLDER
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Vref  vref 0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias pvdd ibias DC 1u
+
+Vfb   vfb_ac  0 DC 1.226 AC 1
+Rfb_dc vout_gate vfb_ac 100Meg
+
+Xea vref vfb_ac vout_gate pvdd 0 ibias en error_amp
+Cload vout_gate 0 100p
+
+.nodeset v(vout_gate)=2.5
+
+.control
+  foreach temp_val -40 27 150
+    set temp = $temp_val
+    op
+    ac dec 100 10 100Meg
+
+    let gdb = 20*log10(abs(v(vout_gate)))
+    let ph = 180/PI * cph(v(vout_gate))
+    let dc_g = gdb[0]
+
+    * Find UGB using dowhile
+    let npts = length(gdb)
+    let ugb_khz = 0
+    let pm_val = 0
+    let i = 1
+    let prev = gdb[0]
+    let found = 0
+    dowhile i < npts
+      if found = 0
+        if prev > 0
+          if gdb[i] <= 0
+            let pm_val = ph[i] + 180
+            let ugb_khz = frequency[i] / 1000
+            let found = 1
+          end
+        end
+      end
+      if found = 0
+        let prev = gdb[i]
+      end
+      let i = i + 1
+    end
+
+    echo "PVT CORNER_PLACEHOLDER $temp_val C: gain=$&dc_g dB, PM=$&pm_val deg, UGB=$&ugb_khz kHz"
+
+    destroy all
+  end
+
+  quit
+.endc
+
+.end
