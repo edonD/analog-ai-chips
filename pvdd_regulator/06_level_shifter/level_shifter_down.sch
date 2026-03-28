@@ -12,12 +12,12 @@ T {(PVDD domain)} 340 260 0 0 0.3 0.3 {layer=8}
 T {Cross-Coupled PMOS Pair} 700 230 0 0 0.4 0.4 {layer=4}
 T {(SVDD domain)} 700 260 0 0 0.3 0.3 {layer=8}
 T {NMOS Pull-Downs} 740 530 0 0 0.35 0.35 {layer=4}
-T {body=PVDD} 430 315 0 0 0.25 0.25 {layer=5}
-T {body=GND} 430 455 0 0 0.25 0.25 {layer=5}
-T {body=SVDD} 730 335 0 0 0.25 0.25 {layer=5}
-T {body=SVDD} 930 335 0 0 0.25 0.25 {layer=5}
-T {body=GND} 730 545 0 0 0.25 0.25 {layer=5}
-T {body=GND} 930 545 0 0 0.25 0.25 {layer=5}
+T {B=PVDD} 425 320 0 0 0.3 0.3 {layer=7}
+T {B=GND} 425 460 0 0 0.3 0.3 {layer=7}
+T {B=SVDD} 725 340 0 0 0.3 0.3 {layer=7}
+T {B=SVDD} 925 340 0 0 0.3 0.3 {layer=7}
+T {B=GND} 725 550 0 0 0.3 0.3 {layer=7}
+T {B=GND} 925 550 0 0 0.3 0.3 {layer=7}
 C {/usr/share/xschem/xschem_library/devices/title.sym} 300 800 0 0 {name=l1 author="Claude AI -- Block 06 -- Level Shifter DOWN (PVDD->SVDD) -- 2026-03-28"}
 C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 400 330 0 0 {name=XMP_INV
 W=4
@@ -112,3 +112,9 @@ N 920 280 920 320 {lab=svdd}
 N 720 590 720 660 {lab=gnd}
 N 720 660 920 660 {lab=gnd}
 N 920 590 920 660 {lab=gnd}
+N 420 330 420 300 {lab=pvdd}
+N 420 470 420 500 {lab=gnd}
+N 720 350 720 320 {lab=svdd}
+N 920 350 920 320 {lab=svdd}
+N 720 560 720 590 {lab=gnd}
+N 920 560 920 590 {lab=gnd}
