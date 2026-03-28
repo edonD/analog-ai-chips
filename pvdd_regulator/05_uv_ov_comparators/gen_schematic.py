@@ -111,25 +111,30 @@ def build_uv():
     s += T("NMOS DIFFERENTIAL PAIR", 200, -700, 0.5, 4)
     s += T("+ PMOS CURRENT MIRROR LOAD", 200, -660, 0.45, 4)
 
-    # PMOS Mirror
+    # PMOS Mirror Load
     m3x, m3y = 280, -500
     s += C("pmos4.sym", m3x, m3y, props="name=XM3 model=sky130_fd_pr__pfet_01v8 w=2u l=1u m=1 spiceprefix=X")
+    # S(300,-530) to vdd_comp
     s += N(m3x + 20, m3y - 30, m3x + 20, m3y - 70)
     s += T("vdd_comp", m3x + 30, m3y - 80, 0.3, 8)
+    # Diode: G(260,-500) → left → down → right → D(300,-470)
     s += N(m3x - 20, m3y, m3x - 40, m3y)
     s += N(m3x - 40, m3y, m3x - 40, m3y + 30)
     s += N(m3x - 40, m3y + 30, m3x + 20, m3y + 30)
-    s += N(m3x + 20, m3y, m3x + 40, m3y)
-    s += N(m3x + 40, m3y, m3x + 40, m3y - 70)
+    # B(300,-500) to S(300,-530) — vertical, avoids gate bus at y=m3y
+    s += N(m3x + 20, m3y, m3x + 20, m3y - 30)
     s += T("out_p", m3x + 30, m3y + 25, 0.25, 13)
 
     m4x, m4y = 530, -500
     s += C("pmos4.sym", m4x, m4y, props="name=XM4 model=sky130_fd_pr__pfet_01v8 w=2u l=1u m=1 spiceprefix=X")
+    # S(550,-530) to vdd_comp
     s += N(m4x + 20, m4y - 30, m4x + 20, m4y - 70)
     s += T("vdd_comp", m4x + 30, m4y - 80, 0.3, 8)
-    s += N(m4x - 20, m4y, m3x - 40, m4y)
-    s += N(m4x + 20, m4y, m4x + 40, m4y)
-    s += N(m4x + 40, m4y, m4x + 40, m4y - 70)
+    # G(510,-500): route at y=m4y+20 to avoid crossing M3.B
+    s += N(m4x - 20, m4y, m4x - 20, m4y + 20)
+    s += N(m4x - 20, m4y + 20, m3x - 40, m4y + 20)
+    # B(550,-500) to S(550,-530) — vertical
+    s += N(m4x + 20, m4y, m4x + 20, m4y - 30)
     s += T("out_n", m4x + 30, m4y + 25, 0.35, 7)
 
     # NMOS Diff Pair
@@ -331,22 +336,27 @@ def build_ov():
 
     m3x, m3y = 280, -480
     s += C("pmos4.sym", m3x, m3y, props="name=XM3 model=sky130_fd_pr__pfet_01v8 w=2u l=1u m=1 spiceprefix=X")
+    # S to vdd_comp
     s += N(m3x + 20, m3y - 30, m3x + 20, m3y - 70)
     s += T("vdd_comp", m3x + 30, m3y - 80, 0.3, 8)
+    # Diode: G → left → down → right → D
     s += N(m3x - 20, m3y, m3x - 40, m3y)
     s += N(m3x - 40, m3y, m3x - 40, m3y + 30)
     s += N(m3x - 40, m3y + 30, m3x + 20, m3y + 30)
-    s += N(m3x + 20, m3y, m3x + 40, m3y)
-    s += N(m3x + 40, m3y, m3x + 40, m3y - 70)
+    # B to S (vertical, avoids gate bus)
+    s += N(m3x + 20, m3y, m3x + 20, m3y - 30)
     s += T("out_p", m3x + 30, m3y + 25, 0.25, 13)
 
     m4x, m4y = 530, -480
     s += C("pmos4.sym", m4x, m4y, props="name=XM4 model=sky130_fd_pr__pfet_01v8 w=2u l=1u m=1 spiceprefix=X")
+    # S to vdd_comp
     s += N(m4x + 20, m4y - 30, m4x + 20, m4y - 70)
     s += T("vdd_comp", m4x + 30, m4y - 80, 0.3, 8)
-    s += N(m4x - 20, m4y, m3x - 40, m4y)
-    s += N(m4x + 20, m4y, m4x + 40, m4y)
-    s += N(m4x + 40, m4y, m4x + 40, m4y - 70)
+    # G: route at y+20 to avoid crossing M3.B
+    s += N(m4x - 20, m4y, m4x - 20, m4y + 20)
+    s += N(m4x - 20, m4y + 20, m3x - 40, m4y + 20)
+    # B to S (vertical)
+    s += N(m4x + 20, m4y, m4x + 20, m4y - 30)
     s += T("out_n", m4x + 30, m4y + 25, 0.35, 7)
 
     m1x, m1y = 280, -300

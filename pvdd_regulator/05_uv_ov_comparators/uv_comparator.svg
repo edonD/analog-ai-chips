@@ -274,7 +274,7 @@ text {font-family: Sans-Serif;}
 <text fill="#cccccc"  xml:space="preserve" font-size="3.58791" transform="translate(891.278, 260.507)" >D</text>
 <text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(196.695, 685.676)" >         /home/ubuntu/analog-ai-chips/pvdd_regulator/05_uv_ov_comparators/uv_comparator.sch</text>
 <text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(196.695, 671.876)" >Block 05: UV Comparator -- Analog AI Chips PVDD LDO Regulator</text>
-<text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(353.786, 671.876)" >2026-03-28  12:20:20</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(353.786, 671.876)" >2026-03-28  12:38:29</text>
 <text fill="#cccccc"  xml:space="preserve" font-size="23.9194" transform="translate(90.8981, 684.907)" >SCHEM</text>
 <path class="l4" d="M162.196 191.701L162.196 196.3"/>
 <path class="l4" d="M162.196 191.701L165.646 190.551"/>
@@ -624,12 +624,11 @@ text {font-family: Sans-Serif;}
 <path class="l1" d="M502.588 168.701L511.787 168.701"/>
 <path class="l1" d="M502.588 168.701L502.588 182.501"/>
 <path class="l1" d="M502.588 182.501L530.187 182.501"/>
-<path class="l1" d="M530.187 168.701L539.387 168.701"/>
-<path class="l1" d="M539.387 136.502L539.387 168.701"/>
+<path class="l1" d="M530.187 154.901L530.187 168.701"/>
 <path class="l1" d="M645.184 136.502L645.184 154.901"/>
-<path class="l1" d="M502.588 168.701L626.785 168.701"/>
-<path class="l1" d="M645.184 168.701L654.384 168.701"/>
-<path class="l1" d="M654.384 136.502L654.384 168.701"/>
+<path class="l1" d="M626.785 168.701L626.785 177.901"/>
+<path class="l1" d="M502.588 177.901L626.785 177.901"/>
+<path class="l1" d="M645.184 154.901L645.184 168.701"/>
 <path class="l1" d="M530.187 182.501L530.187 237.699"/>
 <path class="l1" d="M474.988 251.499L511.787 251.499"/>
 <path class="l1" d="M530.187 265.299L530.187 279.098"/>
@@ -680,13 +679,7 @@ text {font-family: Sans-Serif;}
 <circle class="l1" cx="162.196" cy="223.9" r="1.83995"/>
 <circle class="l1" cx="162.196" cy="223.9" r="1.83995"/>
 <circle class="l1" cx="162.196" cy="223.9" r="1.83995"/>
-<circle class="l1" cx="502.588" cy="168.701" r="1.83995"/>
-<circle class="l1" cx="539.387" cy="168.701" r="1.83995"/>
-<circle class="l1" cx="530.187" cy="168.701" r="1.83995"/>
-<circle class="l1" cx="539.387" cy="168.701" r="1.83995"/>
-<circle class="l1" cx="502.588" cy="168.701" r="1.83995"/>
-<circle class="l1" cx="502.588" cy="168.701" r="1.83995"/>
-<circle class="l1" cx="511.787" cy="168.701" r="1.83995"/>
+<circle class="l1" cx="502.588" cy="177.901" r="1.83995"/>
 <circle class="l1" cx="750.981" cy="182.501" r="1.83995"/>
 <circle class="l1" cx="587.686" cy="279.098" r="1.83995"/>
 <circle class="l1" cx="852.179" cy="200.9" r="1.83995"/>
