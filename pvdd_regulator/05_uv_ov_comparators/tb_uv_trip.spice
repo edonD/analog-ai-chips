@@ -1,0 +1,70 @@
+* Testbench: UV comparator trip point and hysteresis
+* Triangle sweep PVDD 0→6→0V, find assertion and de-assertion thresholds
+
+.title TB_UV_TRIP
+
+.lib "sky130.lib.spice" tt
+.include "design.cir"
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+.temp 27
+
+* --- Supplies ---
+V_vdd vdd_comp 0 DC 1.8
+V_vref vref 0 DC 1.226
+V_en en 0 DC 1.8
+
+* --- PVDD triangle: 0→6V (0-100us) then 6→0V (100-200us) ---
+V_pvdd pvdd 0 PWL(0 0 100u 6.0 200u 0)
+
+* --- DUT ---
+X_uv pvdd vref uv_flag vdd_comp 0 en uv_comparator
+
+* --- Small output load ---
+C_load uv_flag 0 1p
+
+.tran 0.1u 200u
+
+.control
+run
+set wr_vecnames
+set wr_singlescale
+wrdata uv_trip_data.txt v(pvdd) v(uv_flag) v(vref)
+
+echo "=== UV Trip Testbench ==="
+
+* UV asserts during falling phase (100-200us): when PVDD drops below threshold
+* UV de-asserts during rising phase (0-100us first pass, but also on the way back up)
+* Actually on the rising phase (0-100us) PVDD starts at 0 (UV asserted initially)
+* and de-asserts when PVDD rises above threshold+hysteresis
+
+* Find where uv_flag crosses 0.9V (half of 1.8V supply)
+* First crossing: PVDD rising from 0, uv_flag goes LOW → flag crosses 0.9 falling
+* We need the PVDD value at this falling crossing (de-assertion on rising PVDD)
+meas tran pvdd_deassert FIND v(pvdd) WHEN v(uv_flag)=0.9 CROSS=1
+
+* Second crossing: PVDD has peaked at 6V and is falling back down
+* uv_flag goes HIGH → flag crosses 0.9 rising
+meas tran pvdd_assert FIND v(pvdd) WHEN v(uv_flag)=0.9 CROSS=2
+
+echo ""
+echo "UV de-assertion (rising PVDD):" $&pvdd_deassert "V"
+echo "UV assertion (falling PVDD):" $&pvdd_assert "V"
+
+echo "uv_thresh_falling_V:" $&pvdd_assert
+
+if ( pvdd_deassert > pvdd_assert )
+  let hyst = (pvdd_deassert - pvdd_assert) * 1000
+  echo "uv_hysteresis_mV:" $&hyst
+  let uv_err = abs(pvdd_assert - 4.3) * 1000
+  echo "threshold_error_mV:" $&uv_err
+else
+  echo "uv_hysteresis_mV: 0"
+  let uv_err = abs(pvdd_assert - 4.3) * 1000
+  echo "threshold_error_mV:" $&uv_err
+end
+
+quit
+.endc
+
+.end

@@ -1,0 +1,79 @@
+* Testbench: Rail-to-rail output verification
+* Check that flags reach near supply rails in both states
+
+.title TB_COMP_OUTPUT_SWING
+
+.lib "sky130.lib.spice" tt
+.include "design.cir"
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+.temp 27
+
+V_vdd vdd_comp 0 DC 1.8
+V_vref vref 0 DC 1.226
+V_en en 0 DC 1.8
+
+* --- UV with PVDD=3.5V (below threshold → flag HIGH) ---
+V_uv_lo pvdd_uv_lo 0 DC 3.5
+X_uv_lo pvdd_uv_lo vref uv_flag_lo vdd_comp 0 en uv_comparator
+
+* --- UV with PVDD=5.0V (above threshold → flag LOW) ---
+V_uv_hi pvdd_uv_hi 0 DC 5.0
+X_uv_hi pvdd_uv_hi vref uv_flag_hi vdd_comp 0 en uv_comparator
+
+* --- OV with PVDD=6.0V (above threshold → flag HIGH) ---
+V_ov_hi pvdd_ov_hi 0 DC 6.0
+X_ov_hi pvdd_ov_hi vref ov_flag_hi vdd_comp 0 en ov_comparator
+
+* --- OV with PVDD=5.0V (below threshold → flag LOW) ---
+V_ov_lo pvdd_ov_lo 0 DC 5.0
+X_ov_lo pvdd_ov_lo vref ov_flag_lo vdd_comp 0 en ov_comparator
+
+.tran 0.1u 50u
+
+.control
+run
+
+echo "=== Output Swing Testbench ==="
+
+let n = length(time) - 1
+let uv_high = v(uv_flag_lo)[n]
+let uv_low  = v(uv_flag_hi)[n]
+let ov_high = v(ov_flag_hi)[n]
+let ov_low  = v(ov_flag_lo)[n]
+let vdd = 1.8
+
+echo "UV flag HIGH (PVDD=3.5V):" $&uv_high "V (expect > 1.6)"
+echo "UV flag LOW  (PVDD=5.0V):" $&uv_low  "V (expect < 0.2)"
+echo "OV flag HIGH (PVDD=6.0V):" $&ov_high "V (expect > 1.6)"
+echo "OV flag LOW  (PVDD=5.0V):" $&ov_low  "V (expect < 0.2)"
+
+let r2r = 1
+if ( uv_high < 1.6 )
+  echo "FAIL: UV HIGH not near rail"
+  let r2r = 0
+end
+if ( uv_low > 0.2 )
+  echo "FAIL: UV LOW not near ground"
+  let r2r = 0
+end
+if ( ov_high < 1.6 )
+  echo "FAIL: OV HIGH not near rail"
+  let r2r = 0
+end
+if ( ov_low > 0.2 )
+  echo "FAIL: OV LOW not near ground"
+  let r2r = 0
+end
+
+echo ""
+if ( r2r = 1 )
+  echo "output_rail_to_rail: PASS"
+else
+  echo "output_rail_to_rail: FAIL"
+end
+
+quit
+.endc
+
+.end

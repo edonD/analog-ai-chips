@@ -1,0 +1,61 @@
+* Testbench: OV comparator trip point and hysteresis
+* Triangle sweep PVDD 0→6→0V
+
+.title TB_OV_TRIP
+
+.lib "sky130.lib.spice" tt
+.include "design.cir"
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+.temp 27
+
+* --- Supplies ---
+V_vdd vdd_comp 0 DC 1.8
+V_vref vref 0 DC 1.226
+V_en en 0 DC 1.8
+
+* --- PVDD triangle ---
+V_pvdd pvdd 0 PWL(0 0 100u 6.0 200u 0)
+
+* --- DUT ---
+X_ov pvdd vref ov_flag vdd_comp 0 en ov_comparator
+C_load ov_flag 0 1p
+
+.tran 0.1u 200u
+
+.control
+run
+set wr_vecnames
+set wr_singlescale
+wrdata ov_trip_data.txt v(pvdd) v(ov_flag) v(vref)
+
+echo "=== OV Trip Testbench ==="
+
+* OV asserts during rising phase (0-100us): when PVDD exceeds threshold
+* OV de-asserts during falling phase (100-200us): when PVDD drops below threshold-hyst
+* Flag crosses 0.9V rising = assertion, falling = de-assertion
+
+meas tran pvdd_assert FIND v(pvdd) WHEN v(ov_flag)=0.9 CROSS=1
+meas tran pvdd_deassert FIND v(pvdd) WHEN v(ov_flag)=0.9 CROSS=LAST
+
+echo ""
+echo "OV assertion (rising PVDD):" $&pvdd_assert "V"
+echo "OV de-assertion (falling PVDD):" $&pvdd_deassert "V"
+
+echo "ov_thresh_rising_V:" $&pvdd_assert
+
+if ( pvdd_assert > pvdd_deassert )
+  let hyst = (pvdd_assert - pvdd_deassert) * 1000
+  echo "ov_hysteresis_mV:" $&hyst
+else
+  let hyst = (pvdd_deassert - pvdd_assert) * 1000
+  echo "ov_hysteresis_mV:" $&hyst
+end
+
+let ov_err = abs(pvdd_assert - 5.5) * 1000
+echo "threshold_error_mV:" $&ov_err
+
+quit
+.endc
+
+.end

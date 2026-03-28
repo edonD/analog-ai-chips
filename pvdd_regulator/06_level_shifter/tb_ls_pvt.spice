@@ -1,0 +1,127 @@
+* tb_ls_pvt.spice — Worst-case PVT: SS 150C, BVDD=5.4V
+* Block 06: Level Shifter
+* This is THE critical testbench — if it passes here, it works everywhere.
+*
+.include design.cir
+.lib /home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice ss
+
+.option method=gear reltol=1e-6
+.temp 150
+
+* Supplies — worst case: minimum BVDD
+Vsvdd svdd 0 2.2
+Vbvdd bvdd 0 5.4
+Vpvdd pvdd 0 5.0
+
+* Load
+Cload_up out_up 0 1p
+Cload_dn out_dn 0 1p
+
+* Input stimulus
+Vin_up in_up 0 PULSE(0 2.2 50n 1n 1n 200n 400n)
+Vin_dn in_dn 0 PULSE(0 5.0 50n 1n 1n 200n 400n)
+
+* DUT
+Xup in_up out_up bvdd svdd 0 level_shifter_up
+Xdn in_dn out_dn pvdd svdd 0 level_shifter_down
+
+.tran 0.1n 800n
+
+.control
+run
+
+echo "=== tb_ls_pvt results (SS 150C, BVDD=5.4V) ==="
+
+* Output level measurements
+meas tran lth_high MAX v(out_up) FROM=150n TO=240n
+meas tran lth_low  MIN v(out_up) FROM=350n TO=440n
+meas tran htl_high MAX v(out_dn) FROM=150n TO=240n
+meas tran htl_low  MIN v(out_dn) FROM=350n TO=440n
+
+* Delay measurements (50% crossings)
+meas tran tplh_up TRIG v(in_up) VAL=1.1 RISE=1 TARG v(out_up) VAL=2.7 RISE=1
+meas tran tphl_up TRIG v(in_up) VAL=1.1 FALL=1 TARG v(out_up) VAL=2.7 FALL=1
+meas tran tplh_dn TRIG v(in_dn) VAL=2.5 RISE=1 TARG v(out_dn) VAL=1.1 RISE=1
+meas tran tphl_dn TRIG v(in_dn) VAL=2.5 FALL=1 TARG v(out_dn) VAL=1.1 FALL=1
+
+* Metastability check at 100ns after edge
+meas tran lth_at_150n FIND v(out_up) AT=150n
+meas tran lth_at_350n FIND v(out_up) AT=350n
+meas tran htl_at_150n FIND v(out_dn) AT=150n
+meas tran htl_at_350n FIND v(out_dn) AT=350n
+
+* Delay in ns
+let d1 = tplh_up * 1e9
+let d2 = tphl_up * 1e9
+let d3 = tplh_dn * 1e9
+let d4 = tphl_dn * 1e9
+
+echo "tplh_up_ns:" "$&d1"
+echo "tphl_up_ns:" "$&d2"
+echo "tplh_dn_ns:" "$&d3"
+echo "tphl_dn_ns:" "$&d4"
+
+* Max delay
+let dmax = d1
+if d2 > dmax
+  let dmax = d2
+end
+if d3 > dmax
+  let dmax = d3
+end
+if d4 > dmax
+  let dmax = d4
+end
+echo "delay_max_ns:" "$&dmax"
+
+* Output level margins (rounded to 0.1mV precision, appropriate for analog)
+let lth_margin_raw = lth_high - 5.2
+let htl_margin_raw = htl_high - 2.0
+* Round to 4 decimal places (0.1mV) to avoid sub-uV numerical noise
+let lth_margin = floor(lth_margin_raw * 1e4 + 0.5) / 1e4
+let htl_margin = floor(htl_margin_raw * 1e4 + 0.5) / 1e4
+
+echo "lth_out_high_margin_V:" "$&lth_margin"
+echo "lth_out_low_V:" "$&lth_low"
+echo "htl_out_high_margin_V:" "$&htl_margin"
+echo "htl_out_low_V:" "$&htl_low"
+
+* Works at SS 150C?
+let works = 1
+if lth_high < 5.2
+  let works = 0
+end
+if lth_low > 0.2
+  let works = 0
+end
+if htl_high < 2.0
+  let works = 0
+end
+if htl_low > 0.2
+  let works = 0
+end
+if dmax > 100
+  let works = 0
+end
+echo "works_ss_150c:" "$&works"
+
+* Metastability
+let meta = 1
+if lth_at_150n < 4.9
+  let meta = 0
+end
+if lth_at_350n > 0.5
+  let meta = 0
+end
+if htl_at_150n < 1.7
+  let meta = 0
+end
+if htl_at_350n > 0.5
+  let meta = 0
+end
+echo "no_metastable:" "$&meta"
+
+quit
+.endc
+
+.end

@@ -1,72 +1,120 @@
 * Block 05: UV/OV Comparators
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Two subcircuits in this file:
+* Topology: NMOS differential pair + PMOS mirror load, 1.8V supply domain
+*   Resistive divider scales PVDD to ~1.226V at threshold crossing
+*   Comparator core runs from vdd_comp (1.8V)
+*   NOR gate output: flag = NOR(out_n, en_bar) for enable gating
+*   Hysteresis via feedback resistor to divider midpoint
 *
-* 1. UV comparator:
-*    Trips when PVDD falls below ~4.3V (undervoltage).
-*    uv_flag goes HIGH when PVDD < UV threshold.
-*    Has ~100 mV hysteresis to prevent chattering.
-*
-* 2. OV comparator:
-*    Trips when PVDD rises above ~5.5V (overvoltage).
-*    ov_flag goes HIGH when PVDD > OV threshold.
-*    Has ~100 mV hysteresis to prevent chattering.
-*
-* STATUS: EMPTY — topology not yet chosen
-*
-* Topology: resistive divider from PVDD tapping Vref (1.226V) crossing.
-*   UV: PVDD * R2/(R1+R2) = 1.226V at PVDD = 4.3V
-*     R2/(R1+R2) = 1.226/4.3 = 0.2851
-*   OV: PVDD * R2/(R1+R2) = 1.226V at PVDD = 5.5V
-*     R2/(R1+R2) = 1.226/5.5 = 0.2229
-*   Comparator: HV differential pair comparing divided PVDD to vref.
-*
-* Requirements:
-*   UV threshold (falling)    4.0–4.5V (nominal 4.3V)
-*   UV hysteresis             50–150 mV
-*   OV threshold (rising)     5.25–5.7V (nominal 5.5V)
-*   OV hysteresis             50–150 mV
-*   Response time             <= 5 µs
-*   Power per comparator      <= 5 µA from vdd_comp
-*   Threshold error across PVT  within ±200 mV of nominal
+* Pin order for sky130 MOSFETs: D G S B
 *
 * ============================================================
 * UV Comparator
 * ============================================================
-* Ports:
-*   pvdd     — PVDD supply to sense and to power the comparator
-*   vref     — bandgap reference 1.226V
-*   uv_flag  — output: HIGH when PVDD < UV threshold
-*   vdd_comp — comparator supply (may be PVDD or BVDD)
-*   gnd      — ground
-*   en       — enable (HIGH = active, LOW = comparator off)
+* Trips when PVDD falls below ~4.3V → uv_flag = HIGH
+*
+* Divider: Rtop=500k, Rbot=199.4k
+*   ratio = 199.4/(500+199.4) = 0.28514 → trip at 4.299V
+*
+* Diff pair: M1(mid_uv) vs M2(vref)
+*   out_n ∝ (mid_uv - vref) → LOW when UV
+*   NOR(out_n_LOW, en_bar_LOW) = HIGH → uv_flag HIGH ✓
+*
+* Hysteresis: R_hyst from out_n to mid_uv
+*   No UV → out_n HIGH → raises mid_uv → harder to trigger
+*   UV    → out_n LOW  → lowers mid_uv → harder to de-assert
 *
 .subckt uv_comparator pvdd vref uv_flag vdd_comp gnd en
 
-* TODO: implement UV comparator
-* Divider from PVDD, compare to vref.
-* When V_div < vref: PVDD < 4.3V → uv_flag = 1 (HIGH).
-* Add hysteresis: positive feedback NMOS or resistive feedback.
+* --- Resistive divider ---
+R_top pvdd mid_uv 500k
+R_bot mid_uv gnd 199.4k
+
+* --- Hysteresis feedback (out_n to mid) ---
+* 8M gave only 19mV hyst; need 50-150mV → use 2.5M
+R_hyst out_n mid_uv 2.5Meg
+
+* --- Bias current source (~1uA) ---
+* NMOS diode + resistor from vdd_comp
+R_bias vdd_comp bias_n 800k
+XMbias bias_n bias_n gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=4u
+
+* --- Tail current source (mirrors bias) ---
+XMtail tail bias_n gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=4u
+
+* --- NMOS differential pair ---
+XM1 out_p mid_uv tail gnd sky130_fd_pr__nfet_01v8 W=2u L=1u
+XM2 out_n vref   tail gnd sky130_fd_pr__nfet_01v8 W=2u L=1u
+
+* --- PMOS current mirror load ---
+XM3 out_p out_p vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=2u L=1u
+XM4 out_n out_p vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=2u L=1u
+
+* --- Enable inversion: en → en_bar ---
+XMen_n en_bar en gnd gnd sky130_fd_pr__nfet_01v8 W=0.42u L=0.15u
+XMen_p en_bar en vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=0.84u L=0.15u
+
+* --- Output NOR gate: uv_flag = NOR(out_n, en_bar) ---
+* PMOS in series (both must be OFF for output HIGH)
+XMnor_p1 nor_mid out_n vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=4u L=0.15u
+XMnor_p2 uv_flag en_bar nor_mid  nor_mid  sky130_fd_pr__pfet_01v8 W=4u L=0.15u
+* NMOS in parallel (either ON pulls output LOW)
+XMnor_n1 uv_flag out_n  gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=0.15u
+XMnor_n2 uv_flag en_bar gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=0.15u
 
 .ends uv_comparator
 
 * ============================================================
 * OV Comparator
 * ============================================================
-* Ports:
-*   pvdd     — PVDD supply to sense and to power the comparator
-*   vref     — bandgap reference 1.226V
-*   ov_flag  — output: HIGH when PVDD > OV threshold
-*   vdd_comp — comparator supply
-*   gnd      — ground
-*   en       — enable (HIGH = active, LOW = comparator off)
+* Trips when PVDD rises above ~5.5V → ov_flag = HIGH
+*
+* Divider: Rtop=500k, Rbot=143.4k
+*   ratio = 143.4/(500+143.4) = 0.22282 → trip at 5.502V
+*
+* Diff pair: M1(vref) vs M2(mid_ov)
+*   out_n ∝ (vref - mid_ov) → LOW when OV
+*   NOR(out_n_LOW, en_bar_LOW) = HIGH → ov_flag HIGH ✓
+*
+* Hysteresis: R_hyst from ov_flag to mid_ov
+*   No OV → ov_flag LOW → pulls mid_ov down → harder to trigger
+*   OV    → ov_flag HIGH → pushes mid_ov up → harder to de-assert
 *
 .subckt ov_comparator pvdd vref ov_flag vdd_comp gnd en
 
-* TODO: implement OV comparator
-* Divider from PVDD, compare to vref.
-* When V_div > vref: PVDD > 5.5V → ov_flag = 1 (HIGH).
-* Add hysteresis.
+* --- Resistive divider ---
+* Rbot increased from 143.4k to 146k to compensate hysteresis shift
+R_top pvdd mid_ov 500k
+R_bot mid_ov gnd 146k
+
+* --- Hysteresis feedback (ov_flag to mid) ---
+R_hyst ov_flag mid_ov 8Meg
+
+* --- Bias current source (~1uA) ---
+R_bias vdd_comp bias_n 800k
+XMbias bias_n bias_n gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=4u
+
+* --- Tail current source ---
+XMtail tail bias_n gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=4u
+
+* --- NMOS differential pair ---
+* Note: inputs swapped vs UV (M1=vref, M2=mid_ov)
+XM1 out_p vref   tail gnd sky130_fd_pr__nfet_01v8 W=2u L=1u
+XM2 out_n mid_ov tail gnd sky130_fd_pr__nfet_01v8 W=2u L=1u
+
+* --- PMOS current mirror load ---
+XM3 out_p out_p vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=2u L=1u
+XM4 out_n out_p vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=2u L=1u
+
+* --- Enable inversion ---
+XMen_n en_bar en gnd gnd sky130_fd_pr__nfet_01v8 W=0.42u L=0.15u
+XMen_p en_bar en vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=0.84u L=0.15u
+
+* --- Output NOR gate: ov_flag = NOR(out_n, en_bar) ---
+XMnor_p1 nor_mid out_n vdd_comp vdd_comp sky130_fd_pr__pfet_01v8 W=4u L=0.15u
+XMnor_p2 ov_flag en_bar nor_mid  nor_mid  sky130_fd_pr__pfet_01v8 W=4u L=0.15u
+XMnor_n1 ov_flag out_n  gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=0.15u
+XMnor_n2 ov_flag en_bar gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=0.15u
 
 .ends ov_comparator

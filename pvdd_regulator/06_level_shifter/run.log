@@ -1,0 +1,502 @@
+=== Block 06: Level Shifter ===
+Run started: Sat Mar 28 12:24:20 UTC 2026
+
+--- Running tb_ls_logic.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_logic.spice — logic function, output levels, metastability check
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             1.74769e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                      -4.80115e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  3.60623e-07 Reference value :  7.24998e-07
+No. of Data Rows : 8179
+lth_high            =  7.000000e+00 at=  2.499666e-07
+lth_low             =  1.747693e-07 at=  4.497227e-07
+htl_high            =  2.200000e+00 at=  2.497666e-07
+htl_low             =  3.178557e-09 at=  4.496227e-07
+lth_at_120n         =  7.000000e+00
+lth_at_320n         =  1.747693e-07
+htl_at_120n         =  2.200000e+00
+htl_at_320n         =  3.178557e-09
+lth_out_high_margin_V: 0.2
+lth_out_low_V: 1.74769E-07
+htl_out_high_margin_V: 0.2
+htl_out_low_V: 3.17856E-09
+no_metastable: 1
+ngspice-42 done
+
+--- Running tb_ls_delay.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_delay.spice — propagation delay measurement
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             1.74769e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                      -4.80115e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  3.60723e-07 Reference value :  7.21698e-07
+No. of Data Rows : 8179
+tplh_up             =  7.916169e-09 targ=  5.841617e-08 trig=  5.050000e-08
+tphl_up             =  4.381067e-09 targ=  2.558811e-07 trig=  2.515000e-07
+tplh_dn             =  6.308887e-09 targ=  5.680889e-08 trig=  5.050000e-08
+tphl_dn             =  2.484525e-09 targ=  2.539845e-07 trig=  2.515000e-07
+=== tb_ls_delay results (TT 27C) ===
+tplh_up: 7.91617E-09
+tphl_up: 4.38107E-09
+tplh_dn: 6.30889E-09
+tphl_dn: 2.48453E-09
+delay_max_ns_tt: 7.91617
+ngspice-42 done
+
+--- Running tb_ls_bvdd_sweep.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Reset re-loads circuit * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                       5.4
+pvdd                                         5
+out_up                             5.50215e-09
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                     5.4
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                      -2.29667e-11
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  3.56497e-07 Reference value :  7.12223e-07
+No. of Data Rows : 8175
+up_high_54          =  5.400000e+00 at=  2.499730e-07
+up_low_54           =  5.502151e-09 at=  4.488968e-07
+tplh_54             =  3.267399e-09 targ=  5.376740e-08 trig=  5.050000e-08
+Using SPARSE 1.3 as Direct Linear Solver
+tphl_54             =  4.313294e-09 targ=  2.558133e-07 trig=  2.515000e-07
+=== BVDD=5.4V ===
+up_out_high_54: 5.4
+up_out_low_54: 5.50215E-09
+tplh_up_54_ns: 3.2674
+tphl_up_54_ns: 4.31329
+works_bvdd_min: 1
+Reset re-loads circuit * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             1.74769e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                      -4.80114e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  8.52666e-08 Reference value :  4.50635e-07
+No. of Data Rows : 8179
+up_high_70          =  7.000000e+00 at=  2.499666e-07
+up_low_70           =  1.747693e-07 at=  4.497227e-07
+tplh_70             =  7.916169e-09 targ=  5.841617e-08 trig=  5.050000e-08
+Using SPARSE 1.3 as Direct Linear Solver
+tphl_70             =  4.381067e-09 targ=  2.558811e-07 trig=  2.515000e-07
+=== BVDD=7.0V ===
+up_out_high_70: 7
+up_out_low_70: 1.74769E-07
+tplh_up_70_ns: 7.91617
+tphl_up_70_ns: 4.38107
+Reset re-loads circuit * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                      10.5
+pvdd                                         5
+out_up                             1.18825e-05
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                    10.5
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                      -3.10491e-08
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  3.50721e-07 Reference value :  6.99034e-07
+No. of Data Rows : 8230
+up_high_105         =  1.050000e+01 at=  2.499444e-07
+up_low_105          =  1.188252e-05 at=  4.498211e-07
+tplh_105            =  3.815311e-09 targ=  5.431531e-08 trig=  5.050000e-08
+tphl_105            =  2.793147e-09 targ=  2.542931e-07 trig=  2.515000e-07
+=== BVDD=10.5V ===
+up_out_high_105: 10.5
+up_out_low_105: 1.18825E-05
+tplh_up_105_ns: 3.81531
+tphl_up_105_ns: 2.79315
+works_bvdd_max: 1
+ngspice-42 done
+
+--- Running tb_ls_power.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_power.spice — static power measurement
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             1.74769e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                      -4.80115e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00
+No. of Data Rows : 1397
+=== tb_ls_power results ===
+ibvdd_low           =  -4.801149e-10 from=  3.000000e-07 to=  4.802800e-07
+isvdd_low           =  -1.025301e-11 from=  3.000000e-07 to=  4.802800e-07
+ipvdd_low           =  -1.323271e-11 from=  3.000000e-07 to=  4.802800e-07
+ibvdd_high          =  -4.366180e-10 from=  7.000000e-07 to=  9.507922e-07
+isvdd_high          =  -6.985377e-12 from=  7.000000e-07 to=  9.507922e-07
+ipvdd_high          =  -6.096165e-12 from=  7.000000e-07 to=  9.507922e-07
+i_up_low_uA: 0.000480115
+i_up_high_uA: 0.000436618
+i_dn_low_uA: 1.32327E-05
+i_dn_high_uA: 6.09616E-06
+static_power_uA: 0.000480115
+ngspice-42 done
+
+--- Running tb_ls_pvt.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+Note: Starting dynamic gmin stepping
+Warning: Dynamic gmin stepping failed
+Note: Starting true gmin stepping
+Note: True gmin stepping completed
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_pvt.spice — worst-case pvt: ss 150c, bvdd=5.4v
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                       5.4
+pvdd                                         5
+out_up                             1.74216e-08
+out_dn                             1.84526e-08
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                     5.4
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                       -4.8885e-10
+vbvdd#branch                      -8.31762e-10
+vsvdd#branch                      -3.07739e-10
+
+ Reference value :  0.00000e+00 Reference value :  2.66783e-07 Reference value :  4.50000e-07doAnalyses: TRAN:  Timestep too small; time = 4.5e-07, timestep = 1.25e-22: trouble with node "vin_dn#branch"
+
+
+run simulation(s) aborted
+=== tb_ls_pvt results (SS 150C, BVDD=5.4V) ===
+lth_high            =  5.399999e+00 at=  2.398393e-07
+lth_low             =  1.742156e-08 at=  4.390831e-07
+htl_high            =  2.200000e+00 at=  2.399393e-07
+htl_low             =  1.845264e-08 at=  4.398831e-07
+tplh_up             =  5.255832e-09 targ=  5.575583e-08 trig=  5.050000e-08
+tphl_up             =  5.722782e-09 targ=  2.572228e-07 trig=  2.515000e-07
+tplh_dn             =  8.981939e-09 targ=  5.948194e-08 trig=  5.050000e-08
+tphl_dn             =  4.029398e-09 targ=  2.555294e-07 trig=  2.515000e-07
+lth_at_150n         =  5.399999e+00
+lth_at_350n         =  1.742156e-08
+htl_at_150n         =  2.200000e+00
+htl_at_350n         =  1.845264e-08
+tplh_up_ns: 5.25583
+tphl_up_ns: 5.72278
+tplh_dn_ns: 8.98194
+tphl_dn_ns: 4.0294
+delay_max_ns: 8.98194
+lth_out_high_margin_V: 0.2
+lth_out_low_V: 1.74216E-08
+htl_out_high_margin_V: 0.2
+htl_out_low_V: 1.84526E-08
+works_ss_150c: 1
+no_metastable: 1
+ngspice-42 done
+
+--- Running full PVT sweep (15 corners) ---
+=== Full PVT Sweep (5 corners x 3 temps = 15 runs) ===
+BVDD = 5.4V (worst case for up-shifter)
+
+  Running TT -40C... delay=5.56ns  lth_margin=0.2  meta=1.0  [OK]
+  Running TT 27C... delay=6.31ns  lth_margin=0.2  meta=1.0  [OK]
+  Running TT 150C... delay=7.65ns  lth_margin=0.2  meta=1.0  [OK]
+  Running SS -40C... delay=6.68ns  lth_margin=0.2  meta=1.0  [OK]
+  Running SS 27C... delay=7.52ns  lth_margin=0.2  meta=1.0  [OK]
+  Running SS 150C... delay=8.98ns  lth_margin=0.2  meta=1.0  [OK]
+  Running FF -40C... delay=4.72ns  lth_margin=0.2  meta=1.0  [OK]
+  Running FF 27C... delay=5.39ns  lth_margin=0.2  meta=1.0  [OK]
+  Running FF 150C... delay=6.61ns  lth_margin=0.2  meta=1.0  [OK]
+  Running SF -40C... delay=6.71ns  lth_margin=0.2  meta=1.0  [OK]
+  Running SF 27C... delay=7.43ns  lth_margin=0.2  meta=1.0  [OK]
+  Running SF 150C... delay=8.52ns  lth_margin=0.2  meta=1.0  [OK]
+  Running FS -40C... delay=4.89ns  lth_margin=0.2  meta=1.0  [OK]
+  Running FS 27C... delay=5.71ns  lth_margin=0.2  meta=1.0  [OK]
+  Running FS 150C... delay=7.39ns  lth_margin=0.2  meta=1.0  [OK]
+
+=== PVT Sweep Summary ===
+Worst delay:       8.98 ns (spec <= 100)
+Worst LTH margin:  0.2000 V (spec >= 0.2)
+Worst HTL margin:  0.2000 V (spec >= 0.2)
+Worst LTH low:     2.24e-07 V (spec <= 0.2)
+Worst HTL low:     5.21e-07 V (spec <= 0.2)
+Worst power:       0.0021 uA (spec <= 5)
+All metastable-free: True
+All corners work:  True
+SS 150C works:     True
+
+=== Per-corner delays ===
+corner_tt_-40C_delay_ns: 5.55805
+corner_tt_-40C_up_tplh_ns: 2.59704
+corner_tt_-40C_up_tphl_ns: 3.94636
+corner_tt_-40C_dn_tplh_ns: 5.55805
+corner_tt_-40C_dn_tphl_ns: 1.89641
+corner_tt_27C_delay_ns: 6.30858
+corner_tt_27C_up_tplh_ns: 3.27283
+corner_tt_27C_up_tphl_ns: 4.32357
+corner_tt_27C_dn_tplh_ns: 6.30858
+corner_tt_27C_dn_tphl_ns: 2.49019
+corner_tt_150C_delay_ns: 7.646
+corner_tt_150C_up_tplh_ns: 4.7084
+corner_tt_150C_up_tphl_ns: 4.90351
+corner_tt_150C_dn_tplh_ns: 7.646
+corner_tt_150C_dn_tphl_ns: 3.51121
+corner_ss_-40C_delay_ns: 6.6815
+corner_ss_-40C_up_tplh_ns: 3.01512
+corner_ss_-40C_up_tphl_ns: 4.79054
+corner_ss_-40C_dn_tplh_ns: 6.6815
+corner_ss_-40C_dn_tphl_ns: 1.99214
+corner_ss_27C_delay_ns: 7.52311
+corner_ss_27C_up_tplh_ns: 3.75235
+corner_ss_27C_up_tphl_ns: None
+corner_ss_27C_dn_tplh_ns: 7.52311
+corner_ss_27C_dn_tphl_ns: None
+corner_ss_150C_delay_ns: 8.98194
+corner_ss_150C_up_tplh_ns: 5.25583
+corner_ss_150C_up_tphl_ns: 5.72278
+corner_ss_150C_dn_tplh_ns: 8.98194
+corner_ss_150C_dn_tphl_ns: 4.0294
+corner_ff_-40C_delay_ns: 4.72344
+corner_ff_-40C_up_tplh_ns: 2.28535
+corner_ff_-40C_up_tphl_ns: 3.30442
+corner_ff_-40C_dn_tplh_ns: 4.72344
+corner_ff_-40C_dn_tphl_ns: 1.80611
+corner_ff_27C_delay_ns: 5.39301
+corner_ff_27C_up_tplh_ns: 2.8917
+corner_ff_27C_up_tphl_ns: 3.6615
+corner_ff_27C_dn_tplh_ns: 5.39301
+corner_ff_27C_dn_tphl_ns: 2.28912
+corner_ff_150C_delay_ns: 6.60976
+corner_ff_150C_up_tplh_ns: 4.25278
+corner_ff_150C_up_tphl_ns: 4.24606
+corner_ff_150C_dn_tplh_ns: 6.60976
+corner_ff_150C_dn_tphl_ns: 3.0663
+corner_sf_-40C_delay_ns: 6.70984
+corner_sf_-40C_up_tplh_ns: 2.2198
+corner_sf_-40C_up_tphl_ns: 3.463
+corner_sf_-40C_dn_tplh_ns: 6.70984
+corner_sf_-40C_dn_tphl_ns: 1.65696
+corner_sf_27C_delay_ns: 7.42507
+corner_sf_27C_up_tplh_ns: 2.55694
+corner_sf_27C_up_tphl_ns: 3.88388
+corner_sf_27C_dn_tplh_ns: 7.42507
+corner_sf_27C_dn_tphl_ns: 2.11819
+corner_sf_150C_delay_ns: 8.51984
+corner_sf_150C_up_tplh_ns: 3.46839
+corner_sf_150C_up_tphl_ns: 4.55371
+corner_sf_150C_dn_tplh_ns: 8.51984
+corner_sf_150C_dn_tphl_ns: 3.15926
+corner_fs_-40C_delay_ns: 4.88807
+corner_fs_-40C_up_tplh_ns: 4.45778
+corner_fs_-40C_up_tphl_ns: 4.67299
+corner_fs_-40C_dn_tplh_ns: 4.88807
+corner_fs_-40C_dn_tphl_ns: 2.24747
+corner_fs_27C_delay_ns: 5.70968
+corner_fs_27C_up_tplh_ns: 5.37889
+corner_fs_27C_up_tphl_ns: None
+corner_fs_27C_dn_tplh_ns: 5.70968
+corner_fs_27C_dn_tphl_ns: None
+corner_fs_150C_delay_ns: 7.38589
+corner_fs_150C_up_tplh_ns: 7.13871
+corner_fs_150C_up_tphl_ns: 5.3118
+corner_fs_150C_dn_tplh_ns: 7.38589
+corner_fs_150C_dn_tphl_ns: 3.79682
+
+=== Final metrics (worst-case across all 15 PVT corners) ===
+delay_max_ns: 8.9819
+lth_out_high_margin_V: 0.2000
+lth_out_low_V: 2.235270e-07
+htl_out_high_margin_V: 0.2000
+htl_out_low_V: 5.213620e-07
+static_power_uA: 0.0021
+works_ss_150c: 1
+no_metastable: 1
+
+--- Evaluation ---
+---
+* delay_max_ns                          8.982  ns        (spec <= 100.0)  PASS
+  lth_out_high_margin_V                   0.2  V         (spec >= 0.2)  PASS
+  lth_out_low_V                     2.235e-07  V         (spec <= 0.2)  PASS
+  htl_out_high_margin_V                   0.2  V         (spec >= 0.2)  PASS
+  htl_out_low_V                     5.214e-07  V         (spec <= 0.2)  PASS
+  static_power_uA                      0.0021  uA        (spec <= 5.0)  PASS
+  works_bvdd_min                            1  bool      (spec >= 1.0)  PASS
+  works_bvdd_max                            1  bool      (spec >= 1.0)  PASS
+  works_ss_150c                             1  bool      (spec >= 1.0)  PASS
+  no_metastable                             1  bool      (spec >= 1.0)  PASS
+specs_pass: 10/10
+primary (delay_max_ns): 8.9819
+
+Run finished: Sat Mar 28 12:27:24 UTC 2026

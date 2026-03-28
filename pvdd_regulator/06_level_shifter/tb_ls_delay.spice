@@ -1,0 +1,65 @@
+* tb_ls_delay.spice — Propagation delay measurement
+* Block 06: Level Shifter — TT 27C, BVDD=7V
+*
+.include design.cir
+.lib /home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+
+.option method=gear reltol=1e-4
+
+* Supplies
+Vsvdd svdd 0 2.2
+Vbvdd bvdd 0 7.0
+Vpvdd pvdd 0 5.0
+
+* Load
+Cload_up out_up 0 1p
+Cload_dn out_dn 0 1p
+
+* Input stimulus
+Vin_up in_up 0 PULSE(0 2.2 50n 1n 1n 200n 400n)
+Vin_dn in_dn 0 PULSE(0 5.0 50n 1n 1n 200n 400n)
+
+* DUT
+Xup in_up out_up bvdd svdd 0 level_shifter_up
+Xdn in_dn out_dn pvdd svdd 0 level_shifter_down
+
+.tran 0.1n 800n
+
+.control
+run
+
+* Delay: 50% input to 50% output crossings
+meas tran tplh_up TRIG v(in_up) VAL=1.1 RISE=1 TARG v(out_up) VAL=3.5 RISE=1
+meas tran tphl_up TRIG v(in_up) VAL=1.1 FALL=1 TARG v(out_up) VAL=3.5 FALL=1
+meas tran tplh_dn TRIG v(in_dn) VAL=2.5 RISE=1 TARG v(out_dn) VAL=1.1 RISE=1
+meas tran tphl_dn TRIG v(in_dn) VAL=2.5 FALL=1 TARG v(out_dn) VAL=1.1 FALL=1
+
+echo "=== tb_ls_delay results (TT 27C) ==="
+echo "tplh_up:" "$&tplh_up"
+echo "tphl_up:" "$&tphl_up"
+echo "tplh_dn:" "$&tplh_dn"
+echo "tphl_dn:" "$&tphl_dn"
+
+* Find max delay across all edges (convert to ns)
+let d1 = tplh_up * 1e9
+let d2 = tphl_up * 1e9
+let d3 = tplh_dn * 1e9
+let d4 = tphl_dn * 1e9
+
+let dmax = d1
+if d2 > dmax
+  let dmax = d2
+end
+if d3 > dmax
+  let dmax = d3
+end
+if d4 > dmax
+  let dmax = d4
+end
+
+echo "delay_max_ns_tt:" "$&dmax"
+
+quit
+.endc
+
+.end

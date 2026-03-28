@@ -1,0 +1,33 @@
+* tb_pass_idvds.spice — Id vs Vds family curves, TT 27C
+.lib "/home/ubuntu/pdk/sky130A/libs.ref/sky130_fd_pr/spice/sky130_pfet_g5v0d10v5_only.lib.spice" tt
+.include "design.cir"
+.temp 27
+
+Vbvdd bvdd 0 5.4
+Vdrain pvdd 0 5.4
+Vgate gate 0 5.4
+
+X1 gate bvdd pvdd pass_device
+
+.control
+echo total_width_mm: 1.0
+
+* Vgs = -1V (gate=4.4)
+alter Vgate = 4.4
+dc Vdrain 5.4 0 -0.05
+wrdata idvds_vgs1 i(Vdrain)
+
+* Vgs = -3V (gate=2.4)
+alter Vgate = 2.4
+dc Vdrain 5.4 0 -0.05
+wrdata idvds_vgs3 i(Vdrain)
+
+* Vgs = -5.4V (gate=0, full drive)
+alter Vgate = 0
+dc Vdrain 5.4 0 -0.05
+wrdata idvds_vgs5p4 i(Vdrain)
+
+echo "IdVds family curves complete"
+quit
+.endc
+.end
