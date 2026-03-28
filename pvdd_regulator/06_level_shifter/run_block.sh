@@ -29,6 +29,10 @@ run_tb tb_ls_bvdd_sweep.spice
 run_tb tb_ls_power.spice
 run_tb tb_ls_pvt.spice
 
+echo "--- Running full PVT sweep (15 corners) ---"
+python3 run_pvt_sweep.py
+echo ""
+
 echo "--- Evaluation ---"
 python3 evaluate.py
 echo ""
