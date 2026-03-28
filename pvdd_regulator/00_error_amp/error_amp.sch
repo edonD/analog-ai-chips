@@ -8,70 +8,55 @@ V {}
 S {}
 E {}
 
-T {BLOCK 00: ERROR AMPLIFIER} -700 -1150 0 0 1.0 1.0 {layer=4}
-T {PVDD 5.0V LDO Regulator  |  SkyWater SKY130A  |  Two-Stage Miller OTA} -700 -1070 0 0 0.45 0.45 {layer=8}
-T {All HV devices: sky130_fd_pr__pfet_g5v0d10v5 / nfet_g5v0d10v5  (Vds max = 10.5V)} -700 -1030 0 0 0.35 0.35 {}
-T {.subckt error_amp  vref  vfb  vout_gate  pvdd  gnd  ibias  en} -700 -990 0 0 0.3 0.3 {layer=13}
-T {Date: 2026-03-28} -700 -960 0 0 0.25 0.25 {}
+T {BLOCK 00: ERROR AMPLIFIER} -650 -1050 0 0 1.0 1.0 {layer=4}
+T {PVDD 5.0V LDO Regulator  |  SkyWater SKY130A  |  Two-Stage Miller OTA} -650 -970 0 0 0.45 0.45 {layer=8}
+T {All HV: sky130_fd_pr__pfet_g5v0d10v5 / nfet_g5v0d10v5  (Vds max 10.5V)} -650 -935 0 0 0.3 0.3 {}
+T {.subckt error_amp  vref  vfb  vout_gate  pvdd  gnd  ibias  en} -650 -905 0 0 0.28 0.28 {layer=13}
 
-T {BIAS CHAIN} -620 -870 0 0 0.5 0.5 {layer=4}
-T {1 uA in -> 20 uA mirror} -620 -840 0 0 0.25 0.25 {}
-T {STAGE 1: PMOS DIFF PAIR} 80 -870 0 0 0.5 0.5 {layer=4}
-T {+ NMOS CURRENT MIRROR LOAD} 80 -840 0 0 0.4 0.4 {layer=4}
-T {COMPENSATION} 600 -870 0 0 0.5 0.5 {layer=4}
-T {Miller Cc + nulling Rc} 600 -840 0 0 0.25 0.25 {}
-T {STAGE 2} 900 -870 0 0 0.5 0.5 {layer=4}
-T {NMOS CS + PMOS load} 900 -840 0 0 0.25 0.25 {}
-T {ENABLE} -700 -350 0 0 0.4 0.4 {layer=4}
+C {/usr/share/xschem/xschem_library/devices/ipin.sym} -650 -760 0 0 {name=p1 lab=vref}
+C {/usr/share/xschem/xschem_library/devices/ipin.sym} -650 -730 0 0 {name=p2 lab=vfb}
+C {/usr/share/xschem/xschem_library/devices/ipin.sym} -650 -700 0 0 {name=p3 lab=ibias}
+C {/usr/share/xschem/xschem_library/devices/ipin.sym} -650 -670 0 0 {name=p4 lab=en}
+C {/usr/share/xschem/xschem_library/devices/opin.sym} -560 -760 0 0 {name=p5 lab=vout_gate}
+C {/usr/share/xschem/xschem_library/devices/iopin.sym} -560 -730 0 0 {name=p6 lab=pvdd}
+C {/usr/share/xschem/xschem_library/devices/iopin.sym} -560 -700 0 0 {name=p7 lab=gnd}
 
-C {/usr/share/xschem/xschem_library/devices/title.sym} -700 900 0 0 {name=l1 author="Block 00: Error Amplifier -- Analog AI Chips PVDD LDO Regulator"}
+T {BIAS} -420 -830 0 0 0.5 0.5 {layer=4}
+T {STAGE 1: DIFF PAIR + MIRROR LOAD} 100 -830 0 0 0.5 0.5 {layer=4}
+T {STAGE 2} 700 -830 0 0 0.5 0.5 {layer=4}
 
-C {/usr/share/xschem/xschem_library/devices/ipin.sym} -700 -550 0 0 {name=p1 lab=vref}
-C {/usr/share/xschem/xschem_library/devices/ipin.sym} -700 -510 0 0 {name=p2 lab=vfb}
-C {/usr/share/xschem/xschem_library/devices/ipin.sym} -700 -470 0 0 {name=p3 lab=ibias}
-C {/usr/share/xschem/xschem_library/devices/ipin.sym} -700 -430 0 0 {name=p4 lab=en}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} -700 -390 0 0 {name=p5 lab=vout_gate}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -700 -590 0 0 {name=p6 lab=pvdd}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} -700 -630 0 0 {name=p7 lab=gnd}
-
-T {PVDD (5.0V)} -480 -800 0 0 0.35 0.35 {layer=7}
-N -500 -780 1100 -780 {lab=pvdd}
-
-T {GND} -480 560 0 0 0.35 0.35 {layer=7}
-N -500 540 1100 540 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/title.sym} -650 830 0 0 {name=l1 author="Block 00: Error Amplifier -- Analog AI Chips PVDD LDO Regulator"}
 
 * ================================================================
-* BIAS CHAIN — vertical stack on the left
-* ibias (1uA) → XMbn0 (diode) → XMbn_pb (x20 mirror) → XMbp0 (PMOS) → pb_tail
+* BIAS: XMbp0 (top, PMOS) → pb_tail → XMbn_pb (bottom, NMOS x20) ← XMbn0 (1uA diode)
+* Vertical stack: PVDD at top, GND at bottom, pb_tail in middle
 * ================================================================
 
-T {ibias} -570 420 0 0 0.3 0.3 {layer=8}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -550 400 0 0 {name=l_ibias sig_type=std_logic lab=ibias}
-N -550 400 -500 400 {lab=ibias}
-N -500 400 -500 320 {lab=ibias}
-
-T {XMbn0} -570 260 0 0 0.25 0.25 {layer=13}
-T {W=20 L=8 m=1} -570 285 0 0 0.22 0.22 {layer=5}
-T {1 uA diode} -570 308 0 0 0.2 0.2 {}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -520 240 0 0 {name=XMbn0
-L=8
+* --- XMbp0: PMOS bias diode, generates pb_tail ---
+T {XMbp0} -480 -660 0 0 0.25 0.25 {layer=13}
+T {W=20 L=4 m=4} -480 -638 0 0 0.2 0.2 {layer=5}
+T {B=PVDD} -370 -710 0 0 0.2 0.2 {layer=7}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} -410 -680 0 0 {name=XMbp0
+L=4
 W=20
 nf=1
-mult=1
-model=nfet_g5v0d10v5
+mult=4
+model=pfet_g5v0d10v5
 spiceprefix=X
 }
-N -500 270 -500 540 {lab=gnd}
-N -500 210 -500 160 {lab=ibias_en}
-N -540 240 -600 240 {lab=ibias_en}
-N -600 240 -600 160 {lab=ibias_en}
-N -600 160 -500 160 {lab=ibias_en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -500 160 2 0 {name=l_ibias_en sig_type=std_logic lab=ibias_en}
+N -390 -710 -390 -760 {lab=pvdd}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -390 -760 2 0 {name=l_pv1 sig_type=std_logic lab=pvdd}
+N -390 -650 -390 -560 {lab=pb_tail}
+N -430 -680 -500 -680 {lab=pb_tail}
+N -500 -680 -500 -560 {lab=pb_tail}
+N -500 -560 -390 -560 {lab=pb_tail}
+T {pb_tail} -385 -565 0 0 0.3 0.3 {layer=8}
 
-T {XMbn_pb} -380 260 0 0 0.25 0.25 {layer=13}
-T {W=20 L=8 m=20} -380 285 0 0 0.22 0.22 {layer=5}
-T {20 uA mirror} -380 308 0 0 0.2 0.2 {}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -340 240 0 0 {name=XMbn_pb
+* --- XMbn_pb: NMOS mirror x20, feeds pb_tail via XMbp0 ---
+T {XMbn_pb} -280 -340 0 0 0.25 0.25 {layer=13}
+T {W=20 L=8 m=20} -280 -318 0 0 0.2 0.2 {layer=5}
+T {20x mirror} -280 -296 0 0 0.18 0.18 {}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -410 -400 0 0 {name=XMbn_pb
 L=8
 W=20
 nf=1
@@ -79,15 +64,49 @@ mult=20
 model=nfet_g5v0d10v5
 spiceprefix=X
 }
-N -320 270 -320 540 {lab=gnd}
-N -320 210 -320 60 {lab=pb_tail}
-N -360 240 -500 240 {lab=ibias_en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -320 60 2 0 {name=l_pb1 sig_type=std_logic lab=pb_tail}
+N -390 -370 -390 -280 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/gnd.sym} -390 -280 0 0 {name=lg1 lab=GND}
+N -390 -430 -390 -560 {lab=pb_tail}
+N -430 -400 -530 -400 {lab=ibias_en}
+T {ibias_en} -535 -410 2 0 0.25 0.25 {layer=8}
 
-T {XMbp0} -380 -700 0 0 0.25 0.25 {layer=13}
-T {W=20 L=4 m=4} -380 -675 0 0 0.22 0.22 {layer=5}
-T {B=PVDD} -260 -755 0 0 0.22 0.22 {layer=7}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} -340 -720 0 0 {name=XMbp0
+* --- XMbn0: NMOS 1uA diode-connected reference ---
+T {XMbn0} -600 -340 0 0 0.25 0.25 {layer=13}
+T {W=20 L=8 m=1} -600 -318 0 0 0.2 0.2 {layer=5}
+T {1 uA ref} -600 -296 0 0 0.18 0.18 {}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -570 -400 0 0 {name=XMbn0
+L=8
+W=20
+nf=1
+mult=1
+model=nfet_g5v0d10v5
+spiceprefix=X
+}
+N -550 -370 -550 -280 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/gnd.sym} -550 -280 0 0 {name=lg2 lab=GND}
+N -550 -430 -550 -470 {lab=ibias_en}
+N -590 -400 -640 -400 {lab=ibias_en}
+N -640 -400 -640 -470 {lab=ibias_en}
+N -640 -470 -550 -470 {lab=ibias_en}
+N -530 -400 -430 -400 {lab=ibias_en}
+
+* ibias input
+N -550 -470 -550 -560 {lab=ibias_en}
+T {ibias} -605 -580 0 0 0.3 0.3 {layer=8}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -550 -600 2 0 {name=l_ib sig_type=std_logic lab=ibias}
+N -550 -600 -550 -560 {lab=ibias}
+
+* ================================================================
+* STAGE 1: PMOS diff pair + NMOS current mirror load
+* XMtail at top → tail_s → XM1/XM2 → d1/d2 → XMn_l/XMn_r at bottom
+* ================================================================
+
+* --- XMtail: tail current source ---
+T {XMtail} 100 -660 0 0 0.25 0.25 {layer=13}
+T {W=20 L=4 m=4} 100 -638 0 0 0.2 0.2 {layer=5}
+T {20 uA} 100 -616 0 0 0.18 0.18 {}
+T {B=PVDD} 200 -710 0 0 0.2 0.2 {layer=7}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 160 -680 0 0 {name=XMtail
 L=4
 W=20
 nf=1
@@ -95,82 +114,17 @@ mult=4
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-N -320 -750 -320 -780 {lab=pvdd}
-N -320 -690 -320 -600 {lab=pb_tail}
-N -360 -720 -430 -720 {lab=pb_tail}
-N -430 -720 -430 -600 {lab=pb_tail}
-N -430 -600 -320 -600 {lab=pb_tail}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -320 -600 0 0 {name=l_pb2 sig_type=std_logic lab=pb_tail}
+N 180 -710 180 -760 {lab=pvdd}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 180 -760 2 0 {name=l_pv2 sig_type=std_logic lab=pvdd}
+N 180 -650 180 -580 {lab=tail_s}
+N 140 -680 60 -680 {lab=pb_tail}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 60 -680 0 0 {name=l_pb3 sig_type=std_logic lab=pb_tail}
+T {tail_s} 185 -590 0 0 0.25 0.25 {layer=8}
 
-* ================================================================
-* ENABLE — small sidebar bottom-left
-* XMen gates the bias current, XMpu pulls output to PVDD when disabled
-* ================================================================
-
-T {XMen} -770 -120 0 0 0.25 0.25 {layer=13}
-T {W=20 L=1} -770 -95 0 0 0.22 0.22 {layer=5}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -720 -70 0 0 {name=XMen
-L=1
-W=20
-nf=1
-mult=1
-model=nfet_g5v0d10v5
-spiceprefix=X
-}
-N -700 -40 -700 30 {lab=gnd}
-N -700 -100 -700 -160 {lab=ibias_en}
-N -740 -70 -800 -70 {lab=en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -800 -70 0 0 {name=l_en1 sig_type=std_logic lab=en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -700 -160 2 0 {name=l_iben sig_type=std_logic lab=ibias_en}
-C {/usr/share/xschem/xschem_library/devices/gnd.sym} -700 30 0 0 {name=l_gnden lab=GND}
-T {en=HIGH: bias ON} -780 -310 0 0 0.22 0.22 {layer=5}
-T {en=LOW: bias OFF, out->PVDD} -780 -285 0 0 0.22 0.22 {layer=5}
-T {ibias -> XMen -> ibias_en} -780 -260 0 0 0.22 0.22 {}
-
-T {XMpu} -770 -225 0 0 0.25 0.25 {layer=13}
-T {W=20 L=1} -770 -200 0 0 0.22 0.22 {layer=5}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} -640 -225 0 0 {name=XMpu
-L=1
-W=20
-nf=1
-mult=1
-model=pfet_g5v0d10v5
-spiceprefix=X
-}
-N -620 -255 -620 -280 {lab=pvdd}
-N -620 -195 -620 -160 {lab=vout_gate}
-N -660 -225 -720 -225 {lab=en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -720 -225 0 0 {name=l_en2 sig_type=std_logic lab=en}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -620 -280 2 0 {name=l_pvdd_pu sig_type=std_logic lab=pvdd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -620 -160 0 0 {name=l_vg_pu sig_type=std_logic lab=vout_gate}
-
-* ================================================================
-* STAGE 1 — PMOS diff pair (top) + NMOS mirror load (bottom)
-* Centered in the schematic
-* ================================================================
-
-T {XMtail} 70 -700 0 0 0.25 0.25 {layer=13}
-T {W=20 L=4 m=4} 70 -675 0 0 0.22 0.22 {layer=5}
-T {20 uA tail} 70 -650 0 0 0.2 0.2 {}
-T {B=PVDD} 160 -755 0 0 0.22 0.22 {layer=7}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 120 -720 0 0 {name=XMtail
-L=4
-W=20
-nf=1
-mult=4
-model=pfet_g5v0d10v5
-spiceprefix=X
-}
-N 140 -750 140 -780 {lab=pvdd}
-N 140 -690 140 -600 {lab=tail_s}
-N 100 -720 20 -720 {lab=pb_tail}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 20 -720 0 0 {name=l_pb3 sig_type=std_logic lab=pb_tail}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 140 -600 0 0 {name=l_ts sig_type=std_logic lab=tail_s}
-
-T {XM1 (+)} 20 -510 0 0 0.3 0.3 {layer=13}
-T {W=80 L=4 m=2} 20 -485 0 0 0.22 0.22 {layer=5}
-T {B=PVDD} 120 -570 0 0 0.22 0.22 {layer=7}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 80 -540 0 0 {name=XM1
+* --- XM1: diff pair + (vref) ---
+T {XM1 (+)} 55 -470 0 0 0.28 0.28 {layer=13}
+T {W=80 L=4 m=2} 55 -448 0 0 0.2 0.2 {layer=5}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 110 -510 0 0 {name=XM1
 L=4
 W=80
 nf=1
@@ -178,16 +132,17 @@ mult=2
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-N 100 -570 100 -600 {lab=tail_s}
-N 100 -600 140 -600 {lab=tail_s}
-N 100 -510 100 -380 {lab=d1}
-N 60 -540 -30 -540 {lab=vref}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -30 -540 0 0 {name=l_vref sig_type=std_logic lab=vref}
+N 130 -540 130 -580 {lab=tail_s}
+N 130 -580 180 -580 {lab=tail_s}
+N 130 -480 130 -350 {lab=d1}
+N 90 -510 -10 -510 {lab=vref}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -10 -510 0 0 {name=l_vr sig_type=std_logic lab=vref}
+T {vref} -5 -525 0 0 0.3 0.3 {layer=8}
 
-T {XM2 (-)} 280 -510 0 0 0.3 0.3 {layer=13}
-T {W=80 L=4 m=2} 280 -485 0 0 0.22 0.22 {layer=5}
-T {B=PVDD} 330 -570 0 0 0.22 0.22 {layer=7}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 260 -540 0 1 {name=XM2
+* --- XM2: diff pair - (vfb) ---
+T {XM2 (-)} 275 -470 0 0 0.28 0.28 {layer=13}
+T {W=80 L=4 m=2} 275 -448 0 0 0.2 0.2 {layer=5}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 250 -510 0 1 {name=XM2
 L=4
 W=80
 nf=1
@@ -195,15 +150,18 @@ mult=2
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-N 240 -570 240 -600 {lab=tail_s}
-N 240 -600 140 -600 {lab=tail_s}
-N 240 -510 240 -380 {lab=d2}
-N 280 -540 370 -540 {lab=vfb}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 370 -540 2 0 {name=l_vfb sig_type=std_logic lab=vfb}
+N 230 -540 230 -580 {lab=tail_s}
+N 230 -580 180 -580 {lab=tail_s}
+N 230 -480 230 -350 {lab=d2}
+N 270 -510 380 -510 {lab=vfb}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 380 -510 2 0 {name=l_vf sig_type=std_logic lab=vfb}
+T {vfb} 370 -525 2 0 0.3 0.3 {layer=8}
 
-T {XMn_l (diode)} 20 -200 0 0 0.25 0.25 {layer=13}
-T {W=20 L=8 m=2} 20 -175 0 0 0.22 0.22 {layer=5}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 80 -280 0 0 {name=XMn_l
+* --- XMn_l: NMOS mirror load (diode-connected) ---
+T {XMn_l} 55 -170 0 0 0.25 0.25 {layer=13}
+T {W=20 L=8 m=2} 55 -148 0 0 0.2 0.2 {layer=5}
+T {diode} 55 -128 0 0 0.18 0.18 {}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 110 -250 0 0 {name=XMn_l
 L=8
 W=20
 nf=1
@@ -211,16 +169,19 @@ mult=2
 model=nfet_g5v0d10v5
 spiceprefix=X
 }
-N 100 -250 100 540 {lab=gnd}
-N 100 -310 100 -380 {lab=d1}
-N 60 -280 0 -280 {lab=d1}
-N 0 -280 0 -380 {lab=d1}
-N 0 -380 100 -380 {lab=d1}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 100 -380 2 0 {name=l_d1 sig_type=std_logic lab=d1}
+N 130 -220 130 -100 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/gnd.sym} 130 -100 0 0 {name=lg3 lab=GND}
+N 130 -280 130 -350 {lab=d1}
+N 90 -250 40 -250 {lab=d1}
+N 40 -250 40 -350 {lab=d1}
+N 40 -350 130 -350 {lab=d1}
+T {d1} 135 -360 0 0 0.3 0.3 {layer=8}
 
-T {XMn_r (output)} 280 -200 0 0 0.25 0.25 {layer=13}
-T {W=20 L=8 m=2} 280 -175 0 0 0.22 0.22 {layer=5}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 260 -280 0 1 {name=XMn_r
+* --- XMn_r: NMOS mirror load (output) ---
+T {XMn_r} 275 -170 0 0 0.25 0.25 {layer=13}
+T {W=20 L=8 m=2} 275 -148 0 0 0.2 0.2 {layer=5}
+T {mirror} 275 -128 0 0 0.18 0.18 {}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 250 -250 0 1 {name=XMn_r
 L=8
 W=20
 nf=1
@@ -228,45 +189,49 @@ mult=2
 model=nfet_g5v0d10v5
 spiceprefix=X
 }
-N 240 -250 240 540 {lab=gnd}
-N 240 -310 240 -380 {lab=d2}
-N 280 -280 340 -280 {lab=d1}
-N 340 -280 340 -380 {lab=d1}
-N 340 -380 100 -380 {lab=d1}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 240 -380 0 0 {name=l_d2 sig_type=std_logic lab=d2}
+N 230 -220 230 -100 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/gnd.sym} 230 -100 0 0 {name=lg4 lab=GND}
+N 230 -280 230 -350 {lab=d2}
+N 270 -250 320 -250 {lab=d1}
+N 320 -250 320 -350 {lab=d1}
+N 320 -350 130 -350 {lab=d1}
+T {d2} 235 -360 0 0 0.3 0.3 {layer=8}
 
 * ================================================================
-* MILLER COMPENSATION — Cc (36pF) + Rc (5k) in series
-* From d2 to vout_gate
+* MILLER COMPENSATION: Cc (36pF) in series with Rc (5k)
+* Horizontal bridge from d2 to vout_gate
 * ================================================================
 
-T {Cc = 36 pF} 510 -430 0 0 0.35 0.35 {layer=7}
-T {18k um^2 MIM} 510 -405 0 0 0.2 0.2 {}
-C {/usr/share/xschem/xschem_library/devices/capa.sym} 560 -380 1 0 {name=Cc
+T {Cc = 36 pF} 430 -420 0 0 0.35 0.35 {layer=7}
+T {18k um^2} 430 -395 0 0 0.18 0.18 {}
+C {/usr/share/xschem/xschem_library/devices/capa.sym} 480 -350 1 0 {name=Cc
 m=1
 value=36p
 }
-N 530 -380 240 -380 {lab=d2}
-N 590 -380 660 -380 {lab=comp_mid}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 660 -380 2 0 {name=l_cm sig_type=std_logic lab=comp_mid}
+N 450 -350 230 -350 {lab=d2}
+N 510 -350 570 -350 {lab=comp_mid}
+T {comp_mid} 540 -365 0 0 0.2 0.2 {layer=8}
 
-T {Rc = 5 kohm} 680 -430 0 0 0.35 0.35 {layer=7}
-T {> 1/gm2, LHP zero} 680 -405 0 0 0.2 0.2 {}
-C {/usr/share/xschem/xschem_library/devices/res.sym} 730 -380 1 0 {name=Rc
+T {Rc = 5k} 580 -420 0 0 0.35 0.35 {layer=7}
+T {> 1/gm2} 580 -395 0 0 0.18 0.18 {}
+T {LHP zero} 580 -375 0 0 0.18 0.18 {}
+C {/usr/share/xschem/xschem_library/devices/res.sym} 630 -350 1 0 {name=Rc
 value=5k
 }
-N 700 -380 660 -380 {lab=comp_mid}
-N 760 -380 850 -380 {lab=vout_gate}
+N 600 -350 570 -350 {lab=comp_mid}
+N 660 -350 750 -350 {lab=vout_gate}
 
 * ================================================================
-* STAGE 2 — NMOS common-source (XMcs) + PMOS active load (XMp_ld)
+* STAGE 2: XMp_ld (PMOS load) on top, XMcs (NMOS CS) on bottom
+* Connected at vout_gate node
 * ================================================================
 
-T {XMp_ld} 890 -700 0 0 0.25 0.25 {layer=13}
-T {W=20 L=4 m=8} 890 -675 0 0 0.22 0.22 {layer=5}
-T {~40 uA} 890 -650 0 0 0.2 0.2 {}
-T {B=PVDD} 920 -755 0 0 0.22 0.22 {layer=7}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 850 -720 0 0 {name=XMp_ld
+* --- XMp_ld: PMOS active load ---
+T {XMp_ld} 700 -660 0 0 0.25 0.25 {layer=13}
+T {W=20 L=4 m=8} 700 -638 0 0 0.2 0.2 {layer=5}
+T {~40 uA} 700 -616 0 0 0.18 0.18 {}
+T {B=PVDD} 810 -710 0 0 0.2 0.2 {layer=7}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 770 -680 0 0 {name=XMp_ld
 L=4
 W=20
 nf=1
@@ -274,15 +239,17 @@ mult=8
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-N 870 -750 870 -780 {lab=pvdd}
-N 870 -690 870 -380 {lab=vout_gate}
-N 830 -720 750 -720 {lab=pb_tail}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 750 -720 0 0 {name=l_pb4 sig_type=std_logic lab=pb_tail}
+N 790 -710 790 -760 {lab=pvdd}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 790 -760 2 0 {name=l_pv3 sig_type=std_logic lab=pvdd}
+N 790 -650 790 -350 {lab=vout_gate}
+N 750 -680 650 -680 {lab=pb_tail}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 650 -680 0 0 {name=l_pb4 sig_type=std_logic lab=pb_tail}
 
-T {XMcs} 890 -200 0 0 0.25 0.25 {layer=13}
-T {W=20 L=1 m=1} 890 -175 0 0 0.22 0.22 {layer=5}
-T {CS amplifier} 890 -150 0 0 0.2 0.2 {}
-C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 850 -280 0 0 {name=XMcs
+* --- XMcs: NMOS common-source amplifier ---
+T {XMcs} 700 -170 0 0 0.25 0.25 {layer=13}
+T {W=20 L=1 m=1} 700 -148 0 0 0.2 0.2 {layer=5}
+T {CS amp} 700 -128 0 0 0.18 0.18 {}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 770 -250 0 0 {name=XMcs
 L=1
 W=20
 nf=1
@@ -290,28 +257,77 @@ mult=1
 model=nfet_g5v0d10v5
 spiceprefix=X
 }
-N 870 -250 870 540 {lab=gnd}
-N 870 -310 870 -380 {lab=vout_gate}
-N 830 -280 770 -280 {lab=d2}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 770 -280 0 0 {name=l_d2cs sig_type=std_logic lab=d2}
+N 790 -220 790 -100 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/gnd.sym} 790 -100 0 0 {name=lg5 lab=GND}
+N 790 -280 790 -350 {lab=vout_gate}
+N 750 -250 670 -250 {lab=d2}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 670 -250 0 0 {name=l_d2g sig_type=std_logic lab=d2}
 
-N 870 -380 1050 -380 {lab=vout_gate}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 1050 -380 2 0 {name=l_vout sig_type=std_logic lab=vout_gate}
-T {vout_gate} 1060 -400 0 0 0.4 0.4 {layer=4}
-T {-> pass device gate} 1060 -370 0 0 0.25 0.25 {}
+* vout_gate label and output
+T {vout_gate} 830 -370 0 0 0.35 0.35 {layer=4}
+T {-> pass FET gate} 830 -345 0 0 0.2 0.2 {}
+N 790 -350 920 -350 {lab=vout_gate}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 920 -350 2 0 {name=l_vg sig_type=std_logic lab=vout_gate}
 
 * ================================================================
-* CHARACTERIZATION TABLE
+* ENABLE: small group, bottom-left
+* XMen: NMOS switch gates ibias to ibias_en
+* XMpu: PMOS pullup drives vout_gate to PVDD when en=LOW
 * ================================================================
 
-T {CHARACTERIZATION  (TT 27C, PVDD = 5.0V)} -700 620 0 0 0.5 0.5 {layer=4}
-T {DC Gain              =  78.4 dB       spec >= 60 dB         PASS} -700 680 0 0 0.3 0.3 {layer=7}
-T {UGB                  =  513 kHz       spec >= 500 kHz       PASS} -700 710 0 0 0.3 0.3 {layer=7}
-T {Phase Margin         =  67.5 deg      spec [60, 80] deg     PASS} -700 740 0 0 0.3 0.3 {layer=7}
-T {Gain Slope at UGB    =  -25.7 dB/dec  (proper -20 dB/dec)   PASS} -700 770 0 0 0.3 0.3 {layer=7}
-T {Cc = 36 pF  (18k um^2)   Rc = 5 kohm  (> 1/gm2 = 2.45k)} -700 800 0 0 0.3 0.3 {layer=7}
-T {Quiescent Current    =  86.3 uA       spec <= 100 uA        PASS} -700 830 0 0 0.3 0.3 {layer=7}
-T {Input Offset         =  0.03 mV       spec <= 5 mV          PASS} -700 860 0 0 0.3 0.3 {layer=7}
-T {CMRR = 108.2 dB   PSRR = 108.3 dB   Noise = 33.7 uVrms      ALL PASS} -700 890 0 0 0.3 0.3 {layer=7}
-T {PVT: 15/15 corners (5 process x 3 temp)   PM range: 56.9 - 76.5 deg} -700 920 0 0 0.3 0.3 {layer=7}
-T {All 16/16 specs PASS} -700 970 0 0 0.45 0.45 {layer=4}
+T {ENABLE} -650 10 0 0 0.4 0.4 {layer=4}
+T {en=HIGH: normal operation} -650 40 0 0 0.2 0.2 {layer=5}
+T {en=LOW: bias off, vout->PVDD} -650 60 0 0 0.2 0.2 {layer=5}
+
+T {XMen} -620 170 0 0 0.22 0.22 {layer=13}
+T {W=20 L=1} -620 190 0 0 0.18 0.18 {layer=5}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} -570 120 0 0 {name=XMen
+L=1
+W=20
+nf=1
+mult=1
+model=nfet_g5v0d10v5
+spiceprefix=X
+}
+N -550 150 -550 220 {lab=gnd}
+C {/usr/share/xschem/xschem_library/devices/gnd.sym} -550 220 0 0 {name=lg6 lab=GND}
+N -550 90 -550 80 {lab=ibias_en}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -550 80 2 0 {name=l_ibe sig_type=std_logic lab=ibias_en}
+N -590 120 -640 120 {lab=en}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -640 120 0 0 {name=l_e1 sig_type=std_logic lab=en}
+T {ibias flows through} -495 110 0 0 0.18 0.18 {}
+T {when en=HIGH} -495 130 0 0 0.18 0.18 {}
+
+T {XMpu} -450 170 0 0 0.22 0.22 {layer=13}
+T {W=20 L=1} -450 190 0 0 0.18 0.18 {layer=5}
+C {/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} -410 120 0 0 {name=XMpu
+L=1
+W=20
+nf=1
+mult=1
+model=pfet_g5v0d10v5
+spiceprefix=X
+}
+N -390 90 -390 60 {lab=pvdd}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -390 60 2 0 {name=l_pv4 sig_type=std_logic lab=pvdd}
+N -390 150 -390 180 {lab=vout_gate}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -390 180 0 0 {name=l_vg2 sig_type=std_logic lab=vout_gate}
+N -430 120 -480 120 {lab=en}
+C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} -480 120 0 0 {name=l_e2 sig_type=std_logic lab=en}
+T {pulls vout_gate} -340 110 0 0 0.18 0.18 {}
+T {to PVDD when en=LOW} -340 130 0 0 0.18 0.18 {}
+
+* ================================================================
+* CHARACTERIZATION
+* ================================================================
+
+T {CHARACTERIZATION  (TT 27C, PVDD = 5.0V)} -650 500 0 0 0.5 0.5 {layer=4}
+T {DC Gain            =  78.4 dB       spec >= 60 dB        PASS} -650 555 0 0 0.28 0.28 {layer=7}
+T {UGB                =  513 kHz       spec >= 500 kHz      PASS} -650 585 0 0 0.28 0.28 {layer=7}
+T {Phase Margin       =  67.5 deg      spec [60, 80] deg    PASS} -650 615 0 0 0.28 0.28 {layer=7}
+T {Gain Slope at UGB  =  -25.7 dB/dec  (single-pole cross)  PASS} -650 645 0 0 0.28 0.28 {layer=7}
+T {Iq = 86.3 uA    Vos = 0.03 mV    Swing = 9.7 mV to 5.0 V   ALL PASS} -650 675 0 0 0.28 0.28 {layer=7}
+T {CMRR = 108.2 dB    PSRR = 108.3 dB    Noise = 33.7 uVrms   ALL PASS} -650 705 0 0 0.28 0.28 {layer=7}
+T {Cc = 36 pF (18k um^2)    Rc = 5 kohm (> 1/gm2 = 2.45k)    PASS} -650 735 0 0 0.28 0.28 {layer=7}
+T {PVT: 15/15 corners pass (5 process x 3 temp)    PM: 56.9 - 76.5 deg} -650 765 0 0 0.28 0.28 {layer=7}
+T {All 16/16 specs PASS} -650 810 0 0 0.45 0.45 {layer=4}
