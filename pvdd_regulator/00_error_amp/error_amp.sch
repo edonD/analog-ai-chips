@@ -147,7 +147,7 @@ C {devices/lab_pin.sym} 600 100 0 0 {name=l_pb_tail4 lab=pb_tail}
 
 C {sky130_fd_pr/pfet_g5v0d10v5.sym} 680 400 0 0 {name=XM1
 L=4
-W=50
+W=80
 nf=1
 mult=2
 model=pfet_g5v0d10v5
@@ -164,7 +164,7 @@ C {devices/lab_pin.sym} 700 600 0 0 {name=l_d12 lab=d1}
 
 C {sky130_fd_pr/pfet_g5v0d10v5.sym} 920 400 0 1 {name=XM2
 L=4
-W=50
+W=80
 nf=1
 mult=2
 model=pfet_g5v0d10v5
@@ -251,7 +251,7 @@ N 1600 600 2000 600 {lab=vout_gate}
 
 C {devices/capa.sym} 1200 600 1 0 {name=Cc
 m=1
-value=1300p
+value=36p
 }
 
 N 1170 600 900 600 {lab=d2}
@@ -261,7 +261,7 @@ C {devices/lab_pin.sym} 900 600 0 0 {name=l_d24 lab=d2}
 C {devices/lab_pin.sym} 1400 600 2 0 {name=l_comp_mid2 lab=comp_mid}
 
 C {devices/res.sym} 1500 600 1 0 {name=Rc
-value=11.38k
+value=5k
 }
 
 N 1470 600 1400 600 {lab=comp_mid}
