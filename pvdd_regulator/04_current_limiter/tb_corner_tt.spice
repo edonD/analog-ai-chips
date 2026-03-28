@@ -1,9 +1,11 @@
-* Trip test — tt 27C
+* tb_ilim_pvt.spice — PVT corner threshold measurement
+* Forces pvdd=5V. Template: substitute tt and 27
+*
 .include "parasitic_res_po.spice"
 .lib "sky130.lib.spice" tt
 .temp 27
 
-Vbvdd bvdd 0 7.0
+Vbvdd bvdd 0 DC 7.0
 XM1  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 XM2  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 XM3  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
@@ -18,14 +20,13 @@ XM10 pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 Xlim gi bvdd pvdd 0 flag current_limiter
 Vg gd 0 7.0
 Rg gd gi 10k
-Rl pvdd 0 100
-Cl pvdd 0 200p
-.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+Vpvdd pvdd 0 5.0
+.option reltol=1e-4 gmin=1e-12
 .control
 dc Vg 7 0 -0.05
-let il = v(pvdd)/100*1000
+let il = i(Vpvdd)*1000
 let mx = vecmax(il)
-echo "tt_27C_mA: $&mx"
+echo "ilim_tt_27_mA: $&mx"
 quit
 .endc
 .end

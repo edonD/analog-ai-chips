@@ -23,17 +23,17 @@
 XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=5e-6 l=0.5e-6
 
 * === Sense Resistor ===
-* xhigh_po W=1u L=0.20u → R ≈ 298 ohm
-XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=0.20
+* Need Vsense > Vth(0.8V) at trip: Isense(70mA) ≈ 420uA → Rs > 1900 ohm
+* xhigh_po W=1u L=1.1u → R ≈ 2000×(1.1-0.059)/0.944 ≈ 2206 ohm
+XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.2
 
 * === Detection NMOS ===
-XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
+XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
 
 * === Pull-up Resistor ===
-* xhigh_po W=1u L=50u → R ≈ 106k → Ipu ≈ 66 uA at 7V during limiting
-* At Iload=0: sense PMOS OFF, Mdet OFF, Rpu has no current (both ends at bvdd)
-* So quiescent from Rpu = 0 at no load
-XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=50
+* xhigh_po W=1u L=5u → R ≈ 10.5k → Ipu ≈ 667 uA at 7V during limiting
+* At Iload=0: Rpu draws no current (both ends at bvdd, Mdet OFF)
+XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=5
 
 * === Clamp PMOS ===
 XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
