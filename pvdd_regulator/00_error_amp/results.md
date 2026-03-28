@@ -18,16 +18,16 @@ The folded-cascode OTA was attempted first but abandoned due to HV device constr
 
 - **Stage 1**: PMOS diff pair (W=50µm L=4µm m=2) with NMOS current mirror load (W=20µm L=8µm m=2). Tail current 20µA.
 - **Stage 2**: NMOS common-source (W=20µm L=1µm) with PMOS current source load (W=20µm L=4µm m=8). ~40µA bias.
-- **Compensation**: Miller cap Cc=900pF with nulling resistor Rc=11.4kΩ. The Rc creates a LHP zero that boosts phase significantly (PM > 90°).
+- **Compensation**: Miller cap Cc=1.05nF with nulling resistor Rc=11.4kΩ. The Rc creates a LHP zero that boosts phase significantly (PM > 90°).
 - **Enable**: NMOS switch on ibias, PMOS pullup on output.
 
 ## Results Table
 
 | Parameter | Simulated | Spec | Pass/Fail |
 |-----------|-----------|------|-----------|
-| DC gain | 66.0 dB | ≥ 60 dB | PASS |
-| UGB | 214 kHz | 200-1000 kHz | PASS |
-| Phase margin | 156.4° | ≥ 55° | PASS |
+| DC gain | 64.7 dB | ≥ 60 dB | PASS |
+| UGB | 209 kHz | 200-1000 kHz | PASS |
+| Phase margin | 157.5° | ≥ 55° | PASS |
 | Output swing low | 0.010 V | ≤ 0.5 V | PASS |
 | Output swing high | 5.0 V | ≥ 4.5 V | PASS |
 | Iq | 86.3 µA | ≤ 100 µA | PASS |
@@ -50,7 +50,9 @@ The folded-cascode OTA was attempted first but abandoned due to HV device constr
 | 8-11 | Rc sweep 8→15k | 98→113 | 78 | 339→776 | 12/12 | keep |
 | 12-14 | Cc sweep 70→200pF, Rc=15k | 115→125 | 78→76 | 776→741 | 12/12 | keep |
 | 15-17 | Rc=11.4k, Cc=700→1100pF | 155→158 | 68→64 | 219→209 | 12/12 | keep |
-| **18** | **Cc=900pF, Rc=11.4k** | **156.4** | **66.0** | **214** | **12/12** | **final** |
+| 18 | Cc=900pF, Rc=11.4k | 156.4 | 66.0 | 214 | 12/12 | keep |
+| 19-25 | Fine-tune Rc=11.35-11.5k, Cc=900-1300pF | 153-158 | 63-66 | 200-240 | 12/12 | various |
+| **26** | **Cc=1.05nF, Rc=11.4k** | **157.5** | **64.7** | **209** | **12/12** | **final** |
 
 ## Key Insights
 

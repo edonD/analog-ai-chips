@@ -1,5 +1,5 @@
 === Block 00: Error Amplifier ===
-Run started: Sat Mar 28 00:42:36 UTC 2026
+Run started: Sat Mar 28 00:57:23 UTC 2026
 
 --- Running tb_ea_dc.spice ---
 Warning: m=xx on .subckt line will override multiplier m hierarchy!
@@ -47,9 +47,9 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 No. of Data Rows : 701
 === AC Results ===
-dc_gain: 62.942
+dc_gain: 64.7245
 ugb_kHz: 208.93
-phase_margin: 158.375
+phase_margin: 157.487
 ngspice-42 done
 
 --- Running tb_ea_swing.spice ---
@@ -65,7 +65,7 @@ Circuit: * tb_ea_swing.spice — output voltage swing
 option SCALE: Scale is set to 1e-06 for instance and model parameters
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
- Reference value :  5.00000e-01 Reference value :  1.46900e+00
+ Reference value :  5.00000e-01 Reference value :  1.47800e+00
 No. of Data Rows : 1501
 output_swing_low: 0.00962679
 output_swing_high: 4.99993
@@ -108,7 +108,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
  Reference value :  1.00000e+01
 No. of Data Rows : 301
-acm_dc_dB: -44.6097
+acm_dc_dB: -42.8278
 ngspice-42 done
 
 --- Running tb_ea_psrr.spice ---
@@ -126,7 +126,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
  Reference value :  1.00000e+01
 No. of Data Rows : 301
-aps_dc_dB: -41.9436
+aps_dc_dB: -40.9532
 ngspice-42 done
 
 --- Running tb_ea_pvt.spice ---
@@ -155,7 +155,7 @@ Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 701
-PVT TT -40 C: gain=63.4878 dB, PM=0 deg
+PVT TT -40 C: gain=65.0983 dB, PM=0 deg
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
@@ -164,7 +164,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 701
-PVT TT 27 C: gain=62.942 dB, PM=0 deg
+PVT TT 27 C: gain=64.7245 dB, PM=0 deg
 Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
 
 
@@ -173,7 +173,7 @@ Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 701
-PVT TT 150 C: gain=61.7548 dB, PM=0 deg
+PVT TT 150 C: gain=63.601 dB, PM=0 deg
 pvt_all_pass: 1
 ngspice-42 done
 
@@ -228,12 +228,12 @@ ngspice-42 done
 
 --- Post-processing CMRR and PSRR ---
 cmrr_dB: 107.6
-psrr_dB: 104.9
+psrr_dB: 105.7
 
 --- Evaluation ---
 ---
-* phase_margin_deg                      158.4  deg       (spec >= 55.0)  PASS
-  dc_gain_dB                            62.94  dB        (spec >= 60.0)  PASS
+* phase_margin_deg                      157.5  deg       (spec >= 55.0)  PASS
+  dc_gain_dB                            64.72  dB        (spec >= 60.0)  PASS
   ugb_kHz                               208.9  kHz       (spec >= 200.0)  PASS
   ugb_kHz_max                           208.9  kHz       (spec <= 1000.0)  PASS
   output_swing_low_V                 0.009627  V         (spec <= 0.5)  PASS
@@ -241,10 +241,10 @@ psrr_dB: 104.9
   iq_uA                                  86.3  uA        (spec <= 100.0)  PASS
   input_offset_mV                     0.02804  mV        (spec <= 5.0)  PASS
   cmrr_dB                               107.6  dB        (spec >= 50.0)  PASS
-  psrr_dB                               104.9  dB        (spec >= 40.0)  PASS
+  psrr_dB                               105.7  dB        (spec >= 40.0)  PASS
   devices_in_sat                            1  bool      (spec >= 1.0)  PASS
   pvt_all_pass                              1  bool      (spec >= 1.0)  PASS
 specs_pass: 12/12
-primary (phase_margin_deg): 158.375
+primary (phase_margin_deg): 157.487
 
-Run finished: Sat Mar 28 00:43:46 UTC 2026
+Run finished: Sat Mar 28 00:58:33 UTC 2026
