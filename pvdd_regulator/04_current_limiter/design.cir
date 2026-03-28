@@ -1,43 +1,42 @@
 * Block 04: Current Limiter
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Subcircuit ports:
-*   gate     — pass device gate node (limiter overrides this when tripped)
-*   bvdd     — high-voltage supply (5.4–10.5V)
-*   pvdd     — regulated output (5.0V)
-*   gnd      — ground
-*   ilim_flag — digital output: 1 when current limit is active
+* Topology: Sense-mirror with Vth-based detection + resistor pull-up
 *
-* STATUS: EMPTY — sense topology not yet chosen
+*   XMs: Sense PMOS (gate shared with pass device)
+*   XRs: Sense resistor (sense_n → GND)
+*   XMdet: Detection NMOS (gate=sense_n) — turns on at Vsense > ~Vth
+*   XRpu: Pull-up resistor (bvdd → det_n) — keeps det_n HIGH normally
+*   XMclamp: Clamp PMOS (gate=det_n) — pulls gate toward bvdd when det_n LOW
 *
-* Topology options:
-*   1. Sense-resistor + comparator:
-*      Small Rs (sky130_fd_pr__res_xhigh_po) in the source path.
-*      When Vsense > Vref_ilim, pull gate HIGH (turn off pass device).
-*      Trip point: Ilim = Vref_ilim / Rs.
-*
-*   2. Mirror-sense: replicate a scaled copy of pass device,
-*      compare mirror current against reference. No Rs in main path.
-*
-*   3. Replica bias: use a small-signal replica to sense gate current.
-*
-* Requirements:
-*   Ilim at TT 27°C        60–80 mA
-*   Ilim at SS 150°C       >= 50 mA (must NOT trip below spec load)
-*   Ilim at FF −40°C       <= 100 mA (must trip before damage)
-*   Response time          <= 10 µs from overcurrent to gate pull-up
-*   PVDD impact (normal)   <= 10 mV (sense resistor drop at 50 mA)
-*   Quiescent current      <= 10 µA from BVDD or PVDD
-*   Does not degrade loop PM below 45° in closed loop
+* The limiting current depends on when Mdet's drain current exceeds
+* the pull-up current through Rpu, which depends on Vsense (= Isense × Rs).
 *
 .subckt current_limiter gate bvdd pvdd gnd ilim_flag
 
-* TODO: implement current limiter here
-* Key design decision: where to insert the sense element.
-* The pass device source is at BVDD; drain is PVDD.
-* A sense resistor in the source path: Rs between M_pass source and BVDD.
-* When I_load * Rs > Vth_comp, comparator pulls gate toward BVDD (off).
-*
-* ilim_flag should be driven HI (PVDD domain) when limiting is active.
+* === Sense PMOS ===
+* N = 1000u/5u = 200 (geometric ratio; effective ratio lower due to Vds mismatch)
+XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=5e-6 l=0.5e-6
+
+* === Sense Resistor ===
+* xhigh_po W=1u L=0.25u → R ≈ 2000 × (0.25-0.059)/0.944 ≈ 405 ohm
+* Tuned for ~70mA trip at TT 27C with Rload testbench
+XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=0.20
+
+* === Detection NMOS ===
+XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
+
+* === Pull-up Resistor (bvdd → det_n) ===
+* xhigh_po W=1u L=250u → R ≈ 530 kohm
+* At bvdd=7V: I_pullup ≈ 13 uA
+XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=250
+
+* === Clamp PMOS ===
+* When det_n LOW → Mclamp ON → pulls gate toward bvdd
+XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
+
+* === Flag output ===
+XMfp ilim_flag det_n pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
+XMfn ilim_flag det_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 .ends current_limiter

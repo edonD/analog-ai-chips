@@ -1,0 +1,10 @@
+* Parasitic model for polysilicon resistor (capacitance to substrate)
+* Simplified model — just substrate capacitance
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub
++ w=1 l=1
+* Parasitic cap to substrate: ~0.1 fF/um^2 (approximate)
+.param cap_per_area = 1e-16
+.param area = {w * l}
+C0 r0 sub {0.5 * cap_per_area * area}
+C1 r1 sub {0.5 * cap_per_area * area}
+.ends sky130_fd_pr__model__parasitic__res_po
