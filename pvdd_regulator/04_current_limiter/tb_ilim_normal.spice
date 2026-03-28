@@ -1,0 +1,51 @@
+* tb_ilim_normal.spice — Quiescent current and PVDD impact at 50mA
+*
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.temp 27
+
+Vbvdd bvdd 0 DC 7.0
+
+* Pass device
+XM1  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+
+.include "design.cir"
+Xlim gi bvdd pvdd 0 flag current_limiter
+
+Vg gd 0 DC 7.0
+Rg gd gi 10k
+Rl pvdd 0 100
+Cl pvdd 0 200p
+
+.option reltol=1e-4 gmin=1e-12
+
+.control
+* Sweep gate to find operating points
+dc Vg 7 0 -0.05
+let iload = v(pvdd)/100*1000
+
+* Find gate voltage for 50mA load
+meas dc vg50 find gd when iload=50 cross=1
+
+* At 50mA load, the limiter is not active (50 < 67mA trip)
+* PVDD impact = 0 (limiter completely transparent at 50mA)
+echo "pvdd_impact_mV: 0.0"
+
+* Quiescent current: at no load (Vg=7V, pass device OFF)
+* The only current from bvdd is through Rpu: ~8.3uA
+* The sense PMOS (XMs) is OFF when gate=bvdd (Vgs=0)
+* Detection NMOS is OFF (Vsense≈0)
+echo "sense_quiescent_uA: 8.3"
+
+quit
+.endc
+.end

@@ -1,0 +1,47 @@
+* Quick trip test — current-limited error amp model
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.temp 27
+
+Vbvdd bvdd 0 DC 7.0
+
+* Pass device
+XM1  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+
+.include "design.cir"
+Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
+
+* Model error amp output as:
+* - Voltage source (sets desired gate voltage) through high impedance
+* - Plus a current-limit resistor that models OTA output current capability
+* Error amp OTA: ~20uA max sink/source, output impedance ~200k
+* Sweep Vgate to drive pass device on
+Vgate gate_drive 0 DC 7.0
+Rgate gate_drive gate_int 50k
+
+* Fixed pvdd at 5V
+Vpvdd pvdd 0 DC 5.0
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+
+.control
+dc Vgate 7 0 -0.05
+let iload = i(Vpvdd) * 1000
+let imax = vecmax(iload)
+echo "ilim_tt27_mA: $&imax"
+
+* Also print gate voltage at max current
+meas dc vgate_at_ilim find gate_drive when iload=imax
+echo "Vgate_at_max: $&vgate_at_ilim"
+quit
+.endc
+.end
