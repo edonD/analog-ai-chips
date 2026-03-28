@@ -96,6 +96,19 @@ Both well within 1 mV spec. The design is robust to manufacturing variations.
 
 Total resistor area ≈ 2,131 µm² = 0.0021 mm² — about 3.3% of the 0.065 mm² total regulator area budget.
 
+## Pareto Analysis: Area vs MC Matching
+
+| W (µm) | Area (µm²) | MC 3σ (mV) | Status |
+|---------|-----------|-----------|--------|
+| 1.0 | 228 | 12.7 | FAIL |
+| 1.5 | 522 | 8.5 | PASS (min area) |
+| 2.0 | 937 | 6.8 | PASS |
+| 2.5 | 1,473 | 5.6 | PASS |
+| **3.0** | **2,130** | **4.9** | **PASS (chosen)** |
+| 4.0 | 3,804 | 3.8 | PASS |
+
+W=1.5 is the minimum width meeting MC spec. W=3.0 was chosen for 50% margin on matching, appropriate for automotive-grade reliability.
+
 ## Open Issues
 
 None — all specifications met with margin.
