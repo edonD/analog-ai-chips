@@ -1,21 +1,13 @@
-# Block 00: Error Amplifier — Spec Tracker
-# Tab-separated. Do not edit manually — source of truth is specification.json.
-# Testbenches must print metrics in the format: "metric_name: value"
-# Example:  phase_margin: 67.3
-#
-# Columns:
-#   metric        — name used in grep and results.tsv header
-#   grep_pattern  — pattern passed to grep on run.log
-#   operator      — >= (higher is better) or <= (lower is better)
-#   threshold     — pass/fail boundary (from specification.json)
-#   unit          — display unit
-#   primary       — yes: this metric is column 2 in results.tsv
+# Block 00: Error Amplifier — Spec Tracker v2
+# Primary metric: ugb_kHz (maximize bandwidth)
+# Phase margin must be in [60, 80] band — both min AND max enforced
 #
 metric	grep_pattern	operator	threshold	unit	primary
-phase_margin_deg	^phase_margin:	>=	55	deg	yes
+ugb_kHz	^ugb_kHz:	>=	500	kHz	yes
+ugb_kHz_max	^ugb_kHz:	<=	5000	kHz	no
+phase_margin_deg	^phase_margin:	>=	60	deg	no
+phase_margin_max	^phase_margin:	<=	80	deg	no
 dc_gain_dB	^dc_gain:	>=	60	dB	no
-ugb_kHz	^ugb_kHz:	>=	200	kHz	no
-ugb_kHz_max	^ugb_kHz:	<=	1000	kHz	no
 output_swing_low_V	^output_swing_low:	<=	0.5	V	no
 output_swing_high_V	^output_swing_high:	>=	4.5	V	no
 iq_uA	^iq_uA:	<=	100	uA	no
@@ -24,3 +16,6 @@ cmrr_dB	^cmrr_dB:	>=	50	dB	no
 psrr_dB	^psrr_dB:	>=	40	dB	no
 devices_in_sat	^devices_in_sat:	>=	1	bool	no
 pvt_all_pass	^pvt_all_pass:	>=	1	bool	no
+cc_pF	^cc_pF:	<=	50	pF	no
+gain_slope_at_ugb	^gain_slope_dBdec:	<=	-15	dBdec	no
+noise_uVrms	^inoise_total_uVrms:	<=	20	uVrms	no

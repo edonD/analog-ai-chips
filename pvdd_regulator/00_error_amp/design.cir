@@ -37,8 +37,8 @@ XMtail tail_s pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20 l=4 m=4
 
 * PMOS diff pair: M1(+)=vref, M2(-)=vfb
 * Large W*L for matching; W=50 L=4 m=2 → eff W=100um, WL=400um^2
-XM1 d1  vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50 l=4 m=2
-XM2 d2  vfb  tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=50 l=4 m=2
+XM1 d1  vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=80 l=4 m=2
+XM2 d2  vfb  tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=80 l=4 m=2
 
 * NMOS current mirror load: left=diode, right=output
 * Long L for high ro and gain
@@ -59,10 +59,11 @@ XMp_ld vout_gate pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20 l=4 m=8
 * ================================================================
 * Miller compensation: Cc + Rc from vout_gate to d2
 * ================================================================
-* Cc = 5pF (Miller cap, moves dominant pole to stage 1 output)
-Cc d2 comp_mid 1300p
+* Cc = 30pF (Miller cap, moves dominant pole to stage 1 output)
+* Area: 30pF * 500 um^2/pF = 15,000 um^2 — realizable on-chip
+Cc d2 comp_mid 36p
 * Rc nulling resistor: Rc ≈ 1/gm2 moves RHP zero to infinity
-* gm2 of Mcs ≈ 2*Id/Vov ≈ 2*20uA/0.2V = 200uS → 1/gm2 ≈ 5k
-Rc comp_mid vout_gate 11.38k
+* gm2 of Mcs = 407.7 uA/V → 1/gm2 = 2452 ohm
+Rc comp_mid vout_gate 5k
 
 .ends error_amp

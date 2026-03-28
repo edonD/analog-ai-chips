@@ -1,5 +1,5 @@
 === Block 00: Error Amplifier ===
-Run started: Sat Mar 28 00:57:23 UTC 2026
+Run started: Sat Mar 28 18:41:11 UTC 2026
 
 --- Running tb_ea_dc.spice ---
 Warning: m=xx on .subckt line will override multiplier m hierarchy!
@@ -17,13 +17,23 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
  Reference value :  0.00000e+00
 No. of Data Rows : 1
 === DC Operating Point ===
-v(vout_gate) = 2.809256e-01
-v(xea.tail_s) = 2.899178e+00
-v(xea.d1) = 9.840852e-01
-v(xea.d2) = 9.840852e-01
+v(vout_gate) = 2.797264e-01
+v(xea.tail_s) = 2.868701e+00
+v(xea.d1) = 9.841448e-01
+v(xea.d2) = 9.841448e-01
 v(xea.pb_tail) = 3.754764e+00
-iq_uA: 86.2972
+iq_uA: 86.3099
+=== Saturation Check ===
+M1(diff+): Vsd=1.88456 Vdsat=0.134423 margin=1.75013
+M2(diff-): Vsd=1.88456 Vdsat=0.134423 margin=1.75013
+Mn_l(mirror): Vds=0.984145 Vdsat=0.174292 margin=0.809853
+Mn_r(mirror): Vds=0.984145 Vdsat=0.174292 margin=0.809853
+Mcs(CS): Vds=0.279726 Vdsat=0.168707 margin=0.111019
+Mp_ld(load): Vsd=4.72027 Vdsat=0.212831 margin=4.50744
+Mtail: Vsd=2.1313 Vdsat=0.212831 margin=1.91847
 devices_in_sat: 1
+gm2_uAV: 407.522
+rc_optimal_ohm: 2453.86
 ngspice-42 done
 
 --- Running tb_ea_ac.spice ---
@@ -34,7 +44,7 @@ Using SPARSE 1.3 as Direct Linear Solver
 Note: Compatibility modes selected: hs a
 
 
-Circuit: * tb_ea_ac.spice — open-loop gain, ugb, phase margin
+Circuit: * tb_ea_ac.spice — open-loop gain, ugb, phase margin, gain slope
 
 option SCALE: Scale is set to 1e-06 for instance and model parameters
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
@@ -47,9 +57,11 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 No. of Data Rows : 701
 === AC Results ===
-dc_gain: 64.7245
-ugb_kHz: 208.93
-phase_margin: 157.487
+dc_gain: 78.3724
+cc_pF: 36
+ugb_kHz: 512.861
+phase_margin: 67.4614
+gain_slope_dBdec: -25.6598
 ngspice-42 done
 
 --- Running tb_ea_swing.spice ---
@@ -65,9 +77,9 @@ Circuit: * tb_ea_swing.spice — output voltage swing
 option SCALE: Scale is set to 1e-06 for instance and model parameters
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
- Reference value :  5.00000e-01 Reference value :  1.47800e+00
+ Reference value :  5.00000e-01 Reference value :  1.48500e+00
 No. of Data Rows : 1501
-output_swing_low: 0.00962679
+output_swing_low: 0.00971497
 output_swing_high: 4.99993
 ngspice-42 done
 
@@ -87,10 +99,10 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
  Reference value :  0.00000e+00
 No. of Data Rows : 1
 === Offset Measurement ===
-vfb_val = 1.226028e+00
-vout_val = 1.226028e+00
-offset_abs = 2.803691e-02
-input_offset_mV: 0.0280369
+vfb_val = 1.226026e+00
+vout_val = 1.226026e+00
+offset_abs = 2.624749e-02
+input_offset_mV: 0.0262475
 ngspice-42 done
 
 --- Running tb_ea_cmrr.spice ---
@@ -108,7 +120,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
  Reference value :  1.00000e+01
 No. of Data Rows : 301
-acm_dc_dB: -42.8278
+acm_dc_dB: -29.8399
 ngspice-42 done
 
 --- Running tb_ea_psrr.spice ---
@@ -126,20 +138,69 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
  Reference value :  1.00000e+01
 No. of Data Rows : 301
-aps_dc_dB: -40.9532
+aps_dc_dB: -29.9545
 ngspice-42 done
 
---- Running tb_ea_pvt.spice ---
+--- Running tb_ea_noise.spice ---
 Warning: m=xx on .subckt line will override multiplier m hierarchy!
 
-Error: &n: no such variable.
-Error: Undefined number after command 'repeat', assume 1
 Using SPARSE 1.3 as Direct Linear Solver
 
 Note: Compatibility modes selected: hs a
 
 
-Circuit: * tb_ea_pvt.spice — pvt corner sweep (tt only, shell runs all corners)
+Circuit: * tb_ea_noise.spice — input-referred noise analysis
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+=== Noise Analysis ===
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+Warning: Source conductance reset to 1.0e3 mho.
+Warning: Drain conductance reset to 1.0e3 mho.
+
+No. of Data Rows : 251
+
+No. of Data Rows : 1
+inoise_total_uVrms: 35.3861
+noise_analysis: done
+ngspice-42 done
+
+--- Running PVT: 15 corners (5 process x 3 temp) ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_pvt_template.spice — pvt corner sweep template
 
 option SCALE: Scale is set to 1e-06 for instance and model parameters
 Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
@@ -155,7 +216,7 @@ Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 701
-PVT TT -40 C: gain=65.0983 dB, PM=0 deg
+PVT tt -40 C: gain=73.5535 dB, PM=74.236 deg, UGB=602.56 kHz
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
@@ -164,7 +225,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 701
-PVT TT 27 C: gain=64.7245 dB, PM=0 deg
+PVT tt 27 C: gain=78.3724 dB, PM=67.4614 deg, UGB=512.861 kHz
 Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
 
 
@@ -173,78 +234,224 @@ Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 701
-PVT TT 150 C: gain=63.601 dB, PM=0 deg
-pvt_all_pass: 1
+PVT tt 150 C: gain=85.8864 dB, PM=58.3617 deg, UGB=416.869 kHz
 ngspice-42 done
-
---- Running tb_ea_noise.spice ---
+PVT tt -40 C: gain=73.5535 dB, PM=74.236 deg, UGB=602.56 kHz
+PVT tt 27 C: gain=78.3724 dB, PM=67.4614 deg, UGB=512.861 kHz
+PVT tt 150 C: gain=85.8864 dB, PM=58.3617 deg, UGB=416.869 kHz
 Warning: m=xx on .subckt line will override multiplier m hierarchy!
 
 Using SPARSE 1.3 as Direct Linear Solver
-Warning: Noise input source vfb has no AC value
-doAnalyses: ac input not found
-
-noise simulation(s) aborted
-Error: no such plot named noise2
-Warning from checkvalid: vector inoise_total is not available or has zero length.
-Error: RHS "inoise_total * 1e6" invalid
-Error: &inoise_uv: no such variable.
 
 Note: Compatibility modes selected: hs a
 
 
-Circuit: * tb_ea_noise.spice — noise analysis
+Circuit: * tb_ea_pvt_template.spice — pvt corner sweep template
 
 option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT ss -40 C: gain=85.1371 dB, PM=73.2076 deg, UGB=602.56 kHz
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-Warning: Source conductance reset to 1.0e3 mho.
-Warning: Drain conductance reset to 1.0e3 mho.
-inoise_total_uVrms: 
-noise_analysis: done
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT ss 27 C: gain=88.752 dB, PM=66.281 deg, UGB=512.861 kHz
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT ss 150 C: gain=90.4645 dB, PM=57.72 deg, UGB=398.107 kHz
 ngspice-42 done
+PVT ss -40 C: gain=85.1371 dB, PM=73.2076 deg, UGB=602.56 kHz
+PVT ss 27 C: gain=88.752 dB, PM=66.281 deg, UGB=512.861 kHz
+PVT ss 150 C: gain=90.4645 dB, PM=57.72 deg, UGB=398.107 kHz
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_pvt_template.spice — pvt corner sweep template
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT ff -40 C: gain=66.9082 dB, PM=75.8903 deg, UGB=575.44 kHz
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT ff 27 C: gain=70.648 dB, PM=68.9269 deg, UGB=501.187 kHz
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT ff 150 C: gain=78.5267 dB, PM=59.6473 deg, UGB=416.869 kHz
+ngspice-42 done
+PVT ff -40 C: gain=66.9082 dB, PM=75.8903 deg, UGB=575.44 kHz
+PVT ff 27 C: gain=70.648 dB, PM=68.9269 deg, UGB=501.187 kHz
+PVT ff 150 C: gain=78.5267 dB, PM=59.6473 deg, UGB=416.869 kHz
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_pvt_template.spice — pvt corner sweep template
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT sf -40 C: gain=65.1939 dB, PM=76.4948 deg, UGB=524.807 kHz
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT sf 27 C: gain=68.6875 dB, PM=69.569 deg, UGB=467.735 kHz
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT sf 150 C: gain=76.2888 dB, PM=60.1966 deg, UGB=398.107 kHz
+ngspice-42 done
+PVT sf -40 C: gain=65.1939 dB, PM=76.4948 deg, UGB=524.807 kHz
+PVT sf 27 C: gain=68.6875 dB, PM=69.569 deg, UGB=467.735 kHz
+PVT sf 150 C: gain=76.2888 dB, PM=60.1966 deg, UGB=398.107 kHz
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb_ea_pvt_template.spice — pvt corner sweep template
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT fs -40 C: gain=89.3483 dB, PM=72.9528 deg, UGB=645.654 kHz
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT fs 27 C: gain=91.1918 dB, PM=65.906 deg, UGB=537.032 kHz
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 701
+PVT fs 150 C: gain=91.3865 dB, PM=56.9459 deg, UGB=416.869 kHz
+ngspice-42 done
+PVT fs -40 C: gain=89.3483 dB, PM=72.9528 deg, UGB=645.654 kHz
+PVT fs 27 C: gain=91.1918 dB, PM=65.906 deg, UGB=537.032 kHz
+PVT fs 150 C: gain=91.3865 dB, PM=56.9459 deg, UGB=416.869 kHz
+pvt_all_pass: 1
 
 --- Post-processing CMRR and PSRR ---
-cmrr_dB: 107.6
-psrr_dB: 105.7
+cmrr_dB: 108.2
+psrr_dB: 108.3
 
 --- Evaluation ---
 ---
-* phase_margin_deg                      157.5  deg       (spec >= 55.0)  PASS
-  dc_gain_dB                            64.72  dB        (spec >= 60.0)  PASS
-  ugb_kHz                               208.9  kHz       (spec >= 200.0)  PASS
-  ugb_kHz_max                           208.9  kHz       (spec <= 1000.0)  PASS
-  output_swing_low_V                 0.009627  V         (spec <= 0.5)  PASS
+* ugb_kHz                               512.9  kHz       (spec >= 500.0)  PASS
+  ugb_kHz_max                           512.9  kHz       (spec <= 5000.0)  PASS
+  phase_margin_deg                      67.46  deg       (spec >= 60.0)  PASS
+  phase_margin_max                      67.46  deg       (spec <= 80.0)  PASS
+  dc_gain_dB                            78.37  dB        (spec >= 60.0)  PASS
+  output_swing_low_V                 0.009715  V         (spec <= 0.5)  PASS
   output_swing_high_V                       5  V         (spec >= 4.5)  PASS
-  iq_uA                                  86.3  uA        (spec <= 100.0)  PASS
-  input_offset_mV                     0.02804  mV        (spec <= 5.0)  PASS
-  cmrr_dB                               107.6  dB        (spec >= 50.0)  PASS
-  psrr_dB                               105.7  dB        (spec >= 40.0)  PASS
+  iq_uA                                 86.31  uA        (spec <= 100.0)  PASS
+  input_offset_mV                     0.02625  mV        (spec <= 5.0)  PASS
+  cmrr_dB                               108.2  dB        (spec >= 50.0)  PASS
+  psrr_dB                               108.3  dB        (spec >= 40.0)  PASS
   devices_in_sat                            1  bool      (spec >= 1.0)  PASS
   pvt_all_pass                              1  bool      (spec >= 1.0)  PASS
-specs_pass: 12/12
-primary (phase_margin_deg): 157.487
+  cc_pF                                    36  pF        (spec <= 50.0)  PASS
+  gain_slope_at_ugb                    -25.66  dBdec     (spec <= -15.0)  PASS
+  noise_uVrms                           35.39  uVrms     (spec <= 20.0)  FAIL
+specs_pass: 15/16
+primary (ugb_kHz): 512.861
 
-Run finished: Sat Mar 28 00:58:33 UTC 2026
+Run finished: Sat Mar 28 18:42:58 UTC 2026

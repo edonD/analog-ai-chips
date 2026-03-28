@@ -49,8 +49,52 @@ run_tb tb_ea_swing.spice "$SWING_OUT"
 run_tb tb_ea_offset.spice "$OFFSET_OUT"
 run_tb tb_ea_cmrr.spice "$CMRR_OUT"
 run_tb tb_ea_psrr.spice "$PSRR_OUT"
-run_tb tb_ea_pvt.spice "$PVT_OUT"
 run_tb tb_ea_noise.spice "$NOISE_OUT"
+
+# =================================================================
+# PVT: All 15 corners (5 process x 3 temperature)
+# =================================================================
+echo "--- Running PVT: 15 corners (5 process x 3 temp) ---"
+PVT_ALL_PASS=1
+PVT_RESULTS=""
+
+for corner in tt ss ff sf fs; do
+    # Generate corner-specific testbench
+    sed "s/CORNER_PLACEHOLDER/$corner/g" tb_ea_pvt_template.spice > "$TMPDIR/tb_ea_pvt_${corner}.spice"
+    ngspice -b "$TMPDIR/tb_ea_pvt_${corner}.spice" > "$TMPDIR/pvt_${corner}.out" 2>&1
+
+    # Print output
+    cat "$TMPDIR/pvt_${corner}.out"
+
+    # Check each temperature for this corner
+    while IFS= read -r line; do
+        if echo "$line" | grep -q "^PVT "; then
+            echo "$line"
+            PVT_RESULTS="$PVT_RESULTS$line
+"
+            # Extract gain and PM
+            gain=$(echo "$line" | sed 's/.*gain=//; s/ dB.*//')
+            pm=$(echo "$line" | sed 's/.*PM=//; s/ deg.*//')
+
+            # Check pass/fail (gain >= 60 dB AND PM >= 55 deg)
+            fail=$(python3 -c "
+g = float('$gain')
+p = float('$pm')
+if g < 60 or p < 55 or p <= 0:
+    print('FAIL')
+else:
+    print('PASS')
+" 2>/dev/null)
+            if [ "$fail" = "FAIL" ]; then
+                PVT_ALL_PASS=0
+                echo "  ^^^ FAIL (gain >= 60 dB AND PM >= 55 deg required)"
+            fi
+        fi
+    done < "$TMPDIR/pvt_${corner}.out"
+done
+
+echo "pvt_all_pass: $PVT_ALL_PASS"
+echo ""
 
 # Post-process CMRR: CMRR_dB = dc_gain_dB - acm_dc_dB
 echo "--- Post-processing CMRR and PSRR ---"

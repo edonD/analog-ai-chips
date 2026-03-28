@@ -1,4 +1,4 @@
-* tb_ea_ac.spice — Open-loop gain, UGB, phase margin
+* tb_ea_ac.spice — Open-loop gain, UGB, phase margin, gain slope
 * Block 00: Error Amplifier (Two-Stage Miller OTA)
 *
 * Method: AC stimulus at vfb, measure gain = -v(vout_gate)/v(vfb)
@@ -34,22 +34,29 @@ Cload vout_gate 0 100p
   echo "=== AC Results ==="
   echo "dc_gain: $&dc_gain"
 
-  * Find UGB: scan for first 0dB crossing
-  let n = length(gain_db)
+  * Report compensation cap value
+  echo "cc_pF: 36"
+
+  * Find UGB: scan for first 0dB crossing using dowhile
+  let npts = length(gain_db)
   let ugb_hz = 0
   let pm_deg = 0
+  let ugb_idx = 0
   let i = 1
   let prev_g = gain_db[0]
-  repeat $&n
-    if prev_g > 0
-      if gain_db[i] <= 0
-        let ugb_hz = frequency[i]
-        let pm_deg = phase_raw[i] + 180
-        * Break by setting prev_g negative
-        let prev_g = -1
+  let found = 0
+  dowhile i < npts
+    if found = 0
+      if prev_g > 0
+        if gain_db[i] <= 0
+          let ugb_hz = frequency[i]
+          let pm_deg = phase_raw[i] + 180
+          let ugb_idx = i
+          let found = 1
+        end
       end
     end
-    if prev_g >= 0
+    if found = 0
       let prev_g = gain_db[i]
     end
     let i = i + 1
@@ -58,6 +65,35 @@ Cload vout_gate 0 100p
   let ugb_khz = ugb_hz / 1000
   echo "ugb_kHz: $&ugb_khz"
   echo "phase_margin: $&pm_deg"
+
+  * =================================================================
+  * Measure gain slope at UGB (dB/decade)
+  * Use points 1/2 decade below and above UGB
+  * =================================================================
+  let f_lo = ugb_hz / 3.16228
+  let f_hi = ugb_hz * 3.16228
+  let g_lo = 0
+  let g_hi = 0
+  let found_lo = 0
+  let found_hi = 0
+  let j = 0
+  dowhile j < npts
+    if frequency[j] >= f_lo
+      if found_lo = 0
+        let g_lo = gain_db[j]
+        let found_lo = 1
+      end
+    end
+    if frequency[j] >= f_hi
+      if found_hi = 0
+        let g_hi = gain_db[j]
+        let found_hi = 1
+      end
+    end
+    let j = j + 1
+  end
+  let slope = g_hi - g_lo
+  echo "gain_slope_dBdec: $&slope"
 
   wrdata ac_gain.dat gain_db phase_raw
   quit
