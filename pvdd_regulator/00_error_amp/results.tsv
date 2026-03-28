@@ -38,3 +38,6 @@ fecb8df	156.630000	11/12	discard	Rc=11.2k UGB=170kHz below spec
 c24ae56	155.749000	11/12	discard	Rc=11.3k UGB=195kHz barely below
 ef32e3a	154.705000	12/12	keep	Rc=11.4k PM=154.7 UGB=219kHz
 539f5bc	155.150000	12/12	keep	Rc=11.35k PM=155.2 UGB=209kHz at edge
+e3f6e43	156.448000	12/12	keep	Cc=900pF Rc=11.4k PM=156.4
+ce1a510	157.696000	12/12	keep	Cc=1.1nF Rc=11.4k PM=157.7
+a15a5ca	158.375000	12/12	keep	Cc=1.3nF Rc=11.4k PM=158.4 gain=62.9dB
