@@ -1,0 +1,376 @@
+=== Block 06: Level Shifter ===
+Run started: Sat Mar 28 00:14:15 UTC 2026
+
+--- Running tb_ls_logic.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_logic.spice — logic function, output levels, metastability check
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             2.37261e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                       -4.2571e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  2.66713e-07 Reference value :  5.06320e-07 Reference value :  7.46598e-07
+No. of Data Rows : 8164
+lth_high            =  7.000000e+00 at=  2.499354e-07
+lth_low             =  2.372608e-07 at=  4.500000e-07
+htl_high            =  2.200000e+00 at=  2.498354e-07
+htl_low             =  3.178557e-09 at=  4.500000e-07
+lth_at_120n         =  7.000000e+00
+lth_at_320n         =  2.372608e-07
+htl_at_120n         =  2.200000e+00
+htl_at_320n         =  3.178557e-09
+lth_out_high_margin_V: 0.2
+lth_out_low_V: 2.37261E-07
+htl_out_high_margin_V: 0.2
+htl_out_low_V: 3.17856E-09
+no_metastable: 1
+ngspice-42 done
+
+--- Running tb_ls_delay.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_delay.spice — propagation delay measurement
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             2.37261e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                       -4.2571e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  2.97613e-07 Reference value :  5.73720e-07
+No. of Data Rows : 8164
+tplh_up             =  2.899886e-08 targ=  7.949886e-08 trig=  5.050000e-08
+tphl_up             =  6.601592e-09 targ=  2.581016e-07 trig=  2.515000e-07
+tplh_dn             =  6.308815e-09 targ=  5.680882e-08 trig=  5.050000e-08
+tphl_dn             =  2.484201e-09 targ=  2.539842e-07 trig=  2.515000e-07
+=== tb_ls_delay results (TT 27C) ===
+tplh_up: 2.89989E-08
+tphl_up: 6.60159E-09
+tplh_dn: 6.30882E-09
+tphl_dn: 2.4842E-09
+delay_max_ns_tt: 28.9989
+ngspice-42 done
+
+--- Running tb_ls_bvdd_sweep.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Reset re-loads circuit * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                       5.4
+pvdd                                         5
+out_up                             6.40092e-09
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                     5.4
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                      -1.86064e-11
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  3.30988e-07 Reference value :  6.57805e-07Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 8166
+up_high_54          =  5.400000e+00 at=  2.495924e-07
+up_low_54           =  6.400923e-09 at=  4.500000e-07
+=== BVDD=5.4V ===
+up_out_high_54: 5.4
+up_out_low_54: 6.40092E-09
+works_bvdd_min: 1
+Reset re-loads circuit * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             2.37261e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                       -4.2571e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  2.80413e-07 Reference value :  5.51220e-07Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 8164
+up_high_70          =  7.000000e+00 at=  2.498354e-07
+up_low_70           =  2.372608e-07 at=  4.500000e-07
+=== BVDD=7.0V ===
+up_out_high_70: 7
+up_out_low_70: 2.37261E-07
+Reset re-loads circuit * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+Circuit: * tb_ls_bvdd_sweep.spice — functionality across bvdd range
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                      10.5
+pvdd                                         5
+out_up                             1.97775e-05
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                    10.5
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                        -3.383e-08
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00 Reference value :  3.36734e-07 Reference value :  6.65019e-07
+No. of Data Rows : 8217
+up_high_105         =  1.050000e+01 at=  2.499216e-07
+up_low_105          =  1.977754e-05 at=  4.497343e-07
+=== BVDD=10.5V ===
+up_out_high_105: 10.5
+up_out_low_105: 1.97775E-05
+works_bvdd_max: 1
+ngspice-42 done
+
+--- Running tb_ls_power.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_power.spice — static power measurement
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                         7
+pvdd                                         5
+out_up                             2.37261e-07
+out_dn                             3.17856e-09
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                       7
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                      -1.32326e-11
+vbvdd#branch                       -4.2571e-10
+vsvdd#branch                      -1.02531e-11
+
+ Reference value :  0.00000e+00
+No. of Data Rows : 1397
+=== tb_ls_power results ===
+ibvdd_low           =  -4.257101e-10 from=  3.000000e-07 to=  4.802800e-07
+isvdd_low           =  -1.025301e-11 from=  3.000000e-07 to=  4.802800e-07
+ipvdd_low           =  -1.323271e-11 from=  3.000000e-07 to=  4.802800e-07
+ibvdd_high          =  -4.257100e-10 from=  7.000000e-07 to=  9.509045e-07
+isvdd_high          =  -6.985377e-12 from=  7.000000e-07 to=  9.509045e-07
+ipvdd_high          =  -6.096165e-12 from=  7.000000e-07 to=  9.509045e-07
+i_up_low_uA: 0.00042571
+i_up_high_uA: 0.00042571
+i_dn_low_uA: 1.32327E-05
+i_dn_high_uA: 6.09616E-06
+static_power_uA: 0.00042571
+ngspice-42 done
+
+--- Running tb_ls_pvt.spice ---
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Using SPARSE 1.3 as Direct Linear Solver
+Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * tb_ls_pvt.spice — worst-case pvt: ss 150c, bvdd=5.4v
+
+option SCALE: Scale is set to 1e-06 for instance and model parameters
+Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+svdd                                       2.2
+bvdd                                       5.4
+pvdd                                         5
+out_up                             3.22003e-08
+out_dn                             1.84526e-08
+in_up                                        0
+in_dn                                        0
+xup.in_b                                   2.2
+xup.n1                                     5.4
+xdn.in_b                                     5
+xdn.n1                                     2.2
+vin_dn#branch                                0
+vin_up#branch                                0
+vpvdd#branch                       -4.8885e-10
+vbvdd#branch                      -5.60166e-10
+vsvdd#branch                      -3.07738e-10
+
+ Reference value :  0.00000e+00 Reference value :  2.51939e-07 Reference value :  4.50000e-07doAnalyses: TRAN:  Timestep too small; time = 4.5e-07, timestep = 1.25e-22: trouble with node "vin_dn#branch"
+
+
+run simulation(s) aborted
+=== tb_ls_pvt results (SS 150C, BVDD=5.4V) ===
+lth_high            =  5.399999e+00 at=  2.399018e-07
+lth_low             =  3.220028e-08 at=  4.390923e-07
+htl_high            =  2.200000e+00 at=  2.399018e-07
+htl_low             =  1.845264e-08 at=  4.398923e-07
+tplh_up             =  2.774819e-08 targ=  7.824819e-08 trig=  5.050000e-08
+tphl_up             =  8.696236e-09 targ=  2.601962e-07 trig=  2.515000e-07
+tplh_dn             =  8.981980e-09 targ=  5.948198e-08 trig=  5.050000e-08
+Error: no function as int with that arity.
+Error: RHS "int(lth_margin_raw * 1e4 + 0.5) / 1e4" invalid
+Error: no function as int with that arity.
+Error: RHS "int(htl_margin_raw * 1e4 + 0.5) / 1e4" invalid
+Error: &lth_margin: no such variable.
+Error: &htl_margin: no such variable.
+tphl_dn             =  4.027600e-09 targ=  2.555276e-07 trig=  2.515000e-07
+lth_at_150n         =  5.399999e+00
+lth_at_350n         =  3.220028e-08
+htl_at_150n         =  2.200000e+00
+htl_at_350n         =  1.845264e-08
+tplh_up_ns: 27.7482
+tphl_up_ns: 8.69624
+tplh_dn_ns: 8.98198
+tphl_dn_ns: 4.0276
+delay_max_ns: 27.7482
+lth_out_high_margin_V: 
+lth_out_low_V: 3.22003E-08
+htl_out_high_margin_V: 
+htl_out_low_V: 1.84526E-08
+works_ss_150c: 1
+no_metastable: 1
+ngspice-42 done
+
+--- Evaluation ---
+---
+* delay_max_ns                          27.75  ns        (spec <= 100.0)  PASS
+  lth_out_high_margin_V                   0.2  V         (spec >= 0.2)  PASS
+  lth_out_low_V                      3.22e-08  V         (spec <= 0.2)  PASS
+  htl_out_high_margin_V                   0.2  V         (spec >= 0.2)  PASS
+  htl_out_low_V                     1.845e-08  V         (spec <= 0.2)  PASS
+  static_power_uA                   0.0004257  uA        (spec <= 5.0)  PASS
+  works_bvdd_min                            1  bool      (spec >= 1.0)  PASS
+  works_bvdd_max                            1  bool      (spec >= 1.0)  PASS
+  works_ss_150c                             1  bool      (spec >= 1.0)  PASS
+  no_metastable                             1  bool      (spec >= 1.0)  PASS
+specs_pass: 10/10
+primary (delay_max_ns): 27.7482
+
+Run finished: Sat Mar 28 00:15:06 UTC 2026
