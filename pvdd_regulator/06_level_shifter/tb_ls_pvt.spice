@@ -78,8 +78,8 @@ echo "delay_max_ns:" "$&dmax"
 let lth_margin_raw = lth_high - 5.2
 let htl_margin_raw = htl_high - 2.0
 * Round to 4 decimal places (0.1mV) to avoid sub-uV numerical noise
-let lth_margin = int(lth_margin_raw * 1e4 + 0.5) / 1e4
-let htl_margin = int(htl_margin_raw * 1e4 + 0.5) / 1e4
+let lth_margin = floor(lth_margin_raw * 1e4 + 0.5) / 1e4
+let htl_margin = floor(htl_margin_raw * 1e4 + 0.5) / 1e4
 
 echo "lth_out_high_margin_V:" "$&lth_margin"
 echo "lth_out_low_V:" "$&lth_low"

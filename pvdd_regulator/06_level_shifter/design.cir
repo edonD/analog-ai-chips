@@ -17,7 +17,8 @@
 * ============================================================
 .subckt level_shifter_up in out bvdd svdd gnd
 .param wn_up=10
-.param wp_up=4
+.param wp_up=3
+.param wp_up_o=5
 .param winv_n=2
 .param winv_p=4
 
@@ -29,9 +30,9 @@ XMP_INV in_b in  svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=winv_p L=0.5
 XMN1 n1  in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_up L=1
 XMN2 out in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_up L=1
 
-* Cross-coupled PMOS (BVDD domain)
-XMP1 n1  out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up L=0.5
-XMP2 out n1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up L=0.5
+* Cross-coupled PMOS (BVDD domain) — asymmetric: XMP2 wider for lower Ron on output
+XMP1 n1  out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up   L=0.5
+XMP2 out n1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up_o L=0.5
 
 .ends level_shifter_up
 
