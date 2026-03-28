@@ -4,8 +4,12 @@
 *   .noise measures output noise and divides by gain to get input-referred
 *   Use inductor for DC feedback to avoid resistor noise contribution
 
+* design_noise.cir adds nrd=0.1 nrs=0.1 to all device instances, providing
+* ngspice with nonzero S/D parasitic resistance and eliminating the spurious
+* "conductance reset to 1.0e3 mho" warnings during noise analysis.
+* DC impact: negligible (0.1 ohm * 20uA = 2 uV drop per terminal).
 .lib "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
-.include "design.cir"
+.include "design_noise.cir"
 
 Vpvdd pvdd 0 DC 5.0
 Vref  vref 0 DC 1.226

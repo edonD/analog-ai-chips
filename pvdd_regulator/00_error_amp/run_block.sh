@@ -49,6 +49,10 @@ run_tb tb_ea_swing.spice "$SWING_OUT"
 run_tb tb_ea_offset.spice "$OFFSET_OUT"
 run_tb tb_ea_cmrr.spice "$CMRR_OUT"
 run_tb tb_ea_psrr.spice "$PSRR_OUT"
+# Generate design_noise.cir (adds nrd/nrs for clean noise analysis)
+sed 's/sky130_fd_pr__nfet_g5v0d10v5 \(.*\)$/sky130_fd_pr__nfet_g5v0d10v5 \1 nrd=0.1 nrs=0.1/' design.cir | \
+sed 's/sky130_fd_pr__pfet_g5v0d10v5 \(.*\)$/sky130_fd_pr__pfet_g5v0d10v5 \1 nrd=0.1 nrs=0.1/' > design_noise.cir
+
 run_tb tb_ea_noise.spice "$NOISE_OUT"
 
 # =================================================================

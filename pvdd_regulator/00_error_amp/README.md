@@ -86,13 +86,16 @@ All devices in saturation with > 50 mV margin:
 
 **15/16 specs pass.**
 
-\* Noise measurement affected by SKY130 HV device model limitation: ngspice
-reports "Source/Drain conductance reset to 1.0e3 mho" during noise analysis of
-`sky130_fd_pr__nfet_g5v0d10v5` and `sky130_fd_pr__pfet_g5v0d10v5` devices.
-These parasitic conductance resets inject unrealistic thermal noise at high
-frequencies. The actual circuit noise should be significantly lower than the
-reported 33.7 uVrms. This is a known issue with SKY130 HV BSIM3 models and
-does not reflect a design deficiency.
+\* Noise is real circuit noise, not a model artifact. The ngspice "conductance
+reset" warnings were eliminated by adding nrd/nrs=0.1 to device instances
+(design_noise.cir); noise remained 33.7 uVrms — confirming it's intrinsic.
+Breakdown: thermal floor ~21 nV/rtHz contributes 20.8 uVrms (10kHz-1MHz),
+1/f noise adds ~25 uVrms (10Hz-10kHz). The 20 uVrms spec is essentially
+unachievable with HV 5V/10.5V PMOS input devices at 20 uA tail current —
+their lower gm/Id ratio (thick oxide) makes the thermal floor alone equal
+to the spec limit. Meeting this spec would require either: (1) 4x higher
+tail current (~80 uA, doubling Iq), or (2) 1.8V input devices with cascode
+protection. Both represent significant design tradeoffs.
 
 ## PVT Corner Results (15 corners: 5 process x 3 temperature)
 
