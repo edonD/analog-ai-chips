@@ -72,6 +72,29 @@ Ratio variation < 0.01% across 4.8–5.17V PVDD operating range.
 | 4 | w=2.0, l_top=353, l_bot=114.78 | 0.054 mV | 10.37 µA | 6.66 mV | Lower Iq |
 | 5 | **w=3.0, l_top=536, l_bot=174.30** | **0.004 mV** | **10.35 µA** | **5.21 mV** | **Final** |
 
+## Sensitivity Analysis
+
+| Perturbation | VFB Change | Sensitivity |
+|-------------|------------|-------------|
+| l_top ± 1 µm | ± 1.73 mV | 1.73 mV/µm |
+| l_bot ± 1 µm | ± 5.31 mV | 5.31 mV/µm |
+
+VFB is 3x more sensitive to R_BOT length (shorter resistor → higher % change per µm). At 130nm poly tolerance (±0.05 µm):
+- l_top: ±0.086 mV
+- l_bot: ±0.265 mV
+
+Both well within 1 mV spec. The design is robust to manufacturing variations.
+
+## Area Estimate
+
+| Component | Dimensions | Area |
+|-----------|-----------|------|
+| R_TOP | 3.0 × 536 µm | 1,608 µm² |
+| R_BOT | 3.0 × 174.3 µm | 523 µm² |
+| **Total** | | **2,131 µm²** |
+
+Total resistor area ≈ 2,131 µm² = 0.0021 mm² — about 3.3% of the 0.065 mm² total regulator area budget.
+
 ## Open Issues
 
 None — all specifications met with margin.

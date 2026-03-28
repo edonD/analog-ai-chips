@@ -1,0 +1,47 @@
+* tb_fb_sensitivity.spice — Sensitivity of VFB to resistor length variations
+* Block 02: Feedback Network
+* This tells us how much manufacturing tolerance matters.
+
+.include "sky130_res_models.spice"
+
+.param l_top_val = 536
+.param l_bot_val = 174.30
+
+.subckt feedback_network_sens pvdd vfb gnd
+XR_TOP pvdd vfb gnd sky130_fd_pr__res_xhigh_po w=3.0 l=l_top_val
+XR_BOT vfb  gnd gnd sky130_fd_pr__res_xhigh_po w=3.0 l=l_bot_val
+.ends feedback_network_sens
+
+Vpvdd pvdd 0 DC 5.0
+Xfb pvdd vfb 0 feedback_network_sens
+
+.control
+echo "=== Sensitivity Analysis ==="
+echo ""
+echo "--- Varying l_top by ±1 µm (l_bot=174.30 fixed) ---"
+foreach lt 535 535.5 536 536.5 537
+  alterparam l_top_val = $lt
+  alterparam l_bot_val = 174.30
+  reset
+  op
+  let err = (v(vfb) - 1.226) * 1000
+  echo "l_top=$lt  VFB=$&v(vfb)  delta_mV=$&err"
+  destroy all
+end
+
+echo ""
+echo "--- Varying l_bot by ±1 µm (l_top=536 fixed) ---"
+foreach lb 173.30 173.80 174.30 174.80 175.30
+  alterparam l_top_val = 536
+  alterparam l_bot_val = $lb
+  reset
+  op
+  let err = (v(vfb) - 1.226) * 1000
+  echo "l_bot=$lb  VFB=$&v(vfb)  delta_mV=$&err"
+  destroy all
+end
+
+quit
+.endc
+
+.end
