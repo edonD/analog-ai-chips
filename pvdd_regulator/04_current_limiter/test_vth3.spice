@@ -1,0 +1,23 @@
+* Characterize HV NFET Vth
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.temp 27
+
+Vgs gate 0 0
+Vds drain 0 1.0
+XMn drain gate 0 0 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
+
+.option savecurrents
+
+.control
+dc Vgs 0 2.0 0.01
+let id = -i(Vds)
+meas dc vth_1ua find v(gate) when id=1e-6
+meas dc vth_10ua find v(gate) when id=10e-6
+meas dc vth_100ua find v(gate) when id=100e-6
+echo "nfet_vth_1uA: $&vth_1ua"
+echo "nfet_vth_10uA: $&vth_10ua"
+echo "nfet_vth_100uA: $&vth_100ua"
+quit
+.endc
+.end

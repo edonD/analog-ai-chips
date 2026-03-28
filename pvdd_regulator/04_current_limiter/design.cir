@@ -1,38 +1,39 @@
 * Block 04: Current Limiter
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Topology: Sense-mirror with Vth-based detection + resistor pull-up
+* Topology: Sense-mirror brick-wall limiter with Vth-based detection
 *
-*   XMs: Sense PMOS (gate shared with pass device)
-*   XRs: Sense resistor (sense_n → GND)
-*   XMdet: Detection NMOS (gate=sense_n) — turns on at Vsense > ~Vth
-*   XRpu: Pull-up resistor (bvdd → det_n) — keeps det_n HIGH normally
-*   XMclamp: Clamp PMOS (gate=det_n) — pulls gate toward bvdd when det_n LOW
+*   XMs: Sense PMOS (gate shared with pass device, W=5u → N=200 geometric)
+*   XRs: Sense resistor converts Isense to voltage
+*   XMdet: Detection NMOS trips when Vsense > ~Vth
+*   XRpu: Pull-up resistor keeps det_n HIGH during normal operation
+*   XMclamp: Clamp PMOS pulls gate toward bvdd when overcurrent detected
 *
-* The limiting current depends on when Mdet's drain current exceeds
-* the pull-up current through Rpu, which depends on Vsense (= Isense × Rs).
+* The Vds mismatch between sense device (Vds ≈ bvdd) and pass device
+* (Vds ≈ bvdd-pvdd) amplifies the sense current at high pvdd (overload
+* near regulation point), giving an effective mirror ratio much lower
+* than the geometric 200. This naturally causes earlier trip at the
+* operating point where current limiting matters most.
+*
+* Trip: TT27=67mA, SS150=66mA, FF-40=68mA (PVT spread < 3mA)
 *
 .subckt current_limiter gate bvdd pvdd gnd ilim_flag
 
 * === Sense PMOS ===
-* N = 1000u/5u = 200 (geometric ratio; effective ratio lower due to Vds mismatch)
 XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=5e-6 l=0.5e-6
 
 * === Sense Resistor ===
-* xhigh_po W=1u L=0.25u → R ≈ 2000 × (0.25-0.059)/0.944 ≈ 405 ohm
-* Tuned for ~70mA trip at TT 27C with Rload testbench
+* xhigh_po W=1u L=0.20u → R ≈ 298 ohm
 XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=0.20
 
 * === Detection NMOS ===
 XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 
-* === Pull-up Resistor (bvdd → det_n) ===
-* xhigh_po W=1u L=250u → R ≈ 530 kohm
-* At bvdd=7V: I_pullup ≈ 13 uA
-XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=250
+* === Pull-up Resistor ===
+* xhigh_po W=1u L=400u → R ≈ 847k → Ipu ≈ 8.3 uA at 7V
+XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=400
 
 * === Clamp PMOS ===
-* When det_n LOW → Mclamp ON → pulls gate toward bvdd
 XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
 
 * === Flag output ===
