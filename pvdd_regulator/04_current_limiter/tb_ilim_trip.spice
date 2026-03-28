@@ -1,0 +1,55 @@
+* tb_ilim_trip.spice — Current limit trip point measurement
+* Method: Rload sweep — decrease Rload until current limiting activates
+*
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.temp 27
+
+* Supply
+Vbvdd bvdd 0 DC 7.0
+
+* Pass device (Block 01: 10x W=100u L=0.5u)
+XM1  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+
+* Current limiter
+.include "design.cir"
+Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
+
+* Error amp: voltage source through 10k resistor
+* Models error amp with moderate output impedance
+Vgate gate_drive 0 DC 7.0
+Rgate gate_drive gate_int 10k
+
+* Load: resistive load to ground
+Rload pvdd 0 100
+
+* Output cap
+Cload pvdd 0 200p
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+
+.control
+* Sweep gate drive from 7V (pass device OFF) to 0V (full ON)
+dc Vgate 7 0 -0.05
+
+* Load current = Vpvdd / Rload
+let iload = v(pvdd) / 100
+let iload_ma = iload * 1000
+let imax = vecmax(iload)
+let imax_ma = imax * 1000
+
+echo "=== TT 27C Trip Point ==="
+echo "ilim_tt27_mA: $&imax_ma"
+
+quit
+.endc
+.end
