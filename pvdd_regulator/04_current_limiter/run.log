@@ -1,34 +1,34 @@
 === Block 04: Current Limiter ===
-Run started: Sat Mar 28 23:55:43 UTC 2026
+Run started: Sat Mar 28 23:56:21 UTC 2026
 
 --- Running tb_ilim_trip.spice ---
-ilim_tt27_mA: 69.5395
+ilim_tt27_mA: 74.6661
 
 --- Running PVT corners ---
-ilim_ss_150_mA: 123.921
-ilim_ss150_mA: 123.921
-ilim_ff_-40_mA: 37.7681
-ilim_ff_m40_mA: 37.7681
-ilim_tt_-40_mA: 47.1209
-ilim_tt_27_mA: 69.5395
-ilim_tt_150_mA: 113.689
-ilim_ss_-40_mA: 57.3809
-ilim_ss_27_mA: 82.6864
-ilim_ss_150_mA: 123.921
-ilim_ff_-40_mA: 37.7681
-ilim_ff_27_mA: 56.9227
-ilim_ff_150_mA: 100.432
-ilim_sf_-40_mA: 47.5641
-ilim_sf_27_mA: 69.8735
-ilim_sf_150_mA: 112.002
-ilim_fs_-40_mA: 46.5694
-ilim_fs_27_mA: 69.3897
-ilim_fs_150_mA: 115.18
+ilim_ss_150_mA: 130.422
+ilim_ss150_mA: 130.422
+ilim_ff_-40_mA: 40.839
+ilim_ff_m40_mA: 40.839
+ilim_tt_-40_mA: 50.7655
+ilim_tt_27_mA: 74.6661
+ilim_tt_150_mA: 120.375
+ilim_ss_-40_mA: 61.6351
+ilim_ss_27_mA: 88.4367
+ilim_ss_150_mA: 130.422
+ilim_ff_-40_mA: 40.839
+ilim_ff_27_mA: 61.3228
+ilim_ff_150_mA: 106.952
+ilim_sf_-40_mA: 51.139
+ilim_sf_27_mA: 74.9096
+ilim_sf_150_mA: 118.227
+ilim_fs_-40_mA: 50.2968
+ilim_fs_27_mA: 74.6232
+ilim_fs_150_mA: 122.221
 
 --- Running tb_ilim_transient.spice ---
-current_before_mA: 47.7605
-current_after_mA: 56.1094
-peak_current_mA: 56.468
+current_before_mA: 49.9428
+current_after_mA: 57.927
+peak_current_mA: 58.1473
 ripple_mV: 0
 response_time_us: 1.0
 no_oscillation: 1
@@ -41,16 +41,16 @@ loop_pm_with_limiter_deg: 50.0
 
 --- Evaluation ---
 ---
-* ilim_ss150_mA                         123.9  mA        (spec >= 50.0)  PASS
-  ilim_tt27_mA                          69.54  mA        (spec >= 60.0)  PASS
-  ilim_tt27_mA_max                      69.54  mA        (spec <= 80.0)  PASS
-  ilim_ff_m40_mA                        37.77  mA        (spec <= 100.0)  PASS
+* ilim_ss150_mA                         130.4  mA        (spec >= 50.0)  PASS
+  ilim_tt27_mA                          74.67  mA        (spec >= 60.0)  PASS
+  ilim_tt27_mA_max                      74.67  mA        (spec <= 80.0)  PASS
+  ilim_ff_m40_mA                        40.84  mA        (spec <= 100.0)  PASS
   response_time_us                          1  us        (spec <= 10.0)  PASS
   pvdd_impact_mV                            0  mV        (spec <= 10.0)  PASS
   sense_quiescent_uA                0.0002271  uA        (spec <= 10.0)  PASS
   loop_pm_with_limiter_deg                 50  deg       (spec >= 45.0)  PASS
   no_oscillation                            1  bool      (spec >= 1.0)  PASS
 specs_pass: 9/9
-primary (ilim_ss150_mA): 123.921
+primary (ilim_ss150_mA): 130.422
 
-Run finished: Sat Mar 28 23:55:52 UTC 2026
+Run finished: Sat Mar 28 23:56:30 UTC 2026
