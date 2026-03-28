@@ -45,6 +45,7 @@ N -70 -430 -70 -460 {}
 N -70 -460 -30 -460 {}
 N -30 -400 -30 -360 {}
 C {gnd.sym} -30 -360 0 0 {name=l2 lab=GND}
+N -30 -430 -30 -400 {}
 T {bias_n} 0 -470 0 0 0.3 0.3 {layer=8}
 T {NMOS DIFFERENTIAL PAIR} 200 -700 0 0 0.5 0.5 {layer=4}
 T {+ PMOS CURRENT MIRROR LOAD} 200 -660 0 0 0.45 0.45 {layer=4}
@@ -61,7 +62,6 @@ C {pmos4.sym} 530 -500 0 0 {name=XM4 model=sky130_fd_pr__pfet_01v8 w=2u l=1u m=1
 N 550 -530 550 -570 {}
 T {vdd_comp} 560 -580 0 0 0.3 0.3 {layer=8}
 N 510 -500 240 -500 {}
-N 240 -500 240 -500 {}
 N 550 -500 570 -500 {}
 N 570 -500 570 -570 {}
 T {out_n} 560 -475 0 0 0.35 0.35 {layer=7}
@@ -71,12 +71,16 @@ T {mid_uv} 160 -330 0 0 0.35 0.35 {layer=8}
 N 180 -320 260 -320 {}
 N 300 -290 300 -260 {}
 N 300 -320 320 -320 {}
+N 320 -320 320 -280 {}
+C {gnd.sym} 320 -280 0 0 {name=lb1 lab=GND}
 C {nmos4.sym} 530 -320 0 0 {name=XM2 model=sky130_fd_pr__nfet_01v8 w=2u l=1u m=1 spiceprefix=X}
 N 550 -350 550 -470 {}
 T {vref} 430 -330 0 0 0.35 0.35 {layer=8}
 N 450 -320 510 -320 {}
 N 550 -290 550 -260 {}
 N 550 -320 570 -320 {}
+N 570 -320 570 -280 {}
+C {gnd.sym} 570 -280 0 0 {name=lb2 lab=GND}
 N 300 -260 550 -260 {}
 N 425 -260 425 -230 {}
 T {tail} 435 -265 0 0 0.3 0.3 {layer=13}
@@ -86,6 +90,7 @@ N 385 -180 345 -180 {}
 T {bias_n} 285 -190 0 0 0.3 0.3 {layer=8}
 N 425 -150 425 -120 {}
 C {gnd.sym} 425 -120 0 0 {name=l3 lab=GND}
+N 425 -180 425 -150 {}
 T {ENABLE + NOR OUTPUT} 750 -700 0 0 0.5 0.5 {layer=4}
 T {uv_flag = NOR(out_n, en_bar)} 750 -660 0 0 0.35 0.35 {layer=13}
 T {HIGH when PVDD < threshold} 750 -630 0 0 0.3 0.3 {layer=5}

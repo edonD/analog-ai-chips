@@ -103,6 +103,8 @@ def build_uv():
     s += N(bx - 40, -460, bx, -460)
     s += N(bx, -400, bx, -360)
     s += C("gnd.sym", bx, -360, props="name=l2 lab=GND")
+    # Body to source (both gnd)
+    s += N(bx, -430, bx, -400)
     s += T("bias_n", bx + 30, -470, 0.3, 8)
 
     # ===== DIFF PAIR + MIRROR =====
@@ -126,7 +128,6 @@ def build_uv():
     s += N(m4x + 20, m4y - 30, m4x + 20, m4y - 70)
     s += T("vdd_comp", m4x + 30, m4y - 80, 0.3, 8)
     s += N(m4x - 20, m4y, m3x - 40, m4y)
-    s += N(m3x - 40, m4y, m3x - 40, m3y)
     s += N(m4x + 20, m4y, m4x + 40, m4y)
     s += N(m4x + 40, m4y, m4x + 40, m4y - 70)
     s += T("out_n", m4x + 30, m4y + 25, 0.35, 7)
@@ -138,7 +139,10 @@ def build_uv():
     s += T("mid_uv", m1x - 120, m1y - 10, 0.35, 8)
     s += N(m1x - 100, m1y, m1x - 20, m1y)
     s += N(m1x + 20, m1y + 30, m1x + 20, m1y + 60)
+    # Body to GND (B=gnd, NOT tail — S=tail is different net)
     s += N(m1x + 20, m1y, m1x + 40, m1y)
+    s += N(m1x + 40, m1y, m1x + 40, m1y + 40)
+    s += C("gnd.sym", m1x + 40, m1y + 40, props="name=lb1 lab=GND")
 
     m2x, m2y = 530, -320
     s += C("nmos4.sym", m2x, m2y, props="name=XM2 model=sky130_fd_pr__nfet_01v8 w=2u l=1u m=1 spiceprefix=X")
@@ -146,7 +150,10 @@ def build_uv():
     s += T("vref", m2x - 100, m2y - 10, 0.35, 8)
     s += N(m2x - 80, m2y, m2x - 20, m2y)
     s += N(m2x + 20, m2y + 30, m2x + 20, m2y + 60)
+    # Body to GND
     s += N(m2x + 20, m2y, m2x + 40, m2y)
+    s += N(m2x + 40, m2y, m2x + 40, m2y + 40)
+    s += C("gnd.sym", m2x + 40, m2y + 40, props="name=lb2 lab=GND")
 
     tail_y = m1y + 60
     s += N(m1x + 20, tail_y, m2x + 20, tail_y)
@@ -162,6 +169,8 @@ def build_uv():
     s += T("bias_n", tx - 120, ty - 10, 0.3, 8)
     s += N(tx + 20, ty + 30, tx + 20, ty + 60)
     s += C("gnd.sym", tx + 20, ty + 60, props="name=l3 lab=GND")
+    # Body to source (both gnd)
+    s += N(tx + 20, ty, tx + 20, ty + 30)
 
     # ===== OUTPUT STAGE =====
     s += T("ENABLE + NOR OUTPUT", 750, -700, 0.5, 4)
@@ -311,6 +320,8 @@ def build_ov():
     s += N(bx - 40, -440, bx, -440)
     s += N(bx, -380, bx, -340)
     s += C("gnd.sym", bx, -340, props="name=l2 lab=GND")
+    # Body to source (both gnd)
+    s += N(bx, -410, bx, -380)
     s += T("bias_n", bx + 30, -450, 0.3, 8)
 
     # Diff pair + mirror
@@ -334,7 +345,6 @@ def build_ov():
     s += N(m4x + 20, m4y - 30, m4x + 20, m4y - 70)
     s += T("vdd_comp", m4x + 30, m4y - 80, 0.3, 8)
     s += N(m4x - 20, m4y, m3x - 40, m4y)
-    s += N(m3x - 40, m4y, m3x - 40, m3y)
     s += N(m4x + 20, m4y, m4x + 40, m4y)
     s += N(m4x + 40, m4y, m4x + 40, m4y - 70)
     s += T("out_n", m4x + 30, m4y + 25, 0.35, 7)
@@ -345,7 +355,10 @@ def build_ov():
     s += T("vref", m1x - 100, m1y - 10, 0.35, 8)
     s += N(m1x - 80, m1y, m1x - 20, m1y)
     s += N(m1x + 20, m1y + 30, m1x + 20, m1y + 60)
+    # Body to GND (B=gnd, S=tail — different nets)
     s += N(m1x + 20, m1y, m1x + 40, m1y)
+    s += N(m1x + 40, m1y, m1x + 40, m1y + 40)
+    s += C("gnd.sym", m1x + 40, m1y + 40, props="name=lb1 lab=GND")
 
     m2x, m2y = 530, -300
     s += C("nmos4.sym", m2x, m2y, props="name=XM2 model=sky130_fd_pr__nfet_01v8 w=2u l=1u m=1 spiceprefix=X")
@@ -353,7 +366,10 @@ def build_ov():
     s += T("mid_ov", m2x - 100, m2y - 10, 0.35, 8)
     s += N(m2x - 80, m2y, m2x - 20, m2y)
     s += N(m2x + 20, m2y + 30, m2x + 20, m2y + 60)
+    # Body to GND
     s += N(m2x + 20, m2y, m2x + 40, m2y)
+    s += N(m2x + 40, m2y, m2x + 40, m2y + 40)
+    s += C("gnd.sym", m2x + 40, m2y + 40, props="name=lb2 lab=GND")
 
     tail_y = m1y + 60
     s += N(m1x + 20, tail_y, m2x + 20, tail_y)
@@ -368,6 +384,8 @@ def build_ov():
     s += T("bias_n", tx - 120, ty - 10, 0.3, 8)
     s += N(tx + 20, ty + 30, tx + 20, ty + 60)
     s += C("gnd.sym", tx + 20, ty + 60, props="name=l3 lab=GND")
+    # Body to source (both gnd)
+    s += N(tx + 20, ty, tx + 20, ty + 30)
 
     # Output stage
     s += T("ENABLE + NOR OUTPUT", 750, -660, 0.5, 4)

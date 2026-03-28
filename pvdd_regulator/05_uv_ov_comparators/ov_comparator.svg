@@ -210,6 +210,8 @@ text {font-family: Sans-Serif;}
 <text fill="#00ccee"  xml:space="preserve" font-size="7.8934" transform="translate(165.051, 141.174) rotate(270)" >pvdd</text>
 <text fill="#00ccee"  xml:space="preserve" font-size="4.78388" transform="translate(165.646, 294.942)" >GND</text>
 <text fill="#00ccee"  xml:space="preserve" font-size="4.78388" transform="translate(381.841, 239.743)" >GND</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.78388" transform="translate(542.837, 276.542)" >GND</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.78388" transform="translate(657.834, 276.542)" >GND</text>
 <text fill="#00ccee"  xml:space="preserve" font-size="4.78388" transform="translate(591.135, 350.14)" >GND</text>
 <text fill="#00ccee"  xml:space="preserve" font-size="4.78388" transform="translate(772.831, 235.143)" >GND</text>
 <text fill="#00ccee"  xml:space="preserve" font-size="4.78388" transform="translate(841.829, 304.142)" >GND</text>
@@ -273,7 +275,7 @@ text {font-family: Sans-Serif;}
 <text fill="#cccccc"  xml:space="preserve" font-size="3.58791" transform="translate(891.278, 260.507)" >D</text>
 <text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(196.695, 685.676)" >         /home/ubuntu/analog-ai-chips/pvdd_regulator/05_uv_ov_comparators/ov_comparator.sch</text>
 <text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(196.695, 671.876)" >Block 05: OV Comparator -- Analog AI Chips PVDD LDO Regulator</text>
-<text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(353.786, 671.876)" >2026-03-28  11:37:10</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="9.56776" transform="translate(353.786, 671.876)" >2026-03-28  12:20:20</text>
 <text fill="#cccccc"  xml:space="preserve" font-size="23.9194" transform="translate(90.8981, 684.907)" >SCHEM</text>
 <path class="l4" d="M162.196 191.701L162.196 196.3"/>
 <path class="l4" d="M162.196 191.701L165.646 190.551"/>
@@ -395,6 +397,10 @@ text {font-family: Sans-Serif;}
 <path class="l4" d="M525.587 251.499L530.187 251.499"/>
 <path class="l4" d="M523.287 249.199L525.587 251.499"/>
 <path class="l4" d="M523.287 253.799L525.587 251.499"/>
+<path class="l4" d="M539.387 269.899L539.387 275.648"/>
+<path class="l4" d="M537.087 275.648L541.687 275.648"/>
+<path class="l4" d="M539.387 277.948L541.687 275.648"/>
+<path class="l4" d="M537.087 275.648L539.387 277.948"/>
 <path class="l4" d="M638.284 237.699L638.284 265.299"/>
 <path class="l4" d="M638.284 242.299L645.184 242.299"/>
 <path class="l4" d="M645.184 237.699L645.184 242.299"/>
@@ -407,6 +413,10 @@ text {font-family: Sans-Serif;}
 <path class="l4" d="M640.584 251.499L645.184 251.499"/>
 <path class="l4" d="M638.284 249.199L640.584 251.499"/>
 <path class="l4" d="M638.284 253.799L640.584 251.499"/>
+<path class="l4" d="M654.384 269.899L654.384 275.648"/>
+<path class="l4" d="M652.084 275.648L656.684 275.648"/>
+<path class="l4" d="M654.384 277.948L656.684 275.648"/>
+<path class="l4" d="M652.084 275.648L654.384 277.948"/>
 <path class="l4" d="M580.786 302.098L580.786 329.697"/>
 <path class="l4" d="M580.786 306.698L587.686 306.698"/>
 <path class="l4" d="M587.686 302.098L587.686 306.698"/>
@@ -554,10 +564,12 @@ text {font-family: Sans-Serif;}
 <path class="l5" d="M510.638 250.349L512.937 250.349L512.937 252.649L510.638 252.649L510.638 250.349z"/>
 <path class="l5" d="M529.037 264.149L531.337 264.149L531.337 266.449L529.037 266.449L529.037 264.149z"/>
 <path class="l5" d="M529.037 250.349L531.337 250.349L531.337 252.649L529.037 252.649L529.037 250.349z"/>
+<path class="l5" d="M538.237 268.749L540.537 268.749L540.537 271.049L538.237 271.049L538.237 268.749z"/>
 <path class="l5" d="M644.034 236.549L646.334 236.549L646.334 238.849L644.034 238.849L644.034 236.549z"/>
 <path class="l5" d="M625.635 250.349L627.935 250.349L627.935 252.649L625.635 252.649L625.635 250.349z"/>
 <path class="l5" d="M644.034 264.149L646.334 264.149L646.334 266.449L644.034 266.449L644.034 264.149z"/>
 <path class="l5" d="M644.034 250.349L646.334 250.349L646.334 252.649L644.034 252.649L644.034 250.349z"/>
+<path class="l5" d="M653.234 268.749L655.534 268.749L655.534 271.049L653.234 271.049L653.234 268.749z"/>
 <path class="l5" d="M586.536 300.948L588.836 300.948L588.836 303.248L586.536 303.248L586.536 300.948z"/>
 <path class="l5" d="M568.136 314.747L570.436 314.747L570.436 317.047L568.136 317.047L568.136 314.747z"/>
 <path class="l5" d="M586.536 328.547L588.836 328.547L588.836 330.847L586.536 330.847L586.536 328.547z"/>
@@ -608,6 +620,7 @@ text {font-family: Sans-Serif;}
 <path class="l1" d="M359.991 187.101L359.991 200.9"/>
 <path class="l1" d="M359.991 187.101L378.391 187.101"/>
 <path class="l1" d="M378.391 214.7L378.391 233.1"/>
+<path class="l1" d="M378.391 200.9L378.391 214.7"/>
 <path class="l1" d="M530.187 136.502L530.187 154.901"/>
 <path class="l1" d="M502.588 168.701L511.787 168.701"/>
 <path class="l1" d="M502.588 168.701L502.588 182.501"/>
@@ -622,15 +635,18 @@ text {font-family: Sans-Serif;}
 <path class="l1" d="M484.188 251.499L511.787 251.499"/>
 <path class="l1" d="M530.187 265.299L530.187 279.098"/>
 <path class="l1" d="M530.187 251.499L539.387 251.499"/>
+<path class="l1" d="M539.387 251.499L539.387 269.899"/>
 <path class="l1" d="M645.184 182.501L645.184 237.699"/>
 <path class="l1" d="M599.185 251.499L626.785 251.499"/>
 <path class="l1" d="M645.184 265.299L645.184 279.098"/>
 <path class="l1" d="M645.184 251.499L654.384 251.499"/>
+<path class="l1" d="M654.384 251.499L654.384 269.899"/>
 <path class="l1" d="M530.187 279.098L645.184 279.098"/>
 <path class="l1" d="M587.686 279.098L587.686 292.898"/>
 <path class="l1" d="M587.686 292.898L587.686 302.098"/>
 <path class="l1" d="M550.886 315.897L569.286 315.897"/>
 <path class="l1" d="M587.686 329.697L587.686 343.497"/>
+<path class="l1" d="M587.686 315.897L587.686 329.697"/>
 <path class="l1" d="M750.981 164.101L750.981 200.9"/>
 <path class="l1" d="M732.582 182.501L750.981 182.501"/>
 <path class="l1" d="M769.381 177.901L769.381 187.101"/>
