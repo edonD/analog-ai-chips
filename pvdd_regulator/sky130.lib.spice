@@ -1,0 +1,295 @@
+* Sky130 PDK Library for PVDD Regulator
+* Devices: nfet_g5v0d10v5, pfet_g5v0d10v5, cap_mim_m3_1, res_xhigh_po
+* All 5 corners: tt, ss, ff, sf, fs
+
+.param SKY130_SPICE = '/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice'
+
+* ================================================================
+* Parasitic model for poly resistor (simplified — cap to substrate)
+* ================================================================
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+
+* ================================================================
+* TT corner
+* ================================================================
+.lib tt
+
+* --- Global params ---
+.param mc_mm_switch = 0
+* MIM cap
+.param m3_dw = 0
+.param tol_m3 = 0
+.param camimc = 2.0e-15
+.param cpmimc = 3.8e-17
+.param rm3 = 0.047
+.param rcvia3 = 9.3
+.param tc1rm3 = 3.3e-3
+.param tc2rm3 = 0
+.param tc1rvia3 = 0
+.param tc2rvia3 = 0
+* Resistor
+.param sky130_fd_pr__res_xhigh_po__var_mult = 0
+* NFET g5v0d10v5 slope/diff (all 0 for nominal)
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvsat_diff = 0
+* PFET g5v0d10v5 slope/diff (all 0 for nominal)
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvsat_diff = 0
+
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_g5v0d10v5__tt.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_g5v0d10v5__tt.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__cap_mim_m3_1.model.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__res_xhigh_po.model.spice"
+
+.endl tt
+
+* ================================================================
+* SS corner
+* ================================================================
+.lib ss
+
+.param mc_mm_switch = 0
+.param m3_dw = 0
+.param tol_m3 = 0
+.param camimc = 2.0e-15
+.param cpmimc = 3.8e-17
+.param rm3 = 0.047
+.param rcvia3 = 9.3
+.param tc1rm3 = 3.3e-3
+.param tc2rm3 = 0
+.param tc1rvia3 = 0
+.param tc2rvia3 = 0
+.param sky130_fd_pr__res_xhigh_po__var_mult = 0.025
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvsat_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvsat_diff = 0
+
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_g5v0d10v5__ss.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_g5v0d10v5__ss.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__cap_mim_m3_1.model.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__res_xhigh_po.model.spice"
+
+.endl ss
+
+* ================================================================
+* FF corner
+* ================================================================
+.lib ff
+
+.param mc_mm_switch = 0
+.param m3_dw = 0
+.param tol_m3 = 0
+.param camimc = 2.0e-15
+.param cpmimc = 3.8e-17
+.param rm3 = 0.047
+.param rcvia3 = 9.3
+.param tc1rm3 = 3.3e-3
+.param tc2rm3 = 0
+.param tc1rvia3 = 0
+.param tc2rvia3 = 0
+.param sky130_fd_pr__res_xhigh_po__var_mult = -0.025
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvsat_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvsat_diff = 0
+
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_g5v0d10v5__ff.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_g5v0d10v5__ff.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__cap_mim_m3_1.model.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__res_xhigh_po.model.spice"
+
+.endl ff
+
+* ================================================================
+* SF corner (slow N, fast P)
+* ================================================================
+.lib sf
+
+.param mc_mm_switch = 0
+.param m3_dw = 0
+.param tol_m3 = 0
+.param camimc = 2.0e-15
+.param cpmimc = 3.8e-17
+.param rm3 = 0.047
+.param rcvia3 = 9.3
+.param tc1rm3 = 3.3e-3
+.param tc2rm3 = 0
+.param tc1rvia3 = 0
+.param tc2rvia3 = 0
+.param sky130_fd_pr__res_xhigh_po__var_mult = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvsat_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvsat_diff = 0
+
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_g5v0d10v5__sf.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_g5v0d10v5__sf.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__cap_mim_m3_1.model.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__res_xhigh_po.model.spice"
+
+.endl sf
+
+* ================================================================
+* FS corner (fast N, slow P)
+* ================================================================
+.lib fs
+
+.param mc_mm_switch = 0
+.param m3_dw = 0
+.param tol_m3 = 0
+.param camimc = 2.0e-15
+.param cpmimc = 3.8e-17
+.param rm3 = 0.047
+.param rcvia3 = 9.3
+.param tc1rm3 = 3.3e-3
+.param tc2rm3 = 0
+.param tc1rvia3 = 0
+.param tc2rvia3 = 0
+.param sky130_fd_pr__res_xhigh_po__var_mult = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__nfet_g5v0d10v5__kvsat_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope2 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__toxe_slope3 = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__vth0_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__voff_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__nfactor_slope = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wlod_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__ku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__lku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__wku0_diff = 0
+.param sky130_fd_pr__pfet_g5v0d10v5__kvsat_diff = 0
+
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_g5v0d10v5__fs.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_g5v0d10v5__fs.corner.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__cap_mim_m3_1.model.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__res_xhigh_po.model.spice"
+
+.endl fs

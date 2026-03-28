@@ -1,0 +1,147 @@
+* tb_debug.spice — LDO loop gain: DC closed, AC open
+* DC feedback through 100M resistor, AC injection through 1F cap
+
+* Parasitic model for poly resistor
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub 0.05f
+c1 r1 sub 0.05f
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+.temp 27
+
+.include "../00_error_amp/design.cir"
+.include "../01_pass_device/design.cir"
+.include "design.cir"
+
+* Supplies
+Vbvdd bvdd 0 DC 7.0
+Vavbg avbg 0 DC 1.226
+Ven   en   0 DC 5.0
+Ibias bvdd ibias DC 1u
+
+* Error amplifier (supplied from bvdd)
+Xea avbg vfb vout_gate bvdd 0 ibias en error_amp
+
+* Compensation
+Xcomp vout_gate pvdd 0 compensation
+
+* Pass device
+Xpass vout_gate bvdd pvdd pass_device
+
+* Load
+Cload pvdd 0 200p
+Rload pvdd 0 500
+
+* Feedback divider
+Rtop pvdd vfb_dc 314.75k
+Rbot vfb_dc 0 102.25k
+
+* DC loop closure (high R — doesn't affect AC much)
+Rdc vfb_dc vfb 100Meg
+
+* AC injection into vfb (1F coupling cap — short above ~1 Hz)
+Cinj ac_src vfb 1
+Vac ac_src 0 AC 1
+
+.nodeset v(pvdd)=5.0 v(vout_gate)=5.5 v(vfb)=1.226
+
+.option reltol=1e-4 abstol=1e-12 vntol=1e-6 gmin=1e-12
+
+.control
+  op
+  echo "=== DC Operating Point ==="
+  echo "pvdd      = $&v(pvdd) V"
+  echo "vout_gate = $&v(vout_gate) V"
+  echo "vfb       = $&v(vfb) V"
+  echo "vfb_dc    = $&v(vfb_dc) V"
+  let iload = v(pvdd)/500
+  echo "Iload     = $&iload A"
+
+  ac dec 200 1 100Meg
+
+  * The open-loop response: v(pvdd) due to AC at vfb
+  * Loop gain T(s) = -beta * A_OL where:
+  *   A_OL = v(pvdd) / v(vfb_ac)   (v(vfb_ac) ≈ 1 for frequencies >> 1/(2*pi*Cinj*Zin))
+  *   beta = 0.2452
+
+  let aol_db = 20*log10(abs(v(pvdd)) + 1e-30)
+  let aol_ph = 180/PI * cph(v(pvdd))
+
+  let beta = 0.2452
+  let T_db = aol_db + 20*log10(beta)
+  let T_ph = aol_ph + 180
+  let npts = length(T_db)
+
+  * Wrap phase
+  let i = 0
+  dowhile i < npts
+    if T_ph[i] > 180
+      let T_ph[i] = T_ph[i] - 360
+    end
+    let i = i + 1
+  end
+
+  let dc_T = T_db[0]
+  let dc_ph = T_ph[0]
+  echo "=== Loop Gain ==="
+  echo "DC loop gain = $&dc_T dB"
+  echo "DC phase     = $&dc_ph deg"
+
+  * Find UGB
+  let ugb = 0
+  let pm = 0
+  let gm_val = 100
+  let i = 1
+  dowhile i < npts
+    if ugb = 0
+      if T_db[i-1] > 0
+        if T_db[i] <= 0
+          let ugb = frequency[i]
+          let pm = T_ph[i] + 180
+        end
+      end
+    end
+    let i = i + 1
+  end
+
+  * Find GM
+  let i = 1
+  dowhile i < npts
+    if gm_val > 99
+      if T_ph[i-1] > -180
+        if T_ph[i] <= -180
+          let gm_val = -T_db[i]
+        end
+      end
+    end
+    let i = i + 1
+  end
+
+  let ugb_khz = ugb/1000
+  echo "UGB  = $&ugb Hz ($&ugb_khz kHz)"
+  echo "PM   = $&pm deg"
+  echo "GM   = $&gm_val dB"
+
+  * Print Bode data at key frequencies
+  echo "=== Bode ==="
+  echo "Freq(Hz)   T(dB)   Phase(deg)"
+  let targets = 10 100 1000 10000 100000 1000000 10000000
+  * Manual print at decade freqs
+  let i = 0
+  let last_decade = 0
+  dowhile i < npts
+    let f = frequency[i]
+    let decade = floor(log10(f + 0.1))
+    if decade > last_decade
+      echo "$&f   $&T_db[i]   $&T_ph[i]"
+      let last_decade = decade
+    end
+    let i = i + 1
+  end
+
+  wrdata debug_bode.dat T_db T_ph
+  quit
+.endc
+
+.end
