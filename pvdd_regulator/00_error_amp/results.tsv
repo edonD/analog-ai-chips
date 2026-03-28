@@ -1,0 +1,40 @@
+commit	phase_margin_deg	specs_pass	status	description
+c5ebf22	0.000000	0/12	crash	initial folded-cascode OTA with biasing issues
+21473d9	41.037500	10/12	discard	two-stage Miller OTA first pass Cc=15pF
+9b6eb04	56.809400	12/12	keep	two-stage Miller Cc=30pF Rc=5k all specs pass
+14c137d	63.041600	12/12	keep	Cc=40pF PM improves 56.8->63.0
+e11e1ac	67.949100	12/12	keep	Cc=50pF PM 63->68 UGB=224kHz
+1550368	71.761500	11/12	discard	Cc=60pF PM=71.8 but UGB=190kHz below spec
+1b46d22	75.277700	12/12	keep	tail=15uA Cc=55pF Mpld m=6 PM=75.3
+76ad204	81.306500	12/12	keep	tail=20uA Cc=60pF Mpld m=8 PM=81.3
+ae5669b	86.376700	10/12	discard	tail=25uA Cc=65pF Iq=108uA exceeds spec
+3f68b13	97.582400	12/12	keep	Rc=8k PM jumps from 81.3 to 97.6!
+903a47d	106.748000	12/12	keep	Rc=10k PM=106.7 UGB=407kHz
+1cc40b9	112.412000	12/12	keep	Rc=12k PM=112.4 UGB=525kHz
+921d731	112.881000	12/12	keep	Rc=15k PM=112.9 UGB=776kHz
+a66b7aa	106.761000	11/12	discard	Rc=20k UGB=1230kHz exceeds max
+d8083b4	114.977000	12/12	keep	Cc=70pF Rc=15k PM=115.0
+f1a88b2	117.037000	12/12	keep	Cc=80pF Rc=15k PM=117.0
+5799e4c	119.351000	12/12	keep	Cc=100pF Rc=15k PM=119.4
+ba839f2	123.063000	12/12	keep	Cc=150pF Rc=15k PM=123.1
+44e1950	114.960000	11/12	discard	Rc=18k UGB=1047kHz exceeds spec
+eaaa524	124.681000	12/12	keep	Cc=200pF Rc=15k PM=124.7
+f5b5a73	125.854000	9/12	discard	NMOS L=12 gain=51dB UGB=60kHz bias disrupted
+dda152b	121.003000	8/12	discard	Mcs L=2 gain=51dB UGB=58kHz
+2b439fb	118.245000	12/12	discard	diff m=3 PM dropped UGB=933kHz too high
+838a296	125.655000	12/12	keep	Cc=250pF PM=125.7
+5286d98	126.772000	12/12	keep	Cc=350pF PM=126.8 gain=72.9dB
+331b6b8	128.292000	12/12	keep	Cc=500pF PM=128.3 gain=70.5dB
+6cb92b1	128.865000	12/12	keep	Cc=700pF PM=128.9 gain=68dB nearing limit
+64cdaf8	129.294000	12/12	keep	Cc=1nF PM=129.3 gain=65.1dB risky
+0908933	129.462000	12/12	keep	Cc=1.2nF PM=129.5 gain=63.6dB tight
+6e3914a	129.581000	12/12	keep	Cc=1.4nF PM=129.6 gain=62.3dB very tight
+987ed68	133.537000	12/12	keep	Rc=14k Cc=700pF PM=133.5! big jump
+703460d	139.806000	12/12	keep	Rc=13k PM=139.8!
+e9a731d	148.187000	12/12	keep	Rc=12k Cc=700pF PM=148.2!
+6095ff4	157.118000	11/12	discard	Rc=11k UGB=129kHz below 200 min
+ddf88ec	153.671000	12/12	keep	Rc=11.5k PM=153.7 UGB=240kHz
+fecb8df	156.630000	11/12	discard	Rc=11.2k UGB=170kHz below spec
+c24ae56	155.749000	11/12	discard	Rc=11.3k UGB=195kHz barely below
+ef32e3a	154.705000	12/12	keep	Rc=11.4k PM=154.7 UGB=219kHz
+539f5bc	155.150000	12/12	keep	Rc=11.35k PM=155.2 UGB=209kHz at edge
