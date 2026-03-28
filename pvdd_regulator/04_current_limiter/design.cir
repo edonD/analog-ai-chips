@@ -30,8 +30,10 @@ XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=0.20
 XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 
 * === Pull-up Resistor ===
-* xhigh_po W=1u L=400u → R ≈ 847k → Ipu ≈ 8.3 uA at 7V
-XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=400
+* xhigh_po W=1u L=50u → R ≈ 106k → Ipu ≈ 66 uA at 7V during limiting
+* At Iload=0: sense PMOS OFF, Mdet OFF, Rpu has no current (both ends at bvdd)
+* So quiescent from Rpu = 0 at no load
+XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 
 * === Clamp PMOS ===
 XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6

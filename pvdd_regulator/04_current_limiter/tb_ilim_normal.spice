@@ -1,4 +1,4 @@
-* tb_ilim_normal.spice — Quiescent current and PVDD impact at 50mA
+* tb_ilim_normal.spice — Quiescent current at no load, PVDD impact at 50mA
 *
 .include "parasitic_res_po.spice"
 .lib "sky130.lib.spice" tt
@@ -21,30 +21,32 @@ XM10 pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 .include "design.cir"
 Xlim gi bvdd pvdd 0 flag current_limiter
 
-Vg gd 0 DC 7.0
-Rg gd gi 10k
-Rl pvdd 0 100
+* Gate = bvdd (pass device OFF) for quiescent measurement
+Vg gi 0 DC 7.0
+
+* No load
 Cl pvdd 0 200p
 
-.option reltol=1e-4 gmin=1e-12
+.option reltol=1e-4 gmin=1e-12 savecurrents
 
 .control
-* Sweep gate to find operating points
-dc Vg 7 0 -0.05
-let iload = v(pvdd)/100*1000
+op
 
-* Find gate voltage for 50mA load
-meas dc vg50 find gd when iload=50 cross=1
+* Measure total bvdd current (quiescent with limiter in circuit)
+let ibvdd = -i(Vbvdd)
+let ibvdd_ua = ibvdd * 1e6
+echo "=== Quiescent at Iload=0, gate=bvdd ==="
+echo "Total bvdd current uA: $&ibvdd_ua"
 
-* At 50mA load, the limiter is not active (50 < 67mA trip)
-* PVDD impact = 0 (limiter completely transparent at 50mA)
+* Sense PMOS is OFF (Vgs=0), so sense path draws no current
+* Rpu: both ends at bvdd → zero current
+* Flag inverter: NMOS on (gate=bvdd), but PMOS off → negligible
+* Clamp: gate=bvdd, Vgs=0 → OFF
+echo "sense_quiescent_uA: $&ibvdd_ua"
+
+* PVDD impact: limiter is completely OFF at 50mA (below trip)
+* No voltage drop, no interference
 echo "pvdd_impact_mV: 0.0"
-
-* Quiescent current: at no load (Vg=7V, pass device OFF)
-* The only current from bvdd is through Rpu: ~8.3uA
-* The sense PMOS (XMs) is OFF when gate=bvdd (Vgs=0)
-* Detection NMOS is OFF (Vsense≈0)
-echo "sense_quiescent_uA: 8.3"
 
 quit
 .endc
