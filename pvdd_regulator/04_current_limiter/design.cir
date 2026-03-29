@@ -35,7 +35,7 @@ XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=0.5e-6
 * xhigh_po W=1u L=3.5u → Rs ~ 2000*(3.5-0.059)/1 = 6882 ohm
 * At 78mA trip: Isense_eff ~ 420uA (Vds mismatch inflates it)
 * Vsense = 420uA * 6882 = 2.89V → well above Vth+Vdegen for detection
-XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.5
+XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.45
 
 * === Detection NMOS with source degeneration ===
 * Small degeneration for soft turn-on around the trip point.
