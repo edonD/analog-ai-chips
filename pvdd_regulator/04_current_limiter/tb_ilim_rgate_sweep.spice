@@ -1,0 +1,82 @@
+* tb_ilim_rgate_sweep.spice — Rgate dependence characterization
+* v3: Informational only — not a spec. Sweeps Rgate from 1k to 1M.
+*
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.temp 27
+
+Vbvdd bvdd 0 DC 7.0
+
+* Pass device (Block 01: 10x W=100u L=0.5u)
+XM1  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+
+.include "design.cir"
+Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
+
+* Gate drive — swept for DC analysis
+Vgate gate_drive 0 DC 7.0
+Rgate gate_drive gate_int 10k
+
+* Force pvdd = 5V
+Vpvdd pvdd 0 DC 5.0
+
+.option reltol=1e-4 gmin=1e-12 savecurrents
+
+.control
+echo "=== Rgate Dependence Sweep ==="
+
+* Run each Rgate value individually (ngspice foreach doesn't interpolate in echo)
+alter Rgate = 1000
+dc Vgate 7 0 -0.05
+let il = i(Vpvdd) * 1000
+let mx = vecmax(il)
+echo "rgate_1k_trip_mA: $&mx"
+
+alter Rgate = 3000
+dc Vgate 7 0 -0.05
+let il = i(Vpvdd) * 1000
+let mx = vecmax(il)
+echo "rgate_3k_trip_mA: $&mx"
+
+alter Rgate = 10000
+dc Vgate 7 0 -0.05
+let il = i(Vpvdd) * 1000
+let mx = vecmax(il)
+echo "rgate_10k_trip_mA: $&mx"
+
+alter Rgate = 30000
+dc Vgate 7 0 -0.05
+let il = i(Vpvdd) * 1000
+let mx = vecmax(il)
+echo "rgate_30k_trip_mA: $&mx"
+
+alter Rgate = 100000
+dc Vgate 7 0 -0.05
+let il = i(Vpvdd) * 1000
+let mx = vecmax(il)
+echo "rgate_100k_trip_mA: $&mx"
+
+alter Rgate = 300000
+dc Vgate 7 0 -0.05
+let il = i(Vpvdd) * 1000
+let mx = vecmax(il)
+echo "rgate_300k_trip_mA: $&mx"
+
+alter Rgate = 1000000
+dc Vgate 7 0 -0.05
+let il = i(Vpvdd) * 1000
+let mx = vecmax(il)
+echo "rgate_1M_trip_mA: $&mx"
+
+quit
+.endc
+.end
