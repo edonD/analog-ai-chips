@@ -1,5 +1,5 @@
 === Block 09: Startup Circuit ===
-Run started: Sun Mar 29 16:14:28 UTC 2026
+Run started: Sun Mar 29 16:15:34 UTC 2026
 
 --- Running tb_su_basic.spice ---
 Using SPARSE 1.3 as Direct Linear Solver
@@ -12,15 +12,15 @@ Circuit: * tb_su_basic.spice — basic startup test, 1 v/us bvdd ramp, no load
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  5.00000e-10 Reference value :  1.34750e-05 Reference value :  3.09750e-05 Reference value :  4.84750e-05 Reference value :  6.62250e-05 Reference value :  8.22750e-05 Reference value :  9.97250e-05 Reference value :  1.17275e-04 Reference value :  1.34625e-04 Reference value :  1.50225e-04 Reference value :  1.67325e-04 Reference value :  1.84725e-04
+ Reference value :  5.00000e-10 Reference value :  1.44250e-05 Reference value :  3.08250e-05 Reference value :  4.82250e-05 Reference value :  6.48750e-05 Reference value :  8.08750e-05 Reference value :  9.77250e-05 Reference value :  1.14575e-04 Reference value :  1.31825e-04 Reference value :  1.47025e-04 Reference value :  1.64425e-04 Reference value :  1.81575e-04 Reference value :  1.98875e-04
 No. of Data Rows : 4023
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   4.95593e-06
-pvdd_max            =  6.999929e+00 at=  1.607500e-05
-pvdd_at_100u        =  5.968469e+00
+t_pvdd_495          =   4.95594e-06
+pvdd_max            =  6.999929e+00 at=  1.597500e-05
+pvdd_at_100u        =  5.968372e+00
 pvdd_at_200u        =  5.957414e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
@@ -33,31 +33,31 @@ no_latch_stuck: 1
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  9.32705e-09 Reference value :  1.38750e-05 Reference value :  3.14250e-05 Reference value :  4.90750e-05 Reference value :  6.61750e-05 Reference value :  8.25750e-05 Reference value :  9.51750e-05 Reference value :  1.12825e-04 Reference value :  1.29425e-04 Reference value :  1.46875e-04 Reference value :  1.63625e-04 Reference value :  1.81175e-04 Reference value :  1.93025e-04
+ Reference value :  9.57500e-06 Reference value :  2.70250e-05 Reference value :  4.46750e-05 Reference value :  5.93750e-05 Reference value :  7.21750e-05 Reference value :  8.71750e-05 Reference value :  1.04775e-04 Reference value :  1.22325e-04 Reference value :  1.37575e-04 Reference value :  1.55025e-04 Reference value :  1.71425e-04 Reference value :  1.83975e-04 Reference value :  1.99175e-04
 No. of Data Rows : 4023
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   4.95593e-06
-pvdd_max            =  6.999929e+00 at=  1.607500e-05
-pvdd_at_100u        =  5.968469e+00
+t_pvdd_495          =   4.95594e-06
+pvdd_max            =  6.999929e+00 at=  1.597500e-05
+pvdd_at_100u        =  5.968372e+00
 pvdd_at_200u        =  5.957414e+00
 
 
-Total analysis time (seconds) = 3.582
+Total analysis time (seconds) = 3.723
 
-Total elapsed time (seconds) = 4.113 
+Total elapsed time (seconds) = 4.260 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  219.328 MB.
-Maximum ngspice program size =   49.520 MB.
-Current ngspice program size =   32.852 MB.
+DRAM currently available =  212.359 MB.
+Maximum ngspice program size =   49.516 MB.
+Current ngspice program size =   32.727 MB.
 
-Shared ngspice pages =   10.723 MB.
+Shared ngspice pages =   10.602 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   30.273 MB.
+Library pages =   30.270 MB.
 
 
 --- Running tb_su_handoff.spice ---
@@ -71,7 +71,7 @@ Circuit: * tb_su_handoff.spice — measure pvdd disturbance at startup-to-regula
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.92968e-06 Reference value :  6.21968e-06 Reference value :  8.91973e-06 Reference value :  1.23997e-05 Reference value :  1.56597e-05 Reference value :  1.91697e-05 Reference value :  2.24897e-05 Reference value :  2.59697e-05 Reference value :  2.93897e-05 Reference value :  3.18097e-05 Reference value :  3.52997e-05 Reference value :  3.86797e-05 Reference value :  4.18897e-05 Reference value :  4.52097e-05 Reference value :  4.86197e-05
+ Reference value :  1.00000e-10 Reference value :  3.16968e-06 Reference value :  5.59968e-06 Reference value :  8.85973e-06 Reference value :  1.20697e-05 Reference value :  1.52197e-05 Reference value :  1.86897e-05 Reference value :  2.21097e-05 Reference value :  2.48297e-05 Reference value :  2.77997e-05 Reference value :  3.12597e-05 Reference value :  3.44697e-05 Reference value :  3.76797e-05 Reference value :  4.09997e-05 Reference value :  4.44097e-05 Reference value :  4.71497e-05
 No. of Data Rows : 5022
 handoff_glitch_mV: 50
 Note: Simulation executed from .control section 
@@ -87,14 +87,14 @@ Circuit: * tb_su_50ma.spice — startup with 50 ma load
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.60500e-05 Reference value :  6.11500e-05 Reference value :  9.37500e-05 Reference value :  1.18950e-04 Reference value :  1.52350e-04 Reference value :  1.87150e-04 Reference value :  2.20050e-04 Reference value :  2.54950e-04 Reference value :  2.89850e-04
+ Reference value :  1.00000e-09 Reference value :  2.13500e-05 Reference value :  4.41500e-05 Reference value :  7.69500e-05 Reference value :  1.09550e-04 Reference value :  1.42150e-04 Reference value :  1.74450e-04 Reference value :  2.05550e-04 Reference value :  2.37850e-04 Reference value :  2.60250e-04 Reference value :  2.92950e-04
 No. of Data Rows : 3032
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   5.22428e-06
-pvdd_max            =  6.708554e+00 at=  8.150000e-06
+t_pvdd_495          =   5.22429e-06
+pvdd_max            =  6.708556e+00 at=  8.150000e-06
 pvdd_at_200u        =  5.019932e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
@@ -102,27 +102,27 @@ startup_time_50mA_us: 5
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.43500e-05 Reference value :  3.83500e-05 Reference value :  6.86500e-05 Reference value :  1.03550e-04 Reference value :  1.37150e-04 Reference value :  1.72250e-04 Reference value :  2.07650e-04 Reference value :  2.34950e-04 Reference value :  2.67350e-04 Reference value :  2.98950e-04
+ Reference value :  1.52500e-05 Reference value :  5.00500e-05 Reference value :  7.97500e-05 Reference value :  1.11950e-04 Reference value :  1.42750e-04 Reference value :  1.67450e-04 Reference value :  1.98050e-04 Reference value :  2.30650e-04 Reference value :  2.63850e-04 Reference value :  2.96950e-04
 No. of Data Rows : 3032
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   5.22428e-06
-pvdd_max            =  6.708554e+00 at=  8.150000e-06
+t_pvdd_495          =   5.22429e-06
+pvdd_max            =  6.708556e+00 at=  8.150000e-06
 pvdd_at_200u        =  5.019932e+00
 
 
-Total analysis time (seconds) = 2.852
+Total analysis time (seconds) = 3.057
 
-Total elapsed time (seconds) = 3.405 
+Total elapsed time (seconds) = 3.581 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  219.492 MB.
+DRAM currently available =  218.008 MB.
 Maximum ngspice program size =   48.270 MB.
-Current ngspice program size =   31.797 MB.
+Current ngspice program size =   31.559 MB.
 
-Shared ngspice pages =   10.828 MB.
+Shared ngspice pages =   10.590 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
 Library pages =   29.023 MB.
@@ -139,8 +139,8 @@ Circuit: * tb_su_fast_ramp.spice — 12 v/us bvdd ramp, overshoot measurement
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.06000e-06 Reference value :  5.05000e-06 Reference value :  8.54000e-06 Reference value :  1.19000e-05 Reference value :  1.51300e-05 Reference value :  1.86600e-05 Reference value :  2.21800e-05 Reference value :  2.41100e-05 Reference value :  2.76200e-05 Reference value :  3.10700e-05 Reference value :  3.45500e-05 Reference value :  3.77900e-05 Reference value :  4.10200e-05 Reference value :  4.44800e-05 Reference value :  4.68300e-05 Reference value :  5.02400e-05 Reference value :  5.33300e-05 Reference value :  5.67600e-05 Reference value :  6.02500e-05 Reference value :  6.37200e-05 Reference value :  6.62800e-05 Reference value :  6.95800e-05 Reference value :  7.27800e-05 Reference value :  7.62400e-05 Reference value :  7.94700e-05 Reference value :  8.28000e-05 Reference value :  8.62800e-05 Reference value :  8.88000e-05 Reference value :  9.17600e-05 Reference value :  9.52300e-05 Reference value :  9.86000e-05 Reference value :  1.02090e-04 Reference value :  1.05280e-04 Reference value :  1.08640e-04 Reference value :  1.11310e-04 Reference value :  1.14710e-04 Reference value :  1.17940e-04 Reference value :  1.21170e-04 Reference value :  1.24640e-04 Reference value :  1.28090e-04 Reference value :  1.31080e-04 Reference value :  1.33760e-04 Reference value :  1.36990e-04 Reference value :  1.40430e-04 Reference value :  1.43380e-04 Reference value :  1.46830e-04 Reference value :  1.50250e-04 Reference value :  1.52520e-04 Reference value :  1.55530e-04 Reference value :  1.58760e-04 Reference value :  1.62010e-04 Reference value :  1.65450e-04 Reference value :  1.68850e-04 Reference value :  1.72270e-04 Reference value :  1.74970e-04 Reference value :  1.78120e-04 Reference value :  1.81280e-04 Reference value :  1.84490e-04 Reference value :  1.87910e-04 Reference value :  1.91330e-04 Reference value :  1.94780e-04 Reference value :  1.97030e-04
-No. of Data Rows : 20026
+ Reference value :  1.00000e-10 Reference value :  2.26000e-06 Reference value :  5.43000e-06 Reference value :  8.76000e-06 Reference value :  1.21300e-05 Reference value :  1.42900e-05 Reference value :  1.77500e-05 Reference value :  2.09200e-05 Reference value :  2.41500e-05 Reference value :  2.70500e-05 Reference value :  3.03200e-05 Reference value :  3.34000e-05 Reference value :  3.60700e-05 Reference value :  3.90100e-05 Reference value :  4.21200e-05 Reference value :  4.52800e-05 Reference value :  4.84400e-05 Reference value :  5.15300e-05 Reference value :  5.37500e-05 Reference value :  5.68400e-05 Reference value :  6.01600e-05 Reference value :  6.34000e-05 Reference value :  6.67300e-05 Reference value :  6.99800e-05 Reference value :  7.33000e-05 Reference value :  7.54400e-05 Reference value :  7.88300e-05 Reference value :  8.22700e-05 Reference value :  8.55400e-05 Reference value :  8.90100e-05 Reference value :  9.24800e-05 Reference value :  9.59600e-05 Reference value :  9.85200e-05 Reference value :  1.01560e-04 Reference value :  1.04880e-04 Reference value :  1.08230e-04 Reference value :  1.11700e-04 Reference value :  1.14880e-04 Reference value :  1.17510e-04 Reference value :  1.17860e-04 Reference value :  1.20640e-04 Reference value :  1.24030e-04 Reference value :  1.27460e-04 Reference value :  1.29360e-04 Reference value :  1.32690e-04 Reference value :  1.36080e-04 Reference value :  1.39260e-04 Reference value :  1.42630e-04 Reference value :  1.45760e-04 Reference value :  1.49060e-04 Reference value :  1.51470e-04 Reference value :  1.54480e-04 Reference value :  1.57780e-04 Reference value :  1.61090e-04 Reference value :  1.64280e-04 Reference value :  1.67600e-04 Reference value :  1.70240e-04 Reference value :  1.73180e-04 Reference value :  1.76420e-04 Reference value :  1.79470e-04 Reference value :  1.82640e-04 Reference value :  1.86020e-04 Reference value :  1.89410e-04 Reference value :  1.91740e-04 Reference value :  1.95060e-04 Reference value :  1.98230e-04
+No. of Data Rows : 20024
 
   Measurements for Transient Analysis
 
@@ -154,8 +154,8 @@ Fast ramp overshoot: 5499.9 mV
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.82000e-06 Reference value :  6.11000e-06 Reference value :  9.65000e-06 Reference value :  1.31400e-05 Reference value :  1.54200e-05 Reference value :  1.85300e-05 Reference value :  2.20000e-05 Reference value :  2.54600e-05 Reference value :  2.89700e-05 Reference value :  3.20700e-05 Reference value :  3.56200e-05 Reference value :  3.80200e-05 Reference value :  4.15300e-05 Reference value :  4.48100e-05 Reference value :  4.82800e-05 Reference value :  5.14500e-05 Reference value :  5.49400e-05 Reference value :  5.77300e-05 Reference value :  6.08700e-05 Reference value :  6.43600e-05 Reference value :  6.78900e-05 Reference value :  7.12500e-05 Reference value :  7.45100e-05 Reference value :  7.80200e-05 Reference value :  8.02700e-05 Reference value :  8.37300e-05 Reference value :  8.68600e-05 Reference value :  9.03500e-05 Reference value :  9.38600e-05 Reference value :  9.73900e-05 Reference value :  1.00460e-04 Reference value :  1.02950e-04 Reference value :  1.06410e-04 Reference value :  1.09890e-04 Reference value :  1.13390e-04 Reference value :  1.16910e-04 Reference value :  1.20220e-04 Reference value :  1.23490e-04 Reference value :  1.26190e-04 Reference value :  1.29620e-04 Reference value :  1.33080e-04 Reference value :  1.36350e-04 Reference value :  1.39650e-04 Reference value :  1.42880e-04 Reference value :  1.45340e-04 Reference value :  1.48610e-04 Reference value :  1.52090e-04 Reference value :  1.55560e-04 Reference value :  1.58960e-04 Reference value :  1.62420e-04 Reference value :  1.65540e-04 Reference value :  1.67900e-04 Reference value :  1.71400e-04 Reference value :  1.74680e-04 Reference value :  1.77920e-04 Reference value :  1.81380e-04 Reference value :  1.84780e-04 Reference value :  1.88220e-04 Reference value :  1.90870e-04 Reference value :  1.94270e-04 Reference value :  1.97440e-04
-No. of Data Rows : 20026
+ Reference value :  1.00000e-10 Reference value :  2.55000e-06 Reference value :  5.73000e-06 Reference value :  8.59000e-06 Reference value :  1.15200e-05 Reference value :  1.47000e-05 Reference value :  1.79500e-05 Reference value :  2.10100e-05 Reference value :  2.42500e-05 Reference value :  2.73500e-05 Reference value :  2.92100e-05 Reference value :  3.25800e-05 Reference value :  3.59000e-05 Reference value :  3.90200e-05 Reference value :  4.21300e-05 Reference value :  4.52500e-05 Reference value :  4.87200e-05 Reference value :  5.11500e-05 Reference value :  5.43600e-05 Reference value :  5.77500e-05 Reference value :  6.09600e-05 Reference value :  6.44000e-05 Reference value :  6.76600e-05 Reference value :  7.01500e-05 Reference value :  7.36300e-05 Reference value :  7.68400e-05 Reference value :  7.99800e-05 Reference value :  8.34100e-05 Reference value :  8.67100e-05 Reference value :  9.02100e-05 Reference value :  9.16900e-05 Reference value :  9.49200e-05 Reference value :  9.83200e-05 Reference value :  1.01710e-04 Reference value :  1.04890e-04 Reference value :  1.08380e-04 Reference value :  1.11260e-04 Reference value :  1.14190e-04 Reference value :  1.17330e-04 Reference value :  1.20490e-04 Reference value :  1.23890e-04 Reference value :  1.27310e-04 Reference value :  1.30710e-04 Reference value :  1.33170e-04 Reference value :  1.36500e-04 Reference value :  1.39870e-04 Reference value :  1.43210e-04 Reference value :  1.46410e-04 Reference value :  1.49840e-04 Reference value :  1.53270e-04 Reference value :  1.55410e-04 Reference value :  1.58860e-04 Reference value :  1.62350e-04 Reference value :  1.65860e-04 Reference value :  1.68840e-04 Reference value :  1.72130e-04 Reference value :  1.75320e-04 Reference value :  1.77730e-04 Reference value :  1.80710e-04 Reference value :  1.84180e-04 Reference value :  1.87580e-04 Reference value :  1.90830e-04 Reference value :  1.94060e-04 Reference value :  1.96530e-04 Reference value :  1.99960e-04
+No. of Data Rows : 20024
 
   Measurements for Transient Analysis
 
@@ -163,12 +163,12 @@ pvdd_max            =  1.049990e+01 at=  4.370000e-06
 pvdd_at_100u        =  9.434909e+00
 
 
-Total analysis time (seconds) = 18.637
+Total analysis time (seconds) = 19.868
 
-Total elapsed time (seconds) = 19.213 
+Total elapsed time (seconds) = 20.482 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  213.094 MB.
+DRAM currently available =  211.855 MB.
 Maximum ngspice program size =   65.301 MB.
 Current ngspice program size =   48.707 MB.
 
@@ -189,41 +189,41 @@ Circuit: * tb_su_slow_ramp.spice — 0.1 v/us bvdd ramp, verify startup complete
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  5.00000e-09 Reference value :  1.09646e-04 Reference value :  2.69646e-04 Reference value :  4.41646e-04
-No. of Data Rows : 1029
+ Reference value :  5.00000e-09 Reference value :  1.10750e-04 Reference value :  2.15250e-04 Reference value :  3.89250e-04
+No. of Data Rows : 1030
 
   Measurements for Transient Analysis
 
-t_pvdd_495          =   4.95057e-05
-pvdd_at_200u        =  9.429847e+00
+t_pvdd_495          =   4.95064e-05
+pvdd_at_200u        =  9.429845e+00
 pvdd_at_400u        =  9.429829e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
 works_slow_ramp: 1
-Slow ramp: startup completes, PVDD peak = 9.63694 V
+Slow ramp: startup completes, PVDD peak = 9.55182 V
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  6.70671e-05 Reference value :  2.35646e-04 Reference value :  3.88646e-04
-No. of Data Rows : 1029
+ Reference value :  2.87395e-05 Reference value :  1.64250e-04 Reference value :  3.29250e-04 Reference value :  4.93750e-04
+No. of Data Rows : 1030
 
   Measurements for Transient Analysis
 
-t_pvdd_495          =   4.95057e-05
-pvdd_at_200u        =  9.429847e+00
+t_pvdd_495          =   4.95064e-05
+pvdd_at_200u        =  9.429845e+00
 pvdd_at_400u        =  9.429829e+00
 
 
-Total analysis time (seconds) = 1.044
+Total analysis time (seconds) = 1.076
 
 Total elapsed time (seconds) = 1.602 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  222.453 MB.
+DRAM currently available =  235.480 MB.
 Maximum ngspice program size =   46.316 MB.
-Current ngspice program size =   29.656 MB.
+Current ngspice program size =   29.559 MB.
 
-Shared ngspice pages =   10.660 MB.
+Shared ngspice pages =   10.559 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
 Library pages =   27.070 MB.
@@ -240,13 +240,13 @@ Circuit: * tb_su_cold_crank.spice — cold crank recovery: bvdd 10.5v -> 3v -> 7
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  5.15204e-07 Reference value :  2.47500e-05 Reference value :  5.66500e-05 Reference value :  7.81910e-05 Reference value :  1.06150e-04 Reference value :  1.38650e-04 Reference value :  1.71650e-04 Reference value :  2.06250e-04 Reference value :  2.40450e-04 Reference value :  2.74750e-04 Reference value :  2.95350e-04 Reference value :  3.29450e-04 Reference value :  3.62350e-04 Reference value :  3.96950e-04 Reference value :  4.26650e-04 Reference value :  4.59550e-04 Reference value :  4.89450e-04
-No. of Data Rows : 5051
+ Reference value :  1.00000e-09 Reference value :  2.32500e-05 Reference value :  5.70500e-05 Reference value :  8.73062e-05 Reference value :  1.14050e-04 Reference value :  1.42750e-04 Reference value :  1.77550e-04 Reference value :  2.12150e-04 Reference value :  2.44050e-04 Reference value :  2.77850e-04 Reference value :  3.12350e-04 Reference value :  3.36050e-04 Reference value :  3.67650e-04 Reference value :  4.02250e-04 Reference value :  4.37050e-04 Reference value :  4.69550e-04
+No. of Data Rows : 5047
 
   Measurements for Transient Analysis
 
-pvdd_at_90u         =  4.997871e+00
-pvdd_at_200u        =  5.957420e+00
+pvdd_at_90u         =  4.997242e+00
+pvdd_at_200u        =  5.957417e+00
 pvdd_at_400u        =  5.957413e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
@@ -255,29 +255,29 @@ Cold crank recovery: PVDD final = 5.95741 V
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  5.24548e-06 Reference value :  3.91500e-05 Reference value :  6.91910e-05 Reference value :  9.80821e-05 Reference value :  1.32350e-04 Reference value :  1.64750e-04 Reference value :  1.86350e-04 Reference value :  2.19450e-04 Reference value :  2.52250e-04 Reference value :  2.85150e-04 Reference value :  3.19950e-04 Reference value :  3.54550e-04 Reference value :  3.88350e-04 Reference value :  4.13550e-04 Reference value :  4.48450e-04 Reference value :  4.81050e-04
-No. of Data Rows : 5051
+ Reference value :  1.08385e-09 Reference value :  2.59500e-05 Reference value :  4.97500e-05 Reference value :  8.15500e-05 Reference value :  1.08550e-04 Reference value :  1.41350e-04 Reference value :  1.76450e-04 Reference value :  2.11450e-04 Reference value :  2.39350e-04 Reference value :  2.69750e-04 Reference value :  3.04550e-04 Reference value :  3.39350e-04 Reference value :  3.71650e-04 Reference value :  4.06350e-04 Reference value :  4.41550e-04 Reference value :  4.64150e-04 Reference value :  4.94750e-04
+No. of Data Rows : 5047
 
   Measurements for Transient Analysis
 
-pvdd_at_90u         =  4.997871e+00
-pvdd_at_200u        =  5.957420e+00
+pvdd_at_90u         =  4.997242e+00
+pvdd_at_200u        =  5.957417e+00
 pvdd_at_400u        =  5.957413e+00
 
 
-Total analysis time (seconds) = 5.236
+Total analysis time (seconds) = 4.833
 
-Total elapsed time (seconds) = 6.379 
+Total elapsed time (seconds) = 5.396 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  209.188 MB.
-Maximum ngspice program size =   50.395 MB.
-Current ngspice program size =   33.633 MB.
+DRAM currently available =  218.254 MB.
+Maximum ngspice program size =   50.391 MB.
+Current ngspice program size =   33.598 MB.
 
-Shared ngspice pages =   10.543 MB.
+Shared ngspice pages =   10.512 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   31.148 MB.
+Library pages =   31.145 MB.
 
 
 --- Running tb_su_leakage.spice ---
@@ -293,9 +293,9 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
  Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
 
 No. of Data Rows : 1
-BVDD current (startup leakage): 0.658959 uA
+BVDD current (startup leakage): 0.439471 uA
 PVDD current (divider): 0.970728 uA
-leakage_after_uA: 0.658959
+leakage_after_uA: 0.439471
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
@@ -303,35 +303,35 @@ No. of Data Rows : 1
 	Node                                  Voltage
 	----                                  -------
 	----	-------
-	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#sbody   4.825985e-14
-	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#body   9.651970e-14
-	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.412992e-13
-	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#sbody   6.325599e-11
-	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#body   1.265120e-10
-	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.135060e-10
+	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#sbody   3.211516e-14
+	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#body   6.423031e-14
+	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#dbody   1.605758e-13
+	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#sbody   6.313005e-11
+	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#body   1.262601e-10
+	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.133800e-10
 	m.xstartup.xmn_pu.msky130_fd_pr__nfet_g5v0d10v5#sbody   2.316250e-10
 	m.xstartup.xmn_pu.msky130_fd_pr__nfet_g5v0d10v5#body   1.627500e-10
 	m.xstartup.xmn_pu.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.566250e-10
 	m.xstartup.xmp_sd.msky130_fd_pr__pfet_g5v0d10v5#sbody   7.000000e+00
 	m.xstartup.xmp_sd.msky130_fd_pr__pfet_g5v0d10v5#body   7.000000e+00
 	m.xstartup.xmp_sd.msky130_fd_pr__pfet_g5v0d10v5#dbody   7.000000e+00
-	m.xstartup.xmn_sd.msky130_fd_pr__nfet_g5v0d10v5#sbody   9.831751e-11
-	m.xstartup.xmn_sd.msky130_fd_pr__nfet_g5v0d10v5#body   1.966350e-10
-	m.xstartup.xmn_sd.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.735675e-10
+	m.xstartup.xmn_sd.msky130_fd_pr__nfet_g5v0d10v5#sbody   9.815859e-11
+	m.xstartup.xmn_sd.msky130_fd_pr__nfet_g5v0d10v5#body   1.963172e-10
+	m.xstartup.xmn_sd.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.734086e-10
 	m.xstartup.xmp_ea.msky130_fd_pr__pfet_g5v0d10v5#sbody   7.000000e+00
 	m.xstartup.xmp_ea.msky130_fd_pr__pfet_g5v0d10v5#body   7.000000e+00
 	m.xstartup.xmp_ea.msky130_fd_pr__pfet_g5v0d10v5#dbody   7.000000e+00
-	m.xstartup.xmn_ea.msky130_fd_pr__nfet_g5v0d10v5#sbody   9.831751e-11
-	m.xstartup.xmn_ea.msky130_fd_pr__nfet_g5v0d10v5#body   1.966350e-10
-	m.xstartup.xmn_ea.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.735675e-10
+	m.xstartup.xmn_ea.msky130_fd_pr__nfet_g5v0d10v5#sbody   9.815859e-11
+	m.xstartup.xmn_ea.msky130_fd_pr__nfet_g5v0d10v5#body   1.963172e-10
+	m.xstartup.xmn_ea.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.734086e-10
 	ea_en                            7.000000e+00
 	startup_done                     7.000000e+00
 	xstartup.pull_mid                5.999999e+00
 	xstartup.xr_gate.t2              5.999999e+00
 	xstartup.xr_gate.t1              6.000000e+00
-	xstartup.xr_pu.t2                5.885441e-03
-	xstartup.xr_pu.t1                6.999947e+00
-	xstartup.det_out                 5.832809e-03
+	xstartup.xr_pu.t2                3.883500e-03
+	xstartup.xr_pu.t1                6.999965e+00
+	xstartup.det_out                 3.848400e-03
 	xstartup.xr_bot.t2               5.441990e-05
 	xstartup.xr_bot.t1               8.990288e-01
 	xstartup.sense_mid               8.990832e-01
@@ -345,9 +345,9 @@ No. of Data Rows : 1
 	Source	Current
 	------	-------
 
-	vbvdd#branch                     -6.58959e-07
+	vbvdd#branch                     -4.39471e-07
 	vpvdd#branch                     -9.70728e-07
-	vgate#branch                     -1.49230e-11
+	vgate#branch                     -1.48839e-11
 	vref#branch                      0.000000e+00
 
  BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
@@ -2676,8 +2676,8 @@ No. of Data Rows : 1
  ASRC: Arbitrary Source 
      device b.xstartup.xr_gate.br b.xstartup.xr_pu.brbo b.xstartup.xr_bot.brb
       dtemp                     0                     0                     0
-          i           8.91299e-12           6.58928e-07           9.70728e-07
-          v           9.64859e-07               6.99406              0.898974
+          i            8.8739e-12            4.3944e-07           9.70728e-07
+          v           9.60627e-07               6.99608              0.898974
    pos_node                    13                    11                     8
    neg_node                    14                    12                     9
 
@@ -2726,49 +2726,49 @@ No. of Data Rows : 1
    rgatemod                     0                     0                     0
      geomod                     0                     0                     0
     rgeomod                     0                     0                     0
-       gmbs           4.71507e-12           1.02663e-12           4.71507e-12
-         gm           8.27729e-12            7.7515e-13           8.27729e-12
-        gds           1.83217e-14           0.000502523           1.83217e-14
-      vdsat             0.0375586               3.37753             0.0375586
+       gmbs            4.5615e-12           1.02389e-12            4.5615e-12
+         gm            8.0017e-12            7.7275e-13            8.0017e-12
+        gds           1.77116e-14           0.000502588           1.77116e-14
+      vdsat             0.0375586               3.37868             0.0375586
         vth              0.819732              0.974807              0.819732
-         id           4.84995e-13           1.18554e-11           4.84995e-13
-        ibd             -7.01e-12          -3.02829e-20             -7.01e-12
-        ibs           1.33603e-22           -1.1402e-27           1.33603e-22
+         id           4.68845e-13           1.18265e-11           4.68845e-13
+        ibd             -7.01e-12          -3.02053e-20             -7.01e-12
+        ibs           1.33387e-22           -1.1402e-27           1.33387e-22
         gbd                 1e-12           1.28362e-12                 1e-12
         gbs           1.35889e-12           1.28362e-12           1.35889e-12
-       isub           6.31137e-13           1.05539e-34           6.31137e-13
-      igidl           3.72926e-12                     0           3.72926e-12
+       isub            6.1012e-13           1.04976e-34            6.1012e-13
+      igidl           3.73757e-12                     0           3.73757e-12
       igisl                     0                     0                     0
         igs                     0                     0                     0
         igd                     0                     0                     0
         igb                     0                     0                     0
        igcs                     0                     0                     0
        igcd                     0                     0                     0
-        vbs           1.96635e-10          -8.88178e-16           1.96635e-10
-        vgs            0.00583281               6.99417            0.00583281
-        vds                     7           2.35918e-08                     7
-        cgg           2.17208e-15           1.05058e-14           2.17208e-15
-        cgs          -7.28038e-17          -5.72317e-15          -7.28038e-17
-        cgd           4.12511e-22          -5.23684e-15           4.12511e-22
-        cbg          -2.08106e-15          -8.80541e-19          -2.08106e-15
-        cbd            4.0709e-22          -2.96435e-15            4.0709e-22
-        cbs          -6.44009e-17          -2.24957e-16          -6.44009e-17
-        cdg           -3.6406e-17          -5.25247e-15           -3.6406e-17
-        cdd          -3.17615e-22           5.46749e-15          -3.17615e-22
-        cds           5.48823e-17           1.60716e-15           5.48823e-17
-        csg          -5.46083e-17          -5.25247e-15          -5.46083e-17
-        csd          -5.01986e-22           2.73369e-15          -5.01986e-22
-        css           8.23223e-17           4.34097e-15           8.23223e-17
-        cgb          -2.09927e-15           4.54201e-16          -2.09927e-15
-        cdb           -1.8476e-17          -1.82219e-15           -1.8476e-17
-        csb          -2.77135e-17          -1.82219e-15          -2.77135e-17
-        cbb           2.14546e-15           3.19018e-15           2.14546e-15
+        vbs           1.96317e-10          -8.88178e-16           1.96317e-10
+        vgs             0.0038484               6.99615             0.0038484
+        vds                     7           2.35313e-08                     7
+        cgg           2.17343e-15           1.05059e-14           2.17343e-15
+        cgs          -7.16285e-17          -5.72322e-15          -7.16285e-17
+        cgd           4.05438e-22          -5.23686e-15           4.05438e-22
+        cbg          -2.08388e-15          -8.80079e-19          -2.08388e-15
+        cbd           4.00975e-22          -2.96436e-15           4.00975e-22
+        cbs          -6.34061e-17          -2.24946e-16          -6.34061e-17
+        cdg          -3.58202e-17          -5.25249e-15          -3.58202e-17
+        cdd          -3.12505e-22           5.46751e-15          -3.12505e-22
+        cds           5.40143e-17           1.60718e-15           5.40143e-17
+        csg          -5.37296e-17          -5.25249e-15          -5.37296e-17
+        csd          -4.93908e-22            2.7337e-15          -4.93908e-22
+        css           8.10204e-17           4.34099e-15           8.10204e-17
+        cgb           -2.1018e-15           4.54217e-16           -2.1018e-15
+        cdb          -1.81938e-17           -1.8222e-15          -1.81938e-17
+        csb          -2.72903e-17           -1.8222e-15          -2.72903e-17
+        cbb           2.14729e-15           3.19018e-15           2.14729e-15
       capbd           1.39381e-17           5.89256e-16           1.39381e-17
       capbs          -6.31774e-17           5.89256e-16          -6.31774e-17
-         qg           2.28397e-15           6.69373e-14           2.28397e-15
-         qb          -2.27285e-15          -5.11866e-15          -2.27285e-15
-         qd          -4.44771e-18          -3.09093e-14          -4.44771e-18
-         qs          -6.67148e-18          -3.09093e-14          -6.67148e-18
+         qg           2.27966e-15           6.69581e-14           2.27966e-15
+         qb          -2.26872e-15          -5.11866e-15          -2.26872e-15
+         qd          -4.37605e-18          -3.09197e-14          -4.37605e-18
+         qs          -6.56399e-18          -3.09197e-14          -6.56399e-18
        qinv                     0                     0                     0
        qdef                     0                    -0                     0
        gcrg                     0                     0                     0
@@ -2811,49 +2811,49 @@ No. of Data Rows : 1
    rgatemod                     0                     0                     0
      geomod                     0                     0                     0
     rgeomod                     0                     0                     0
-       gmbs           1.02663e-12           6.18174e-22           8.32877e-12
-         gm            7.7515e-13           4.92236e-21           1.48658e-11
-        gds           0.000502523           3.17317e-24           3.22544e-14
-      vdsat               3.37753              0.050629             0.0376752
+       gmbs           1.02389e-12           6.18174e-22           8.04971e-12
+         gm            7.7275e-13           4.92236e-21           1.43573e-11
+        gds           0.000502588           3.17317e-24            3.1151e-14
+      vdsat               3.37868              0.050629             0.0376752
         vth              0.974807               1.97255               0.81618
-         id           1.18554e-11           1.15669e-22           8.47492e-13
-        ibd          -3.02829e-20             -7.01e-12             -6.01e-12
-        ibs           -1.1402e-27             -6.01e-12           8.59581e-23
+         id           1.18265e-11           1.15669e-22           8.18499e-13
+        ibd          -3.02053e-20             -7.01e-12             -6.01e-12
+        ibs           -1.1402e-27             -6.01e-12            8.5787e-23
         gbd           1.28362e-12                 1e-12                 1e-12
         gbs           1.28362e-12                 1e-12           1.35889e-12
-       isub           1.05539e-34           8.23984e-34            4.4056e-13
-      igidl                     0                     0           1.61492e-12
+       isub           1.04976e-34           8.23984e-34           4.25488e-13
+      igidl                     0                     0           1.61992e-12
       igisl                     0                     0                     0
         igs                     0                     0                     0
         igd                     0                     0                     0
         igb                     0                     0                     0
        igcs                     0                     0                     0
        igcd                     0                     0                     0
-        vbs          -8.88178e-16                    -6           1.26512e-10
-        vgs               6.99417                     1            0.00583281
-        vds           2.35918e-08                     1                     6
-        cgg           1.05058e-14           1.41427e-15           5.41325e-15
-        cgs          -5.72317e-15          -1.42181e-17          -1.71017e-16
-        cgd          -5.23684e-15          -9.90679e-22           9.52189e-22
-        cbg          -8.80541e-19          -1.39887e-15          -5.19932e-15
-        cbd          -2.96435e-15          -9.36452e-23           9.41621e-22
-        cbs          -2.24957e-16          -3.11841e-18          -1.50023e-16
-        cdg          -5.25247e-15          -6.16313e-18          -8.55724e-17
-        cdd           5.46749e-15           8.61222e-22           -7.2047e-22
-        cds           1.60716e-15           6.93676e-18           1.28418e-16
-        csg          -5.25247e-15          -9.23893e-18          -1.28356e-16
-        csd           2.73369e-15           2.23101e-22          -1.17334e-21
-        css           4.34097e-15           1.03997e-17           1.92623e-16
-        cgb           4.54201e-16          -1.40005e-15          -5.24223e-15
-        cdb          -1.82219e-15          -7.74497e-19          -4.28444e-17
-        csb          -1.82219e-15            -1.161e-18          -6.42653e-17
-        cbb           3.19018e-15           1.40199e-15           5.34934e-15
+        vbs          -8.88178e-16                    -6            1.2626e-10
+        vgs               6.99615                     1             0.0038484
+        vds           2.35313e-08                     1                     6
+        cgg           1.05059e-14           1.41427e-15           5.41669e-15
+        cgs          -5.72322e-15          -1.42181e-17          -1.68197e-16
+        cgd          -5.23686e-15          -9.90679e-22           9.35472e-22
+        cbg          -8.80079e-19          -1.39887e-15           -5.2063e-15
+        cbd          -2.96436e-15          -9.36452e-23           9.27019e-22
+        cbs          -2.24946e-16          -3.11841e-18          -1.47618e-16
+        cdg          -5.25249e-15          -6.16313e-18          -8.41572e-17
+        cdd           5.46751e-15           8.61222e-22          -7.08556e-22
+        cds           1.60718e-15           6.93676e-18           1.26327e-16
+        csg          -5.25249e-15          -9.23893e-18          -1.26233e-16
+        csd            2.7337e-15           2.23101e-22          -1.15394e-21
+        css           4.34099e-15           1.03997e-17           1.89488e-16
+        cgb           4.54217e-16          -1.40005e-15          -5.24849e-15
+        cdb           -1.8222e-15          -7.74497e-19          -4.21696e-17
+        csb           -1.8222e-15            -1.161e-18          -6.32531e-17
+        cbb           3.19018e-15           1.40199e-15           5.35391e-15
       capbd           5.89256e-16             2.927e-18           3.89676e-17
       capbs           5.89256e-16           3.27328e-18          -1.57943e-16
-         qg           6.69373e-14           1.89487e-14           5.72706e-15
-         qb          -5.11866e-15          -1.89472e-14          -5.70162e-15
-         qd          -3.09093e-14          -5.92413e-19          -1.01744e-17
-         qs          -3.09093e-14          -8.88067e-19          -1.52613e-17
+         qg           6.69581e-14           1.89487e-14           5.71631e-15
+         qb          -5.11866e-15          -1.89472e-14          -5.69129e-15
+         qd          -3.09197e-14          -5.92413e-19           -1.0006e-17
+         qs          -3.09197e-14          -8.88067e-19          -1.50087e-17
        qinv                     0                     0                     0
        qdef                    -0                     0                     0
        gcrg                     0                     0                     0
@@ -2896,17 +2896,17 @@ No. of Data Rows : 1
    rgatemod                     0
      geomod                     0
     rgeomod                     0
-       gmbs            2.4949e-06
-         gm           6.25672e-06
-        gds           0.000109395
+       gmbs           1.65432e-06
+         gm           4.14645e-06
+        gds            0.00011182
       vdsat              0.103081
         vth              0.812549
-         id           6.58928e-07
-        ibd          -7.72158e-15
-        ibs           6.55793e-26
-        gbd           1.29111e-12
+         id            4.3944e-07
+        ibd          -5.13842e-15
+        ibs           4.36415e-26
+        gbd           1.31259e-12
         gbs           1.35889e-12
-       isub           2.07007e-23
+       isub            8.9932e-24
       igidl                     0
       igisl                     0
         igs                     0
@@ -2914,31 +2914,31 @@ No. of Data Rows : 1
         igb                     0
        igcs                     0
        igcd                     0
-        vbs           9.65197e-14
+        vbs           6.42303e-14
         vgs              0.899083
-        vds            0.00583281
-        cgg           2.39026e-14
-        cgs          -9.43695e-15
-        cgd          -1.16051e-14
-        cbg          -1.88743e-16
-        cbd           -9.0213e-15
-        cbs          -3.03937e-15
-        cdg          -1.18538e-14
-        cdd           1.37752e-14
-        cds           2.76779e-15
-        csg          -1.18601e-14
-        csd           6.85115e-15
-        css           9.70853e-15
-        cgb          -2.86056e-15
-        cdb          -4.68922e-15
-        csb          -4.69963e-15
-        cbb           1.22494e-14
-      capbd           5.43244e-16
+        vds             0.0038484
+        cgg           2.39065e-14
+        cgs          -9.40115e-15
+        cgd          -1.16459e-14
+        cbg          -1.85695e-16
+        cbd          -9.05307e-15
+        cbs          -3.02023e-15
+        cdg          -1.18584e-14
+        cdd           1.38154e-14
+        cds           2.73934e-15
+        csg          -1.18624e-14
+        csd           6.88363e-15
+        css           9.68204e-15
+        cgb          -2.85941e-15
+        cdb          -4.69636e-15
+        csb          -4.70322e-15
+        cbb            1.2259e-14
+      capbd           5.44776e-16
       capbs          -3.15887e-16
-         qg           2.68813e-14
-         qb          -1.53873e-14
-         qd          -5.72675e-15
-         qs          -5.76721e-15
+         qg           2.69043e-14
+         qb          -1.53694e-14
+         qd          -5.75413e-15
+         qs          -5.78083e-15
        qinv                     0
        qdef                     0
        gcrg                     0
@@ -2947,7 +2947,7 @@ No. of Data Rows : 1
  Capacitor: Fixed capacitor
      device c.xstartup.xr_gate.xc c.xstartup.xr_gate.xc c.xstartup.xr_pu.xc0.
       model                     C                     C                     C
-capacitance              2.55e-15              2.55e-15            2.5005e-13
+capacitance              2.55e-15              2.55e-15            3.7505e-13
       dtemp                     0                     0                     0
      bv_max                 1e+99                 1e+99                 1e+99
           i                     0                     0                     0
@@ -2956,7 +2956,7 @@ capacitance              2.55e-15              2.55e-15            2.5005e-13
  Capacitor: Fixed capacitor
      device c.xstartup.xr_pu.xc0. c.xstartup.xr_bot.xc0 c.xstartup.xr_bot.xc0
       model                     C                     C                     C
-capacitance            2.5005e-13                 9e-14                 9e-14
+capacitance            3.7505e-13                 9e-14                 9e-14
       dtemp                     0                     0                     0
      bv_max                 1e+99                 1e+99                 1e+99
           i                     0                     0                     0
@@ -2979,8 +2979,8 @@ capacitance               4.1e-13               4.1e-13
       dtemp                     0                     0                     0
      bv_max                 1e+99                 1e+99                 1e+99
       noisy                     1                     1                     1
-          i           8.91298e-12             8.913e-12           6.58928e-07
-          p           6.34546e-21           6.34548e-21           3.46811e-11
+          i           8.87391e-12           8.87389e-12            4.3944e-07
+          p           6.28995e-21           6.28992e-21           1.54247e-11
 
  Resistor: Simple linear resistor
      device r.xstartup.xr_pu.rend r.xstartup.xr_bot.ren r.xstartup.xr_bot.ren
@@ -2990,8 +2990,8 @@ capacitance               4.1e-13               4.1e-13
       dtemp                     0                     0                     0
      bv_max                 1e+99                 1e+99                 1e+99
       noisy                     1                     1                     1
-          i           6.58928e-07           9.70728e-07           9.70728e-07
-          p           3.46811e-11           5.28269e-11           5.28269e-11
+          i            4.3944e-07           9.70728e-07           9.70728e-07
+          p           1.54247e-11           5.28269e-11           5.28269e-11
 
  Resistor: Simple linear resistor
      device r.xstartup.xr_top.ren r.xstartup.xr_top.ren
@@ -3021,8 +3021,8 @@ capacitance               4.1e-13               4.1e-13
         pwr                     0                     0                     0
        freq                     0                     0                     0
       phase                     0                     0                     0
-          i                     0           -1.4923e-11          -9.70728e-07
-          p                     0           -8.9538e-11          -4.85364e-06
+          i                     0          -1.48839e-11          -9.70728e-07
+          p                     0          -8.93033e-11          -4.85364e-06
 
  Vsource: Independent voltage source
      device                 vbvdd
@@ -3041,23 +3041,23 @@ capacitance               4.1e-13               4.1e-13
         pwr                     0
        freq                     0
       phase                     0
-          i          -6.58959e-07
-          p          -4.61271e-06
+          i          -4.39471e-07
+          p          -3.07629e-06
 
 
 Total analysis time (seconds) = 0.002
 
-Total elapsed time (seconds) = 0.338 
+Total elapsed time (seconds) = 0.329 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  224.938 MB.
-Maximum ngspice program size =   36.949 MB.
-Current ngspice program size =   20.301 MB.
+DRAM currently available =  239.445 MB.
+Maximum ngspice program size =   36.945 MB.
+Current ngspice program size =   20.398 MB.
 
-Shared ngspice pages =   10.656 MB.
+Shared ngspice pages =   10.754 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   17.703 MB.
+Library pages =   17.699 MB.
 
 
 --- Running tb_su_pvt.spice ---
@@ -3071,9 +3071,9 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.62500e-05 Reference value :  6.02500e-05 Reference value :  9.45500e-05 Reference value :  1.24050e-04 Reference value :  1.49350e-04 Reference value :  1.84050e-04Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  1.00000e-09 Reference value :  2.36500e-05 Reference value :  5.45500e-05 Reference value :  8.87500e-05 Reference value :  1.22850e-04 Reference value :  1.57150e-04 Reference value :  1.79850e-04Using SPARSE 1.3 as Direct Linear Solver
 
-No. of Data Rows : 2029
+No. of Data Rows : 2031
 pvdd_max_tt27       =  7.000315e+00 at=  7.030000e-06
 TT 27C: peak=7.00031 V, final=5.95741 V
 Reset re-loads circuit * tb_su_pvt.spice — pvt corner analysis
@@ -3083,9 +3083,9 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.18500e-05 Reference value :  5.70500e-05 Reference value :  7.88500e-05 Reference value :  1.13550e-04 Reference value :  1.48350e-04 Reference value :  1.82550e-04Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  1.00000e-09 Reference value :  2.34500e-05 Reference value :  5.59500e-05 Reference value :  8.87500e-05 Reference value :  1.19550e-04 Reference value :  1.40650e-04 Reference value :  1.73450e-04Using SPARSE 1.3 as Direct Linear Solver
 
-No. of Data Rows : 2036
+No. of Data Rows : 2032
 pvdd_max_m40        =  7.000284e+00 at=  7.030000e-06
 TT -40C: peak=7.00028 V
 Reset re-loads circuit * tb_su_pvt.spice — pvt corner analysis
@@ -3095,13 +3095,13 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.00500e-05 Reference value :  5.48500e-05 Reference value :  8.52500e-05 Reference value :  1.20550e-04 Reference value :  1.55650e-04 Reference value :  1.90450e-04Warning from checkvalid: vector pm40 is not available or has zero length.
+ Reference value :  1.00000e-09 Reference value :  2.63500e-05 Reference value :  5.32500e-05 Reference value :  8.43500e-05 Reference value :  1.19450e-04 Reference value :  1.49850e-04 Reference value :  1.84850e-04Warning from checkvalid: vector pm40 is not available or has zero length.
 Error: RHS "(pm40 - 5.0) * 1000" invalid
 Warning from checkvalid: vector ovs_m40 is not available or has zero length.
 
-No. of Data Rows : 2025
+No. of Data Rows : 2026
 pvdd_max_150        =  7.000262e+00 at=  7.030000e-06
-TT 150C: peak=7.00026 V, final=6.15309 V
+TT 150C: peak=7.00026 V, final=6.15308 V
 works_ss_150c: 1
 no_latch_stuck: 1
 no_overshoot_ff_m40: 1
@@ -3118,10 +3118,10 @@ Note: Simulation executed from .control section
   works_slow_ramp                           1  bool      (spec >= 1.0)  PASS
   works_fast_ramp                           1  bool      (spec >= 1.0)  PASS
   cold_crank_ok                             1  bool      (spec >= 1.0)  PASS
-  leakage_after_uA                      0.659  uA        (spec <= 1.0)  PASS
+  leakage_after_uA                     0.4395  uA        (spec <= 1.0)  PASS
   no_overshoot_ff_m40                       1  bool      (spec >= 1.0)  PASS
   no_latch_stuck                            1  bool      (spec >= 1.0)  PASS
 specs_pass: 10/11
 primary (startup_time_ss150_us): 0
 
-Run finished: Sun Mar 29 16:15:10 UTC 2026
+Run finished: Sun Mar 29 16:16:17 UTC 2026

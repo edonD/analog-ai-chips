@@ -23,8 +23,8 @@ XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=4100
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=900
 XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
 
-* 10MΩ pull-up: keeps det_out HIGH during startup, 0.7µA after
-XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=5001
+* 15MΩ pull-up: keeps det_out HIGH during startup, ~0.47µA after
+XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=7501
 
 * ================================================================
 * Gate pulldown — current-limited by R_gate (~100k)
