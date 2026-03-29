@@ -24,7 +24,7 @@ window.startLoop = function startLoop(){
     }
   }
 
-  const NR = 50;
+  const NR = 55;
   const start = performance.now();
 
   function ease(t){ return t<0.5?2*t*t:-1+(4-2*t)*t }
@@ -32,6 +32,15 @@ window.startLoop = function startLoop(){
   function frame(now){
     const elapsed = (now-start)/1000;
     ctx.clearRect(0,0,620,620);
+
+    // background dot grid
+    const gridStep = 20;
+    ctx.fillStyle = 'rgba(255,255,255,0.025)';
+    for(let gx=gridStep/2; gx<620; gx+=gridStep){
+      for(let gy=gridStep/2; gy<620; gy+=gridStep){
+        ctx.beginPath();ctx.arc(gx,gy,1,0,TAU);ctx.fill();
+      }
+    }
 
     // orbit ring
     const rt = Math.min(1,elapsed/0.9);
@@ -125,12 +134,20 @@ window.startLoop = function startLoop(){
       const ct=Math.min(1,(elapsed-3.5)/0.8);
       const pulse=0.85+Math.sin(elapsed*2.5)*0.15;
       ctx.globalAlpha=ct*pulse;
-      ctx.font="900 28px 'Inter',sans-serif";
+      // glow halo behind ∞
+      const cg=ctx.createRadialGradient(CX,CY,0,CX,CY,48);
+      cg.addColorStop(0,`rgba(124,58,237,${0.35*ct*pulse})`);
+      cg.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(CX,CY,48,0,TAU);ctx.fillStyle=cg;ctx.fill();
+      ctx.shadowColor='rgba(0,212,255,0.9)';
+      ctx.shadowBlur=20;
+      ctx.font="900 36px 'Inter',sans-serif";
       ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillStyle='#ffffff';ctx.fillText('∞',CX,CY-5);
+      ctx.shadowBlur=0;
       ctx.font="500 8.5px 'JetBrains Mono',monospace";
-      ctx.fillStyle=`rgba(0,212,255,${0.7*ct})`;
-      ctx.fillText('RECURSIVE',CX,CY+12);
+      ctx.fillStyle=`rgba(0,212,255,${0.8*ct})`;
+      ctx.fillText('RECURSIVE',CX,CY+14);
       ctx.globalAlpha=1;
     }
 

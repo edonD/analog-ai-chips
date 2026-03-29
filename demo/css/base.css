@@ -212,7 +212,7 @@ body:has(a:hover) #cursor-ring{width:52px;height:52px;border-color:var(--violet)
   min-height:100vh;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  padding:5rem 2rem;
+  padding:7rem 2rem;
   overflow:hidden;
 }
 .scene-tall{min-height:140vh}
