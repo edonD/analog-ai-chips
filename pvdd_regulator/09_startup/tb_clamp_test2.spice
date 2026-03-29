@@ -1,0 +1,38 @@
+* Quick clamp test: 5 stacked NMOS diodes
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib '../sky130.lib.spice' tt
+
+Vpvdd pvdd gnd 0
+* 5 stacked diode NMOS
+XM1 pvdd pvdd n1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+XM2 n1 n1 n2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+XM3 n2 n2 n3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+XM4 n3 n3 n4 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+XM5 n4 n4 gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+.dc Vpvdd 0 10 0.01
+
+.control
+run
+let id_clamp = -I(Vpvdd)
+* Print at 4V, 5V, 6V, 7V, 8V
+echo "Id at 4.0V:"
+print id_clamp[400]
+echo "Id at 4.5V:"
+print id_clamp[450]
+echo "Id at 5.0V:"
+print id_clamp[500]
+echo "Id at 5.5V:"
+print id_clamp[550]
+echo "Id at 6.0V:"
+print id_clamp[600]
+echo "Id at 7.0V:"
+print id_clamp[700]
+echo "Id at 8.0V:"
+print id_clamp[800]
+.endc
+.end

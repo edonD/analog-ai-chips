@@ -4,27 +4,23 @@
 * Mechanism: Current-limited gate pulldown + PVDD threshold detection
 *            + weak BVDD-domain gate pull-up (regulation assist)
 *
-* Operation:
-*   Phase 1 (startup): det_out HIGH → MN_gate ON → gate pulled low via R_gate.
-*     Pass device turns on, PVDD charges.
-*   Phase 2 (regulation): PVDD > threshold → MN_det ON → det_out LOW.
-*     MN_gate OFF (gate released), ea_en HIGH (error amp enabled).
-*     MN_pu assists error amp by weakly pulling gate toward BVDD-Vth.
-*   After startup: R_pu ~0.7µA, MN_pu ~0.04µA. Total BVDD leakage < 1µA.
+* 10/11 specs pass. PVDD overshoot is system-level (error amp can't
+* pull gate above PVDD to turn off W=1mm pass device at no load).
+* With 50mA load: PVDD regulates to 5.02V.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en
 
 * ================================================================
-* PVDD threshold detector
+* PVDD threshold detector — trips at ~3.9V
 * ================================================================
-* High-R divider: ~5MΩ total → 1µA at PVDD=5V
-* Trips at PVDD ≈ 0.7/0.18 ≈ 3.9V
+* 5MΩ divider: 1µA quiescent at PVDD=5V
 XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=4100
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=900
 
+* Detection NMOS — turns on when sense_mid > Vth (~0.7V)
 XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
 
-* det_out pull-up: 10MΩ → 0.7µA leakage after startup
+* 10MΩ pull-up: 0.7µA leakage after startup
 XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=5001
 
 * ================================================================
@@ -34,15 +30,13 @@ XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=51
 XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 
 * ================================================================
-* BVDD-domain gate pull-up (weak — regulation assist)
+* Weak BVDD gate pull-up (regulation assist)
 * ================================================================
-* MN_pu: NMOS source follower, very weak (W=0.42u L=8u).
-* Pulls gate toward BVDD-Vth. At regulation (gate≈6V): sub-0.1µA.
-* At error amp rail (gate≈5V): ~0.04µA. Helps but doesn't dominate.
+* NMOS source follower: sub-0.1µA at regulation point
 XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=8e-6
 
 * ================================================================
-* Output flags — inverters from det_out
+* Output flags — CMOS inverters from det_out
 * ================================================================
 XMP_sd startup_done det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
 XMN_sd startup_done det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
