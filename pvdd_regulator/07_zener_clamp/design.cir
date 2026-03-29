@@ -23,11 +23,11 @@
 * DIODE REFERENCE STACK: 5x L=4u diode-connected NFETs
 * Body = Source (no body effect). W=2u (narrow for low leakage)
 * ================================================================
-XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
-XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
-XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
-XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
-XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
+XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
+XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
+XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
+XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
+XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
 
 * ================================================================
 * GATE PULLDOWN: 500 kOhm
