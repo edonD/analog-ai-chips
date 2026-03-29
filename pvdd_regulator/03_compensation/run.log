@@ -1,0 +1,187 @@
+=== Block 03: Compensation ===
+Run started: Sun Mar 29 00:05:31 UTC 2026
+
+--- Running tb_comp_lstb.spice ---
+warning, can't find model 'rload_ohm' from line
+    rload pvdd 0 rload_ohm
+Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+
+Note: No compatibility mode selected!
+
+
+Circuit: * tb_comp_lstb.spice — loop stability at 5 load points
+
+Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
+
+Circuit: * tb_comp_lstb.spice — loop stability at 5 load points
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1601
+pm_0mA_deg: 45.2948
+gm_0mA_dB: 100
+ugb_0mA_kHz: 204.174
+Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
+
+Circuit: * tb_comp_lstb.spice — loop stability at 5 load points
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1601
+pm_100uA_deg: 87.3497
+gm_100uA_dB: 100
+ugb_100uA_kHz: 1566.75
+Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
+
+Circuit: * tb_comp_lstb.spice — loop stability at 5 load points
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1601
+pm_1mA_deg: 80.5064
+gm_1mA_dB: 100
+ugb_1mA_kHz: 11749
+Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
+
+Circuit: * tb_comp_lstb.spice — loop stability at 5 load points
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1601
+pm_10mA_deg: 56.977
+gm_10mA_dB: 100
+ugb_10mA_kHz: 36307.8
+Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
+
+Circuit: * tb_comp_lstb.spice — loop stability at 5 load points
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+
+No. of Data Rows : 1
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+No. of Data Rows : 1601
+pm_50mA_deg: 45.2395
+gm_50mA_dB: 100
+ugb_50mA_kHz: 56234.1
+pm_min_deg: 45.2395
+gm_min_dB: 100
+ngspice-42 done
+
+WARNING: tb_comp_pm_vs_load.spice not found — skipping
+
+WARNING: tb_comp_pvt.spice not found — skipping
+
+WARNING: tb_comp_bvdd_sweep.spice not found — skipping
+
+--- Running tb_comp_load_step.spice ---
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: * tb_comp_load_step.spice — load step transient: 1ma→10ma and 10ma→1ma
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+bvdd                                         7
+avbg                                     1.226
+en                                           5
+ibias                                 0.845299
+xea.ibias_en                          0.845128
+vout_gate                              5.96603
+xea.pb_tail                            4.80854
+xea.tail_s                             3.58306
+xea.d1                                 1.77148
+xea.d2                                 1.77954
+vfb                                    1.22595
+xea.comp_mid                           5.96603
+xcomp.xcc.a                            4.99973
+xcomp.xcc.b1                           4.99973
+xcomp.cc_mid                           4.99973
+xcomp.xrz.t1                           4.99973
+xcomp.xrz.t2                           4.99973
+pvdd                                   4.99973
+xcomp.xcout.a                                0
+xcomp.xcout.b1                               0
+ven#branch                                   0
+vavbg#branch                                 0
+vbvdd#branch                       -0.00306474
+
+ Reference value :  0.00000e+00 Reference value :  1.54328e-05 Reference value :  3.12928e-05 Reference value :  4.69028e-05 Reference value :  6.24050e-05 Reference value :  7.82550e-05 Reference value :  9.40950e-05 Reference value :  1.10175e-04
+No. of Data Rows : 12020
+=== Load Step Results ===
+pvdd_ss    = 4.99973 V
+pvdd_min   = 4.8818 V (during 1→10mA step)
+pvdd_max   = 5.14946 V (during 10→1mA step)
+transient_undershoot_mV: 118.204
+transient_overshoot_mV: 149.463
+no_oscillation: 1
+settling_time_us: 1.085
+ngspice-42 done
+
+--- Evaluation ---
+---
+* pm_min_deg                            45.24  deg       (spec >= 45.0)  PASS
+  pm_0mA_deg                            45.29  deg       (spec >= 45.0)  PASS
+  pm_100uA_deg                          87.35  deg       (spec >= 45.0)  PASS
+  pm_1mA_deg                            80.51  deg       (spec >= 45.0)  PASS
+  pm_10mA_deg                           56.98  deg       (spec >= 45.0)  PASS
+  pm_50mA_deg                           45.24  deg       (spec >= 45.0)  PASS
+  gm_min_dB                               100  dB        (spec >= 10.0)  PASS
+  transient_undershoot_mV               118.2  mV        (spec <= 150.0)  PASS
+  transient_overshoot_mV                149.5  mV        (spec <= 150.0)  PASS
+  settling_time_us                      1.085  us        (spec <= 10.0)  PASS
+  no_oscillation                            1  bool      (spec >= 1.0)  PASS
+  pm_pvt_min_deg                          ???  deg       (spec >= 45.0)  MISSING
+specs_pass: 11/12
+primary (pm_min_deg): 45.2395
+
+Run finished: Sun Mar 29 00:05:46 UTC 2026
