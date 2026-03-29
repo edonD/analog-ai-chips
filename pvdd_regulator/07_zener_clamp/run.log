@@ -1,5 +1,5 @@
 === Block 07: Zener Clamp ===
-Run started: Sun Mar 29 17:41:24 UTC 2026
+Run started: Sun Mar 29 17:45:49 UTC 2026
 
 --- Running tb_zc_iv.spice ---
 Using SPARSE 1.3 as Direct Linear Solver
@@ -35,13 +35,13 @@ No. of Data Rows : 1601
 clamp_onset_m40c_V: 6.465
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
- Reference value :  8.15000e-01Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  1.21000e+00Using SPARSE 1.3 as Direct Linear Solver
 
 No. of Data Rows : 1601
 temp_27_onset_1mA_V: 5.98
 Doing analysis at TEMP = 85.000000 and TNOM = 27.000000
 
- Reference value :  3.62000e+00Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  3.72000e+00Using SPARSE 1.3 as Direct Linear Solver
 
 No. of Data Rows : 1601
 Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
@@ -62,10 +62,10 @@ Circuit: * tb_zc_transient.spice — transient clamping: 10v/us ramp, 200pf cloa
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-11
+ Reference value :  1.00000e-11 Reference value :  2.93250e-06
 No. of Data Rows : 3044
-transient_peak_V: 5.74596
-peak_current_mA: 253.298
+transient_peak_V: 6.0602
+peak_current_mA: 210.276
 ngspice-42 done
 
 --- Running tb_zc_corners.spice ---
@@ -152,9 +152,9 @@ ngspice-42 done
   leakage_at_5p17v_nA                   923.1  nA        (spec <= 5000.0)  PASS
   clamp_onset_150c_V                     5.02  V         (spec >= 5.0)  PASS
   clamp_onset_m40c_V                    6.465  V         (spec <= 7.0)  PASS
-  transient_peak_V                      5.746  V         (spec <= 6.5)  PASS
-  peak_current_mA                       253.3  mA        (spec >= 100.0)  PASS
+  transient_peak_V                       6.06  V         (spec <= 6.5)  PASS
+  peak_current_mA                       210.3  mA        (spec >= 100.0)  PASS
 specs_pass: 9/9
 primary (leakage_at_5v_nA): 514.59
 
-Run finished: Sun Mar 29 17:41:29 UTC 2026
+Run finished: Sun Mar 29 17:45:54 UTC 2026
