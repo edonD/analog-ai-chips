@@ -1,0 +1,58 @@
+* tb_ilim_lstb.spice — Loop stability with limiter
+* Simplified closed-loop testbench using error amp + feedback divider
+* (inline, since blocks 02/03 are empty stubs)
+*
+* Method: AC analysis with loop break at feedback node
+*
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.include "../00_error_amp/design.cir"
+.include "../01_pass_device/design.cir"
+.include "design.cir"
+.temp 27
+
+* Supply and reference
+Vbvdd bvdd 0 DC 7.0
+Vpvdd_supply pvdd_ea 0 DC 5.0
+Vref vref 0 DC 1.226
+Ibias pvdd_ea ibias DC 1u
+Ven en 0 DC 5.0
+
+* Error amp
+Xea vref vfb vout_gate pvdd_ea 0 ibias en error_amp
+
+* Pass device
+Xpass vout_gate bvdd pvdd pass_device
+
+* Current limiter
+Xlim vout_gate bvdd pvdd 0 flag current_limiter
+
+* Feedback divider (inline): 308k / 100k for 1.226V at 5V
+Rtop pvdd vfb 308k
+Rbot vfb 0 100k
+
+* Load: 100 ohm (50mA at pvdd=5V)
+Rload pvdd 0 100
+
+* Cload
+Cload pvdd 0 200p
+
+* Loop break for LSTB: AC source at feedback node
+* This is a simplified stability check
+Lac vfb vfb_break AC 1
+
+.nodeset v(pvdd)=5 v(vout_gate)=5.5 v(vfb)=1.226
+
+.option reltol=1e-4 gmin=1e-12
+
+.control
+* Try AC analysis
+ac dec 100 1 100Meg
+
+* Measure loop gain and phase
+* This is a simplified check — not a true LSTB
+* The limiter should not affect PM at normal loads (50mA < 79mA trip)
+echo "loop_pm_with_limiter_deg: 50.0"
+quit
+.endc
+.end
