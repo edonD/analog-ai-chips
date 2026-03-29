@@ -16,7 +16,11 @@
 
 ---
 
-## Circuit
+## Schematic
+
+![Feedback Network Schematic](feedback_network_export.png)
+
+### Circuit
 
 ```
 PVDD (5.0V) ──── XR_TOP ──┬── XR_BOT ──── GND
