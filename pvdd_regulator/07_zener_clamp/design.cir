@@ -1,26 +1,28 @@
-* Block 07: Zener Clamp — v9
+* Block 07: Zener Clamp — v13b
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* TOPOLOGY: 5 long-channel diode-stack + wide clamp NMOS
+* TOPOLOGY: HYBRID CLAMP with Cff startup suppression
+*   Precision stack: 5x L=4u W=1.5u (body=src)
+*   Fast stack: 7x L=0.5u W=10u (body=GND)
+*   Cff=15pF from pvdd to vg (direct -- for transient response)
+*   Rpd=500k (DC operating point)
+*   Clamp NMOS m=20
 *
-*   5 diode-connected HV NFETs, ALL L=4u (Vth~1.07V, TC~-0.6mV/C).
-*   W=1.5u: narrow devices for low leakage with margin.
-*   Body = Source (isolated P-well via deep N-well — see Issue #1 analysis).
+*   STARTUP FIX: Small Rpd2=10k in parallel with Rpd for fast
+*   vg discharge, switched by a startup-detect PMOS.
+*   Actually, simpler: just use Rpd=50k and compensate with
+*   wider stack (W=5u) to maintain the same onset voltage.
 *
-*   Rpd=500k: balanced pulldown for good TT margins.
-*   At 5.0V: stack current ~430nA, vg ~215mV, clamp OFF.
-*   At onset (~6.1V): I_stack ~1.8uA, vg ~0.9V, clamp activates.
-*
-*   Cff=20pF for transient feedforward.
-*
-* All HV: sky130_fd_pr__nfet_g5v0d10v5  (Vds max 10.5V)
-* Dimensions in METERS.
+*   Wait -- let me try: Cff from the n1 node (top of last stack
+*   device, bottom of 4th device) instead of from pvdd. During
+*   startup, n1 follows vg closely (small delta). During overshoot,
+*   n1 rises with pvdd. So the coupling from n1 is smaller during
+*   startup but still present during overshoot.
 *
 .subckt zener_clamp pvdd gnd
 
 * ================================================================
-* DIODE REFERENCE STACK: 5x L=4u diode-connected NFETs
-* Body = Source (isolated P-well via deep N-well). W=1.5u for low leakage.
+* PRECISION DIODE STACK: 5x L=4u W=1.5u (body=src)
 * ================================================================
 XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
@@ -34,13 +36,33 @@ XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 Rpd vg gnd 500k
 
 * ================================================================
-* FEEDFORWARD CAP: 20 pF
+* FEEDFORWARD: Cff=15pF from n1 to vg
+* Coupling from INSIDE the stack (n1 = bottom of 4th diode).
+* During startup: n1 ~ vg + 1*Vth (just one diode drop above vg).
+*   As pvdd rises 0->5V, n1 rises slowly (stack in subthreshold).
+*   Coupling: deltaVg ~ delta_n1 * Cff/(Cff+Cpar)
+*   Since delta_n1 is MUCH smaller than delta_pvdd during startup
+*   (the stack absorbs most of the rise), coupling is reduced.
+* During overshoot: pvdd >> 6V. Stack in strong inversion.
+*   n1 = vg + Vth of XMd5 ~ vg + 1.07V. As pvdd overshoots,
+*   n1 rises proportionally. Cff couples the overshoot to vg.
 * ================================================================
-Cff pvdd vg 20p
+Cff n2 vg 30p
 
 * ================================================================
 * WIDE CLAMP NMOS: W=100u m=20 => 2000 um, L=0.5u, body=GND
 * ================================================================
 XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=20
+
+* ================================================================
+* FAST PARALLEL DIODE STACK: 7x L=0.5u W=10u (body=GND)
+* ================================================================
+XMf1 pvdd pvdd nf6 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf2 nf6  nf6  nf5 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf3 nf5  nf5  nf4 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf4 nf4  nf4  nf3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf5 nf3  nf3  nf2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf6 nf2  nf2  nf1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf7 nf1  nf1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
 
 .ends zener_clamp

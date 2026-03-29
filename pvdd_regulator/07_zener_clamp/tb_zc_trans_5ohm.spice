@@ -1,0 +1,16 @@
+* tb_zc_trans_5ohm.spice — Transient with Rsrc=5 ohm (Problem A)
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+Vpvdd_src pvdd_src 0 PWL(0 5.0 0.1u 5.0 0.4u 8.0 2u 8.0)
+Rsrc pvdd_src pvdd 5
+Cload pvdd 0 200p ic=5.0
+Xclamp pvdd 0 zener_clamp
+.option reltol=1e-4
+.ic v(pvdd)=5.0
+.control
+tran 1n 3u uic
+let vpeak = vecmax(v(pvdd))
+echo "trans_rsrc5_peak_V: $&vpeak"
+quit
+.endc
+.end

@@ -1,0 +1,18 @@
+* tb_zc_startup.spice — Startup surge test (Problem D)
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+Vpvdd_src pvdd_src 0 PWL(0 0 1u 5.0 20u 5.0)
+Rsrc pvdd_src pvdd 1
+Cload pvdd 0 200p ic=0
+Xclamp pvdd 0 zener_clamp
+.option reltol=1e-4
+.ic v(pvdd)=0
+.control
+tran 1n 20u uic
+let ipeak_mA = vecmax(-i(Vpvdd_src)) * 1000
+let vfinal = v(pvdd)[length(v(pvdd))-1]
+echo "startup_peak_mA: $&ipeak_mA"
+echo "startup_final_V: $&vfinal"
+quit
+.endc
+.end
