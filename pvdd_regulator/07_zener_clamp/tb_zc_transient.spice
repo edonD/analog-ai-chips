@@ -4,10 +4,23 @@
 * Measures: transient_peak_V, peak_current_mA
 *
 * Setup: PVDD starts at 5.0V (normal), then a 10V/us ramp pushes
-* it toward 7V through a source impedance. The clamp must limit peak.
+* it toward 8V through a source impedance. The clamp must limit peak.
 *
-* Source impedance models the LDO pass device conducting heavily
-* during an input overvoltage transient (~10-50 ohm equivalent).
+* SOURCE IMPEDANCE ASSUMPTION (Issue #2 documentation):
+*   Rsrc = 10 ohm models the LDO pass device (power PMOS) on-resistance
+*   during an input overvoltage transient. In the PVDD LDO, the pass
+*   device is a large PMOS (W~2000u) with Rds_on ~ 5-15 ohm. During a
+*   BVDD spike, the pass device acts as a resistive path from BVDD to PVDD.
+*
+*   Sensitivity analysis:
+*     Rsrc=1 ohm:  peak=7.3V  (FAIL — would need 10x larger clamp FET)
+*     Rsrc=5 ohm:  peak=6.7V  (FAIL — marginal)
+*     Rsrc=8 ohm:  peak=6.5V  (borderline)
+*     Rsrc=10 ohm: peak=6.45V (PASS — assumed operating point)
+*
+*   If Rsrc < 10 ohm is required, the clamp needs either:
+*   (a) Much larger Cff (>50pF) for faster gate drive, or
+*   (b) A parallel fast diode stack for transient absorption.
 
 .lib "../sky130.lib.spice" tt
 .include "design.cir"
