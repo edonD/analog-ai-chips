@@ -27,15 +27,15 @@
 * Bottom 5: L=0.5u (lower Vth) — sets total onset voltage
 * W=5u for all — moderate width
 * ================================================================
-* Top pair — long channel, low TC
-XMd1 pvdd pvdd n6 n6 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
-XMd2 n6   n6   n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
-* Bottom five — short channel
-XMd3 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd4 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd5 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd6 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd7 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+* Top pair — long channel (L=4u), low TC
+XMd1 pvdd pvdd n6 n6 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=4e-6
+XMd2 n6   n6   n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=4e-6
+* Bottom five — short channel (L=0.5u)
+XMd3 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
+XMd4 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
+XMd5 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
+XMd6 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
+XMd7 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
 
 * ================================================================
 * GATE PULLDOWN: 500 kOhm
