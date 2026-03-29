@@ -1,0 +1,20 @@
+* Test voltage divider for comp1
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+
+Vbvdd bvdd 0 PWL(0 0 10.5u 10.5)
+
+XRtop bvdd c1tap 0 sky130_fd_pr__res_xhigh_po w=1 l=190
+XRbot c1tap 0    0 sky130_fd_pr__res_xhigh_po w=1 l=285
+
+.tran 100n 12u uic
+
+.control
+run
+meas tran tap_at2p5 FIND v(c1tap) AT=2.5u
+meas tran tap_at5 FIND v(c1tap) AT=5u
+echo "c1tap at BVDD=2.5V: $&tap_at2p5 (expected 1.50)"
+echo "c1tap at BVDD=5.0V: $&tap_at5 (expected 3.00)"
+.endc
+
+.end

@@ -1,0 +1,30 @@
+* DC sweep: PMOS diff pair with body=source (no body effect)
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+
+Vpvdd pvdd 0 5.0
+Vref  vref 0 1.226
+Vtap  tap  0 dc
+
+* Bias: diode PMOS + pulldown R
+XMpb pbias pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+Rpb pbias 0 180000
+
+* Tail (body=pvdd, source=pvdd → Vsb=0)
+XMpt ctail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+* Diff pair: body=source=ctail (Vsb=0, no body effect)
+XMp1 mi  tap  ctail ctail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XMp2 out vref ctail ctail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+* NMOS mirror
+XMn3 mi  mi 0 0 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMn4 out mi 0 0 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+.dc Vtap 0 2.5 0.1
+
+.control
+run
+echo "vtap     out        mi         ctail"
+print v(tap) v(out) v(mi)
+.endc
+
+.end

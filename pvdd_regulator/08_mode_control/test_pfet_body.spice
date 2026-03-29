@@ -1,0 +1,30 @@
+* PFET test: same style as the earlier working test
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+
+* Case 1: standard (body=source)
+Vdd1 drain1 0 -5.0
+Vgs1 gate1 0 dc
+XM1 drain1 gate1 0 0 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+
+* Case 2: body=+5V, source=0V (large body effect Vsb=5V)
+Vdd2 drain2 0 -5.0
+Vgs2 gate2 0 dc
+Vbody body2 0 5.0
+XM2 drain2 gate2 0 body2 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+
+.dc Vgs1 -3 0 0.5 Vgs2 -3 0 0.5
+
+.control
+dc Vgs1 -5 0 0.5
+let id1 = i(vdd1)
+echo "=== Vsb=0 ==="
+print v(gate1) id1
+
+dc Vgs2 -5 0 0.5
+let id2 = i(vdd2)
+echo "=== Vsb=5V (body effect) ==="
+print v(gate2) id2
+.endc
+
+.end

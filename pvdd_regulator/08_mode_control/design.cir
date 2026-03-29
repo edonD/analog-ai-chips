@@ -30,26 +30,27 @@ C_tap4 tap4 gnd 100f
 * =============================================
 * PMOS TAIL BIAS (from PVDD)
 * =============================================
-* Rbias + diode PMOS sets pbias voltage (~3.2V for ~10µA)
-XRpbias pvdd pbias gnd sky130_fd_pr__res_xhigh_po w=1 l=85
+* Diode PMOS (PVDD→pbias) + Rbias to GND sets pbias voltage (~3.2V for ~10µA)
 XMpbias pbias pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XRpbias pbias gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=30
 
 * =============================================
 * COMPARATOR 1: tap1 vs vref — TH1 = 2.5V
 * =============================================
-* PMOS tail
-XM1pt c1tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-* PMOS diff pair: p1 gate=tap (mirror side), p2 gate=vref (output side)
-XM1p1 c1mi tap1 c1tail c1tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM1p2 c1o  vref c1tail c1tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-* NMOS mirror load
-XM1n3 c1mi c1mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM1n4 c1o  c1mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-* 2-inverter buffer (from PVDD): comp1 = c1o polarity
-XM1iv1p c1ob c1o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM1iv1n c1ob c1o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM1iv2p comp1 c1ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM1iv2n comp1 c1ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+* Uses CMOS inverter threshold detector (fast, no OTA slew limit)
+* Separate voltage divider from BVDD sets the tap ratio
+* Inverter from PVDD: trip at ~1.4V. Divider ratio = 1.4/2.5 = 0.56
+* PFET W=20 (min), NFET W=60 → lower trip point
+* Divider: ratio=0.73, Rtotal~600kΩ for moderate BVDD current
+XRc1top bvdd c1tap gnd sky130_fd_pr__res_xhigh_po w=1 l=80
+XRc1bot c1tap gnd  gnd sky130_fd_pr__res_xhigh_po w=1 l=220
+C_c1tap c1tap gnd 50f
+* Inverter from PVDD: W_p=W_n=20µm → trip ~1.82V
+XMc1ivp c1inv c1tap pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc1ivn c1inv c1tap gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+* Second inverter to restore polarity: comp1 = HIGH when c1tap > trip
+XMc1iv2p comp1 c1inv pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMc1iv2n comp1 c1inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
 * =============================================
 * COMPARATOR 2: tap2 vs vref — TH2 = 4.2V
