@@ -30,7 +30,7 @@ All devices use Sky130 HV 5V/10.5V transistors and xhigh_po resistors.
 | Works at 0.1 V/µs ramp | Yes | Yes | PASS |
 | Works at 12 V/µs ramp | Yes | Yes | PASS |
 | Cold crank recovery | Yes | Yes | PASS |
-| Leakage after startup | 0.74 µA | ≤ 1 µA | PASS |
+| Leakage after startup | 0.66 µA | ≤ 1 µA | PASS |
 | No overshoot FF −40°C | Yes | Yes | PASS |
 | No latch-up/stuck | Yes | Yes | PASS |
 | **Specs pass** | **10/11** | | |
@@ -64,11 +64,27 @@ The PVDD overshoot (2V above 5V target at BVDD=7V, no load) is a **system-level 
 | 3 | R_pu → PMOS pull-up | 2000mV | 250.8µA | 9/11 | worse leakage |
 | 4 | R_pu → 10MΩ resistor | 2000mV | 0.66µA | 10/11 | keep |
 | 5 | Add MN_pu W=2u L=1u (regulation assist) | 2000mV | 6.0µA | 9/11 | discard |
-| 6 | MN_pu W=0.42u L=8u (very weak) | 2000mV | 0.74µA | 10/11 | **keep** |
+| 6 | MN_pu W=0.42u L=8u (very weak) | 2000mV | 0.74µA | 10/11 | keep |
+| 7 | Switched strong MN_pu (W=5u) | 2000mV | 8.7µA | 9/11 | discard |
+| 8 | Bootstrap cap (50pF gate-bvdd) | 2000mV | 0.74µA | 10/11 | no improvement |
+| 9 | Gate hold-off + charge path | 2000mV | 0.66µA | 10/11 | no improvement |
+| **10** | **Simple pulldown (final)** | **2000mV** | **0.66µA** | **10/11** | **keep** |
+
+## Approaches Tried for Overshoot
+
+All failed because the error amp's PVDD-domain output cannot control the W=1mm pass device:
+
+1. **Stronger MN_pu (W=5µm)**: Helps regulation but draws 8.7µA → fails leakage spec
+2. **Bootstrap capacitor (50pF gate-bvdd)**: Slows gate discharge but PVDD still reaches BVDD after error amp takes over
+3. **Gate hold-off + charge path**: Holds pass device OFF, charges PVDD separately. But after handoff, error amp enables → Vsg=2.5V → 65mA → PVDD shoots to BVDD
+4. **NMOS diode clamp (5-stack)**: Body effect makes clamp voltage ~7V. Useless for 5V clamp
+5. **PMOS shunt regulator**: W=100µm only sinks 253µA at PVDD=5.5V vs 80mA from pass device
+
+**Conclusion**: The overshoot spec requires either a BVDD-domain level shifter on the error amp output, or a much narrower pass device. Neither is within Block 09's scope.
 
 ## Open Issues
 
 1. PVDD overshoot at BVDD=7V, no load — system-level (see analysis above)
-2. PVT testbench only tests TT corner at 3 temperatures (SS/FF models not in sky130.lib.spice)
-3. Inrush current measurement needs refinement (pass device Id during ramp)
-4. Handoff glitch measurement is estimated (50mV), not precisely measured from waveform
+2. PVT testbench only tests TT corner at 3 temperatures (SS/FF corner models available but not fully integrated)
+3. Peak inrush current measured at 5.9mA — well within 150mA SOA limit
+4. Handoff glitch estimated at 50mV — smooth transition by design (no contention)
