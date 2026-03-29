@@ -1,0 +1,63 @@
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: Compatibility modes selected: hs
+
+
+Circuit: * testbench: mode control — normal ramp (1 v/µs)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  1.00000e-10 Reference value :  1.11992e-06 Reference value :  2.87531e-06 Reference value :  5.45531e-06 Reference value :  7.58531e-06 Reference value :  8.73502e-06 Reference value :  1.11550e-05
+Error: measure  v_c1_r  find(WHEN) : bad syntax
+
+Error: measure  v_c2_r  find(WHEN) : bad syntax
+
+Error: measure  v_c3_r  find(WHEN) : bad syntax
+
+Error: measure  v_c4_r  find(WHEN) : bad syntax
+Error: &v_c1_r: no such variable.
+Error: &v_c2_r: no such variable.
+Error: &v_c3_r: no such variable.
+Error: &v_c4_r: no such variable.
+
+Error: measure  v_po_f  find(WHEN) : bad syntax
+
+Error: measure  v_by_r  find(WHEN) : bad syntax
+
+Error: measure  v_ea_r  find(WHEN) : bad syntax
+
+Error: measure  v_uv_r  find(WHEN) : bad syntax
+Error: &v_po_f: no such variable.
+Error: &v_by_r: no such variable.
+Error: &v_ea_r: no such variable.
+Error: &v_uv_r: no such variable.
+Warning from checkvalid: vector v_c1_r is not available or has zero length.
+
+No. of Data Rows : 1291
+ meas tran v_c1_r find v(bvdd) when v(xdut.comp1) cross=1.5 rise=1 td=500n failed!
+
+ meas tran v_c2_r find v(bvdd) when v(xdut.comp2) cross=1.5 rise=1 td=500n failed!
+
+ meas tran v_c3_r find v(bvdd) when v(xdut.comp3) cross=1.5 rise=1 td=500n failed!
+
+ meas tran v_c4_r find v(bvdd) when v(xdut.comp4) cross=1.5 rise=1 td=500n failed!
+
+=== Comparator Firing Points ===
+comp1_fires_at: 
+comp2_fires_at: 
+comp3_fires_at: 
+comp4_fires_at: 
+ meas tran v_po_f find v(bvdd) when v(pass_off) cross=1.0 fall=1 td=500n failed!
+
+ meas tran v_by_r find v(bvdd) when v(bypass_en) cross=1.0 rise=1 td=500n failed!
+
+ meas tran v_ea_r find v(bvdd) when v(ea_en) cross=1.0 rise=1 td=500n failed!
+
+ meas tran v_uv_r find v(bvdd) when v(uvov_en) cross=1.0 rise=1 td=500n failed!
+
+pass_off_falls: 
+bypass_en_rises: 
+ea_en_rises: 
+uvov_en_rises: 
+Note: Simulation executed from .control section 

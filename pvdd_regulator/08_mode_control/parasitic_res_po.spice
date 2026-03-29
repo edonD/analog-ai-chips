@@ -1,0 +1,16 @@
+* Parasitic model for poly resistor (cap to substrate)
+* Parameters w and l are in MICRONS (µm)
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+
+* Wrapper: accepts W/L in METERS (SI), converts to µm for PDK resistor model
+* Usage: Xname n1 n2 sub sky130_res_xhigh_po_m w=<meters> l=<meters>
+.subckt sky130_res_xhigh_po_m r0 r1 sub w=1e-6 l=100e-6
+.param w_um = 'w * 1e6'
+.param l_um = 'l * 1e6'
+XR r0 r1 sub sky130_fd_pr__res_xhigh_po w=w_um l=l_um
+.ends sky130_res_xhigh_po_m

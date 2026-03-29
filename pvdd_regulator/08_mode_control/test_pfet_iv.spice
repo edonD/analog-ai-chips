@@ -1,0 +1,19 @@
+* PFET IV test
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+
+Vdd drain 0 -5.0
+Vgs gate 0 dc
+
+XM1 drain gate 0 0 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+
+.dc Vgs 0 -5.0 -0.5
+
+.control
+run
+let ids = i(vdd)
+echo "Vgs   Id_pfet"
+print v(gate) ids
+.endc
+
+.end

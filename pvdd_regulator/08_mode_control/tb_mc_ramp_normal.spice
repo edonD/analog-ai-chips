@@ -1,0 +1,62 @@
+* Testbench: Mode Control — Normal Ramp (1 V/µs)
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+
+.option method=gear reltol=1e-3 abstol=1e-12 vntol=1e-6 gmin=1e-12
+.option itl1=300 itl2=200 itl4=50
+
+Vbvdd bvdd gnd PWL(0 0 10.5u 10.5)
+Vpvdd pvdd gnd 5.0
+Vsvdd svdd gnd 2.2
+Vref  vref gnd 1.226
+Ven   en_ret gnd 0
+
+XDUT bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off mode_control
+
+.tran 10n 12u uic
+
+.control
+run
+set wr_singlescale
+set wr_vecnames
+wrdata ramp_normal.txt v(bvdd) v(bypass_en) v(ea_en) v(ref_sel) v(uvov_en) v(ilim_en) v(pass_off) v(xdut.comp1) v(xdut.comp2) v(xdut.comp3) v(xdut.comp4)
+
+* Measure comp transitions: find where comp crosses 50% of BVDD
+* Use fixed thresholds at different levels to detect rising edges
+meas tran v_c1_r FIND v(bvdd) WHEN v(xdut.comp1) CROSS=1.5 RISE=1 TD=500n
+meas tran v_c2_r FIND v(bvdd) WHEN v(xdut.comp2) CROSS=1.5 RISE=1 TD=500n
+meas tran v_c3_r FIND v(bvdd) WHEN v(xdut.comp3) CROSS=1.5 RISE=1 TD=500n
+meas tran v_c4_r FIND v(bvdd) WHEN v(xdut.comp4) CROSS=1.5 RISE=1 TD=500n
+
+echo "=== Comparator Firing Points ==="
+echo "comp1_fires_at: $&v_c1_r"
+echo "comp2_fires_at: $&v_c2_r"
+echo "comp3_fires_at: $&v_c3_r"
+echo "comp4_fires_at: $&v_c4_r"
+
+* Check output transitions
+meas tran v_po_f FIND v(bvdd) WHEN v(pass_off) CROSS=1.0 FALL=1 TD=500n
+meas tran v_by_r FIND v(bvdd) WHEN v(bypass_en) CROSS=1.0 RISE=1 TD=500n
+meas tran v_ea_r FIND v(bvdd) WHEN v(ea_en) CROSS=1.0 RISE=1 TD=500n
+meas tran v_uv_r FIND v(bvdd) WHEN v(uvov_en) CROSS=1.0 RISE=1 TD=500n
+echo "pass_off_falls: $&v_po_f"
+echo "bypass_en_rises: $&v_by_r"
+echo "ea_en_rises: $&v_ea_r"
+echo "uvov_en_rises: $&v_uv_r"
+
+* Calculate threshold errors if measurements succeeded
+if v_c1_r > 0
+  let err1 = abs(v_c1_r - 2.5)/2.5*100
+  let err2 = abs(v_c2_r - 4.2)/4.2*100
+  let err3 = abs(v_c3_r - 4.5)/4.5*100
+  let err4 = abs(v_c4_r - 5.6)/5.6*100
+  echo "thresh_por_V: $&v_c1_r"
+  echo "thresh_ret_V: $&v_c2_r"
+  echo "thresh_pup_V: $&v_c3_r"
+  echo "thresh_act_V: $&v_c4_r"
+end
+
+.endc
+
+.end

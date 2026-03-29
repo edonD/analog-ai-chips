@@ -1,0 +1,35 @@
+* Test resistor ladder only
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+
+.param rtop_l = 241
+.param r12_l  = 94
+.param r23_l  = 9.2
+.param r34_l  = 25
+.param rbot_l = 103
+
+Vbvdd bvdd 0 PWL(0 0 10.5u 10.5)
+
+XRtop bvdd tap1 0 sky130_fd_pr__res_xhigh_po w=1 l=rtop_l
+XR12  tap1 tap2 0 sky130_fd_pr__res_xhigh_po w=1 l=r12_l
+XR23  tap2 tap3 0 sky130_fd_pr__res_xhigh_po w=1 l=r23_l
+XR34  tap3 tap4 0 sky130_fd_pr__res_xhigh_po w=1 l=r34_l
+XRbot tap4 0    0 sky130_fd_pr__res_xhigh_po w=1 l=rbot_l
+
+.tran 100n 12u uic
+.option method=gear reltol=1e-3
+
+.control
+run
+meas tran tap1_at5 FIND v(tap1) AT=5u
+meas tran tap2_at5 FIND v(tap2) AT=5u
+meas tran tap3_at5 FIND v(tap3) AT=5u
+meas tran tap4_at5 FIND v(tap4) AT=5u
+echo "At BVDD=5V (t=5us):"
+echo "tap1=$&tap1_at5 (expected 2.452)"
+echo "tap2=$&tap2_at5 (expected 1.460)"
+echo "tap3=$&tap3_at5 (expected 1.362)"
+echo "tap4=$&tap4_at5 (expected 1.095)"
+.endc
+
+.end

@@ -1,63 +1,146 @@
-* Block 08: Mode Control
+* Block 08: Mode Control — v8 (PMOS diff pair, PVDD-powered)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Subcircuit ports:
-*   bvdd      — battery supply input (0–10.5V), the signal being monitored
-*   pvdd      — regulated supply (5.0V, when available)
-*   svdd      — low-voltage digital supply (2.2V)
-*   gnd       — ground
-*   vref      — bandgap reference 1.226V
-*   en_ret    — retention enable input (SVDD domain, 0/2.2V)
-*   bypass_en — output: enable bypass switch (BVDD domain)
-*   ea_en     — output: enable error amplifier (PVDD domain)
-*   ref_sel   — output: reference select (0=5.0V target, 1=4.1V target)
-*   uvov_en   — output: enable UV/OV comparators
-*   ilim_en   — output: enable current limiter
-*   pass_off  — output: BVDD-domain hard shutoff (drives HV NMOS gate pull-up to BVDD during POR)
-*              NOTE: error amp (Block 00) runs from PVDD=5V and cannot pull pass gate above 5V.
-*              At BVDD=10.5V, pass device gate needs >=9.7V for full shutoff — unreachable from 5V.
-*              pass_off must drive a sky130_fd_pr__nfet_g5v0d10v5 pulling gate to BVDD.
-*              pass_off is HIGH (active) during POR (BVDD < 2.5V entry threshold).
-*
-* STATUS: EMPTY — threshold detection topology not yet chosen
-*
-* Operating modes (5 total):
-*   Mode 1: POR           BVDD 0–2.5V    PVDD=OFF
-*   Mode 2: Ret bypass    BVDD 2.5–4.2V  PVDD=BVDD (bypass)
-*   Mode 3: Ret regulate  BVDD 4.2–4.5V  PVDD=4.1V (regulated, low power)
-*   Mode 4: PU bypass     BVDD 4.5–5.0V  PVDD=BVDD (bypass)
-*   Mode 5: Active        BVDD > 5.6V    PVDD=5.0V (full regulation)
-*
-* Four threshold comparators needed:
-*   TH1 (POR):       BVDD = 2.5V ± 0.2V, hysteresis 200 mV
-*   TH2 (Ret):       BVDD = 4.2V ± 0.2V, hysteresis 200 mV
-*   TH3 (PU bypass): BVDD = 4.5V ± 0.2V, hysteresis 200 mV
-*   TH4 (Active):    BVDD = 5.6V ± 0.2V, hysteresis 200 mV
-*
-* Recommended topology:
-*   Single resistor ladder from BVDD to GND with 4 tap points.
-*   Four comparators (sky130 HV diff pair) each compare a tap to vref.
-*   Ensures monotonic threshold ordering by design (shared ladder).
-*   SR latches for hysteresis on each comparator output.
-*
-* Requirements:
-*   All 4 thresholds within ±15% of nominal across all PVT
-*   Each hysteresis 150–250 mV
-*   Glitch-free transitions (no intermediate states on outputs)
-*   Works at BVDD ramp rates 0.1–12 V/µs
-*   Quiescent current in active mode <= 20 µA from BVDD
-*   Known issue #m3: glitchy mode outputs cause PVDD oscillation — design clean.
+* PMOS diff pair from PVDD: Vsg = tail-input ≈ 3.8V >> |Vthp|=1.01V
+* NMOS mirror load. PMOS tail biased from PVDD.
+* Config A + 2 inverters: co rises when tap>vref, comp=HIGH ✓
+* Startup (tap=0): co drops → comp=LOW ✓
 *
 .subckt mode_control bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off
 
-* TODO: implement mode control here
-* Build incrementally: one comparator at a time.
-* Start with TH4 (active mode threshold) since it is used in standalone testing.
-*
-* Step 1: single resistor ladder (BVDD → R_top → tap4 → ... → tap1 → R_bot → GND)
-* Step 2: comparator for TH4 — tap4 vs vref
-* Step 3: add hysteresis (SR latch or positive feedback)
-* Step 4: logic to generate ea_en, bypass_en, etc.
-* Step 5: add remaining 3 comparators
+* =============================================
+* RESISTOR LADDER (from BVDD)
+* =============================================
+.param rtop_l = 241
+.param r12_l  = 94
+.param r23_l  = 9.2
+.param r34_l  = 25
+.param rbot_l = 103
+
+XRtop bvdd tap1 gnd sky130_fd_pr__res_xhigh_po w=1 l=rtop_l
+XR12  tap1 tap2 gnd sky130_fd_pr__res_xhigh_po w=1 l=r12_l
+XR23  tap2 tap3 gnd sky130_fd_pr__res_xhigh_po w=1 l=r23_l
+XR34  tap3 tap4 gnd sky130_fd_pr__res_xhigh_po w=1 l=r34_l
+XRbot tap4 gnd  gnd sky130_fd_pr__res_xhigh_po w=1 l=rbot_l
+C_tap1 tap1 gnd 100f
+C_tap2 tap2 gnd 100f
+C_tap3 tap3 gnd 100f
+C_tap4 tap4 gnd 100f
+
+* =============================================
+* PMOS TAIL BIAS (from PVDD)
+* =============================================
+* Rbias + diode PMOS sets pbias voltage (~3.2V for ~10µA)
+XRpbias pvdd pbias gnd sky130_fd_pr__res_xhigh_po w=1 l=85
+XMpbias pbias pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+
+* =============================================
+* COMPARATOR 1: tap1 vs vref — TH1 = 2.5V
+* =============================================
+* PMOS tail
+XM1pt c1tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+* PMOS diff pair: p1 gate=tap (mirror side), p2 gate=vref (output side)
+XM1p1 c1mi tap1 c1tail c1tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM1p2 c1o  vref c1tail c1tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+* NMOS mirror load
+XM1n3 c1mi c1mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM1n4 c1o  c1mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+* 2-inverter buffer (from PVDD): comp1 = c1o polarity
+XM1iv1p c1ob c1o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM1iv1n c1ob c1o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM1iv2p comp1 c1ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM1iv2n comp1 c1ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+* =============================================
+* COMPARATOR 2: tap2 vs vref — TH2 = 4.2V
+* =============================================
+XM2pt c2tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM2p1 c2mi tap2 c2tail c2tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM2p2 c2o  vref c2tail c2tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM2n3 c2mi c2mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM2n4 c2o  c2mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM2iv1p c2ob c2o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM2iv1n c2ob c2o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM2iv2p comp2 c2ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM2iv2n comp2 c2ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+* =============================================
+* COMPARATOR 3: tap3 vs vref — TH3 = 4.5V
+* =============================================
+XM3pt c3tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM3p1 c3mi tap3 c3tail c3tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM3p2 c3o  vref c3tail c3tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM3n3 c3mi c3mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM3n4 c3o  c3mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM3iv1p c3ob c3o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM3iv1n c3ob c3o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM3iv2p comp3 c3ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM3iv2n comp3 c3ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+* =============================================
+* COMPARATOR 4: tap4 vs vref — TH4 = 5.6V
+* =============================================
+XM4pt c4tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM4p1 c4mi tap4 c4tail c4tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM4p2 c4o  vref c4tail c4tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XM4n3 c4mi c4mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM4n4 c4o  c4mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM4iv1p c4ob c4o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM4iv1n c4ob c4o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XM4iv2p comp4 c4ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XM4iv2n comp4 c4ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+* =============================================
+* LOGIC (from BVDD)
+* =============================================
+XMinv1p comp1b comp1 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv1n comp1b comp1 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMinv2p comp2b comp2 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv2n comp2b comp2 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMinv3p comp3b comp3 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv3n comp3b comp3 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMinv4p comp4b comp4 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv4n comp4b comp4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+XRpo_pu bvdd pass_off gnd sky130_fd_pr__res_xhigh_po w=1 l=50
+XMpo_bufp pass_off comp1b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMpo_bufn pass_off comp1b gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+XMby_n1a by_s1     comp1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMby_n1b bypass_enb comp2b by_s1 by_s1 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMby_n2a by_s2     comp3  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMby_n2b bypass_enb comp4b by_s2 by_s2 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMby_p1a by_pmid comp1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_p1b by_pmid comp2b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_p2a bypass_enb comp3  by_pmid by_pmid sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_p2b bypass_enb comp4b by_pmid by_pmid sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_outp bypass_en bypass_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_outn bypass_en bypass_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+XMea_n1a ea_s1  comp2  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMea_n1b ea_enb comp3b ea_s1 ea_s1 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMea_n2  ea_enb comp4  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMea_p1a ea_pmid comp2  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMea_p1b ea_pmid comp3b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMea_p2  ea_enb  comp4  ea_pmid ea_pmid sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMea_outp ea_en ea_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMea_outn ea_en ea_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+XMrs_n1 rs_s1    comp1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMrs_n2 ref_selb comp3b rs_s1 rs_s1 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMrs_p1 ref_selb comp1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMrs_p2 ref_selb comp3b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMrs_outp ref_sel ref_selb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMrs_outn ref_sel ref_selb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+XMuv_p1 uvov_enb comp4 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMuv_n1 uvov_enb comp4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMuv_p2 uvov_en uvov_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMuv_n2 uvov_en uvov_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+
+XMil_p1 ilim_enb comp4 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMil_n1 ilim_enb comp4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMil_p2 ilim_en ilim_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMil_n2 ilim_en ilim_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
 .ends mode_control

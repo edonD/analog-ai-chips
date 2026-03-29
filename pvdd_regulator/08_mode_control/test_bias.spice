@@ -1,0 +1,21 @@
+* Test bias circuit
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+
+* Full bias circuit
+Vbias bvdd_b 0 7.0
+XRb bvdd_b nb 0 sky130_fd_pr__res_xhigh_po w=1 l=1400
+XMb nb nb 0 0 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=99e-6
+
+.op
+
+.control
+run
+echo "nbias ="
+print v(nb)
+echo "ibias ="
+print v(bvdd_b)/7 * -i(vbias)
+print -i(vbias)
+.endc
+
+.end

@@ -1,0 +1,22 @@
+* Test: both MOSFET (SI) and resistor (µm) with hs mode
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+
+.option method=gear
+
+Vdd vdd 0 5
+Vgs gate 0 1.0
+
+* MOSFET: SI units (meters)
+XM1 vdd gate 0 0 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+* Resistor: µm units (per PDK model convention)
+XR1 vdd gate 0 sky130_fd_pr__res_xhigh_po w=1 l=100
+
+.op
+
+.control
+run
+print all
+.endc
+
+.end
