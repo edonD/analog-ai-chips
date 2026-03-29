@@ -9,6 +9,10 @@ The startup circuit solves the chicken-and-egg bootstrap problem of the PVDD LDO
 
 **Solution:** Current-limited gate pulldown forces the pass device ON without the error amplifier, charging PVDD from 0V. Once PVDD reaches a threshold, the startup circuit disables and the error amplifier takes over regulation.
 
+## Schematic
+
+![Startup Circuit Schematic](startup_export.png)
+
 ## Circuit Topology
 
 **Mechanism:** Gate pulldown + PVDD threshold detection + BVDD regulation assist
