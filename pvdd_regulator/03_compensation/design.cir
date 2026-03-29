@@ -11,16 +11,17 @@
 .subckt compensation vout_gate pvdd gnd
 
 * Miller cap: vout_gate → Cc → Rz → pvdd
-* ~50 pF → W=158, L=158 → 49.9 pF
-* Area: 24964 um^2
-XCc vout_gate cc_mid sky130_fd_pr__cap_mim_m3_1 w=158 l=158 mf=1
+* ~40 pF Miller cap → W=141, L=141 → 39.8 pF
+* Area: 19881 um^2
+XCc vout_gate cc_mid sky130_fd_pr__cap_mim_m3_1 w=141 l=141 mf=1
 
-* Nulling resistor: ~4.5 kOhm (LHP zero at ~707 kHz)
-* R = Rsheet * L / W = 2000 * 9 / 4 = 4500 ohm
-XRz cc_mid pvdd gnd sky130_fd_pr__res_xhigh_po w=4 l=9
+* Nulling resistor: ~5 kOhm (LHP zero at ~796 kHz with 40pF)
+* R = Rsheet * L / W = 2000 * 10 / 4 = 5000 ohm
+XRz cc_mid pvdd gnd sky130_fd_pr__res_xhigh_po w=4 l=10
 
-* Output decoupling: ~50 pF (supplements 200pF Cload)
-* Area: 24964 um^2
-XCout pvdd gnd sky130_fd_pr__cap_mim_m3_1 w=158 l=158 mf=1
+* Output decoupling: ~60 pF (supplements 200pF Cload)
+* W=173, L=173 → 59.9 pF
+* Area: 29929 um^2
+XCout pvdd gnd sky130_fd_pr__cap_mim_m3_1 w=173 l=173 mf=1
 
 .ends compensation
