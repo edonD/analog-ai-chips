@@ -61,12 +61,7 @@ XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=4e-6
 * R_load: 100kΩ from BVDD to gate
 XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 
-* ================================================================
-* STARTUP ea_out PULLUP — self-regulation backup
-* Pulls ea_out toward PVDD when det_out=LOW (startup)
-* Disables when det_out=HIGH (after startup)
-* ================================================================
-* Stronger pullup: overpower error amp's internal Mcs leakage
+* STARTUP ea_out PULLUP — pulls ea_out toward PVDD during startup
 XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
 
 
