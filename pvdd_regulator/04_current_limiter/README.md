@@ -97,3 +97,41 @@ The trip condition is `Isense × Rs ≈ Vth(Mdet)`. When Rs drops 14% at 150°C,
 | `tb_ilim_pvt.spice` | 15-corner PVT template |
 | `tb_ilim_rgate_sweep.spice` | Rgate dependence characterization |
 | `sky130.lib.spice` | PDK library (HV NFET/PFET + resistors, 5 corners) |
+
+---
+
+## Critical TODOs for Top-Level Integration (Block 10)
+
+These issues MUST be addressed during `10_top_integration` — they cannot be caught by block-level testing alone.
+
+### 1. Current limit threshold exceeds safe limits at SS 150°C
+
+**Problem:** At SS 150°C the limiter trips at **137 mA**, not 70 mA. During a sustained short circuit at BVDD=10.5V, the pass device dissipates **10.5V × 137mA = 1.44W** — nearly 3x the design target of 0.49W (at 70mA). This may exceed the pass device Safe Operating Area (SOA) and cause thermal damage.
+
+**What to verify at top level:**
+- Run short-circuit transient at SS 150°C with BVDD=10.5V (worst-case power). Measure pass device power dissipation. Compare against SOA from Block 01.
+- If SOA is violated, the current limiter MUST be redesigned with a temperature-compensated reference (PTAT current from bandgap, not Vth + poly resistor).
+
+### 2. Current limit threshold dangerously close to rated load at FF −40°C
+
+**Problem:** At FF −40°C the limiter trips at **44 mA** — only 6 mA above the 50 mA maximum rated load. A normal 50 mA load transient could false-trip the limiter, causing output voltage dips.
+
+**What to verify at top level:**
+- Run load transient (0→50 mA step) at FF −40°C. Check if `ilim_flag` ever asserts. Check PVDD for unexpected dips caused by limiter interference.
+- If false-tripping occurs, the trip point must be raised at cold corners (requires temperature compensation or architectural change).
+
+### 3. Trip point depends on error amp output impedance (Rgate)
+
+**Problem:** The limiter was tuned for Rgate=10k. The real error amp (Block 00) has a different, load-dependent output impedance (~50k–500k depending on operating point). The trip point varies 3.3x across Rgate=1k to 1M.
+
+**What to verify at top level:**
+- Measure actual current limit with the real error amp in the loop (not Rgate approximation).
+- The trip point may shift significantly from the 80 mA block-level measurement.
+- If it shifts outside 50–100 mA at any PVT corner, the limiter needs proportional feedback (analog clamp that self-regulates independent of gate drive impedance).
+
+### 4. Spec gap — add missing limits
+
+**The block-level spec is incomplete.** Add these checks at top-level:
+- `ilim_ss150 ≤ 120 mA` — protection must actually protect at hot slow corner
+- `ilim_ff_m40 ≥ 50 mA` — limiter must not interfere with rated load at cold fast corner
+- `ilim_all_corners` in range 50–120 mA — every PVT point, not just the three checked today
