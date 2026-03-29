@@ -34,14 +34,12 @@ XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=0.5e-6
 * xhigh_po W=1u L=3.15u → Rs ~ 2000*(3.15-0.059)/1 = 6182 ohm
 * At 79mA trip: Isense_eff ~ 450uA (Vds mismatch)
 * Vsense = 450uA * 6182 = 2.78V → well above Vth for detection
-XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.35
+XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.15
 
 * === Detection NMOS with minimal source degeneration ===
-* Tiny degeneration for soft turn-on (anti-oscillation)
-* L=0.1 → Rdegen ~ 2000*(0.1-0.059)/1 = 82 ohm
-* At Id=100uA → Vdegen = 8mV (negligible)
-XMdet det_n sense_n degen_node gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
-XRdegen degen_node gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=0.1
+* No degeneration — direct connection to ground
+* Maximal detection sensitivity for highest SS150
+XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 
 * === Pull-up Resistor ===
 * xhigh_po W=1u L=5u → Rpu ~ 10.5k
