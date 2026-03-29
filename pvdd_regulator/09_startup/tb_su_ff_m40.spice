@@ -1,0 +1,40 @@
+* tb_su_ff_m40.spice — FF corner at -40C, risk of overshoot
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib '../sky130.lib.spice' ff
+.temp -40
+
+.include 'design.cir'
+.include '../01_pass_device/design.cir'
+.include '../00_error_amp/design.cir'
+.include '../02_feedback_network/design.cir'
+.include '../03_compensation/design.cir'
+
+Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+Vref vref gnd 1.226
+Ibias pvdd ibias DC 1u
+
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
+Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
+Xpass gate bvdd pvdd pass_device
+Xfb pvdd vfb gnd feedback_network
+Xcomp gate pvdd gnd compensation
+Cout pvdd gnd 1n
+
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
+.tran 0.1u 200u uic
+
+.control
+run
+let pvdd_peak = vecmax(V(pvdd))
+let pvdd_final = V(pvdd)[length(V(pvdd))-1]
+echo "=== FF -40C results ==="
+echo "PVDD peak: $&pvdd_peak V"
+echo "PVDD final: $&pvdd_final V"
+.endc
+.end
