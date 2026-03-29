@@ -1,4 +1,5 @@
 * Testbench: Mode Control — Slow Ramp (0.1 V/us)
+* Verifies no chattering/oscillation and monotonic transitions at slow ramp rate
 .include "parasitic_res_po.spice"
 .lib "../sky130.lib.spice" tt
 .include "design.cir"
@@ -13,6 +14,51 @@ XDUT bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass
 .tran 100n 110u uic
 .control
 run
-echo "works_slow_ramp: 1"
+* Measure thresholds during slow ramp
+meas tran th1 FIND v(bvdd) WHEN v(bypass_en)=0.5 RISE=1 TD=5u
+meas tran th2 FIND v(bvdd) WHEN v(ea_en)=0.5 RISE=1 TD=5u
+meas tran th3 FIND v(bvdd) WHEN v(bypass_en)=0.5 RISE=2 TD=5u
+meas tran th4 FIND v(bvdd) WHEN v(uvov_en)=0.5 RISE=1 TD=5u
+echo "slow_th1: $&th1"
+echo "slow_th2: $&th2"
+echo "slow_th3: $&th3"
+echo "slow_th4: $&th4"
+* Check monotonic (thresholds fire in order)
+let mono = 1
+if th1 >= th2
+  let mono = 0
+end
+if th2 >= th3
+  let mono = 0
+end
+if th3 >= th4
+  let mono = 0
+end
+* Check for chattering: extra crossings indicate oscillation
+* bypass_en should have exactly 2 rising edges
+meas tran g_by3 FIND v(bvdd) WHEN v(bypass_en)=2.5 RISE=3 TD=5u
+* ea_en should have exactly 2 rising edges
+meas tran g_ea3 FIND v(bvdd) WHEN v(ea_en)=2.5 RISE=3 TD=5u
+* uvov_en should have exactly 1 rising edge
+meas tran g_uv2 FIND v(bvdd) WHEN v(uvov_en)=2.5 RISE=2 TD=5u
+let chatter = 0
+if g_by3 > 0.1
+  let chatter = 1
+end
+if g_ea3 > 0.1
+  let chatter = 1
+end
+if g_uv2 > 0.1
+  let chatter = 1
+end
+* Pass if monotonic and no chattering (no threshold accuracy requirement at slow rate)
+let ok = 1
+if mono < 1
+  let ok = 0
+end
+if chatter > 0
+  let ok = 0
+end
+echo "works_slow_ramp: $&ok"
 .endc
 .end

@@ -1,4 +1,5 @@
 * Testbench: Mode Control — Fast Ramp (12 V/us)
+* Verifies clean monotonic transitions at fast ramp rate
 .include "parasitic_res_po.spice"
 .lib "../sky130.lib.spice" tt
 .include "design.cir"
@@ -13,6 +14,50 @@ XDUT bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass
 .tran 1n 1u uic
 .control
 run
-echo "works_fast_ramp: 1"
+* Measure thresholds during fast ramp (TD=50n skips UIC transient)
+meas tran th1 FIND v(bvdd) WHEN v(bypass_en)=0.5 RISE=1 TD=50n
+meas tran th2 FIND v(bvdd) WHEN v(ea_en)=0.5 RISE=1 TD=50n
+meas tran th3 FIND v(bvdd) WHEN v(bypass_en)=0.5 RISE=2 TD=50n
+meas tran th4 FIND v(bvdd) WHEN v(uvov_en)=0.5 RISE=1 TD=50n
+echo "fast_th1: $&th1"
+echo "fast_th2: $&th2"
+echo "fast_th3: $&th3"
+echo "fast_th4: $&th4"
+* Check monotonic
+let mono = 1
+if th1 >= th2
+  let mono = 0
+end
+if th2 >= th3
+  let mono = 0
+end
+if th3 >= th4
+  let mono = 0
+end
+* Check error < 15% for each threshold
+let e1 = abs(th1 - 2.5)/2.5*100
+let e2 = abs(th2 - 4.2)/4.2*100
+let e3 = abs(th3 - 4.5)/4.5*100
+let e4 = abs(th4 - 5.6)/5.6*100
+let max_err = e1
+if e2 > max_err
+  let max_err = e2
+end
+if e3 > max_err
+  let max_err = e3
+end
+if e4 > max_err
+  let max_err = e4
+end
+echo "fast_max_err: $&max_err"
+* Pass if monotonic and max error < 15%
+let ok = 1
+if mono < 1
+  let ok = 0
+end
+if max_err > 15
+  let ok = 0
+end
+echo "works_fast_ramp: $&ok"
 .endc
 .end

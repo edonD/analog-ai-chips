@@ -50,6 +50,33 @@ echo "thresh_pup_V: $&thresh_pup_v"
 echo "thresh_act_V: $&thresh_act_v"
 echo "thresh_max_error_pct: $&max_err"
 echo "monotonic: $&mono"
-echo "glitch_free: 1"
+* Glitch detection: check for extra crossings beyond expected count
+* bypass_en: expected 2 rising edges (at TH1 and TH3)
+meas tran g_by3 FIND v(bvdd) WHEN v(bypass_en)=2.5 RISE=3 TD=2u
+* ea_en: expected 2 rising edges (at TH2 and TH4)
+meas tran g_ea3 FIND v(bvdd) WHEN v(ea_en)=2.5 RISE=3 TD=2u
+* ref_sel: expected 1 rising edge (at TH1)
+meas tran g_rs2 FIND v(bvdd) WHEN v(ref_sel)=2.5 RISE=2 TD=2u
+* uvov_en: expected 1 rising edge (at TH4)
+meas tran g_uv2 FIND v(bvdd) WHEN v(uvov_en)=2.5 RISE=2 TD=2u
+* pass_off: expected 1 falling edge (at TH1)
+meas tran g_po2 FIND v(bvdd) WHEN v(pass_off)=2.5 FALL=2 TD=2u
+let gf = 1
+if g_by3 > 0.1
+  let gf = 0
+end
+if g_ea3 > 0.1
+  let gf = 0
+end
+if g_rs2 > 0.1
+  let gf = 0
+end
+if g_uv2 > 0.1
+  let gf = 0
+end
+if g_po2 > 0.1
+  let gf = 0
+end
+echo "glitch_free: $&gf"
 .endc
 .end

@@ -1,4 +1,5 @@
 * Testbench: Mode Control — Hysteresis (triangle ramp up/down)
+* Measures actual rising vs falling thresholds at each comparator
 .include "parasitic_res_po.spice"
 .lib "../sky130.lib.spice" tt
 .include "design.cir"
@@ -12,8 +13,52 @@ Ven   en_ret gnd 0
 XDUT bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off mode_control
 .tran 10n 22u uic
 .control
+save all
 run
-echo "hysteresis_min_mV: 200.0"
-echo "hysteresis_max_mV: 200.0"
+* Rising thresholds (during up-ramp 0-10.5us, TD=1u skips UIC transient)
+meas tran th1r FIND v(bvdd) WHEN v(xdut.comp1)=2.5 RISE=1 TD=1u
+meas tran th2r FIND v(bvdd) WHEN v(xdut.comp2)=2.5 RISE=1 TD=1u
+meas tran th3r FIND v(bvdd) WHEN v(xdut.comp3)=2.5 RISE=1 TD=1u
+meas tran th4r FIND v(bvdd) WHEN v(xdut.comp4)=2.5 RISE=1 TD=1u
+* Falling thresholds (during down-ramp only, TD=11u skips entire up-ramp)
+meas tran th1f FIND v(bvdd) WHEN v(xdut.comp1)=2.5 FALL=1 TD=11u
+meas tran th2f FIND v(bvdd) WHEN v(xdut.comp2)=2.5 FALL=1 TD=11u
+meas tran th3f FIND v(bvdd) WHEN v(xdut.comp3)=2.5 FALL=1 TD=11u
+meas tran th4f FIND v(bvdd) WHEN v(xdut.comp4)=2.5 FALL=1 TD=11u
+* Compute hysteresis = rising_threshold - falling_threshold
+let hyst1 = th1r - th1f
+let hyst2 = th2r - th2f
+let hyst3 = th3r - th3f
+let hyst4 = th4r - th4f
+echo "hyst1_mV: $&hyst1"
+echo "hyst2_mV: $&hyst2"
+echo "hyst3_mV: $&hyst3"
+echo "hyst4_mV: $&hyst4"
+* Find min hysteresis
+let hmin = hyst1
+if hyst2 < hmin
+  let hmin = hyst2
+end
+if hyst3 < hmin
+  let hmin = hyst3
+end
+if hyst4 < hmin
+  let hmin = hyst4
+end
+* Find max hysteresis
+let hmax = hyst1
+if hyst2 > hmax
+  let hmax = hyst2
+end
+if hyst3 > hmax
+  let hmax = hyst3
+end
+if hyst4 > hmax
+  let hmax = hyst4
+end
+let hmin_mv = hmin * 1000
+let hmax_mv = hmax * 1000
+echo "hysteresis_min_mV: $&hmin_mv"
+echo "hysteresis_max_mV: $&hmax_mv"
 .endc
 .end
