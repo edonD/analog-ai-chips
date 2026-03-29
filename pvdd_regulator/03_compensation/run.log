@@ -1,5 +1,5 @@
 === Block 03: Compensation ===
-Run started: Sun Mar 29 00:27:34 UTC 2026
+Run started: Sun Mar 29 00:29:02 UTC 2026
 
 --- Running tb_comp_lstb.spice ---
 warning, can't find model 'rload_ohm' from line
@@ -28,7 +28,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1601
-pm_0mA_deg: 47.6313
+pm_0mA_deg: 48.1269
 gm_0mA_dB: 100
 ugb_0mA_kHz: 204.174
 Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
@@ -47,7 +47,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1601
-pm_100uA_deg: 86.3218
+pm_100uA_deg: 86.4141
 gm_100uA_dB: 100
 ugb_100uA_kHz: 1548.82
 Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
@@ -66,7 +66,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1601
-pm_1mA_deg: 80.5367
+pm_1mA_deg: 80.5493
 gm_1mA_dB: 100
 ugb_1mA_kHz: 11350.1
 Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
@@ -85,7 +85,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1601
-pm_10mA_deg: 57.2935
+pm_10mA_deg: 57.2976
 gm_10mA_dB: 100
 ugb_10mA_kHz: 35481.3
 Reset re-loads circuit * tb_comp_lstb.spice — loop stability at 5 load points
@@ -102,10 +102,10 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1601
-pm_50mA_deg: 45.7097
+pm_50mA_deg: 45.7125
 gm_50mA_dB: 100
 ugb_50mA_kHz: 54954.1
-pm_min_deg: 45.7097
+pm_min_deg: 45.7125
 gm_min_dB: 100
 ngspice-42 done
 
@@ -130,7 +130,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
 No. of Data Rows : 1601
-pm_pvt_min_deg: 57.2935
+pm_pvt_min_deg: 57.2976
 pvt_corner: TT_27C_10mA
 ngspice-42 done
 
@@ -176,33 +176,33 @@ ven#branch                                   0
 vavbg#branch                                 0
 vbvdd#branch                       -0.00306474
 
- Reference value :  0.00000e+00 Reference value :  1.58428e-05 Reference value :  3.17828e-05 Reference value :  4.76928e-05 Reference value :  6.35250e-05 Reference value :  7.94650e-05 Reference value :  9.54550e-05 Reference value :  1.11485e-04
+ Reference value :  0.00000e+00 Reference value :  1.36228e-05 Reference value :  2.90528e-05 Reference value :  4.40828e-05 Reference value :  5.95550e-05 Reference value :  7.52750e-05 Reference value :  9.09850e-05 Reference value :  1.06645e-04
 No. of Data Rows : 12020
 === Load Step Results ===
 pvdd_ss    = 4.99973 V
-pvdd_min   = 4.88211 V (during 1→10mA step)
-pvdd_max   = 5.14888 V (during 10→1mA step)
-transient_undershoot_mV: 117.892
-transient_overshoot_mV: 148.877
+pvdd_min   = 4.88112 V (during 1→10mA step)
+pvdd_max   = 5.14967 V (during 10→1mA step)
+transient_undershoot_mV: 118.879
+transient_overshoot_mV: 149.674
 no_oscillation: 1
-settling_time_us: 1.085
+settling_time_us: 1.115
 ngspice-42 done
 
 --- Evaluation ---
 ---
 * pm_min_deg                            45.71  deg       (spec >= 45.0)  PASS
-  pm_0mA_deg                            47.63  deg       (spec >= 45.0)  PASS
-  pm_100uA_deg                          86.32  deg       (spec >= 45.0)  PASS
-  pm_1mA_deg                            80.54  deg       (spec >= 45.0)  PASS
-  pm_10mA_deg                           57.29  deg       (spec >= 45.0)  PASS
+  pm_0mA_deg                            48.13  deg       (spec >= 45.0)  PASS
+  pm_100uA_deg                          86.41  deg       (spec >= 45.0)  PASS
+  pm_1mA_deg                            80.55  deg       (spec >= 45.0)  PASS
+  pm_10mA_deg                            57.3  deg       (spec >= 45.0)  PASS
   pm_50mA_deg                           45.71  deg       (spec >= 45.0)  PASS
   gm_min_dB                               100  dB        (spec >= 10.0)  PASS
-  transient_undershoot_mV               117.9  mV        (spec <= 150.0)  PASS
-  transient_overshoot_mV                148.9  mV        (spec <= 150.0)  PASS
-  settling_time_us                      1.085  us        (spec <= 10.0)  PASS
+  transient_undershoot_mV               118.9  mV        (spec <= 150.0)  PASS
+  transient_overshoot_mV                149.7  mV        (spec <= 150.0)  PASS
+  settling_time_us                      1.115  us        (spec <= 10.0)  PASS
   no_oscillation                            1  bool      (spec >= 1.0)  PASS
-  pm_pvt_min_deg                        57.29  deg       (spec >= 45.0)  PASS
+  pm_pvt_min_deg                         57.3  deg       (spec >= 45.0)  PASS
 specs_pass: 12/12
-primary (pm_min_deg): 45.7097
+primary (pm_min_deg): 45.7125
 
-Run finished: Sun Mar 29 00:27:50 UTC 2026
+Run finished: Sun Mar 29 00:29:18 UTC 2026
