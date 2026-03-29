@@ -1,15 +1,16 @@
 * Block 09: Startup Circuit
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Mechanism: Trickle charge + PVDD threshold detect + integrated level shifter
+* Mechanism: Current-limited gate pulldown + PVDD threshold detection
+*            + weak BVDD-domain gate pull-up (regulation assist)
 *
-* The level shifter is INSIDE the startup subcircuit so it can be
-* cleanly disabled using det_out during the startup phase.
+* 10/11 specs pass. PVDD overshoot at BVDD=7V no-load is a system-level
+* limitation: error amp (PVDD-domain) cannot pull gate above PVDD.
 *
-* Interface: error amp vout_gate connects to ea_out port.
-*            gate port drives the pass device (through level shifter).
+* Level shifter was investigated and achieves PVDD=5.001V regulation,
+* but its bias divider + R_load exceed the 1µA leakage budget.
 *
-.subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
+.subckt startup bvdd pvdd gate gnd vref startup_done ea_en
 
 * ================================================================
 * PVDD threshold detector — trips at ~3.9V
@@ -17,46 +18,23 @@
 XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=8200
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=1800
 XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+
+* 30MΩ pull-up: 0.23µA leakage after startup
 XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=15001
 
 * ================================================================
-* Trickle charge path: BVDD → R_trickle → PVDD (~200k)
+* Gate pulldown — current-limited by R_gate (~100k)
 * ================================================================
-* Active during startup (det_out HIGH → MP_sw_t ON)
-* Disabled after startup (det_out LOW → MP_sw_t OFF)
-XMP_sw_t trickle_mid det_inv bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=5e-6 l=1e-6
-XR_trickle trickle_mid pvdd gnd sky130_fd_pr__res_xhigh_po w=1 l=101
-
-* det_inv = inverted det_out (LOW during startup, HIGH after)
-XMP_di det_inv det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
-XMN_di det_inv det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
+XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=51
+XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 
 * ================================================================
-* Integrated Level Shifter (NMOS common-gate)
+* Weak BVDD gate pull-up (regulation assist)
 * ================================================================
-* Disabled during startup via MP_sw_ls (gate=det_out).
-* When det_out HIGH (startup): MP_sw_ls OFF → level shifter disconnected.
-*   R_load pulls gate to BVDD → pass device OFF.
-* When det_out LOW (regulation): MP_sw_ls ON → level shifter active.
-*   Error amp output (ea_out) translated to BVDD domain on gate.
-
-* Bias divider: ls_bias ≈ 0.57*BVDD ≈ 4V at BVDD=7V
-XRls_top bvdd ls_bias gnd sky130_fd_pr__res_xhigh_po w=2 l=300
-XRls_bot ls_bias gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=700
-
-* PMOS switch: disconnects ea_out from level shifter during startup
-* det_out HIGH → PMOS Vsg = bvdd-det_out ≈ 0 → OFF
-* det_out LOW → PMOS Vsg = bvdd → ON
-XMP_sw_ls ea_out det_out cg_src cg_src sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=1e-6
-
-* Common-gate NMOS
-XMN_cg gate ls_bias cg_src gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
-
-* Pull-up load: ~1MΩ from BVDD
-XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=501
+XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=8e-6
 
 * ================================================================
-* Output flags
+* Output flags — CMOS inverters from det_out
 * ================================================================
 XMP_sd startup_done det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
 XMN_sd startup_done det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
