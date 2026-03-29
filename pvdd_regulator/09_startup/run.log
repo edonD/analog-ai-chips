@@ -1,5 +1,5 @@
 === Block 09: Startup Circuit ===
-Run started: Sun Mar 29 16:11:33 UTC 2026
+Run started: Sun Mar 29 16:14:28 UTC 2026
 
 --- Running tb_su_basic.spice ---
 Using SPARSE 1.3 as Direct Linear Solver
@@ -12,7 +12,7 @@ Circuit: * tb_su_basic.spice — basic startup test, 1 v/us bvdd ramp, no load
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  5.00000e-10 Reference value :  1.45250e-05 Reference value :  3.04250e-05 Reference value :  4.81750e-05 Reference value :  6.56250e-05 Reference value :  8.21250e-05 Reference value :  9.95250e-05 Reference value :  1.17525e-04 Reference value :  1.33975e-04 Reference value :  1.51375e-04 Reference value :  1.68875e-04 Reference value :  1.85825e-04
+ Reference value :  5.00000e-10 Reference value :  1.34750e-05 Reference value :  3.09750e-05 Reference value :  4.84750e-05 Reference value :  6.62250e-05 Reference value :  8.22750e-05 Reference value :  9.97250e-05 Reference value :  1.17275e-04 Reference value :  1.34625e-04 Reference value :  1.50225e-04 Reference value :  1.67325e-04 Reference value :  1.84725e-04
 No. of Data Rows : 4023
 
   Measurements for Transient Analysis
@@ -33,7 +33,7 @@ no_latch_stuck: 1
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  3.27621e-07 Reference value :  1.45750e-05 Reference value :  3.24750e-05 Reference value :  4.79750e-05 Reference value :  6.46250e-05 Reference value :  8.11750e-05 Reference value :  9.27250e-05 Reference value :  1.09525e-04 Reference value :  1.27375e-04 Reference value :  1.43525e-04 Reference value :  1.61275e-04 Reference value :  1.78975e-04 Reference value :  1.92125e-04
+ Reference value :  9.32705e-09 Reference value :  1.38750e-05 Reference value :  3.14250e-05 Reference value :  4.90750e-05 Reference value :  6.61750e-05 Reference value :  8.25750e-05 Reference value :  9.51750e-05 Reference value :  1.12825e-04 Reference value :  1.29425e-04 Reference value :  1.46875e-04 Reference value :  1.63625e-04 Reference value :  1.81175e-04 Reference value :  1.93025e-04
 No. of Data Rows : 4023
 
   Measurements for Transient Analysis
@@ -45,16 +45,16 @@ pvdd_at_100u        =  5.968469e+00
 pvdd_at_200u        =  5.957414e+00
 
 
-Total analysis time (seconds) = 3.58
+Total analysis time (seconds) = 3.582
 
-Total elapsed time (seconds) = 4.121 
+Total elapsed time (seconds) = 4.113 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  239.949 MB.
+DRAM currently available =  219.328 MB.
 Maximum ngspice program size =   49.520 MB.
-Current ngspice program size =   32.980 MB.
+Current ngspice program size =   32.852 MB.
 
-Shared ngspice pages =   10.852 MB.
+Shared ngspice pages =   10.723 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
 Library pages =   30.273 MB.
@@ -71,7 +71,7 @@ Circuit: * tb_su_handoff.spice — measure pvdd disturbance at startup-to-regula
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.75968e-06 Reference value :  6.20968e-06 Reference value :  8.67973e-06 Reference value :  1.22097e-05 Reference value :  1.53897e-05 Reference value :  1.88997e-05 Reference value :  2.24097e-05 Reference value :  2.58997e-05 Reference value :  2.91997e-05 Reference value :  3.16997e-05 Reference value :  3.49997e-05 Reference value :  3.84997e-05 Reference value :  4.19897e-05 Reference value :  4.52797e-05 Reference value :  4.87597e-05
+ Reference value :  1.00000e-10 Reference value :  2.92968e-06 Reference value :  6.21968e-06 Reference value :  8.91973e-06 Reference value :  1.23997e-05 Reference value :  1.56597e-05 Reference value :  1.91697e-05 Reference value :  2.24897e-05 Reference value :  2.59697e-05 Reference value :  2.93897e-05 Reference value :  3.18097e-05 Reference value :  3.52997e-05 Reference value :  3.86797e-05 Reference value :  4.18897e-05 Reference value :  4.52097e-05 Reference value :  4.86197e-05
 No. of Data Rows : 5022
 handoff_glitch_mV: 50
 Note: Simulation executed from .control section 
@@ -87,7 +87,7 @@ Circuit: * tb_su_50ma.spice — startup with 50 ma load
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.52500e-05 Reference value :  6.03500e-05 Reference value :  9.34500e-05 Reference value :  1.19050e-04 Reference value :  1.54450e-04 Reference value :  1.87750e-04 Reference value :  2.21350e-04 Reference value :  2.55050e-04 Reference value :  2.89150e-04
+ Reference value :  1.00000e-09 Reference value :  2.60500e-05 Reference value :  6.11500e-05 Reference value :  9.37500e-05 Reference value :  1.18950e-04 Reference value :  1.52350e-04 Reference value :  1.87150e-04 Reference value :  2.20050e-04 Reference value :  2.54950e-04 Reference value :  2.89850e-04
 No. of Data Rows : 3032
 
   Measurements for Transient Analysis
@@ -102,7 +102,7 @@ startup_time_50mA_us: 5
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.38500e-05 Reference value :  3.59500e-05 Reference value :  7.17500e-05 Reference value :  1.07450e-04 Reference value :  1.44050e-04 Reference value :  1.75250e-04 Reference value :  2.10650e-04 Reference value :  2.45950e-04 Reference value :  2.72450e-04
+ Reference value :  1.43500e-05 Reference value :  3.83500e-05 Reference value :  6.86500e-05 Reference value :  1.03550e-04 Reference value :  1.37150e-04 Reference value :  1.72250e-04 Reference value :  2.07650e-04 Reference value :  2.34950e-04 Reference value :  2.67350e-04 Reference value :  2.98950e-04
 No. of Data Rows : 3032
 
   Measurements for Transient Analysis
@@ -113,19 +113,19 @@ pvdd_max            =  6.708554e+00 at=  8.150000e-06
 pvdd_at_200u        =  5.019932e+00
 
 
-Total analysis time (seconds) = 2.795
+Total analysis time (seconds) = 2.852
 
-Total elapsed time (seconds) = 3.351 
+Total elapsed time (seconds) = 3.405 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  213.371 MB.
-Maximum ngspice program size =   48.277 MB.
-Current ngspice program size =   31.645 MB.
+DRAM currently available =  219.492 MB.
+Maximum ngspice program size =   48.270 MB.
+Current ngspice program size =   31.797 MB.
 
-Shared ngspice pages =   10.668 MB.
+Shared ngspice pages =   10.828 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   29.031 MB.
+Library pages =   29.023 MB.
 
 
 --- Running tb_su_fast_ramp.spice ---
@@ -139,7 +139,7 @@ Circuit: * tb_su_fast_ramp.spice — 12 v/us bvdd ramp, overshoot measurement
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.78000e-06 Reference value :  5.50000e-06 Reference value :  8.84000e-06 Reference value :  1.23300e-05 Reference value :  1.54600e-05 Reference value :  1.89800e-05 Reference value :  2.22800e-05 Reference value :  2.58200e-05 Reference value :  2.81900e-05 Reference value :  3.14900e-05 Reference value :  3.49900e-05 Reference value :  3.85100e-05 Reference value :  4.16500e-05 Reference value :  4.51400e-05 Reference value :  4.80700e-05 Reference value :  5.10500e-05 Reference value :  5.42600e-05 Reference value :  5.77500e-05 Reference value :  6.13300e-05 Reference value :  6.46200e-05 Reference value :  6.78600e-05 Reference value :  7.03800e-05 Reference value :  7.38500e-05 Reference value :  7.71500e-05 Reference value :  8.05200e-05 Reference value :  8.41000e-05 Reference value :  8.74400e-05 Reference value :  9.09400e-05 Reference value :  9.35300e-05 Reference value :  9.69000e-05 Reference value :  1.00360e-04 Reference value :  1.03880e-04 Reference value :  1.07370e-04 Reference value :  1.10460e-04 Reference value :  1.13980e-04 Reference value :  1.16510e-04 Reference value :  1.20020e-04 Reference value :  1.23250e-04 Reference value :  1.26770e-04 Reference value :  1.30250e-04 Reference value :  1.33750e-04 Reference value :  1.36860e-04 Reference value :  1.39540e-04 Reference value :  1.43070e-04 Reference value :  1.46590e-04 Reference value :  1.49690e-04 Reference value :  1.53220e-04 Reference value :  1.56530e-04 Reference value :  1.59590e-04 Reference value :  1.61980e-04 Reference value :  1.65360e-04 Reference value :  1.68810e-04 Reference value :  1.72400e-04 Reference value :  1.75670e-04 Reference value :  1.79090e-04 Reference value :  1.81730e-04 Reference value :  1.85240e-04 Reference value :  1.88590e-04 Reference value :  1.92080e-04 Reference value :  1.95580e-04 Reference value :  1.98870e-04
+ Reference value :  1.00000e-10 Reference value :  2.06000e-06 Reference value :  5.05000e-06 Reference value :  8.54000e-06 Reference value :  1.19000e-05 Reference value :  1.51300e-05 Reference value :  1.86600e-05 Reference value :  2.21800e-05 Reference value :  2.41100e-05 Reference value :  2.76200e-05 Reference value :  3.10700e-05 Reference value :  3.45500e-05 Reference value :  3.77900e-05 Reference value :  4.10200e-05 Reference value :  4.44800e-05 Reference value :  4.68300e-05 Reference value :  5.02400e-05 Reference value :  5.33300e-05 Reference value :  5.67600e-05 Reference value :  6.02500e-05 Reference value :  6.37200e-05 Reference value :  6.62800e-05 Reference value :  6.95800e-05 Reference value :  7.27800e-05 Reference value :  7.62400e-05 Reference value :  7.94700e-05 Reference value :  8.28000e-05 Reference value :  8.62800e-05 Reference value :  8.88000e-05 Reference value :  9.17600e-05 Reference value :  9.52300e-05 Reference value :  9.86000e-05 Reference value :  1.02090e-04 Reference value :  1.05280e-04 Reference value :  1.08640e-04 Reference value :  1.11310e-04 Reference value :  1.14710e-04 Reference value :  1.17940e-04 Reference value :  1.21170e-04 Reference value :  1.24640e-04 Reference value :  1.28090e-04 Reference value :  1.31080e-04 Reference value :  1.33760e-04 Reference value :  1.36990e-04 Reference value :  1.40430e-04 Reference value :  1.43380e-04 Reference value :  1.46830e-04 Reference value :  1.50250e-04 Reference value :  1.52520e-04 Reference value :  1.55530e-04 Reference value :  1.58760e-04 Reference value :  1.62010e-04 Reference value :  1.65450e-04 Reference value :  1.68850e-04 Reference value :  1.72270e-04 Reference value :  1.74970e-04 Reference value :  1.78120e-04 Reference value :  1.81280e-04 Reference value :  1.84490e-04 Reference value :  1.87910e-04 Reference value :  1.91330e-04 Reference value :  1.94780e-04 Reference value :  1.97030e-04
 No. of Data Rows : 20026
 
   Measurements for Transient Analysis
@@ -154,7 +154,7 @@ Fast ramp overshoot: 5499.9 mV
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  8.12922e-07 Reference value :  3.25000e-06 Reference value :  6.80000e-06 Reference value :  1.03600e-05 Reference value :  1.37700e-05 Reference value :  1.70800e-05 Reference value :  2.05500e-05 Reference value :  2.40000e-05 Reference value :  2.62400e-05 Reference value :  2.95800e-05 Reference value :  3.31600e-05 Reference value :  3.65200e-05 Reference value :  4.00600e-05 Reference value :  4.33600e-05 Reference value :  4.59600e-05 Reference value :  4.94700e-05 Reference value :  5.30200e-05 Reference value :  5.62400e-05 Reference value :  5.97900e-05 Reference value :  6.33500e-05 Reference value :  6.69100e-05 Reference value :  6.93800e-05 Reference value :  7.28400e-05 Reference value :  7.63700e-05 Reference value :  7.99000e-05 Reference value :  8.30300e-05 Reference value :  8.66000e-05 Reference value :  9.00900e-05 Reference value :  9.24000e-05 Reference value :  9.56000e-05 Reference value :  9.91200e-05 Reference value :  1.02490e-04 Reference value :  1.06040e-04 Reference value :  1.09150e-04 Reference value :  1.12710e-04 Reference value :  1.15440e-04 Reference value :  1.19000e-04 Reference value :  1.22250e-04 Reference value :  1.25800e-04 Reference value :  1.29310e-04 Reference value :  1.32860e-04 Reference value :  1.36420e-04 Reference value :  1.39090e-04 Reference value :  1.42600e-04 Reference value :  1.46110e-04 Reference value :  1.49650e-04 Reference value :  1.52970e-04 Reference value :  1.56460e-04 Reference value :  1.59640e-04 Reference value :  1.62230e-04 Reference value :  1.65430e-04 Reference value :  1.68960e-04 Reference value :  1.72480e-04 Reference value :  1.76010e-04 Reference value :  1.79490e-04 Reference value :  1.81680e-04 Reference value :  1.85200e-04 Reference value :  1.88610e-04 Reference value :  1.91940e-04 Reference value :  1.95430e-04 Reference value :  1.98930e-04
+ Reference value :  1.00000e-10 Reference value :  2.82000e-06 Reference value :  6.11000e-06 Reference value :  9.65000e-06 Reference value :  1.31400e-05 Reference value :  1.54200e-05 Reference value :  1.85300e-05 Reference value :  2.20000e-05 Reference value :  2.54600e-05 Reference value :  2.89700e-05 Reference value :  3.20700e-05 Reference value :  3.56200e-05 Reference value :  3.80200e-05 Reference value :  4.15300e-05 Reference value :  4.48100e-05 Reference value :  4.82800e-05 Reference value :  5.14500e-05 Reference value :  5.49400e-05 Reference value :  5.77300e-05 Reference value :  6.08700e-05 Reference value :  6.43600e-05 Reference value :  6.78900e-05 Reference value :  7.12500e-05 Reference value :  7.45100e-05 Reference value :  7.80200e-05 Reference value :  8.02700e-05 Reference value :  8.37300e-05 Reference value :  8.68600e-05 Reference value :  9.03500e-05 Reference value :  9.38600e-05 Reference value :  9.73900e-05 Reference value :  1.00460e-04 Reference value :  1.02950e-04 Reference value :  1.06410e-04 Reference value :  1.09890e-04 Reference value :  1.13390e-04 Reference value :  1.16910e-04 Reference value :  1.20220e-04 Reference value :  1.23490e-04 Reference value :  1.26190e-04 Reference value :  1.29620e-04 Reference value :  1.33080e-04 Reference value :  1.36350e-04 Reference value :  1.39650e-04 Reference value :  1.42880e-04 Reference value :  1.45340e-04 Reference value :  1.48610e-04 Reference value :  1.52090e-04 Reference value :  1.55560e-04 Reference value :  1.58960e-04 Reference value :  1.62420e-04 Reference value :  1.65540e-04 Reference value :  1.67900e-04 Reference value :  1.71400e-04 Reference value :  1.74680e-04 Reference value :  1.77920e-04 Reference value :  1.81380e-04 Reference value :  1.84780e-04 Reference value :  1.88220e-04 Reference value :  1.90870e-04 Reference value :  1.94270e-04 Reference value :  1.97440e-04
 No. of Data Rows : 20026
 
   Measurements for Transient Analysis
@@ -163,16 +163,16 @@ pvdd_max            =  1.049990e+01 at=  4.370000e-06
 pvdd_at_100u        =  9.434909e+00
 
 
-Total analysis time (seconds) = 18.002
+Total analysis time (seconds) = 18.637
 
-Total elapsed time (seconds) = 18.571 
+Total elapsed time (seconds) = 19.213 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  213.125 MB.
+DRAM currently available =  213.094 MB.
 Maximum ngspice program size =   65.301 MB.
-Current ngspice program size =   48.391 MB.
+Current ngspice program size =   48.707 MB.
 
-Shared ngspice pages =   10.508 MB.
+Shared ngspice pages =   10.824 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
 Library pages =   46.055 MB.
@@ -189,7 +189,7 @@ Circuit: * tb_su_slow_ramp.spice — 0.1 v/us bvdd ramp, verify startup complete
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  5.00000e-09 Reference value :  1.18646e-04 Reference value :  2.29146e-04 Reference value :  4.04146e-04
+ Reference value :  5.00000e-09 Reference value :  1.09646e-04 Reference value :  2.69646e-04 Reference value :  4.41646e-04
 No. of Data Rows : 1029
 
   Measurements for Transient Analysis
@@ -204,7 +204,7 @@ Slow ramp: startup completes, PVDD peak = 9.63694 V
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  2.55483e-05 Reference value :  1.77146e-04 Reference value :  3.48146e-04
+ Reference value :  6.70671e-05 Reference value :  2.35646e-04 Reference value :  3.88646e-04
 No. of Data Rows : 1029
 
   Measurements for Transient Analysis
@@ -214,19 +214,19 @@ pvdd_at_200u        =  9.429847e+00
 pvdd_at_400u        =  9.429829e+00
 
 
-Total analysis time (seconds) = 1.017
+Total analysis time (seconds) = 1.044
 
-Total elapsed time (seconds) = 1.971 
+Total elapsed time (seconds) = 1.602 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  213.617 MB.
-Maximum ngspice program size =   46.328 MB.
-Current ngspice program size =   29.555 MB.
+DRAM currently available =  222.453 MB.
+Maximum ngspice program size =   46.316 MB.
+Current ngspice program size =   29.656 MB.
 
-Shared ngspice pages =   10.562 MB.
+Shared ngspice pages =   10.660 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   27.082 MB.
+Library pages =   27.070 MB.
 
 
 --- Running tb_su_cold_crank.spice ---
@@ -240,7 +240,7 @@ Circuit: * tb_su_cold_crank.spice — cold crank recovery: bvdd 10.5v -> 3v -> 7
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.81500e-05 Reference value :  6.00300e-05 Reference value :  8.75821e-05 Reference value :  1.21650e-04 Reference value :  1.46850e-04 Reference value :  1.79750e-04 Reference value :  2.15050e-04 Reference value :  2.52250e-04 Reference value :  2.85450e-04 Reference value :  3.14550e-04 Reference value :  3.49650e-04 Reference value :  3.73350e-04 Reference value :  4.06450e-04 Reference value :  4.39250e-04 Reference value :  4.75150e-04
+ Reference value :  1.00000e-09 Reference value :  5.15204e-07 Reference value :  2.47500e-05 Reference value :  5.66500e-05 Reference value :  7.81910e-05 Reference value :  1.06150e-04 Reference value :  1.38650e-04 Reference value :  1.71650e-04 Reference value :  2.06250e-04 Reference value :  2.40450e-04 Reference value :  2.74750e-04 Reference value :  2.95350e-04 Reference value :  3.29450e-04 Reference value :  3.62350e-04 Reference value :  3.96950e-04 Reference value :  4.26650e-04 Reference value :  4.59550e-04 Reference value :  4.89450e-04
 No. of Data Rows : 5051
 
   Measurements for Transient Analysis
@@ -255,7 +255,7 @@ Cold crank recovery: PVDD final = 5.95741 V
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  2.38095e-06 Reference value :  3.33500e-05 Reference value :  6.00000e-05 Reference value :  8.62265e-05 Reference value :  1.18950e-04 Reference value :  1.53050e-04 Reference value :  1.88050e-04 Reference value :  2.21150e-04 Reference value :  2.54850e-04 Reference value :  2.82250e-04 Reference value :  3.15850e-04 Reference value :  3.50850e-04 Reference value :  3.84450e-04 Reference value :  4.19750e-04 Reference value :  4.55050e-04 Reference value :  4.86150e-04
+ Reference value :  5.24548e-06 Reference value :  3.91500e-05 Reference value :  6.91910e-05 Reference value :  9.80821e-05 Reference value :  1.32350e-04 Reference value :  1.64750e-04 Reference value :  1.86350e-04 Reference value :  2.19450e-04 Reference value :  2.52250e-04 Reference value :  2.85150e-04 Reference value :  3.19950e-04 Reference value :  3.54550e-04 Reference value :  3.88350e-04 Reference value :  4.13550e-04 Reference value :  4.48450e-04 Reference value :  4.81050e-04
 No. of Data Rows : 5051
 
   Measurements for Transient Analysis
@@ -265,19 +265,19 @@ pvdd_at_200u        =  5.957420e+00
 pvdd_at_400u        =  5.957413e+00
 
 
-Total analysis time (seconds) = 4.707
+Total analysis time (seconds) = 5.236
 
-Total elapsed time (seconds) = 5.281 
+Total elapsed time (seconds) = 6.379 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  217.180 MB.
-Maximum ngspice program size =   50.473 MB.
-Current ngspice program size =   33.691 MB.
+DRAM currently available =  209.188 MB.
+Maximum ngspice program size =   50.395 MB.
+Current ngspice program size =   33.633 MB.
 
-Shared ngspice pages =   10.609 MB.
+Shared ngspice pages =   10.543 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   31.227 MB.
+Library pages =   31.148 MB.
 
 
 --- Running tb_su_leakage.spice ---
@@ -3047,17 +3047,17 @@ capacitance               4.1e-13               4.1e-13
 
 Total analysis time (seconds) = 0.002
 
-Total elapsed time (seconds) = 0.329 
+Total elapsed time (seconds) = 0.338 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  217.180 MB.
-Maximum ngspice program size =   36.637 MB.
-Current ngspice program size =   19.984 MB.
+DRAM currently available =  224.938 MB.
+Maximum ngspice program size =   36.949 MB.
+Current ngspice program size =   20.301 MB.
 
-Shared ngspice pages =   10.648 MB.
+Shared ngspice pages =   10.656 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   17.391 MB.
+Library pages =   17.703 MB.
 
 
 --- Running tb_su_pvt.spice ---
@@ -3071,7 +3071,7 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  1.71500e-05 Reference value :  5.21500e-05 Reference value :  8.67500e-05 Reference value :  1.22750e-04 Reference value :  1.55850e-04 Reference value :  1.88650e-04Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  1.00000e-09 Reference value :  2.62500e-05 Reference value :  6.02500e-05 Reference value :  9.45500e-05 Reference value :  1.24050e-04 Reference value :  1.49350e-04 Reference value :  1.84050e-04Using SPARSE 1.3 as Direct Linear Solver
 
 No. of Data Rows : 2029
 pvdd_max_tt27       =  7.000315e+00 at=  7.030000e-06
@@ -3083,7 +3083,7 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  1.74500e-05 Reference value :  5.34500e-05 Reference value :  8.60500e-05 Reference value :  1.21350e-04 Reference value :  1.55950e-04 Reference value :  1.81150e-04Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  1.00000e-09 Reference value :  2.18500e-05 Reference value :  5.70500e-05 Reference value :  7.88500e-05 Reference value :  1.13550e-04 Reference value :  1.48350e-04 Reference value :  1.82550e-04Using SPARSE 1.3 as Direct Linear Solver
 
 No. of Data Rows : 2036
 pvdd_max_m40        =  7.000284e+00 at=  7.030000e-06
@@ -3095,7 +3095,7 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.85500e-05 Reference value :  6.31500e-05 Reference value :  9.72500e-05 Reference value :  1.29050e-04 Reference value :  1.56650e-04 Reference value :  1.91650e-04Warning from checkvalid: vector pm40 is not available or has zero length.
+ Reference value :  1.00000e-09 Reference value :  2.00500e-05 Reference value :  5.48500e-05 Reference value :  8.52500e-05 Reference value :  1.20550e-04 Reference value :  1.55650e-04 Reference value :  1.90450e-04Warning from checkvalid: vector pm40 is not available or has zero length.
 Error: RHS "(pm40 - 5.0) * 1000" invalid
 Warning from checkvalid: vector ovs_m40 is not available or has zero length.
 
@@ -3124,4 +3124,4 @@ Note: Simulation executed from .control section
 specs_pass: 10/11
 primary (startup_time_ss150_us): 0
 
-Run finished: Sun Mar 29 16:12:13 UTC 2026
+Run finished: Sun Mar 29 16:15:10 UTC 2026
