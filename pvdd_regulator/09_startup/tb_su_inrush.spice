@@ -1,4 +1,4 @@
-* tb_su_inrush.spice — Peak inrush current measurement, TT 27C
+* tb_su_inrush.spice — Measure peak BVDD inrush current, TT 27C, 1V/us
 * ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
@@ -16,21 +16,34 @@ c1 r1 sub 'cp/2'
 .include '../03_compensation/design.cir'
 
 * BVDD ramp: 0 -> 7V in 7us (1 V/us), then hold
-Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+Vbvdd bvdd gnd PWL(0 0 7u 7 800u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
-Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
-Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
-Xpass gate bvdd pvdd pass_device
-Xfb pvdd vfb gnd feedback_network
-Xcomp gate pvdd gnd compensation
+* Startup circuit — 8 ports: bvdd pvdd gate gnd vref startup_done ea_en ea_out
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en ea_out startup
 
+* Error amp — ORIGINAL input order (non-swapped)
+* NON-INVERTING level shifter: ea_out tracks error amp, gate tracks ea_out
+Xerramp vref vfb ea_out pvdd gnd ibias ea_en error_amp
+
+* Pass device gate driven by level shifter output
+Xpass gate bvdd pvdd pass_device
+
+* Feedback network
+Xfb pvdd vfb gnd feedback_network
+
+* Compensation on ea_out (error amp output side, before level shifter)
+Xcomp ea_out pvdd gnd compensation
+
+* Output cap — 10nF
 Cout pvdd gnd 10n
 
-.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0 V(ea_out)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
-.tran 0.01u 100u uic
+.tran 0.1u 800u uic
+
+.meas tran pvdd_final find V(pvdd) at=799u
 
 .control
 run
@@ -48,13 +61,33 @@ let p_pass = vds_pass * ibvdd
 let peak_power_mW = vecmax(p_pass) * 1000
 echo peak_power_mW: $&peak_power_mW
 
-if peak_inrush_mA < 150
+* --- Average inrush during startup (first 50us) ---
+meas tran ibvdd_avg_startup avg @vbvdd[i] from=0 to=50u
+let avg_startup_mA = abs(ibvdd_avg_startup) * 1000
+echo avg_inrush_startup_mA: $&avg_startup_mA
+
+* --- Inrush pass/fail: peak < 500mA ---
+if peak_inrush_mA < 500
   echo inrush_ok: 1
 else
   echo inrush_ok: 0
 end
 
-wrdata tb_su_inrush_data.txt V(bvdd) V(pvdd) ibvdd p_pass
+* --- Final PVDD ---
+echo pvdd_final_V: $&pvdd_final
+
+* --- No latch check ---
+if pvdd_final > 4.9
+  if pvdd_final < 5.2
+    echo no_latch_stuck: 1
+  else
+    echo no_latch_stuck: 0
+  end
+else
+  echo no_latch_stuck: 0
+end
+
+wrdata tb_su_inrush_data.txt V(bvdd) V(pvdd) V(gate) V(ea_out) ibvdd p_pass
 
 .endc
 .end

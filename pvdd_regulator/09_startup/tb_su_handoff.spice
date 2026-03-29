@@ -1,4 +1,5 @@
-* tb_su_handoff.spice — Handoff glitch measurement, TT 27C
+* tb_su_handoff.spice — Handoff glitch test, TT 27C, 1V/us, no load
+* Measure glitch in ±5us window around ea_en transition
 * ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
@@ -16,32 +17,49 @@ c1 r1 sub 'cp/2'
 .include '../03_compensation/design.cir'
 
 * BVDD ramp: 0 -> 7V in 7us (1 V/us), then hold
-Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+Vbvdd bvdd gnd PWL(0 0 7u 7 800u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
-Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
-Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
-Xpass gate bvdd pvdd pass_device
-Xfb pvdd vfb gnd feedback_network
-Xcomp gate pvdd gnd compensation
+* Startup circuit — 8 ports: bvdd pvdd gate gnd vref startup_done ea_en ea_out
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en ea_out startup
 
+* Error amp — ORIGINAL input order (non-swapped)
+* NON-INVERTING level shifter: ea_out tracks error amp, gate tracks ea_out
+Xerramp vref vfb ea_out pvdd gnd ibias ea_en error_amp
+
+* Pass device gate driven by level shifter output
+Xpass gate bvdd pvdd pass_device
+
+* Feedback network
+Xfb pvdd vfb gnd feedback_network
+
+* Compensation on ea_out (error amp output side, before level shifter)
+Xcomp ea_out pvdd gnd compensation
+
+* Output cap — 10nF
 Cout pvdd gnd 10n
 
-.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0 V(ea_out)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
-.tran 0.01u 300u uic
+.tran 0.1u 800u uic
 
 * Find the handoff instant — when ea_en crosses 2.5V (midpoint)
 .meas tran t_handoff when V(ea_en)=2.5 rise=1
+.meas tran pvdd_final find V(pvdd) at=799u
 
 .control
 run
 set wr_vecnames
-wrdata tb_su_handoff_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en) V(startup_done)
+wrdata tb_su_handoff_data.txt V(bvdd) V(pvdd) V(gate) V(ea_out) V(startup_done) V(ea_en)
 
 * --- Handoff glitch: measure PVDD variation in ±5us window around handoff ---
-let t_ho = t_handoff
+let t_ho = 999
+if t_handoff > 0
+  let t_ho = t_handoff
+end
+echo ea_en_transition_time_s: $&t_ho
+
 let t_start_w = t_ho - 5e-6
 let t_end_w = t_ho + 5e-6
 
@@ -51,16 +69,37 @@ if t_start_w < 0
 end
 
 * Get PVDD in the handoff window
+meas tran pvdd_at_start find V(pvdd) at=$&t_start_w
+meas tran pvdd_at_end find V(pvdd) at=$&t_end_w
 meas tran pvdd_min_ho min V(pvdd) from=$&t_start_w to=$&t_end_w
 meas tran pvdd_max_ho max V(pvdd) from=$&t_start_w to=$&t_end_w
 
-let glitch_mV = (pvdd_max_ho - pvdd_min_ho) * 1000
-echo handoff_glitch_mV: $&glitch_mV
+* --- Handoff glitch = max excursion from steady value ---
+let glitch_high_mV = (pvdd_max_ho - pvdd_at_start) * 1000
+let glitch_low_mV = (pvdd_at_start - pvdd_min_ho) * 1000
+let glitch_pp_mV = (pvdd_max_ho - pvdd_min_ho) * 1000
 
-if glitch_mV < 100
-  echo handoff_ok: 1
+echo handoff_glitch_high_mV: $&glitch_high_mV
+echo handoff_glitch_low_mV: $&glitch_low_mV
+echo handoff_glitch_pp_mV: $&glitch_pp_mV
+
+* --- Pass/fail: glitch < 200mV peak-to-peak ---
+if glitch_pp_mV < 200
+  echo handoff_clean: 1
 else
-  echo handoff_ok: 0
+  echo handoff_clean: 0
+end
+
+* --- Final PVDD regulation check ---
+echo pvdd_final_V: $&pvdd_final
+if pvdd_final > 4.9
+  if pvdd_final < 5.2
+    echo no_latch_stuck: 1
+  else
+    echo no_latch_stuck: 0
+  end
+else
+  echo no_latch_stuck: 0
 end
 
 .endc

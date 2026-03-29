@@ -35,14 +35,26 @@ XMN_inv2 inv_det det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 * gate=inv_det: ON during startup (BVDD), OFF after (0V)
 * With body effect: gate_node ≈ BVDD - 1.5V → Vsg ≈ 1.5V
 * ================================================================
+* Source followers — help at BVDD=7V for faster PVDD charge
 XMN_sf1 bvdd inv_det gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6
 XMN_sf2 bvdd inv_det gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6
 
 * ================================================================
 * NON-INVERTING LEVEL SHIFTER (active after startup)
 * ================================================================
+* Bias: R divider gives high ls_bias, diode clamp limits it to ~6V
+* R divider: ls_bias = BVDD * 6/7 (same as before) = 6V at 7V, 9V at 10.5V
+* Clamp: 5 stacked diode-connected NMOS clamp ls_bias to ~5.5V
+* Net: ls_bias ≈ 5.5V at BVDD=7V, ~5.5V at BVDD=10.5V (clamped)
 XR_lb1 bvdd ls_bias gnd sky130_fd_pr__res_xhigh_po w=2 l=1000
 XR_lb2 ls_bias gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=6000
+* Diode clamp: 5 stacked NMOS → clamp at ~5.7V
+* Self-reg equilibrium ≈ 5.7-0.85 = 4.85V (above 4V detector threshold)
+XMD1 ls_bias ls_bias d1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
+XMD2 d1 d1 d2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
+XMD3 d2 d2 d3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
+XMD4 d3 d3 d4 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
+XMD5 d4 d4 gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
 
 XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=4e-6
 
@@ -54,7 +66,9 @@ XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 * Pulls ea_out toward PVDD when det_out=LOW (startup)
 * Disables when det_out=HIGH (after startup)
 * ================================================================
-XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+* Stronger pullup: overpower error amp's internal Mcs leakage
+XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
+
 
 * ================================================================
 * ea_en: inverter driven by inv_det + RC delay for soft handoff

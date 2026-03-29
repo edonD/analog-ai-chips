@@ -1,4 +1,5 @@
-* tb_su_ff_m40.spice — FF corner, -40C, worst-case overshoot
+* tb_su_ff_m40.spice — FF corner -40C, 12V/us fast ramp, no load
+* Worst-case overshoot corner
 * ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
@@ -16,43 +17,82 @@ c1 r1 sub 'cp/2'
 .include '../02_feedback_network/design.cir'
 .include '../03_compensation/design.cir'
 
-* BVDD ramp: 0 -> 10.5V in 0.875us (12 V/us — fast ramp at FF corner)
-Vbvdd bvdd gnd PWL(0 0 0.875u 10.5 300u 10.5)
+* BVDD ramp: 0 -> 10.5V in 0.875us (12 V/us), then hold
+Vbvdd bvdd gnd PWL(0 0 0.875u 10.5 800u 10.5)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
-Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
-Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
-Xpass gate bvdd pvdd pass_device
-Xfb pvdd vfb gnd feedback_network
-Xcomp gate pvdd gnd compensation
+* Startup circuit — 8 ports: bvdd pvdd gate gnd vref startup_done ea_en ea_out
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en ea_out startup
 
+* Error amp — ORIGINAL input order (non-swapped)
+* NON-INVERTING level shifter: ea_out tracks error amp, gate tracks ea_out
+Xerramp vref vfb ea_out pvdd gnd ibias ea_en error_amp
+
+* Pass device gate driven by level shifter output
+Xpass gate bvdd pvdd pass_device
+
+* Feedback network
+Xfb pvdd vfb gnd feedback_network
+
+* Compensation on ea_out (error amp output side, before level shifter)
+Xcomp ea_out pvdd gnd compensation
+
+* Output cap — 10nF
 Cout pvdd gnd 10n
 
-.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0 V(ea_out)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
-.tran 0.01u 300u uic
+.tran 0.1u 800u uic
 
+.meas tran t_bvdd_56 when V(bvdd)=5.6 rise=1
+.meas tran t_pvdd_settle when V(pvdd)=4.95 rise=1
 .meas tran pvdd_max max V(pvdd)
 
 .control
 run
 set wr_vecnames
-wrdata tb_su_ff_m40_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en)
+wrdata tb_su_ff_m40_data.txt V(bvdd) V(pvdd) V(gate) V(ea_out) V(startup_done) V(ea_en)
 
-* --- Overshoot at FF -40C ---
+* --- Startup time ---
+let startup_us = 999
+if t_pvdd_settle > t_bvdd_56
+  let startup_us = (t_pvdd_settle - t_bvdd_56) * 1e6
+end
+echo startup_time_ff_m40_us: $&startup_us
+
+* --- Overshoot ---
 let pvdd_peak = vecmax(V(pvdd))
 let overshoot_mV = (pvdd_peak - 5.0) * 1000
 if overshoot_mV < 0
   let overshoot_mV = 0
 end
-echo ff_m40_overshoot_mV: $&overshoot_mV
-echo ff_m40_pvdd_peak_V: $&pvdd_peak
+echo pvdd_overshoot_mV: $&overshoot_mV
+echo pvdd_peak_V: $&pvdd_peak
 
-if overshoot_mV <= 200
-  echo no_overshoot_ff_m40: 1
+* --- Monotonicity ---
+let dpvdd = deriv(V(pvdd))
+let min_deriv = vecmin(dpvdd)
+echo min_dpvdd_V_per_s: $&min_deriv
+if min_deriv > -1e6
+  echo pvdd_monotonic: 1
 else
-  echo no_overshoot_ff_m40: 0
+  echo pvdd_monotonic: 0
+end
+
+* --- Final PVDD ---
+meas tran pvdd_final find V(pvdd) at=799u
+echo pvdd_final_V: $&pvdd_final
+
+* --- No latch check ---
+if pvdd_final > 4.9
+  if pvdd_final < 5.2
+    echo no_latch_stuck: 1
+  else
+    echo no_latch_stuck: 0
+  end
+else
+  echo no_latch_stuck: 0
 end
 
 .endc

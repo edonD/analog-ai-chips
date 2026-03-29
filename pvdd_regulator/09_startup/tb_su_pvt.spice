@@ -1,4 +1,5 @@
-* tb_su_pvt.spice — TT multi-temperature latch-up check
+* tb_su_pvt.spice — PVT latch-up check, TT 27C, 1V/us, no load
+* Verify no latch-up or stuck states across startup
 * ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
@@ -16,40 +17,124 @@ c1 r1 sub 'cp/2'
 .include '../03_compensation/design.cir'
 
 * BVDD ramp: 0 -> 7V in 7us (1 V/us), then hold
-Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+Vbvdd bvdd gnd PWL(0 0 7u 7 800u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
-Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
-Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
-Xpass gate bvdd pvdd pass_device
-Xfb pvdd vfb gnd feedback_network
-Xcomp gate pvdd gnd compensation
+* Startup circuit — 8 ports: bvdd pvdd gate gnd vref startup_done ea_en ea_out
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en ea_out startup
 
+* Error amp — ORIGINAL input order (non-swapped)
+* NON-INVERTING level shifter: ea_out tracks error amp, gate tracks ea_out
+Xerramp vref vfb ea_out pvdd gnd ibias ea_en error_amp
+
+* Pass device gate driven by level shifter output
+Xpass gate bvdd pvdd pass_device
+
+* Feedback network
+Xfb pvdd vfb gnd feedback_network
+
+* Compensation on ea_out (error amp output side, before level shifter)
+Xcomp ea_out pvdd gnd compensation
+
+* Output cap — 10nF
 Cout pvdd gnd 10n
 
-.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0 V(ea_out)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
-.tran 0.1u 300u uic
+.tran 0.1u 800u uic
+
+.meas tran t_bvdd_56 when V(bvdd)=5.6 rise=1
+.meas tran t_pvdd_settle when V(pvdd)=4.95 rise=1
+.meas tran pvdd_max max V(pvdd)
 
 .control
 run
 set wr_vecnames
-wrdata tb_su_pvt_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en) V(startup_done)
+wrdata tb_su_pvt_data.txt V(bvdd) V(pvdd) V(gate) V(ea_out) V(startup_done) V(ea_en)
 
-* --- Latch-up check at TT 27C ---
-* PVDD must reach regulation and not be stuck
-meas tran pvdd_final find V(pvdd) at=299u
-echo pvt_pvdd_final_V: $&pvdd_final
+* --- Startup time ---
+let startup_us = 999
+if t_pvdd_settle > t_bvdd_56
+  let startup_us = (t_pvdd_settle - t_bvdd_56) * 1e6
+end
+echo startup_time_pvt_us: $&startup_us
 
+* --- Final PVDD ---
+meas tran pvdd_final find V(pvdd) at=799u
+echo pvdd_final_V: $&pvdd_final
+
+* --- Overshoot ---
+let pvdd_peak = vecmax(V(pvdd))
+let overshoot_mV = (pvdd_peak - 5.0) * 1000
+if overshoot_mV < 0
+  let overshoot_mV = 0
+end
+echo pvdd_overshoot_mV: $&overshoot_mV
+
+* --- Check startup_done transitions correctly ---
+meas tran sd_final find V(startup_done) at=799u
+echo startup_done_final_V: $&sd_final
+
+* --- Check ea_en transitions correctly ---
+meas tran ea_en_final find V(ea_en) at=799u
+echo ea_en_final_V: $&ea_en_final
+
+* --- Gate voltage sanity ---
+meas tran gate_final find V(gate) at=799u
+echo gate_final_V: $&gate_final
+
+* --- No latch-up check ---
+* PVDD must be in regulation band
+let pvdd_ok = 0
 if pvdd_final > 4.9
   if pvdd_final < 5.2
-    echo no_latch_stuck: 1
+    let pvdd_ok = 1
+  end
+end
+
+* startup_done must be HIGH (>3V)
+let sd_ok = 0
+if sd_final > 3
+  let sd_ok = 1
+end
+
+* ea_en must be HIGH (>3V) — error amp enabled
+let ea_ok = 0
+if ea_en_final > 3
+  let ea_ok = 1
+end
+
+* Gate must be reasonable (between 1V and 6V)
+let gate_ok = 0
+if gate_final > 1
+  if gate_final < 6
+    let gate_ok = 1
+  end
+end
+
+echo pvdd_in_regulation: $&pvdd_ok
+echo startup_done_high: $&sd_ok
+echo ea_en_high: $&ea_ok
+echo gate_reasonable: $&gate_ok
+
+* --- Overall no latch-up verdict ---
+if pvdd_ok = 1
+  if sd_ok = 1
+    if ea_ok = 1
+      if gate_ok = 1
+        echo no_latchup: 1
+      else
+        echo no_latchup: 0
+      end
+    else
+      echo no_latchup: 0
+    end
   else
-    echo no_latch_stuck: 0
+    echo no_latchup: 0
   end
 else
-  echo no_latch_stuck: 0
+  echo no_latchup: 0
 end
 
 .endc
