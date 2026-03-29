@@ -50,6 +50,17 @@ The PVDD overshoot (2V above 5V target at BVDD=7V, no load) is a **system-level 
 - Cold crank (BVDD=3V→7V): PVDD = 4.998V at 90µs ✓
 - No load, BVDD=7V: PVDD = 5.96V at 200µs ✗
 
+### BVDD-Dependent Overshoot
+
+| BVDD (V) | PVDD Peak (V) | PVDD Final (V) | Overshoot (mV) | Status |
+|-----------|---------------|-----------------|-----------------|--------|
+| 5.2 | 5.200 | 5.002 | **200** | **PASS** |
+| 5.3 | 5.300 | 5.002 | 300 | FAIL |
+| 5.6 | 5.600 | 5.005 | 600 | FAIL |
+| 7.0 | 7.000 | 5.957 | 2000 | FAIL |
+
+The error amp regulates to 5.00V at BVDD ≤ 5.6V. Overshoot = BVDD − 5.0V (PVDD tracks BVDD during ramp, then settles). The 200mV spec passes at BVDD ≤ 5.2V.
+
 ### Resolution Options (require other block changes)
 - Add BVDD-domain level shifter to error amp output (allows gate > PVDD)
 - Reduce pass device width (less subthreshold current at Vsg=Vth)
