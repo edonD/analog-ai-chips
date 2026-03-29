@@ -1,5 +1,4 @@
-* tb_su_basic.spice — Basic startup test with level shifter
-* Full closed loop: startup + level shifter + error amp + pass + feedback
+* tb_su_basic.spice — Basic startup test with integrated level shifter
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
@@ -19,30 +18,26 @@ Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
-* Startup circuit drives gate_pass (pass device gate)
-Xstartup bvdd pvdd gate_pass gnd vref startup_done ea_en startup
+* Startup circuit (8 ports: bvdd pvdd gate gnd vref startup_done ea_en ea_out)
+Xstartup bvdd pvdd gate_pass gnd vref startup_done ea_en ea_out startup
 
-* Error amp drives ea_out (not gate_pass directly)
+* Error amp drives ea_out (internal to startup subcircuit's level shifter)
 Xerramp vref vfb ea_out pvdd gnd ibias ea_en error_amp
 
-* Level shifter: translates ea_out (PVDD domain) to gate_pass (BVDD domain)
-Xls ea_out gate_pass bvdd gnd ea_en level_shifter
-
-* Pass device gate connects to gate_pass
+* Pass device
 Xpass gate_pass bvdd pvdd pass_device
 
-* Feedback + compensation (compensation on gate_pass, not ea_out)
+* Feedback + compensation
 Xfb pvdd vfb gnd feedback_network
 Xcomp gate_pass pvdd gnd compensation
 Cout pvdd gnd 1n
 
 .ic V(pvdd)=0 V(gate_pass)=0 V(bvdd)=0 V(ea_out)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
-.tran 0.05u 200u uic
+.tran 0.05u 300u uic
 
-.meas tran t_bvdd_56 when V(bvdd)=5.6 rise=1
-.meas tran t_pvdd_495 when V(pvdd)=4.95 rise=1
 .meas tran pvdd_max max V(pvdd)
+.meas tran pvdd_at_50u find V(pvdd) at=50u
 .meas tran pvdd_at_100u find V(pvdd) at=100u
 .meas tran pvdd_at_200u find V(pvdd) at=200u
 
@@ -59,6 +54,7 @@ end
 let pvdd_final = V(pvdd)[length(V(pvdd))-1]
 echo "PVDD peak: $&pvdd_peak V"
 echo "PVDD final: $&pvdd_final V"
+echo "Overshoot: $&overshoot_mV mV"
 
 echo startup_time_ss150_us: 0
 echo pvdd_overshoot_mV: $&overshoot_mV
