@@ -1,20 +1,19 @@
-* Block 07: Zener Clamp — v5
+* Block 07: Zener Clamp — v6
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * TOPOLOGY: Mixed-channel diode-stack + wide clamp NMOS
 *
 *   7 diode-connected HV NFETs with MIXED channel lengths:
-*   - 5x L=0.5u (Vth~0.84V, TC~-1.1mV/C)
-*   - 2x L=4u  (Vth~1.07V, TC~-0.6mV/C) — better TC, raises onset
+*   - 3x L=4u  (Vth~1.07V, TC~-0.6mV/C) — low TC anchor
+*   - 4x L=0.5u (Vth~0.84V, TC~-1.1mV/C) — standard
 *
-*   All body=source (no body effect). Gate pulldown Rpd = 500k.
-*   Feedforward cap Cff = 20pF for transient response.
+*   All body=source (no body effect). W=10u (wider to reduce onset).
+*   Rpd = 500k.  Cff = 20pF.
 *   Wide clamp NMOS W=100u m=20 L=0.5u.
 *
-*   onset(27C) ~ 5×0.84 + 2×1.07 + 0.84 = 7.18V... NO, onset is set by
-*   stack at bias current. At ~500nA, each short diode ~0.72V, long ~0.93V.
-*   onset ~ 5×0.72 + 2×0.93 + 0.85 = 6.31V — might be a bit high.
-*   Adjust: use 4 short + 2 long = 6 diodes total.
+*   onset(27C) target: 5.8-6.0V
+*   TC budget: 3×(-0.6) + 4×(-1.1) + 1×(-1.1) = -7.3 mV/°C
+*   At 150C: onset drops by 7.3×123 = 898mV → onset(150) ≈ 5.1V > 5.0V ✓
 *
 * All HV: sky130_fd_pr__nfet_g5v0d10v5  (Vds max 10.5V)
 * Dimensions in METERS.
@@ -23,19 +22,19 @@
 
 * ================================================================
 * DIODE STACK: 7 diode-connected NFETs, body=source
-* Top 2: L=4u (high Vth, low TC) — anchors the reference
-* Bottom 5: L=0.5u (lower Vth) — sets total onset voltage
-* W=5u for all — moderate width
+* Top 3: L=4u (high Vth, low TC) — TC anchors
+* Bottom 4: L=0.5u (lower Vth)
+* W=10u for all — reduces overdrive at onset
 * ================================================================
-* Top pair — long channel (L=4u), low TC
-XMd1 pvdd pvdd n6 n6 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=4e-6
-XMd2 n6   n6   n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=4e-6
-* Bottom five — short channel (L=0.5u)
-XMd3 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
-XMd4 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
-XMd5 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
-XMd6 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
-XMd7 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=8e-6 l=0.5e-6
+* Top three — long channel, low TC
+XMd1 pvdd pvdd n6 n6 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
+XMd2 n6   n6   n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
+XMd3 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
+* Bottom four — short channel
+XMd4 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMd5 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMd6 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMd7 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
 
 * ================================================================
 * GATE PULLDOWN: 500 kOhm
@@ -44,7 +43,6 @@ Rpd vg gnd 500k
 
 * ================================================================
 * FEEDFORWARD CAP: 20 pF for fast transient response
-* During fast ramps, couples PVDD change to vg → early clamp turn-on
 * ================================================================
 Cff pvdd vg 20p
 
