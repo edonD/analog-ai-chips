@@ -70,54 +70,55 @@ XMc4iv2n comp4 c4inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 * =============================================
 * LOGIC (from BVDD)
 * =============================================
-XMinv1p comp1b comp1 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv1p comp1b comp1 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMinv1n comp1b comp1 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMinv2p comp2b comp2 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv2p comp2b comp2 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMinv2n comp2b comp2 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMinv3p comp3b comp3 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv3p comp3b comp3 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMinv3n comp3b comp3 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMinv4p comp4b comp4 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMinv4p comp4b comp4 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMinv4n comp4b comp4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
-XRpo_pu bvdd pass_off gnd sky130_fd_pr__res_xhigh_po w=1 l=50
-XMpo_bufp pass_off comp1b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+* Pull-up removed to save Iq. pass_off defaults correctly via PVDD logic.
+* XRpo_pu bvdd pass_off gnd sky130_fd_pr__res_xhigh_po w=1 l=50
+XMpo_bufp pass_off comp1b pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMpo_bufn pass_off comp1b gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
 XMby_n1a by_s1     comp1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 XMby_n1b bypass_enb comp2b by_s1 by_s1 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 XMby_n2a by_s2     comp3  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 XMby_n2b bypass_enb comp4b by_s2 by_s2 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMby_p1a by_pmid comp1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XMby_p1b by_pmid comp2b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_p1a by_pmid comp1  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_p1b by_pmid comp2b pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMby_p2a bypass_enb comp3  by_pmid by_pmid sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMby_p2b bypass_enb comp4b by_pmid by_pmid sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XMby_outp bypass_en bypass_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMby_outp bypass_en bypass_enb pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMby_outn bypass_en bypass_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
 XMea_n1a ea_s1  comp2  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 XMea_n1b ea_enb comp3b ea_s1 ea_s1 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 XMea_n2  ea_enb comp4  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMea_p1a ea_pmid comp2  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XMea_p1b ea_pmid comp3b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMea_p1a ea_pmid comp2  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMea_p1b ea_pmid comp3b pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMea_p2  ea_enb  comp4  ea_pmid ea_pmid sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XMea_outp ea_en ea_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMea_outp ea_en ea_enb pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMea_outn ea_en ea_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
 XMrs_n1 rs_s1    comp1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 XMrs_n2 ref_selb comp3b rs_s1 rs_s1 sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMrs_p1 ref_selb comp1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XMrs_p2 ref_selb comp3b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XMrs_outp ref_sel ref_selb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMrs_p1 ref_selb comp1  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMrs_p2 ref_selb comp3b pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMrs_outp ref_sel ref_selb pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMrs_outn ref_sel ref_selb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
-XMuv_p1 uvov_enb comp4 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMuv_p1 uvov_enb comp4 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMuv_n1 uvov_enb comp4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMuv_p2 uvov_en uvov_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMuv_p2 uvov_en uvov_enb pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMuv_n2 uvov_en uvov_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
-XMil_p1 ilim_enb comp4 bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMil_p1 ilim_enb comp4 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMil_n1 ilim_enb comp4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XMil_p2 ilim_en ilim_enb bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMil_p2 ilim_en ilim_enb pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMil_n2 ilim_en ilim_enb gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
 .ends mode_control

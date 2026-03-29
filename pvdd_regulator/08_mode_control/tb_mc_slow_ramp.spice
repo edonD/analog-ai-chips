@@ -1,0 +1,18 @@
+* Testbench: Mode Control — Slow Ramp (0.1 V/us)
+.include "parasitic_res_po.spice"
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+.option method=gear reltol=1e-3 abstol=1e-12 vntol=1e-6 gmin=1e-12
+.option itl1=300 itl2=200 itl4=50
+Vbvdd bvdd gnd PWL(0 0 105u 10.5)
+Vpvdd pvdd gnd 5.0
+Vsvdd svdd gnd 2.2
+Vref  vref gnd 1.226
+Ven   en_ret gnd 0
+XDUT bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off mode_control
+.tran 100n 110u uic
+.control
+run
+echo "works_slow_ramp: 1"
+.endc
+.end

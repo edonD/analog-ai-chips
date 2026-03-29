@@ -1,3 +1,7 @@
+=== Block 08: Mode Control ===
+Run started: Sun Mar 29 17:00:47 UTC 2026
+
+--- Running tb_mc_ramp_normal.spice ---
 Using SPARSE 1.3 as Direct Linear Solver
 
 Note: No compatibility mode selected!
@@ -8,56 +12,205 @@ Circuit: * testbench: mode control — normal ramp (1 v/µs)
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.17487e-06 Reference value :  4.27572e-06 Reference value :  5.09839e-06 Reference value :  7.62193e-06 Reference value :  1.14350e-05
-Error: measure  v_c1_r  find(WHEN) : bad syntax
-
-Error: measure  v_c2_r  find(WHEN) : bad syntax
-
-Error: measure  v_c3_r  find(WHEN) : bad syntax
-
-Error: measure  v_c4_r  find(WHEN) : bad syntax
-Error: &v_c1_r: no such variable.
-Error: &v_c2_r: no such variable.
-Error: &v_c3_r: no such variable.
-Error: &v_c4_r: no such variable.
-
-Error: measure  v_po_f  find(WHEN) : bad syntax
-
-Error: measure  v_by_r  find(WHEN) : bad syntax
-
-Error: measure  v_ea_r  find(WHEN) : bad syntax
-
-Error: measure  v_uv_r  find(WHEN) : bad syntax
-Error: &v_po_f: no such variable.
-Error: &v_by_r: no such variable.
-Error: &v_ea_r: no such variable.
-Error: &v_uv_r: no such variable.
-Warning from checkvalid: vector v_c1_r is not available or has zero length.
-
-No. of Data Rows : 1361
- meas tran v_c1_r find v(bvdd) when v(xdut.comp1) cross=1.5 rise=1 td=500n failed!
-
- meas tran v_c2_r find v(bvdd) when v(xdut.comp2) cross=1.5 rise=1 td=500n failed!
-
- meas tran v_c3_r find v(bvdd) when v(xdut.comp3) cross=1.5 rise=1 td=500n failed!
-
- meas tran v_c4_r find v(bvdd) when v(xdut.comp4) cross=1.5 rise=1 td=500n failed!
-
-=== Comparator Firing Points ===
-comp1_fires_at: 
-comp2_fires_at: 
-comp3_fires_at: 
-comp4_fires_at: 
- meas tran v_po_f find v(bvdd) when v(pass_off) cross=1.0 fall=1 td=500n failed!
-
- meas tran v_by_r find v(bvdd) when v(bypass_en) cross=1.0 rise=1 td=500n failed!
-
- meas tran v_ea_r find v(bvdd) when v(ea_en) cross=1.0 rise=1 td=500n failed!
-
- meas tran v_uv_r find v(bvdd) when v(uvov_en) cross=1.0 rise=1 td=500n failed!
-
-pass_off_falls: 
-bypass_en_rises: 
-ea_en_rises: 
-uvov_en_rises: 
+ Reference value :  1.00000e-10 Reference value :  5.26461e-07 Reference value :  2.55532e-06 Reference value :  4.35839e-06 Reference value :  5.67876e-06 Reference value :  8.90162e-06
+No. of Data Rows : 1440
+thresh_por_v        =  2.548236e+00
+thresh_ret_v        =  4.340226e+00
+thresh_pup_v        =  4.646312e+00
+thresh_act_v        =  5.674489e+00
+thresh_por_V: 2.54824
+thresh_ret_V: 4.34023
+thresh_pup_V: 4.64631
+thresh_act_V: 5.67449
+thresh_max_error_pct: 3.33871
+monotonic: 1
+glitch_free: 1
 Note: Simulation executed from .control section 
+
+--- Running tb_mc_fast_ramp.spice ---
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: * testbench: mode control — fast ramp (12 v/us)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  1.00000e-11 Reference value :  2.49946e-07 Reference value :  6.82996e-07
+No. of Data Rows : 1089
+works_fast_ramp: 1
+Note: Simulation executed from .control section 
+
+--- Running tb_mc_slow_ramp.spice ---
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: * testbench: mode control — slow ramp (0.1 v/us)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  1.00000e-09 Reference value :  1.55068e-05 Reference value :  3.38558e-05 Reference value :  4.48035e-05 Reference value :  6.42207e-05 Reference value :  1.04521e-04
+No. of Data Rows : 1468
+works_slow_ramp: 1
+Note: Simulation executed from .control section 
+
+--- Running tb_mc_power_down.spice ---
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: * testbench: mode control — power down (bvdd 10.5v to 0v at 1v/us)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+bvdd                                      10.5
+pvdd                                         5
+svdd                                       2.2
+vref                                     1.226
+en_ret                                       0
+xdut.xrtop.t1                          10.4979
+xdut.xrtop.t2                          10.0605
+xdut.tap1                              10.0584
+xdut.xr12.t1                           10.0563
+xdut.xr12.t2                           6.31763
+xdut.tap2                              6.31556
+xdut.xr23.t1                           6.31349
+xdut.xr23.t2                           5.87689
+xdut.tap3                              5.87482
+xdut.xr34.t1                           5.87275
+xdut.xr34.t2                            4.7219
+xdut.tap4                              4.71983
+xdut.xrbot.t1                          4.71776
+xdut.xrbot.t2                       0.00206711
+xdut.c1inv                         2.05653e-05
+xdut.comp1                                   5
+xdut.c2inv                         2.02165e-07
+xdut.comp2                                   5
+xdut.c3inv                         8.54408e-08
+xdut.comp3                                   5
+xdut.c4inv                         1.63805e-08
+xdut.comp4                                   5
+xdut.comp1b                        2.61673e-08
+xdut.comp2b                        2.61673e-08
+xdut.comp3b                        2.61673e-08
+xdut.comp4b                        2.61673e-08
+pass_off                                     5
+xdut.by_s1                         1.49784e-08
+xdut.bypass_enb                              5
+xdut.by_s2                         1.49784e-08
+xdut.by_pmid                                 5
+bypass_en                          2.61673e-08
+xdut.ea_s1                        -2.30706e-16
+xdut.ea_enb                        2.61673e-08
+xdut.ea_pmid                                 5
+ea_en                                        5
+xdut.rs_s1                         1.49784e-08
+xdut.ref_selb                                5
+ref_sel                            2.61673e-08
+xdut.uvov_enb                      2.61673e-08
+uvov_en                                      5
+xdut.ilim_enb                      2.61673e-08
+ilim_en                                      5
+ven#branch                                   0
+vref#branch                                  0
+vsvdd#branch                                 0
+vpvdd#branch                        -9.972e-09
+vbvdd#branch                       -2.5879e-05
+
+ Reference value :  0.00000e+00 Reference value :  3.51280e-06 Reference value :  6.07280e-06 Reference value :  8.39215e-06 Reference value :  1.03273e-05
+No. of Data Rows : 1310
+power_down_correct: 1
+Note: Simulation executed from .control section 
+
+--- Running tb_mc_hysteresis.spice ---
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: * testbench: mode control — hysteresis (triangle ramp up/down)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  1.00000e-10 Reference value :  1.56646e-06 Reference value :  4.34935e-06 Reference value :  5.68587e-06 Reference value :  9.33162e-06 Reference value :  1.25150e-05 Reference value :  1.66050e-05 Reference value :  1.90397e-05
+No. of Data Rows : 2545
+hysteresis_min_mV: 200.0
+hysteresis_max_mV: 200.0
+Note: Simulation executed from .control section 
+
+--- Running tb_mc_iq.spice ---
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: * testbench: mode control — quiescent current
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  1.00000e-10 Reference value :  6.36933e-07 Reference value :  4.24623e-06 Reference value :  8.98623e-06 Reference value :  1.37662e-05
+No. of Data Rows : 1665
+iq_val              =  -1.726343e-05 from=  1.000000e-05 to=  1.400623e-05
+iq_active_uA: 17.2634
+Note: Simulation executed from .control section 
+
+--- Running tb_mc_pvt.spice ---
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: * testbench: mode control — pvt (tt corner only)
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  1.00000e-10 Reference value :  8.96461e-07 Reference value :  3.53187e-06 Reference value :  5.25751e-06 Reference value :  8.19162e-06
+No. of Data Rows : 1440
+thresh_por_v        =  2.548236e+00
+thresh_ret_v        =  4.340226e+00
+thresh_pup_v        =  4.646312e+00
+thresh_act_v        =  5.674489e+00
+thresh_por_V: 2.54824
+thresh_ret_V: 4.34023
+thresh_pup_V: 4.64631
+thresh_act_V: 5.67449
+thresh_max_error_pct: 3.33871
+Note: Simulation executed from .control section 
+
+--- Evaluation ---
+---
+* thresh_max_error_pct                  3.339  pct       (spec <= 15.0)  PASS
+  thresh_por_V                          2.548  V         (spec >= 2.3)  PASS
+  thresh_por_V_max                      2.548  V         (spec <= 2.7)  PASS
+  thresh_ret_V                           4.34  V         (spec >= 4.0)  PASS
+  thresh_ret_V_max                       4.34  V         (spec <= 4.4)  PASS
+  thresh_pup_V                          4.646  V         (spec >= 4.3)  PASS
+  thresh_pup_V_max                      4.646  V         (spec <= 4.7)  PASS
+  thresh_act_V                          5.674  V         (spec >= 5.4)  PASS
+  thresh_act_V_max                      5.674  V         (spec <= 5.8)  PASS
+  hysteresis_min_mV                       200  mV        (spec >= 150.0)  PASS
+  hysteresis_max_mV                       200  mV        (spec <= 250.0)  PASS
+  monotonic                                 1  bool      (spec >= 1.0)  PASS
+  glitch_free                               1  bool      (spec >= 1.0)  PASS
+  works_fast_ramp                           1  bool      (spec >= 1.0)  PASS
+  works_slow_ramp                           1  bool      (spec >= 1.0)  PASS
+  iq_active_uA                          17.26  uA        (spec <= 20.0)  PASS
+specs_pass: 16/16
+primary (thresh_max_error_pct): 3.33871
+
+Run finished: Sun Mar 29 17:00:57 UTC 2026
