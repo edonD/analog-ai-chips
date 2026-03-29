@@ -2,16 +2,14 @@
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * Topology: Sense-mirror brick-wall limiter with Vth-based detection
-*           and source-degenerated detection for soft turn-on
 *
 *   XMs: Sense PMOS (gate shared with pass device)
 *         W=2u L=0.5u, pass device is 10x W=100u L=0.5u
 *         Geometric ratio N = 1000/2 = 500
 *   XRs: Sense resistor converts Isense to voltage
 *         xhigh_po W=1u L=3.15u → Rs ~ 6182 ohm
-*   XMdet: Detection NMOS, trips when Vsense > Vth
-*   XRdegen: Small source degeneration for soft turn-on (~100 ohm)
-*   XRpu: Pull-up keeps det_n HIGH during normal operation (10.5k)
+*   XMdet: Detection NMOS (W=5u L=1u), trips when Vsense > Vth (~0.7V)
+*   XRpu: Pull-up keeps det_n at bvdd during normal operation (10.5k)
 *   XMclamp: Clamp PMOS (W=20u L=1u) pulls gate toward bvdd
 *
 * The Vds mismatch between sense device (Vds ~ bvdd) and pass device
@@ -23,7 +21,7 @@
 *   PVT spread: 3.1x (136/43.4)
 *   Quiescent: ~0.0002 uA at Iload=0
 *   Short circuit: ~105mA with limiter vs ~598mA without
-*   Loop PM: ~105 deg at 50mA (with behavioral error amp)
+*   Loop PM: ~104 deg at UGB=423kHz (with real error amp, break-loop AC)
 *
 .subckt current_limiter gate bvdd pvdd gnd ilim_flag
 
@@ -36,9 +34,9 @@ XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=0.5e-6
 * Vsense = 450uA * 6182 = 2.78V → well above Vth for detection
 XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.15
 
-* === Detection NMOS with minimal source degeneration ===
-* No degeneration — direct connection to ground
-* Maximal detection sensitivity for highest SS150
+* === Detection NMOS ===
+* No source degeneration — direct connection to ground
+* Maximizes detection sensitivity for highest SS150 primary metric
 XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 
 * === Pull-up Resistor ===
