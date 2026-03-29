@@ -8,7 +8,7 @@ Circuit: * testbench: mode control — normal ramp (1 v/µs)
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.09376e-06 Reference value :  4.59839e-06 Reference value :  7.03208e-06 Reference value :  9.40821e-06
+ Reference value :  1.00000e-10 Reference value :  2.54656e-06 Reference value :  4.60733e-06 Reference value :  6.93058e-06 Reference value :  1.09250e-05
 Error: measure  v_c1_r  find(WHEN) : bad syntax
 
 Error: measure  v_c2_r  find(WHEN) : bad syntax
@@ -34,7 +34,7 @@ Error: &v_ea_r: no such variable.
 Error: &v_uv_r: no such variable.
 Warning from checkvalid: vector v_c1_r is not available or has zero length.
 
-No. of Data Rows : 1361
+No. of Data Rows : 1362
  meas tran v_c1_r find v(bvdd) when v(xdut.comp1) cross=1.5 rise=1 td=500n failed!
 
  meas tran v_c2_r find v(bvdd) when v(xdut.comp2) cross=1.5 rise=1 td=500n failed!
