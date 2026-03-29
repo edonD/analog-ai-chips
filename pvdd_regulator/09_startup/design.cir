@@ -29,8 +29,11 @@ XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=51
 XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 
 * ================================================================
-* Weak BVDD gate pull-up (regulation assist)
+* BVDD gate pull-up (regulation assist + overshoot limiter)
 * ================================================================
+* W=100u source follower limits gate drop during startup.
+* At regulation (gate≈6V): Vgs≈1V → deep subthreshold → negligible leakage.
+* During startup: fights gate pulldown, keeping Vsg low.
 XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
 
 * ================================================================
