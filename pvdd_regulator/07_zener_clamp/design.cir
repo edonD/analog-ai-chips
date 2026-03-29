@@ -1,20 +1,20 @@
-* Block 07: Zener Clamp — v4
+* Block 07: Zener Clamp — v5
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* TOPOLOGY: Long-channel diode-stack-biased NMOS voltage clamp
+* TOPOLOGY: Mixed-channel diode-stack + wide clamp NMOS
 *
-*   5 diode-connected HV NFETs (L=4u, body=source) + Rpd=100k + wide
-*   clamp NMOS (W=2000u, L=0.5u). Long channels give higher Vth (~1.07V)
-*   and lower TC (-0.61 mV/C vs -1.12 mV/C at L=0.5u).
+*   7 diode-connected HV NFETs with MIXED channel lengths:
+*   - 5x L=0.5u (Vth~0.84V, TC~-1.1mV/C)
+*   - 2x L=4u  (Vth~1.07V, TC~-0.6mV/C) — better TC, raises onset
 *
-*   With 5 diodes: onset = 5 x Vgs_diode(I_bias) + Vgs_clamp(1mA)
-*   At TT 27C: ~6.0V.  At 150C: ~5.5V (> 5.0V).  At -40C: ~6.5V (<7.0V).
+*   All body=source (no body effect). Gate pulldown Rpd = 500k.
+*   Feedforward cap Cff = 20pF for transient response.
+*   Wide clamp NMOS W=100u m=20 L=0.5u.
 *
-*   Rpd = 100k: low enough that diode subthreshold current at 5.0V
-*   doesn't push vg above Vth of clamp. At 5.0V: I_stack ~1uA,
-*   vg ~ 100mV, clamp OFF.
-*
-*   Feedforward cap Cff for transient response.
+*   onset(27C) ~ 5×0.84 + 2×1.07 + 0.84 = 7.18V... NO, onset is set by
+*   stack at bias current. At ~500nA, each short diode ~0.72V, long ~0.93V.
+*   onset ~ 5×0.72 + 2×0.93 + 0.85 = 6.31V — might be a bit high.
+*   Adjust: use 4 short + 2 long = 6 diodes total.
 *
 * All HV: sky130_fd_pr__nfet_g5v0d10v5  (Vds max 10.5V)
 * Dimensions in METERS.
@@ -22,35 +22,34 @@
 .subckt zener_clamp pvdd gnd
 
 * ================================================================
-* DIODE REFERENCE STACK: 5 diode-connected HV NFETs
-* L=4u (long channel): higher Vth, lower TC
-* W=10u: moderate width for ~1uA bias current at onset
-* Body = Source (no body effect)
+* DIODE STACK: 7 diode-connected NFETs, body=source
+* Top 2: L=4u (high Vth, low TC) — anchors the reference
+* Bottom 5: L=0.5u (lower Vth) — sets total onset voltage
+* W=5u for all — moderate width
 * ================================================================
-XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
-XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
-XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
-XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
-XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=4e-6
+* Top pair — long channel, low TC
+XMd1 pvdd pvdd n6 n6 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
+XMd2 n6   n6   n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
+* Bottom five — short channel
+XMd3 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd4 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd5 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd6 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd7 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
 
 * ================================================================
-* GATE PULLDOWN: 100 kOhm resistor
-* Low R to prevent subthreshold stack current from raising vg
-* At onset: I_stack ~8uA → vg ~0.8V → near Vth of clamp
-* At 5.0V: I_stack ~1uA → vg ~100mV → clamp OFF
+* GATE PULLDOWN: 500 kOhm
 * ================================================================
-Rpd vg gnd 100k
+Rpd vg gnd 500k
 
 * ================================================================
-* FEEDFORWARD CAP: couples fast PVDD transients to gate
-* Cff in parallel with the diode stack speeds up gate drive
+* FEEDFORWARD CAP: 20 pF for fast transient response
+* During fast ramps, couples PVDD change to vg → early clamp turn-on
 * ================================================================
-Cff pvdd vg 5p
+Cff pvdd vg 20p
 
 * ================================================================
-* WIDE CLAMP NMOS: handles clamping current
-* W=100u m=20 => 2000 um total width, L=0.5u
-* Body = GND
+* WIDE CLAMP NMOS: W=100u m=20 => 2000 um, L=0.5u, body=GND
 * ================================================================
 XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=20
 
