@@ -36,10 +36,7 @@ XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
 Rpd vg gnd 500k
 
 * ================================================================
-* FEEDFORWARD: Split Cff — 15pF from n2 (fast) + 15pF from n1 (slow)
-* n2 provides strong transient coupling (3 devices below pvdd)
-* n1 provides gentle coupling with minimal startup surge
-* Total 30pF equivalent feedforward
+* FEEDFORWARD: Split Cff — 5pF from n2 + 25pF from n1
 * ================================================================
 Cff1 n2 vg 5p
 Cff2 n1 vg 25p
