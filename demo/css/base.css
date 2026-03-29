@@ -215,7 +215,7 @@ body:has(a:hover) #cursor-ring{width:52px;height:52px;border-color:var(--violet)
   padding:7rem 2rem;
   overflow:hidden;
 }
-.scene-tall{min-height:140vh}
+.scene-tall{min-height:150vh}
 
 /* ═══════════════ SECTION DIVIDERS ═══════════════ */
 .scene:not(#s7)::after{

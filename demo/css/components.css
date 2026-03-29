@@ -547,6 +547,13 @@
   .cr-k{font-size:0.72rem}
   .cr-v{font-size:0.78rem}
 
+  /* mems mobile extra breathing room */
+  .mems-layout { gap: 1.5rem; }
+  .pipe-node { gap: 0.75rem; }
+  .pipe-body { padding-bottom: 1.25rem; }
+  .csac-card { border-radius: 10px; }
+  .csac-rows { gap: 0; }
+
   /* chip */
   .chip-h1{font-size:clamp(2rem,10vw,3rem)}
   .chip-halo{width:220px;height:220px}

@@ -47,16 +47,26 @@ window.startNrCanvas = function startNrCanvas(){
     ctx.scale(scaleX, 1);
     ctx.translate(-(BLOCK_W/2), -(BLOCK_H/2));
 
+    // glow shadow behind block
+    ctx.save();
+    ctx.shadowColor = st.col+(0.55*alpha)+')';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    roundRect(ctx, -4, -4, BLOCK_W+8, BLOCK_H+8, 12);
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.fill();
+    ctx.restore();
+
     // bg
     ctx.beginPath();
     roundRect(ctx, 0, 0, BLOCK_W, BLOCK_H, 8);
-    ctx.fillStyle = st.col+'0.07)';
+    ctx.fillStyle = st.col+'0.10)';
     ctx.fill();
     // border
     ctx.beginPath();
     roundRect(ctx, 0, 0, BLOCK_W, BLOCK_H, 8);
-    ctx.strokeStyle = st.col+(0.4*alpha)+')';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = st.col+(0.82*alpha)+')';
+    ctx.lineWidth = 1.6;
     ctx.stroke();
 
     // icon circle
@@ -94,6 +104,17 @@ window.startNrCanvas = function startNrCanvas(){
     const elapsed = (performance.now()-startTime)/1000;
     ctx.clearRect(0,0,W,H);
 
+    // background grid dots
+    const GRID = 20;
+    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    for(let gx = GRID/2; gx < W; gx += GRID){
+      for(let gy = GRID/2; gy < H; gy += GRID){
+        ctx.beginPath();
+        ctx.arc(gx, gy, 1, 0, TAU);
+        ctx.fill();
+      }
+    }
+
     // draw blocks
     stages.forEach((st,i)=>{
       const revealTime = i*0.22;
@@ -113,7 +134,7 @@ window.startNrCanvas = function startNrCanvas(){
       g.addColorStop(0, stages[i].col+'0.5)');
       g.addColorStop(1, stages[i+1].col+'0.5)');
       ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);
-      ctx.strokeStyle=g;ctx.lineWidth=1.5;
+      ctx.strokeStyle=g;ctx.lineWidth=2.5;
       ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
 
       // arrow tip
@@ -139,12 +160,12 @@ window.startNrCanvas = function startNrCanvas(){
         const col1 = stages[p.seg].col;
         const col2 = stages[p.seg+1].col;
         const mix = p.t;
-        ctx.beginPath();ctx.arc(x,py,2.5,0,TAU);
+        ctx.beginPath();ctx.arc(x,py,3,0,TAU);
         ctx.fillStyle=mix<0.5?col1+'0.9)':col2+'0.9)';
         ctx.fill();
         // glow
-        ctx.beginPath();ctx.arc(x,py,5,0,TAU);
-        ctx.fillStyle=mix<0.5?col1+'0.15)':col2+'0.15)';
+        ctx.beginPath();ctx.arc(x,py,7,0,TAU);
+        ctx.fillStyle=mix<0.5?col1+'0.18)':col2+'0.18)';
         ctx.fill();
       });
     }
