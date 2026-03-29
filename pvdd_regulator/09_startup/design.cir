@@ -17,10 +17,11 @@
 * ================================================================
 * PVDD threshold detector — trips at ~3.9V
 * ================================================================
-* 5MΩ divider from PVDD: sense_mid = pvdd * 0.18
+* 10MΩ divider from PVDD: sense_mid = pvdd * 0.18
 * MN_det turns on when sense_mid > Vth (~0.7V) → PVDD ≈ 3.9V
-XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=4100
-XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=900
+* 10MΩ total → 0.5µA at PVDD=5V (halved quiescent)
+XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=8200
+XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=1800
 XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
 
 * 30MΩ pull-up: keeps det_out HIGH during startup, ~0.23µA after
