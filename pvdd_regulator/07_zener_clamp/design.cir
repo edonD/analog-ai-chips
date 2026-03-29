@@ -1,4 +1,4 @@
-* Block 07: Zener Clamp — v16
+* Block 07: Zener Clamp — v16b
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * TOPOLOGY: HYBRID CLAMP — 3N+2P mixed stack + fast diode stack
@@ -12,8 +12,9 @@
 *   FAST STACK (transient): 7x NFET L=0.5u W=10u body=GND
 *     Direct pvdd-to-GND shunt for transient absorption.
 *
-*   FEEDFORWARD: Cff=30pF from n2 (3 devices below pvdd)
-*     Coupling from internal stack node reduces startup surge.
+*   FEEDFORWARD: Split Cff — 5pF from n2 + 25pF from n1
+*     n2 coupling for fast transient response
+*     n1 coupling for gentle boost with minimal startup surge
 *
 *   Clamp NMOS: W=100u m=20 (2000um total), L=0.5u, body=GND
 *   Rpd=500k
