@@ -1,70 +1,66 @@
 * Block 09: Startup Circuit
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Subcircuit ports:
-*   bvdd         — battery supply (energy source for bootstrap)
-*   pvdd         — PVDD rail being bootstrapped (sense and output)
-*   gate         — pass device gate node (startup drives this)
-*   gnd          — ground
-*   vref         — bandgap reference 1.226V (may NOT be valid during startup)
-*   startup_done — output: digital flag, HIGH when startup is complete
-*   ea_en        — output: error amplifier enable, asserted at handoff
+* Mechanism: Current-limited gate pulldown + PVDD threshold detection
+*            + BVDD-domain gate pull-up (regulation assist)
 *
-* STATUS: EMPTY — startup mechanism not yet chosen
-*
-* Problem: chicken-and-egg bootstrap.
-*   Error amp runs from PVDD. PVDD is made by pass device controlled by error amp.
-*   At power-on PVDD=0 → error amp has no supply → gate floating → PVDD stays 0.
-*
-* Solution options:
-*   1. Current-limited gate pulldown (simplest):
-*      Weak NMOS from gate to GND partially turns on pass PMOS.
-*      PVDD charges through pass device. When PVDD crosses threshold,
-*      pulldown disables and error amp takes over.
-*      Recommended starting point.
-*
-*   2. Bootstrap resistor from BVDD:
-*      Resistor from BVDD to error amp supply provides trickle current.
-*      Simple but wastes current permanently unless switched off.
-*
-*   3. Dedicated startup amplifier:
-*      HV amp from BVDD, coarse regulation then handoff.
-*      Most robust, most complex.
-*
-* Key constraints:
-*   - vref may NOT be valid during startup (bandgap not yet powered).
-*     Use BVDD-derived or Vth-based threshold detection only.
-*   - Convergence: startup from zero IC is hardest SPICE convergence scenario.
-*     Use .ic V(pvdd)=0 V(gate)=0 and uic option.
-*   - After startup: leakage <= 1 µA (circuit must FULLY disable).
-*
-* Requirements:
-*   Startup time (no load, BVDD=7V)   <= 100 µs
-*   Startup time (50 mA, BVDD=7V)     <= 200 µs
-*   PVDD monotonic ramp                no dips > 50 mV
-*   PVDD overshoot                     < 200 mV above 5.0V
-*   Handoff glitch                     < 100 mV
-*   Works at BVDD ramp 0.1–12 V/µs
-*   Cold crank recovery (BVDD dip)     clean re-start
-*   Quiescent after startup            < 1 µA
+* Operation:
+*   Phase 1 (startup): det_out HIGH → MN_gate ON → gate pulled low via R_gate.
+*     Pass device turns on, PVDD charges.
+*   Phase 2 (regulation): PVDD > threshold → MN_det ON → det_out LOW.
+*     MN_gate OFF (gate released), ea_en HIGH (error amp enabled).
+*     MN_pu (NMOS source follower from BVDD) assists error amp by pulling
+*     gate toward BVDD, extending effective gate range above PVDD.
+*   After startup: divider ~1µA (from PVDD), R_pu ~0.7µA (from BVDD).
+*     MN_pu conducts only what the error amp sinks — sets gate equilibrium.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en
 
-* TODO: implement startup circuit
+* ================================================================
+* PVDD threshold detector
+* ================================================================
+* High-R divider: ~5MΩ total, 1µA at PVDD=5V.
+* Trips at PVDD ≈ 0.7/0.18 ≈ 3.9V.
+XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=4100
+XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=900
+
+* Detection NMOS
+XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+
+* det_out pull-up: 10MΩ from BVDD → 0.7µA leakage after startup
+XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=5001
+
+* ================================================================
+* Gate pulldown — current-limited by R_gate (~100k)
+* ================================================================
+XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=51
+XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
+
+* ================================================================
+* BVDD-domain gate pull-up (regulation assist)
+* ================================================================
+* MN_pu: NMOS source follower, drain=bvdd, gate=bvdd, source=gate.
+* Pulls gate toward bvdd - Vgs_n. When error amp tries to raise gate
+* above PVDD, MN_pu provides the current to actually reach bvdd-Vth.
+* This extends the error amp's effective output range above PVDD.
 *
-* Recommended first attempt: current-limited gate pulldown
+* Without this, the error amp (running from PVDD=5V) can only output
+* up to ~4.3V, giving Vsg=2.7V at BVDD=7V → 80mA through W=1mm pass device.
+* With MN_pu, gate can reach ~bvdd-0.8V=6.2V → Vsg=0.8V → ~20µA. Controlled.
 *
-* Step 1: NMOS from gate to GND (weak, limited by series R).
-*   When BVDD > threshold and PVDD < 5V:
-*   Rg pulls gate low → PMOS pass device partially on → PVDD charges.
-*
-* Step 2: threshold detector for startup_done.
-*   When PVDD > ~4.8V: assert startup_done, assert ea_en, disable pulldown.
-*   Use BVDD-derived divider + HV comparator (NOT vref — may be invalid).
-*
-* Example skeleton:
-* XR_gate gate gnd_pull sky130_fd_pr__res_xhigh_po W=1e-6 L=<L>
-* XMN_pull gnd_pull gnd_pull gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=<W> L=<L>
-* ... threshold detector and handoff logic below
+* Size: W=0.42u L=8u — very weak pull-up for minimal BVDD leakage.
+* At gate=6.2V (regulation): Vgs=0.8V → deep subthreshold, ~10nA.
+* At gate=5V (error amp railed): Vgs=2V → ~1µA. Enough to slowly pull gate up.
+* Total BVDD current contribution: < 0.1µA at regulation.
+XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=8e-6
+
+* ================================================================
+* Output flags — inverters from det_out
+* ================================================================
+XMP_sd startup_done det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+XMN_sd startup_done det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
+
+XMP_ea ea_en det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+XMN_ea ea_en det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 .ends startup

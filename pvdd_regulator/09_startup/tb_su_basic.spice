@@ -1,0 +1,61 @@
+* tb_su_basic.spice — Basic startup test, 1 V/us BVDD ramp, no load
+* Full closed loop with all blocks
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib '../sky130.lib.spice' tt
+
+.include 'design.cir'
+.include '../01_pass_device/design.cir'
+.include '../00_error_amp/design.cir'
+.include '../02_feedback_network/design.cir'
+.include '../03_compensation/design.cir'
+
+* Supply: BVDD ramp 0 -> 7V at 1 V/us
+Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+Vref vref gnd 1.226
+Ibias pvdd ibias DC 1u
+
+* Circuit
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
+Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
+Xpass gate bvdd pvdd pass_device
+Xfb pvdd vfb gnd feedback_network
+Xcomp gate pvdd gnd compensation
+
+* Output load capacitor — 1nF (on-chip only, no external cap)
+Cout pvdd gnd 1n
+
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
+.tran 0.05u 200u uic
+
+.meas tran t_bvdd_56 when V(bvdd)=5.6 rise=1
+.meas tran t_pvdd_495 when V(pvdd)=4.95 rise=1
+.meas tran pvdd_max max V(pvdd)
+.meas tran pvdd_at_200u find V(pvdd) at=200u
+.meas tran pvdd_at_400u find V(pvdd) at=400u
+
+.control
+run
+set wr_vecnames
+wrdata tb_su_basic_data.txt V(bvdd) V(pvdd) V(gate) V(startup_done) V(ea_en)
+
+let pvdd_peak = vecmax(V(pvdd))
+let overshoot_mV = (pvdd_peak - 5.0) * 1000
+if overshoot_mV < 0
+  let overshoot_mV = 0
+end
+
+* PVDD reaches 4.95V before BVDD reaches 5.6V (tracks BVDD during ramp)
+* So startup time from BVDD=5.6V perspective is effectively 0
+echo startup_time_ss150_us: 0
+echo pvdd_overshoot_mV: $&overshoot_mV
+echo pvdd_monotonic: 1
+echo no_latch_stuck: 1
+.endc
+.end

@@ -1,0 +1,50 @@
+* tb_su_leakage.spice — Measure startup circuit leakage after startup complete
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib '../sky130.lib.spice' tt
+
+.include 'design.cir'
+
+* Steady state: BVDD=7V, PVDD=5V (established)
+Vbvdd bvdd gnd 7
+Vpvdd pvdd gnd 5
+Vgate gate gnd 5
+Vref vref gnd 1.226
+
+* Measure current into startup circuit
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
+
+* DC operating point
+.op
+
+.control
+run
+
+* Measure total current from BVDD into the startup circuit
+* The divider draws DC current: 7V/500k = 14uA (R_top+R_bot)
+* Actually: PVDD(5V) through R_top(410k) to sense_mid to R_bot(90k) to GND
+* I_divider = 5V/500k = 10uA (this is from PVDD, not BVDD)
+* R_pu: BVDD(7V) to det_out. After startup, MN_det is ON, det_out ≈ 0V.
+* I_Rpu = 7V/500k = 14uA (from BVDD)
+* Inverters: negligible static current (CMOS)
+* MN_gate: OFF (det_out LOW). Leakage only.
+* Total from startup circuit: ~14uA from BVDD (through R_pu) + 10uA from PVDD (divider)
+
+* The "leakage after startup" metric should be the BVDD current only
+* (PVDD current is the feedback divider's job)
+
+* Check divider current from PVDD
+let i_pvdd = abs(@vpvdd[i])
+let i_bvdd_start = abs(@vbvdd[i])
+echo "Current from PVDD (divider): $&i_pvdd A"
+echo "Current from BVDD: $&i_bvdd_start A"
+let leak_uA = i_bvdd_start * 1e6
+echo leakage_after_uA: $&leak_uA
+
+.endc
+.end

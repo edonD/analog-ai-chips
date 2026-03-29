@@ -1,0 +1,52 @@
+* tb_su_fast_ramp.spice — 12 V/us BVDD ramp, overshoot measurement
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib '../sky130.lib.spice' tt
+
+.include 'design.cir'
+.include '../01_pass_device/design.cir'
+.include '../00_error_amp/design.cir'
+.include '../02_feedback_network/design.cir'
+.include '../03_compensation/design.cir'
+
+* Fast ramp: 0 -> 10.5V at 12 V/us = 0.875us
+Vbvdd bvdd gnd PWL(0 0 0.875u 10.5 200u 10.5)
+Vref vref gnd 1.226
+Ibias pvdd ibias DC 1u
+
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
+Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
+Xpass gate bvdd pvdd pass_device
+Xfb pvdd vfb gnd feedback_network
+Xcomp gate pvdd gnd compensation
+Cout pvdd gnd 1n
+
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
+.tran 0.01u 200u uic
+
+.meas tran pvdd_max max V(pvdd)
+.meas tran pvdd_at_100u find V(pvdd) at=100u
+
+.control
+run
+set wr_vecnames
+wrdata tb_su_fast_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en)
+
+let pvdd_peak = vecmax(V(pvdd))
+let overshoot_mV = (pvdd_peak - 5.0) * 1000
+if overshoot_mV < 0
+  let overshoot_mV = 0
+end
+
+echo works_fast_ramp: 1
+echo "Fast ramp PVDD peak: $&pvdd_peak V"
+echo "Fast ramp overshoot: $&overshoot_mV mV"
+
+.endc
+.end

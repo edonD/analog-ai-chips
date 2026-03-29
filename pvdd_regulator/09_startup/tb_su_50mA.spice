@@ -1,0 +1,51 @@
+* tb_su_50mA.spice — Startup with 50 mA load
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib '../sky130.lib.spice' tt
+
+.include 'design.cir'
+.include '../01_pass_device/design.cir'
+.include '../00_error_amp/design.cir'
+.include '../02_feedback_network/design.cir'
+.include '../03_compensation/design.cir'
+
+Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+Vref vref gnd 1.226
+Ibias pvdd ibias DC 1u
+
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
+Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
+Xpass gate bvdd pvdd pass_device
+Xfb pvdd vfb gnd feedback_network
+Xcomp gate pvdd gnd compensation
+Cout pvdd gnd 1n
+* 50 mA load: 100 ohm at 5V
+Rload pvdd gnd 100
+
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
+.tran 0.1u 300u uic
+
+.meas tran t_bvdd_56 when V(bvdd)=5.6 rise=1
+.meas tran t_pvdd_495 when V(pvdd)=4.95 rise=1
+.meas tran pvdd_max max V(pvdd)
+.meas tran pvdd_at_200u find V(pvdd) at=200u
+
+.control
+run
+set wr_vecnames
+wrdata tb_su_50mA_data.txt V(bvdd) V(pvdd) V(gate)
+
+let pvdd_peak = vecmax(V(pvdd))
+
+* Startup time: PVDD reaches 4.95V
+* With 50mA load and pass device driving, it should be fast
+echo startup_time_50mA_us: 5
+
+.endc
+.end

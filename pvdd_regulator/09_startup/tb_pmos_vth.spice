@@ -1,0 +1,65 @@
+* Quick test: find HV PMOS threshold voltage and subthreshold current
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+.param cpoly_area = 1e-16
+.param cp = 'cpoly_area * w * l'
+c0 r0 sub 'cp/2'
+c1 r1 sub 'cp/2'
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib '../sky130.lib.spice' tt
+
+Vbvdd bvdd gnd 7
+Vgate gate gnd 7
+Vds pvdd gnd 5
+
+XM1 pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=10
+
+.dc Vgate 0 7 0.01
+
+.control
+run
+* Find Vth: where Id first exceeds 1uA (Vsg decreasing from gate sweep)
+* Vsg = 7 - Vgate. When Vgate = 7, Vsg = 0 (off). When Vgate = 0, Vsg = 7 (full on).
+let id_pass = -I(Vds)
+let vsg = 7 - V(gate)
+
+echo "=== PMOS Id vs Vsg ==="
+* Print some key points
+print id_pass[690] vsg[690]
+print id_pass[600] vsg[600]
+print id_pass[500] vsg[500]
+print id_pass[400] vsg[400]
+print id_pass[350] vsg[350]
+
+* Find where Id first exceeds 1uA
+let found_vth = 0
+let i = 700
+repeat 700
+  if id_pass[i] > 1e-6 and found_vth = 0
+    let found_vth = vsg[i]
+    echo "Vth (Id=1uA): $&found_vth V"
+  end
+  let i = i - 1
+end
+
+* Print Id at various Vsg
+* Vsg = 0.5V → gate = 6.5 → index 650
+* Vsg = 1.0V → gate = 6.0 → index 600
+* Vsg = 1.5V → gate = 5.5 → index 550
+* Vsg = 2.0V → gate = 5.0 → index 500
+echo ""
+echo "Id at Vsg=0.5V:"
+print id_pass[650]
+echo "Id at Vsg=0.7V:"
+print id_pass[630]
+echo "Id at Vsg=0.8V:"
+print id_pass[620]
+echo "Id at Vsg=1.0V:"
+print id_pass[600]
+echo "Id at Vsg=1.5V:"
+print id_pass[550]
+echo "Id at Vsg=2.0V:"
+print id_pass[500]
+
+.endc
+.end
