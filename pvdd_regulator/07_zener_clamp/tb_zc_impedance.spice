@@ -1,0 +1,53 @@
+* tb_zc_impedance.spice — Impedance measurement at onset (Problem C)
+* 2-point DC measurement around 5mA to get dynamic impedance
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 0
+Xclamp pvdd 0 zener_clamp
+
+.option reltol=1e-4
+
+.control
+dc Vpvdd 0 8 0.001
+
+let i_clamp = -i(Vpvdd)
+
+* Find voltage at 4mA and 6mA for impedance at 5mA
+let idx = 0
+let v_4ma = 0
+let v_5ma = 0
+let v_6ma = 0
+let v_1ma = 0
+let v_10ma = 0
+dowhile idx < length(i_clamp)
+  if i_clamp[idx] >= 1m & v_1ma = 0
+    let v_1ma = v(pvdd)[idx]
+  end
+  if i_clamp[idx] >= 4m & v_4ma = 0
+    let v_4ma = v(pvdd)[idx]
+  end
+  if i_clamp[idx] >= 5m & v_5ma = 0
+    let v_5ma = v(pvdd)[idx]
+  end
+  if i_clamp[idx] >= 6m & v_6ma = 0
+    let v_6ma = v(pvdd)[idx]
+  end
+  if i_clamp[idx] >= 10m & v_10ma = 0
+    let v_10ma = v(pvdd)[idx]
+  end
+  let idx = idx + 1
+end
+
+let z_5mA = (v_6ma - v_4ma) / 2m
+let z_1mA = (v_5ma - v_1ma) / 4m
+
+echo "impedance_at_5mA_ohm: $&z_5mA"
+echo "impedance_at_1mA_ohm: $&z_1mA"
+echo "v_at_1mA: $&v_1ma"
+echo "v_at_5mA: $&v_5ma"
+echo "v_at_10mA: $&v_10ma"
+
+quit
+.endc
+.end
