@@ -1,17 +1,22 @@
-* Block 07: Zener Clamp
+* Block 07: Zener Clamp — v3
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* TOPOLOGY: Diode-stack-biased NMOS voltage clamp
+* TOPOLOGY: Resistor-divider + diode-stack hybrid NMOS clamp
 *
-*   7 diode-connected HV NFETs (body=source, no body effect) create a
-*   voltage reference. When PVDD exceeds ~(7*Vth + Vod_clamp), the
-*   gate of a wide clamp NMOS rises above Vth and shunts current.
+*   A resistive divider (R1 from PVDD to vg, R2=Rpd from vg to GND)
+*   sets the gate bias of a wide clamp NMOS. In addition, 5 diode-connected
+*   NFETs from PVDD to vg add a sharp "knee" at the onset voltage.
 *
-*   Rpd (1 MOhm) pulls vg to GND when the stack is off.
-*   At PVDD=5.0V: each diode sees ~0.714V (below Vth=0.84V),
-*   stack current ~80nA, vg ~ 80mV — clamp is OFF.
+*   Below onset: vg = PVDD * R2/(R1+R2) — purely resistive, very low.
+*   At onset: diode stack starts conducting, sharply boosting vg.
+*   This gives both good TC (resistors are temperature-stable) and
+*   a sharp clamp knee (from the diode stack nonlinearity).
 *
-*   Onset ~6.0V at TT 27C. At 150C: ~5.2V (> 5.0V spec).
+*   TC compensation: R1 carries a fraction of the gate drive.
+*   As temperature rises, Vth decreases but R doesn't change as much,
+*   so the onset shifts less than pure diode-stack.
+*
+*   Feedforward cap Cff from pvdd to vg for transient response.
 *
 * All HV: sky130_fd_pr__nfet_g5v0d10v5  (Vds max 10.5V)
 * Dimensions in METERS.
@@ -19,30 +24,37 @@
 .subckt zener_clamp pvdd gnd
 
 * ================================================================
-* DIODE REFERENCE STACK: 7 diode-connected HV NFETs
+* DIODE REFERENCE STACK: 5 diode-connected HV NFETs
 * Body = Source (no body effect, isolated P-well)
-* W=5u L=0.5u — sized for ~1uA stack current at onset
-* Each drops ~Vth (~0.84V at TT 27C) at low current
+* W=5u L=0.5u
+* Provides voltage offset and sharp nonlinear knee
 * ================================================================
-XMd1 pvdd pvdd n6 n6 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd2 n6   n6   n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd3 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd4 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd5 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd6 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
-XMd7 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
 
 * ================================================================
-* GATE PULLDOWN: 1 MOhm resistor
-* At onset: I_stack ~1uA → vg = 1uA × 1M = 1V → above Vth
-* At 5.0V: I_stack ~80nA → vg = 80mV → well below Vth
+* RESISTIVE DIVIDER: sets DC bias on vg
+* R1 from PVDD to vg, R2 from vg to GND
+* At PVDD=5.0V: vg_resistive = 5.0 * R2/(R1+R2)
+* Keep vg well below Vth at 5.0V
+* R1=10M, R2=200k => ratio=0.0196, vg(5V)=0.098V, I_div=0.49uA
 * ================================================================
-Rpd vg gnd 1Meg
+R1  pvdd vg 10Meg
+Rpd vg  gnd 200k
+
+* ================================================================
+* FEEDFORWARD CAP: fast transient response
+* Couples PVDD ramp to vg for fast clamp activation
+* ================================================================
+Cff pvdd vg 2p
 
 * ================================================================
 * WIDE CLAMP NMOS: handles clamping current
 * W=100u m=20 => 2000 um total width, L=0.5u
-* Body = GND (standard p-substrate connection)
+* Body = GND
 * ================================================================
 XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=20
 
