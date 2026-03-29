@@ -59,6 +59,26 @@ Trip varies 3.3x across gate drive impedance. Requires proportional feedback (v4
 
 ![PVT Threshold](ilim_pvt_threshold.png)
 
+### Why the 3.1x PVT spread (Known Limitation)
+
+The trip point swings from **44 mA** (FF −40°C) to **137 mA** (SS 150°C) — a 3.1x ratio. The design passes the written spec (SS 150°C ≥ 50 mA, FF −40°C ≤ 100 mA) but **violates the intent**: at SS 150°C the "protection" allows 137 mA (960 mW in the pass device during a short), and at FF −40°C the limiter trips at 44 mA — only 6 mA above the 50 mA rated load.
+
+**Root cause: the sense resistor temperature coefficient.**
+
+The `sky130_fd_pr__res_xhigh_po` body resistance has TC1 = −1.47e-3/°C. Over the operating range:
+
+| Temperature | Rs (ohm) | Change | Effect on trip |
+|-------------|----------|--------|----------------|
+| −40°C | 6777 | +11% | Rs higher → Vsense higher at same current → trips earlier → **Ilim drops** |
+| 27°C | 6104 | nominal | Ilim = 80 mA |
+| 150°C | 5255 | −14% | Rs lower → Vsense lower at same current → trips later → **Ilim rises** |
+
+The trip condition is `Isense × Rs ≈ Vth(Mdet)`. When Rs drops 14% at 150°C, the sense current must be 14% higher to reach the NMOS detection threshold — which means the load current at trip is higher. This compounds with NMOS Vth temperature shift and PMOS mobility changes to produce the 3.1x spread.
+
+**The spec has a gap:** `ilim_ss150` only requires ≥ 50 mA (no ceiling), and `ilim_ff_m40` only requires ≤ 100 mA (no floor). A proper spec would add `ilim_ss150 ≤ 120 mA` and `ilim_ff_m40 ≥ 50 mA` — this design would fail both.
+
+**To fix this** (future work): replace the Vth-based detection with a current mirror comparator where the reference current is derived from a temperature-compensated source (e.g., PTAT current from the bandgap). This would make the trip point track temperature instead of fighting it.
+
 ## I-V Curve
 
 ![I-V Curve](ilim_iv_curve.png)
