@@ -31,7 +31,7 @@ XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 * ================================================================
 * Weak BVDD gate pull-up (regulation assist)
 * ================================================================
-XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=8e-6
+XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
 
 * ================================================================
 * Output flags — CMOS inverters from det_out
