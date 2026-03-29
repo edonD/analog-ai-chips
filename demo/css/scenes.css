@@ -1,0 +1,156 @@
+/* ═══════════════ SCENE 1 — PROBLEM ═══════════════ */
+#s1{
+  background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(255,61,90,0.05) 0%,transparent 65%);
+  text-align:center;gap:0;
+  position:relative;
+}
+
+/* wave fills the full scene background */
+.wave-canvas{
+  position:absolute;inset:0;z-index:0;
+  width:100%!important;height:100%!important;
+  pointer-events:none;
+}
+
+/* dark gradient vignette over the wave so text is readable */
+#s1::before{
+  content:'';
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 100%);
+}
+
+/* overhead label — big number style */
+.prob-overhead{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(3.5rem,10vw,8rem);
+  font-weight:900;letter-spacing:-0.04em;
+  color:var(--red);
+  line-height:1;
+  opacity:0;position:relative;z-index:2;margin-bottom:0.25rem;
+  text-shadow:0 0 60px rgba(255,61,90,0.4);
+}
+
+.prob-kicker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--red);opacity:0;position:relative;z-index:2;margin-bottom:1.5rem;
+}
+
+.prob-line{
+  display:block;overflow:hidden;
+  font-size:clamp(1.8rem,5vw,4rem);
+  font-weight:700;line-height:1.1;
+  color:var(--white);position:relative;z-index:2;
+}
+.prob-line-inner{display:block;transform:translateY(115%)}
+
+.prob-answer{
+  font-size:clamp(1.1rem,2.5vw,1.6rem);
+  font-weight:500;color:var(--cyan);
+  margin-top:2.5rem;opacity:0;position:relative;z-index:2;
+  text-shadow:0 0 40px var(--cyan-glow);
+}
+
+/* ═══════════════ SCENE 2 — CHIP ═══════════════ */
+#s2{
+  background:radial-gradient(ellipse 60% 80% at 50% 40%,rgba(124,58,237,0.08) 0%,transparent 60%);
+}
+
+/* ═══════════════ SCENE 3 — THE LOOP ═══════════════ */
+#s3{background:var(--void);text-align:center}
+
+.loop-ey{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--green);opacity:0;margin-bottom:0.75rem;
+}
+.loop-h{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:800;
+  letter-spacing:-0.03em;color:var(--white);opacity:0;margin-bottom:0.5rem;
+}
+.loop-p{font-size:1rem;color:var(--muted);opacity:0;margin-bottom:2.5rem}
+
+#loop-c{width:620px;max-width:100%;height:620px;display:block;margin:0 auto}
+
+/* ═══════════════ SCENE 4 — QUOTES ═══════════════ */
+#s4{text-align:center}
+
+.sec-ey{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--amber);opacity:0;
+}
+.sec-h{
+  font-size:clamp(2rem,5vw,3.2rem);font-weight:800;
+  letter-spacing:-0.03em;color:var(--white);
+  margin-top:0.5rem;opacity:0;
+}
+.sec-sub{font-size:1rem;color:var(--muted);opacity:0;margin-top:0.5rem;margin-bottom:3rem}
+
+/* ═══════════════ SCENE 5 — TERMINAL ═══════════════ */
+#s5{
+  background:radial-gradient(ellipse 50% 60% at 50% 50%,rgba(0,212,255,0.03) 0%,transparent 70%);
+}
+
+.pf-hdr{text-align:center;margin-bottom:2.5rem;max-width:660px}
+.pf-ey{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--cyan);opacity:0;
+}
+.pf-h{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-0.03em;color:var(--white);margin-top:0.5rem;opacity:0}
+.pf-p{font-size:0.95rem;color:var(--muted);margin-top:0.5rem;opacity:0;line-height:1.65}
+
+/* ═══════════════ SCENE 6 — STATS ═══════════════ */
+#s6{text-align:center}
+
+.st-ey{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--violet-l);opacity:0}
+.st-h{font-size:clamp(2rem,4.5vw,3rem);font-weight:800;letter-spacing:-0.03em;color:var(--white);margin-top:0.5rem;margin-bottom:3.5rem;opacity:0}
+
+/* ═══════════════ SCENE 7 — CLAIM ═══════════════ */
+#s7{text-align:center}
+
+.claim-bg{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 50%,rgba(124,58,237,0.13) 0%,transparent 55%),
+    radial-gradient(ellipse 40% 40% at 20% 80%,rgba(0,212,255,0.06) 0%,transparent 50%),
+    radial-gradient(ellipse 30% 30% at 80% 20%,rgba(0,255,135,0.04) 0%,transparent 50%);
+}
+
+.cl-ey{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--green);opacity:0;position:relative;z-index:1}
+.cl-h{
+  font-size:clamp(3rem,8vw,7rem);
+  font-weight:900;letter-spacing:-0.05em;line-height:0.95;
+  color:var(--white);max-width:880px;
+  opacity:0;position:relative;z-index:1;margin-top:1.25rem;
+}
+.cl-h .grad{
+  background:linear-gradient(90deg,var(--violet-l),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.cl-p{
+  font-size:clamp(1rem,1.8vw,1.15rem);color:var(--muted);
+  max-width:600px;line-height:1.8;
+  margin:2rem auto 2.75rem;
+  opacity:0;position:relative;z-index:1;
+}
+.cl-p em{color:var(--off);font-style:normal;font-weight:500}
+
+.cl-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;opacity:0;position:relative;z-index:1}
+
+/* ═══════════════ SCENE NEURO ═══════════════ */
+#s-neuro{
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 50%,rgba(124,58,237,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 30%,rgba(0,255,135,0.05) 0%,transparent 55%);
+  gap:2rem;
+}
+
+/* ═══════════════ SCENE MEMS ═══════════════ */
+#s-mems{
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 50%,rgba(0,212,255,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 50%,rgba(255,183,0,0.06) 0%,transparent 60%);
+}
