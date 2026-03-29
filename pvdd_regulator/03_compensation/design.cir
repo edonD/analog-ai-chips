@@ -1,8 +1,7 @@
 * Block 03: Compensation Network
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Topology: Miller Cc + Rz from vout_gate to pvdd
-*   + Output decoupling Cout from pvdd to gnd
+* Topology: Miller Cc + Rz + output Cout
 *
 .subckt compensation vout_gate pvdd gnd
 
@@ -11,13 +10,10 @@
 * Area: 24964 um^2
 XCc vout_gate cc_mid sky130_fd_pr__cap_mim_m3_1 w=158 l=158 mf=1
 
-* Nulling resistor: ~4.5 kOhm (LHP zero at ~707 kHz)
-* R = Rsheet * L / W = 2000 * 9 / 4 = 4500 ohm
+* Nulling resistor: ~4.5 kOhm (LHP zero)
 XRz cc_mid pvdd gnd sky130_fd_pr__res_xhigh_po w=4 l=9
 
-* Output decoupling cap: pvdd → gnd
-* ~50 pF supplements 200pF Cload, improves PM at all loads
-* Area: 24964 um^2
+* Output decoupling: ~50 pF
 XCout pvdd gnd sky130_fd_pr__cap_mim_m3_1 w=158 l=158 mf=1
 
 .ends compensation
