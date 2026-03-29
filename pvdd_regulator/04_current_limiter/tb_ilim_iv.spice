@@ -1,0 +1,36 @@
+* tb_ilim_iv.spice — Iout vs Vout I-V curve showing current limiting
+* Sweeps gate from off to full on with pvdd fixed at 5V
+*
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.temp 27
+
+Vbvdd bvdd 0 DC 7.0
+
+* Pass device
+XM1  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+
+.include "design.cir"
+Xlim gi bvdd pvdd 0 flag current_limiter
+
+Vg gd 0 DC 7.0
+Rg gd gi 10k
+Vpvdd pvdd 0 DC 5.0
+
+.option reltol=1e-4 gmin=1e-12
+
+.control
+dc Vg 7 0 -0.05
+wrdata ilim_iv_data i(Vpvdd)
+quit
+.endc
+.end
