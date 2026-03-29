@@ -8,23 +8,22 @@
 *         W=2u L=0.5u, pass device is 10x W=100u L=0.5u
 *         Geometric ratio N = 1000/2 = 500
 *   XRs: Sense resistor converts Isense to voltage
-*         xhigh_po W=1u L=3.5u → Rs ~ 6882 ohm
-*   XMdet: Detection NMOS with source degeneration for soft turn-on
-*   XRdegen: Source degeneration resistor, ~200 ohm
-*   XRpu: Pull-up resistor keeps det_n HIGH during normal operation
-*   XMclamp: Clamp PMOS pulls gate toward bvdd when overcurrent detected
-*         W=20u L=1u (strong — overwhelms gate drive at any Rgate)
+*         xhigh_po W=1u L=3.15u → Rs ~ 6182 ohm
+*   XMdet: Detection NMOS, trips when Vsense > Vth
+*   XRdegen: Small source degeneration for soft turn-on (~100 ohm)
+*   XRpu: Pull-up keeps det_n HIGH during normal operation (10.5k)
+*   XMclamp: Clamp PMOS (W=20u L=1u) pulls gate toward bvdd
 *
 * The Vds mismatch between sense device (Vds ~ bvdd) and pass device
 * (Vds ~ bvdd-pvdd) amplifies sense current at high pvdd, giving an
-* effective mirror ratio lower than geometric 500. This causes earlier
-* trip at the overload operating point.
+* effective mirror ratio lower than geometric 500.
 *
-* Measured results (v2 with degeneration):
-*   TT27: 78.3mA, SS150: 130mA, FF-40: 43.6mA
-*   PVT spread: 3.0x (130/43.6)
+* Measured results:
+*   TT27: 79.0mA, SS150: 135.7mA, FF-40: 43.4mA
+*   PVT spread: 3.1x (136/43.4)
 *   Quiescent: ~0.0002 uA at Iload=0
-*   Short circuit: ~104mA with limiter vs ~598mA without
+*   Short circuit: ~105mA with limiter vs ~598mA without
+*   Loop PM: ~105 deg at 50mA (with behavioral error amp)
 *
 .subckt current_limiter gate bvdd pvdd gnd ilim_flag
 
@@ -32,25 +31,24 @@
 XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=0.5e-6
 
 * === Sense Resistor ===
-* xhigh_po W=1u L=3.5u → Rs ~ 2000*(3.5-0.059)/1 = 6882 ohm
-* At 78mA trip: Isense_eff ~ 420uA (Vds mismatch inflates it)
-* Vsense = 420uA * 6882 = 2.89V → well above Vth+Vdegen for detection
-XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.44
+* xhigh_po W=1u L=3.15u → Rs ~ 2000*(3.15-0.059)/1 = 6182 ohm
+* At 79mA trip: Isense_eff ~ 450uA (Vds mismatch)
+* Vsense = 450uA * 6182 = 2.78V → well above Vth for detection
+XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.35
 
-* === Detection NMOS with source degeneration ===
-* Small degeneration for soft turn-on around the trip point.
-* L=0.16 → Rdegen ~ 2000*(0.16-0.059)/1 = 202 ohm
-* At Id=100uA → Vdegen = 20mV (minimal, mostly anti-oscillation)
+* === Detection NMOS with minimal source degeneration ===
+* Tiny degeneration for soft turn-on (anti-oscillation)
+* L=0.1 → Rdegen ~ 2000*(0.1-0.059)/1 = 82 ohm
+* At Id=100uA → Vdegen = 8mV (negligible)
 XMdet det_n sense_n degen_node gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
-XRdegen degen_node gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=0.16
+XRdegen degen_node gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=0.1
 
 * === Pull-up Resistor ===
 * xhigh_po W=1u L=5u → Rpu ~ 10.5k
-* At Iload=0: Rpu carries no current (both ends at bvdd, Mdet OFF)
 XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=5
 
 * === Clamp PMOS ===
-* W=20u L=1u — strong enough to overwhelm gate drive through 10k Rgate
+* W=20u L=1u — strong clamp, overwhelms gate drive through 10k Rgate
 XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
 
 * === Flag output ===
