@@ -1,0 +1,54 @@
+* tb_fb_corners.spice — VFB across process corners
+* Block 02: Feedback Network
+*
+* For matched resistor dividers, corner drift is very small because
+* both R_TOP and R_BOT use the same model and shift together.
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Xfb pvdd vfb 0 feedback_network
+
+.control
+echo "=== Process Corner Analysis ==="
+
+* TT (var_mult = 0)
+op
+echo "vfb_tt_V: $&v(vfb)"
+set vfb_tt_str = "$&v(vfb)"
+
+* SS corner (+5% resistance)
+alterparam sky130_fd_pr__res_xhigh_po__var_mult = 0.05
+reset
+op
+echo "vfb_ss_V: $&v(vfb)"
+set vfb_ss_str = "$&v(vfb)"
+
+* FF corner (-5% resistance)
+alterparam sky130_fd_pr__res_xhigh_po__var_mult = -0.05
+reset
+op
+echo "vfb_ff_V: $&v(vfb)"
+set vfb_ff_str = "$&v(vfb)"
+
+* Compute drift using shell variables
+let vtt = $vfb_tt_str
+let vss = $vfb_ss_str
+let vff = $vfb_ff_str
+let drift_ss = abs(vss - vtt) * 1000
+let drift_ff = abs(vff - vtt) * 1000
+
+echo "drift_ss_mV: $&drift_ss"
+echo "drift_ff_mV: $&drift_ff"
+
+if drift_ss > drift_ff
+  echo "vfb_corner_drift_mV: $&drift_ss"
+else
+  echo "vfb_corner_drift_mV: $&drift_ff"
+end
+
+quit
+.endc
+
+.end

@@ -1,0 +1,113 @@
+* tb_fb_temp.spice — VFB vs temperature sweep (-40 to 150°C)
+* Block 02: Feedback Network
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Xfb pvdd vfb 0 feedback_network
+
+.control
+
+echo "=== Temperature Sweep (-40 to 150C, TT) ==="
+
+* Measure at key temperatures, save to shell variables
+set temp = -40
+op
+set v_m40 = "$&v(vfb)"
+echo "vfb_m40c_V: $v_m40"
+destroy all
+
+set temp = 0
+op
+set v_0 = "$&v(vfb)"
+echo "vfb_0c_V: $v_0"
+destroy all
+
+set temp = 27
+op
+set v_27 = "$&v(vfb)"
+echo "vfb_27c_V: $v_27"
+destroy all
+
+set temp = 50
+op
+set v_50 = "$&v(vfb)"
+echo "vfb_50c_V: $v_50"
+destroy all
+
+set temp = 85
+op
+set v_85 = "$&v(vfb)"
+echo "vfb_85c_V: $v_85"
+destroy all
+
+set temp = 125
+op
+set v_125 = "$&v(vfb)"
+echo "vfb_125c_V: $v_125"
+destroy all
+
+set temp = 150
+op
+set v_150 = "$&v(vfb)"
+echo "vfb_150c_V: $v_150"
+
+* Compute min and max using let (all values loaded from shell vars)
+let vm40 = $v_m40
+let v0 = $v_0
+let v27 = $v_27
+let v50 = $v_50
+let v85 = $v_85
+let v125 = $v_125
+let v150 = $v_150
+
+* Find min
+let vmin = vm40
+if v0 < vmin
+  let vmin = v0
+end
+if v27 < vmin
+  let vmin = v27
+end
+if v50 < vmin
+  let vmin = v50
+end
+if v85 < vmin
+  let vmin = v85
+end
+if v125 < vmin
+  let vmin = v125
+end
+if v150 < vmin
+  let vmin = v150
+end
+
+* Find max
+let vmax = vm40
+if v0 > vmax
+  let vmax = v0
+end
+if v27 > vmax
+  let vmax = v27
+end
+if v50 > vmax
+  let vmax = v50
+end
+if v85 > vmax
+  let vmax = v85
+end
+if v125 > vmax
+  let vmax = v125
+end
+if v150 > vmax
+  let vmax = v150
+end
+
+let total_drift = (vmax - vmin) * 1000
+echo "vfb_temp_drift_mV: $&total_drift"
+
+quit
+.endc
+
+.end

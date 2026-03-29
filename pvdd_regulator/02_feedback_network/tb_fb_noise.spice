@@ -1,0 +1,45 @@
+* tb_fb_noise.spice — Noise at vfb node
+* Block 02: Feedback Network
+*
+* CAVEAT: sky130 xhigh_po uses behavioral R expressions — ngspice does NOT
+* compute thermal noise for these. We derive noise analytically from the
+* measured divider current and VFB voltage.
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 5.0
+Xfb pvdd vfb 0 feedback_network
+
+.control
+op
+
+* Derive R_TOP and R_BOT from divider current and VFB
+let i_div = -i(Vpvdd)
+let vfb_val = v(vfb)
+let r_bot = vfb_val / i_div
+let r_top = (5.0 - vfb_val) / i_div
+let r_total = 5.0 / i_div
+
+echo "=== Resistance Values ==="
+echo "R_TOP_ohm: $&r_top"
+echo "R_BOT_ohm: $&r_bot"
+echo "R_total_ohm: $&r_total"
+
+* Parallel resistance for noise calculation
+let r_par = r_top * r_bot / (r_top + r_bot)
+echo "R_parallel_ohm: $&r_par"
+
+* Thermal noise: V_noise_rms = sqrt(4 * k * T * R_par * BW)
+* k = 1.3806e-23 J/K, T = 300 K, BW = 1e6 Hz
+let noise_power = 4 * 1.3806e-23 * 300 * r_par * 1e6
+let noise_rms = sqrt(noise_power)
+let noise_uvrms = noise_rms * 1e6
+
+echo "=== Noise Analysis (TT 27C, analytical) ==="
+echo "noise_vfb_uVrms: $&noise_uvrms"
+
+quit
+.endc
+
+.end

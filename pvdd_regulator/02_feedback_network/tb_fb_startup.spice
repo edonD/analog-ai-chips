@@ -1,0 +1,39 @@
+* tb_fb_startup.spice — VFB tracking during PVDD startup ramp
+* Block 02: Feedback Network
+*
+* Verify that VFB tracks PVDD with correct ratio during power-up.
+* PVDD ramps from 0 to 5V in 100µs (50 V/ms).
+
+.include "sky130_res_models.spice"
+.include "design.cir"
+
+Vpvdd pvdd 0 PWL(0 0 100u 5.0 200u 5.0)
+Xfb pvdd vfb 0 feedback_network
+
+.control
+tran 0.5u 200u
+
+* Check ratio at midpoint (pvdd ≈ 2.5V, t=50µs)
+let idx50 = 100
+let pvdd_50 = v(pvdd)[idx50]
+let vfb_50 = v(vfb)[idx50]
+let ratio_50 = vfb_50 / pvdd_50
+
+* Check ratio at end (pvdd = 5V, t=150µs)
+let idx150 = 300
+let pvdd_150 = v(pvdd)[idx150]
+let vfb_150 = v(vfb)[idx150]
+let ratio_150 = vfb_150 / pvdd_150
+
+echo "=== Startup Transient ==="
+echo "At t=50us: PVDD=$&pvdd_50 VFB=$&vfb_50 ratio=$&ratio_50"
+echo "At t=150us: PVDD=$&pvdd_150 VFB=$&vfb_150 ratio=$&ratio_150"
+echo "(Ratio should be constant ~0.2452 throughout ramp)"
+
+* Save data for plotting
+wrdata startup_data.txt v(pvdd) v(vfb)
+
+quit
+.endc
+
+.end
