@@ -1,16 +1,14 @@
-* Block 07: Zener Clamp — v8
+* Block 07: Zener Clamp — v9
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * TOPOLOGY: 5 long-channel diode-stack + wide clamp NMOS
 *
 *   5 diode-connected HV NFETs, ALL L=4u (Vth~1.07V, TC~-0.6mV/C).
-*   W=2u: narrow devices for low leakage (<1uA at 5.0V).
-*   At 5.0V: per-diode=1.0V, 66mV below Vth → I_stack ~300nA.
+*   W=1.5u: narrow devices for low leakage with margin.
+*   Body = Source (isolated P-well via deep N-well — see Issue #1 analysis).
 *
-*   Rpd=500k: with 300nA stack current → vg ~150mV → clamp OFF.
-*   At onset: I_stack ~1.7uA → vg ~0.84V → clamp activates.
-*   onset(27C) ~6.1V. TC ~6.7 mV/°C.
-*   onset(150C) ~5.3V > 5.0V ✓
+*   Rpd=600k: larger pulldown to further suppress gate voltage at 5V.
+*   At onset: I_stack needs higher PVDD to develop enough vg for clamp.
 *
 *   Cff=20pF for transient feedforward.
 *
@@ -21,16 +19,16 @@
 
 * ================================================================
 * DIODE REFERENCE STACK: 5x L=4u diode-connected NFETs
-* Body = Source (no body effect). W=2u (narrow for low leakage)
+* Body = Source (isolated P-well via deep N-well). W=1.5u for low leakage.
 * ================================================================
-XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
-XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
-XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
-XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
-XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=1.8e-6 l=4e-6
+XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
+XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
+XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
+XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
+XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 
 * ================================================================
-* GATE PULLDOWN: 500 kOhm
+* GATE PULLDOWN: 800 kOhm
 * ================================================================
 Rpd vg gnd 500k
 
