@@ -40,22 +40,15 @@ const fs = require('fs');
   await new Promise(r => setTimeout(r, 1500));
   // Force-start canvas animations and show all GSAP-hidden elements
   await page.evaluate(() => {
-    if (window.gsap) {
-      // Force-start canvas animations if scroll triggers haven't fired
-      if (typeof window.startLoop === 'function') window.startLoop();
-      if (typeof window.startNrCanvas === 'function') window.startNrCanvas();
-      if (typeof window.startCSAC === 'function') window.startCSAC();
-      // Force all elements that GSAP hid to be visible
-      document.querySelectorAll('[style*="opacity: 0"]').forEach(el => {
-        el.style.opacity = '1';
-        el.style.transform = 'none';
-      });
-      // Also handle elements set by gsap.set with opacity:0
-      const hidden = document.querySelectorAll('.tl,.st-cell,.nr-claim,.nr-metrics,.nr-gap,.nr-phases,.pipe-node,#csac-card,.nr-gap-row,.nr-phase,.spec-item,.chip-img-wrap');
-      hidden.forEach(el => { el.style.opacity='1'; el.style.transform='none'; });
-    }
+    // Force-start canvas animations if scroll triggers haven't fired
+    if (typeof window.startLoop === 'function') window.startLoop();
+    if (typeof window.startNrCanvas === 'function') window.startNrCanvas();
+    if (typeof window.startCSAC === 'function') window.startCSAC();
+    // Force all GSAP-hidden elements visible
+    const hidden = document.querySelectorAll('.tl,.st-cell,.nr-claim,.nr-metrics,.nr-gap,.nr-phases,.pipe-node,#csac-card,.nr-gap-row,.nr-phase,.spec-item,.chip-img-wrap,.nr-ey,.nr-h,.nr-tag,#nr-canvas,.nr-pipe-col,#prob-over,#prob-k,#prob-ans,.prob-line-inner,#ctag,#ch1,#ch2,#loop-ey,#loop-h,#loop-p,#pfey,#pfh,#pfp,#term,#stey,#sth,#clev,#clh,#clp,#clcta,#mems-ey,#mems-h,#mems-p,#pipe-title,#csac-title');
+    hidden.forEach(el => { el.style.opacity='1'; el.style.transform='none'; el.style.maxWidth='100%'; });
   });
-  await new Promise(r => setTimeout(r, 1000));
+  await new Promise(r => setTimeout(r, 2500)); // extra wait for canvas rAF
   await page.evaluate(() => window.scrollTo(0, 0));
   await new Promise(r => setTimeout(r, 500));
 
@@ -66,9 +59,18 @@ const fs = require('fs');
       if (!el) return 0;
       const rect = el.getBoundingClientRect();
       const top = rect.top + window.scrollY;
-      // For tall scenes, scroll to show the middle content
+      // For neuro, scroll into the grid area so both columns are visible
+      if (id === 's-neuro') {
+        const grid = el.querySelector('.nr-grid');
+        if (grid) {
+          const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+          return gridTop - window.innerHeight * 0.15;
+        }
+        return top + window.innerHeight * 0.35;
+      }
+      // For other tall scenes, scroll to show middle content
       const isTall = el.offsetHeight > window.innerHeight * 1.2;
-      return top + (isTall ? window.innerHeight * 0.4 : 50);
+      return top + (isTall ? window.innerHeight * 0.3 : 50);
     }, s.id);
     scenes.push({ ...s, scrollY });
   }
@@ -96,8 +98,8 @@ const fs = require('fs');
     if (typeof window.startLoop === 'function') window.startLoop();
     if (typeof window.startNrCanvas === 'function') window.startNrCanvas();
     if (typeof window.startCSAC === 'function') window.startCSAC();
-    const hidden = document.querySelectorAll('.tl,.st-cell,.nr-claim,.nr-metrics,.nr-gap,.nr-phases,.pipe-node,#csac-card,.nr-gap-row,.nr-phase,.spec-item,.chip-img-wrap,.nr-ey,.nr-h,.nr-tag,.nr-pipe-col,#nr-canvas');
-    hidden.forEach(el => { el.style.opacity='1'; el.style.transform='none'; });
+    const hidden = document.querySelectorAll('.tl,.st-cell,.nr-claim,.nr-metrics,.nr-gap,.nr-phases,.pipe-node,#csac-card,.nr-gap-row,.nr-phase,.spec-item,.chip-img-wrap,.nr-ey,.nr-h,.nr-tag,.nr-pipe-col,#nr-canvas,#prob-over,#prob-k,#prob-ans,.prob-line-inner,#ctag,#ch1,#ch2,#loop-ey,#loop-h,#loop-p,#pfey,#pfh,#pfp,#term,#stey,#sth,#clev,#clh,#clp,#clcta,#mems-ey,#mems-h,#mems-p,#pipe-title,#csac-title');
+    hidden.forEach(el => { el.style.opacity='1'; el.style.transform='none'; el.style.maxWidth='100%'; });
   });
   await new Promise(r => setTimeout(r, 1000));
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -110,8 +112,16 @@ const fs = require('fs');
       if (!el) return 0;
       const rect = el.getBoundingClientRect();
       const top = rect.top + window.scrollY;
+      if (id === 's-neuro') {
+        const grid = el.querySelector('.nr-grid');
+        if (grid) {
+          const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+          return gridTop - window.innerHeight * 0.1;
+        }
+        return top + window.innerHeight * 0.35;
+      }
       const isTall = el.offsetHeight > window.innerHeight * 1.2;
-      return top + (isTall ? window.innerHeight * 0.4 : 50);
+      return top + (isTall ? window.innerHeight * 0.3 : 50);
     }, s.id);
     mobileScenes.push({ ...s, scrollY });
   }

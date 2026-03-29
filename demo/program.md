@@ -247,15 +247,15 @@ Update this section after every commit.
 |---|-------|--------|--------|
 | 0 | Initial modular refactor | ✅ Done | 54c0b03 / 83f6f70 |
 | 1 | `const TAU` redeclaration crash (page was all black) | ✅ Fixed | — |
-| 2 | Stats `--c` colour variable missing on cells | ⬜ Pending | — |
-| 3 | Wave canvas pixel-size mismatch | ⬜ Pending | — |
-| 4 | Neuro sticky canvas browser compat | ⬜ Pending | — |
-| 5 | Terminal typewriter mobile | ⬜ Pending | — |
-| 6 | MEMS mobile overflow | ⬜ Pending | — |
-| 7 | Scene transition smoothness | ⬜ Pending | — |
-| 8 | Mobile nav dot overlap | ⬜ Pending | — |
-| 9 | Loader CDN timing guard | ⬜ Pending | — |
-| 10 | Three.js mobile density | ⬜ Pending | — |
+| 2 | Stats `--c` colour variable missing on cells | ✅ Done | 4d09e9d (was already set inline in HTML) |
+| 3 | Wave canvas pixel-size mismatch | ✅ Done | 4d09e9d |
+| 4 | Neuro sticky canvas browser compat | ✅ Done | 4d09e9d |
+| 5 | Terminal typewriter mobile | ✅ Done | 4d09e9d |
+| 6 | MEMS mobile overflow | ✅ Done | 4d09e9d |
+| 7 | Scene transition smoothness | ✅ Done | 4d09e9d |
+| 8 | Mobile nav dot overlap | ✅ Done | 4d09e9d (confirmed OK, no change needed) |
+| 9 | Loader CDN timing guard | ✅ Done | 4d09e9d |
+| 10 | Three.js mobile density | ✅ Done | 4d09e9d |
 
 ---
 

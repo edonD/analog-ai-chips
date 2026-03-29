@@ -1,5 +1,5 @@
 /* ─── CSAC ATOMIC CLOCK CANVAS ─── */
-const TAU = Math.PI*2;
+// TAU is declared in canvas-loop.js (loaded first); do not redeclare
 
 let csacStarted = false;
 window.startCSAC = function startCSAC(){
