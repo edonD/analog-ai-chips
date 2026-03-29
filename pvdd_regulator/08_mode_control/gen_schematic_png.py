@@ -164,9 +164,9 @@ ax.text(10, 2.45, 'CHARACTERIZATION  (TT 27C, PVDD = 5.0V, BVDD ramp 0-7V)',
         fontsize=12, ha='center', va='center', fontweight='bold', color='#1a1a8a')
 
 char_lines = [
-    'TH1 (pass_off)  = 2.55V     TH2 (bypass_en) = 4.34V     TH3 (ea_en) = 4.65V     TH4 (uvov/ilim) = 5.67V',
-    'Iq = 17.3 uA (ladder)          thresh_max_error = 3.34%          specs_pass: 16/16',
-    'PVT: 5 process x 3 temp corners verified     |     All HV: pfet_g5v0d10v5 / nfet_g5v0d10v5',
+    'TH1 (pass_off)  = 2.51V     TH2 (bypass_en) = 4.16V     TH3 (ea_en) = 4.44V     TH4 (uvov/ilim) = 5.52V',
+    'Hysteresis = 224-244 mV (Schmitt trigger)     |     Iq = 17.3 uA     |     thresh_max_error = 1.43% TT, 8.05% PVT',
+    'PVT: 5 process corners (TT/SS/FF/SF/FS) verified     |     Monotonic + Glitch-free     |     specs_pass: 16/16',
 ]
 for i, line in enumerate(char_lines):
     ax.text(10, 1.9 - i * 0.45, line, fontsize=8, ha='center', va='center',
