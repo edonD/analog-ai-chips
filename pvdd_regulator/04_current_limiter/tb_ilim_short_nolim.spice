@@ -1,6 +1,6 @@
-* tb_ilim_short.spice — Short-circuit DC test WITH limiter
-* v3: pvdd=0.1V (near dead-short), fair A/B comparison
-*     Same Rgate=10k in both with/without files (rule 9)
+* tb_ilim_short_nolim.spice — Short-circuit DC test WITHOUT limiter
+* v3: Identical to tb_ilim_short.spice except no limiter subcircuit
+*     Same Rgate=10k, same pvdd=0.1V — only limiter differs (rule 9)
 *
 .include "parasitic_res_po.spice"
 .lib "sky130.lib.spice" tt
@@ -20,14 +20,13 @@ XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 
-.include "design.cir"
-Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
+* NO limiter — gate_int driven directly through Rgate
 
-* Gate driven to 0V (full on) through 10k Rgate
+* Gate driven to 0V (full on) through 10k Rgate (same as with-limiter)
 Vg gate_drive 0 DC 0.0
 Rgate gate_drive gate_int 10k
 
-* pvdd = 0.1V (near dead-short, Vds ~ 6.9V)
+* pvdd = 0.1V (near dead-short, same as with-limiter)
 Vpvdd pvdd 0 DC 0.1
 
 .option reltol=1e-4 gmin=1e-12 savecurrents
@@ -35,10 +34,9 @@ Vpvdd pvdd 0 DC 0.1
 .control
 op
 let iload_mA = i(Vpvdd) * 1000
-echo "=== Short Circuit Test (pvdd=0.1V, gate=0V, Rgate=10k, WITH limiter) ==="
+echo "=== Short Circuit Test (pvdd=0.1V, gate=0V, Rgate=10k, WITHOUT limiter) ==="
 echo "short_circuit_mA: $&iload_mA"
 echo "gate_int_voltage: $&v(gate_int)"
-echo "ilim_flag_voltage: $&v(ilim_flag)"
 
 quit
 .endc

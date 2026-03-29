@@ -1,11 +1,6 @@
-* tb_ilim_normal.spice — Quiescent current + PVDD impact at 50mA
-* v3: pvdd_impact MEASURED by real A/B comparison (with vs without limiter)
-*
-* Test 1: Quiescent — gate=bvdd (OFF), measure bvdd current
-* Test 2: PVDD impact — DC sweep with limiter
-*         Measures at gate_int level (what the pass device sees)
-*         This isolates the limiter's effect on pass device current
-*         from the Rgate-dependent gate drive interaction
+* tb_ilim_normal_nolim.spice — Same as tb_ilim_normal but WITHOUT limiter
+* Used for A/B comparison to measure real PVDD impact at 50mA
+* ONLY difference: no .include "design.cir", no Xlim — gate_int driven directly
 *
 .include "parasitic_res_po.spice"
 .lib "sky130.lib.spice" tt
@@ -25,10 +20,9 @@ XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 
-.include "design.cir"
-Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
+* NO limiter — gate_int connected directly through Rgate
 
-* Gate drive through Rgate
+* Gate drive through Rgate (same 10k as with-limiter case)
 Vg gate_drive 0 DC 7.0
 Rgate gate_drive gate_int 10k
 
@@ -38,18 +32,10 @@ Vpvdd pvdd 0 DC 5.0
 .option reltol=1e-4 gmin=1e-12 savecurrents
 
 .control
-*=== Test 1: Quiescent at Iload=0 (gate=bvdd=7V, pass device OFF) ===
-op
-
-let ibvdd_ua = -i(Vbvdd) * 1e6
-echo "=== Quiescent at Iload=0, gate=bvdd ==="
-echo "sense_quiescent_uA: $&ibvdd_ua"
-
-*=== Test 2: PVDD impact — DC sweep with limiter ===
-* Save both i(Vpvdd) and v(gate_int) for comparison with nolim
+* DC sweep gate to find current vs Vgate
 dc Vg 7 0 -0.02
-wrdata ilim_normal_with_data i(Vpvdd) v(gate_int)
-echo "=== With-Limiter Sweep Complete ==="
+wrdata ilim_normal_nolim_data i(Vpvdd) v(gate_int)
+echo "=== No-Limiter Sweep Complete ==="
 
 quit
 .endc

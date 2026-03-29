@@ -1,5 +1,5 @@
 * tb_ilim_transient.spice — Transient response to sudden overload
-* v2: ALL metrics measured from simulation — NO hardcoded values
+* v3: Three oscillation check windows (early/mid/late) per rule 10
 *
 * Setup: Pass device + limiter. pvdd forced to 5V. Gate driven through 10k.
 * Gate steps from 4.5V (below trip ~30mA) to 2V (requesting >>100mA) at t=5us.
@@ -74,8 +74,31 @@ else
   echo "response_time_us: UNMEASURED"
 end
 
-* === Measure no_oscillation ===
-* Check gate node for oscillation in the last 10us
+* === Window 1: Early response (5-15us) — catches initial ringing ===
+meas tran ghi_early max v(gate_int) from=5u to=15u
+meas tran glo_early min v(gate_int) from=5u to=15u
+let early_gate_ripple_mV = (ghi_early - glo_early) * 1000
+
+meas tran ihi_early max i(Vpvdd) from=5u to=15u
+meas tran ilo_early min i(Vpvdd) from=5u to=15u
+let early_current_ripple_mA = (ihi_early - ilo_early) * 1000
+
+echo "early_gate_ripple_mV: $&early_gate_ripple_mV"
+echo "early_current_ripple_mA: $&early_current_ripple_mA"
+
+* === Window 2: Mid settling (15-30us) — catches sustained oscillation ===
+meas tran ghi_mid max v(gate_int) from=15u to=30u
+meas tran glo_mid min v(gate_int) from=15u to=30u
+let mid_gate_ripple_mV = (ghi_mid - glo_mid) * 1000
+
+meas tran ihi_mid max i(Vpvdd) from=15u to=30u
+meas tran ilo_mid min i(Vpvdd) from=15u to=30u
+let mid_current_ripple_mA = (ihi_mid - ilo_mid) * 1000
+
+echo "mid_gate_ripple_mV: $&mid_gate_ripple_mV"
+echo "mid_current_ripple_mA: $&mid_current_ripple_mA"
+
+* === Window 3: Late steady state (40-50us) — confirms final stability ===
 meas tran ghi max v(gate_int) from=40u to=50u
 meas tran glo min v(gate_int) from=40u to=50u
 let gate_ripple_mV = (ghi - glo) * 1000
@@ -88,7 +111,7 @@ let current_ripple_mA = (ihi - ilo) * 1000
 echo "gate_ripple_mV: $&gate_ripple_mV"
 echo "current_ripple_mA: $&current_ripple_mA"
 
-* Pass if gate ripple < 200mV AND current ripple < 5mA
+* === Pass/fail: late window determines spec (same as v2) ===
 let osc = 1
 if gate_ripple_mV > 200
   let osc = 0
@@ -97,6 +120,17 @@ if current_ripple_mA > 5
   let osc = 0
 end
 echo "no_oscillation: $&osc"
+
+* === Warnings for early/mid windows ===
+if early_gate_ripple_mV > 3000
+  echo "WARNING: early gate ripple > 3V"
+end
+if early_current_ripple_mA > 50
+  echo "WARNING: early current ripple > 50mA"
+end
+if mid_gate_ripple_mV > 500
+  echo "WARNING: mid gate ripple > 500mV"
+end
 
 wrdata ilim_transient v(pvdd) v(gate_int) v(ilim_flag)
 quit
