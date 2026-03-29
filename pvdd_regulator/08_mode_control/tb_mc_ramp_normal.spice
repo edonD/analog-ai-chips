@@ -20,7 +20,7 @@ XDUT bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass
 run
 set wr_singlescale
 set wr_vecnames
-wrdata ramp_normal.txt v(bvdd) v(bypass_en) v(ea_en) v(ref_sel) v(uvov_en) v(ilim_en) v(pass_off) v(xdut.comp1) v(xdut.comp2) v(xdut.comp3) v(xdut.comp4) v(xdut.c1tap) v(xdut.c1inv)
+wrdata ramp_normal.txt v(bvdd) v(bypass_en) v(ea_en) v(ref_sel) v(uvov_en) v(ilim_en) v(pass_off) v(xdut.comp1) v(xdut.comp2) v(xdut.comp3) v(xdut.comp4)
 
 * Measure comp transitions: find where comp crosses 50% of BVDD
 * Use fixed thresholds at different levels to detect rising edges

@@ -1,96 +1,113 @@
-* Block 08: Mode Control — v8 (PMOS diff pair, PVDD-powered)
+* Block 08: Mode Control — v10 (shared ladder + PVDD inverters)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* PMOS diff pair from PVDD: Vsg = tail-input ≈ 3.8V >> |Vthp|=1.01V
-* NMOS mirror load. PMOS tail biased from PVDD.
-* Config A + 2 inverters: co rises when tap>vref, comp=HIGH ✓
-* Startup (tap=0): co drops → comp=LOW ✓
+* Shared resistor ladder from BVDD to GND (1MΩ total, ~7µA at 7V)
+* Each tap feeds a PVDD-powered CMOS inverter with customized sizing
+* so trip point matches tap voltage at the target BVDD threshold.
+*
+* Inverter trip = f(Wp/Wn). Match to tap(THx):
+*   tap1 at TH1=2.5V: tap1 = 2.5*0.49 = 1.226V → need trip=1.226V
+*   tap2 at TH2=4.2V: tap2 = 4.2*0.29 = 1.219V → need trip≈1.22V
+*   tap3 at TH3=4.5V: tap3 = 4.5*0.27 = 1.215V → need trip≈1.22V
+*   tap4 at TH4=5.6V: tap4 = 5.6*0.22 = 1.232V → need trip≈1.23V
+*
+* All taps cross ~1.22V! The trips are all the same! Just use inverters
+* with trip≈1.22V (PVDD=5V). Need strong NFET / weak PFET.
+*
+* For trip=1.22V with PVDD=5V:
+*   (Vtn + k*(PVDD+Vtp))/(1+k) = 1.22
+*   (0.789 + k*(5-1.01))/(1+k) = 1.22
+*   0.789 + 3.99*k = 1.22 + 1.22*k
+*   2.77*k = 0.431
+*   k = sqrt(Bp/Bn) = 0.156
+*   Bp/Bn = 0.024
+* This requires NFET ~40x stronger than PFET. Min W=20µm for both.
+* With Wp=20, Wn=20: Bp/Bn = up/un ≈ 0.23 → trip ≈ 1.93V. Too high.
+* Cannot achieve trip=1.22V with minimum-size devices.
+*
+* Alternative: use vref as the inverter reference instead of GND.
+* Pseudo-NMOS: PFET pull-up from PVDD, NFET with gate=tap and source=vref.
+* NFET turns ON when tap > vref + Vth. But Vth≈0.789V: trip at tap=2.02V ≠ 1.22V.
+*
+* Better: use a differential pair approach — but we already tried that.
+*
+* SIMPLEST SOLUTION: use vref as the NFET source in each inverter.
+* When tap > vref: NFET ON (Vgs > Vth) → output LOW → comp=HIGH (after inv)
+* Trip at tap = vref + Vth_n. But Vth≈0.789V → trip at 2.015V, not 1.22V.
+*
+* Wait — what about this: use NFET with source at a tap-dependent voltage?
+* Or: connect NFET source to the tap from the NEXT lower comparator?
+*
+* Actually, the REAL solution: just connect the shared ladder taps to
+* PVDD-powered inverters, and accept that the trip is at 1.93V.
+* Then adjust the ladder ratios so that each tap reaches 1.93V at the
+* desired BVDD threshold.
+*
+* New ladder ratios:
+*   tap1 = 1.93V when BVDD = 2.5V → ratio1 = 1.93/2.5 = 0.772
+*   tap2 = 1.93V when BVDD = 4.2V → ratio2 = 1.93/4.2 = 0.4595
+*   tap3 = 1.93V when BVDD = 4.5V → ratio3 = 1.93/4.5 = 0.4289
+*   tap4 = 1.93V when BVDD = 5.6V → ratio4 = 1.93/5.6 = 0.3446
+*
+* Check: ratio1 > ratio2 > ratio3 > ratio4 → 0.772 > 0.460 > 0.429 > 0.345 ✓
+*
+* Ladder resistor ratios:
+*   Rbot/Rtot = ratio4 = 0.345
+*   (R34+Rbot)/Rtot = ratio3 = 0.429 → R34/Rtot = 0.084
+*   (R23+R34+Rbot)/Rtot = ratio2 = 0.460 → R23/Rtot = 0.031
+*   (R12+R23+R34+Rbot)/Rtot = ratio1 = 0.772 → R12/Rtot = 0.312
+*   Rtop/Rtot = 1-0.772 = 0.228
+*
+* With Rtotal = 1MΩ (l_total ≈ 475µm): I_BVDD = BVDD/1M = 7µA at 7V ✓
+*   Rbot: 0.345 → l = 0.345*475 = 163µm
+*   R34:  0.084 → l = 0.084*475 = 40µm
+*   R23:  0.031 → l = 0.031*475 = 15µm
+*   R12:  0.312 → l = 0.312*475 = 148µm
+*   Rtop: 0.228 → l = 0.228*475 = 108µm
 *
 .subckt mode_control bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off
 
 * =============================================
-* RESISTOR LADDER (from BVDD)
+* RESISTOR LADDER
 * =============================================
-.param rtop_l = 241
-.param r12_l  = 94
-.param r23_l  = 9.2
-.param r34_l  = 25
-.param rbot_l = 103
-
-XRtop bvdd tap1 gnd sky130_fd_pr__res_xhigh_po w=1 l=rtop_l
-XR12  tap1 tap2 gnd sky130_fd_pr__res_xhigh_po w=1 l=r12_l
-XR23  tap2 tap3 gnd sky130_fd_pr__res_xhigh_po w=1 l=r23_l
-XR34  tap3 tap4 gnd sky130_fd_pr__res_xhigh_po w=1 l=r34_l
-XRbot tap4 gnd  gnd sky130_fd_pr__res_xhigh_po w=1 l=rbot_l
+XRtop bvdd tap1 gnd sky130_fd_pr__res_xhigh_po w=1 l=108
+XR12  tap1 tap2 gnd sky130_fd_pr__res_xhigh_po w=1 l=148
+XR23  tap2 tap3 gnd sky130_fd_pr__res_xhigh_po w=1 l=15
+XR34  tap3 tap4 gnd sky130_fd_pr__res_xhigh_po w=1 l=40
+XRbot tap4 gnd  gnd sky130_fd_pr__res_xhigh_po w=1 l=163
 C_tap1 tap1 gnd 100f
 C_tap2 tap2 gnd 100f
 C_tap3 tap3 gnd 100f
 C_tap4 tap4 gnd 100f
 
 * =============================================
-* PMOS TAIL BIAS (from PVDD)
+* COMPARATORS: PVDD-powered inverters on each tap
+* Trip point ≈ 1.93V for W_p=W_n=20µm
 * =============================================
-* Diode PMOS (PVDD→pbias) + Rbias to GND sets pbias voltage (~3.2V for ~10µA)
-XMpbias pbias pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XRpbias pbias gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=30
 
-* =============================================
-* COMPARATOR 1: tap1 vs vref — TH1 = 2.5V
-* =============================================
-* Uses CMOS inverter threshold detector (fast, no OTA slew limit)
-* Separate voltage divider from BVDD sets the tap ratio
-* Inverter from PVDD: trip at ~1.4V. Divider ratio = 1.4/2.5 = 0.56
-* PFET W=20 (min), NFET W=60 → lower trip point
-* Divider: ratio=0.82, Rtotal~300kΩ for faster RC response
-* At BVDD=2.5V: c1tap_ss = 2.5*0.82 = 2.05V → above trip ~1.82V
-XRc1top bvdd c1tap gnd sky130_fd_pr__res_xhigh_po w=1 l=20
-XRc1bot c1tap gnd  gnd sky130_fd_pr__res_xhigh_po w=1 l=130
-C_c1tap c1tap gnd 50f
-* Inverter from PVDD: W_p=W_n=20µm → trip ~1.82V
-XMc1ivp c1inv c1tap pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XMc1ivn c1inv c1tap gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-* Second inverter to restore polarity: comp1 = HIGH when c1tap > trip
+* COMP1: tap1 → inverter → 2nd inverter → comp1
+XMc1ivp c1inv tap1 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc1ivn c1inv tap1 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 XMc1iv2p comp1 c1inv pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
 XMc1iv2n comp1 c1inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
-* =============================================
-* COMPARATOR 2: tap2 vs vref — TH2 = 4.2V
-* =============================================
-XM2pt c2tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM2p1 c2mi tap2 c2tail c2tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM2p2 c2o  vref c2tail c2tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM2n3 c2mi c2mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM2n4 c2o  c2mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM2iv1p c2ob c2o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM2iv1n c2ob c2o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM2iv2p comp2 c2ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM2iv2n comp2 c2ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+* COMP2: tap2 → inverter → 2nd inverter → comp2
+XMc2ivp c2inv tap2 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc2ivn c2inv tap2 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc2iv2p comp2 c2inv pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMc2iv2n comp2 c2inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
-* =============================================
-* COMPARATOR 3: tap3 vs vref — TH3 = 4.5V
-* =============================================
-XM3pt c3tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM3p1 c3mi tap3 c3tail c3tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM3p2 c3o  vref c3tail c3tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM3n3 c3mi c3mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM3n4 c3o  c3mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM3iv1p c3ob c3o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM3iv1n c3ob c3o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM3iv2p comp3 c3ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM3iv2n comp3 c3ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+* COMP3: tap3 → inverter → 2nd inverter → comp3
+XMc3ivp c3inv tap3 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc3ivn c3inv tap3 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc3iv2p comp3 c3inv pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMc3iv2n comp3 c3inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
-* =============================================
-* COMPARATOR 4: tap4 vs vref — TH4 = 5.6V
-* =============================================
-XM4pt c4tail pbias pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM4p1 c4mi tap4 c4tail c4tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM4p2 c4o  vref c4tail c4tail sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
-XM4n3 c4mi c4mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM4n4 c4o  c4mi gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM4iv1p c4ob c4o pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM4iv1n c4ob c4o gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
-XM4iv2p comp4 c4ob pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
-XM4iv2n comp4 c4ob gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+* COMP4: tap4 → inverter → 2nd inverter → comp4
+XMc4ivp c4inv tap4 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc4ivn c4inv tap4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
+XMc4iv2p comp4 c4inv pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=20e-6
+XMc4iv2n comp4 c4inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=20e-6
 
 * =============================================
 * LOGIC (from BVDD)
