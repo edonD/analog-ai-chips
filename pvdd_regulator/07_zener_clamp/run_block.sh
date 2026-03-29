@@ -23,10 +23,17 @@ run_tb() {
     fi
 }
 
+# Main testbenches
 run_tb tb_zc_iv.spice
 run_tb tb_zc_temp.spice
 run_tb tb_zc_transient.spice
+
+# Corner testbenches
 run_tb tb_zc_corners.spice
+run_tb tb_zc_corner_ss.spice
+run_tb tb_zc_corner_ff.spice
+run_tb tb_zc_corner_sf.spice
+run_tb tb_zc_corner_fs.spice
 
 echo "--- Evaluation ---"
 python3 evaluate.py

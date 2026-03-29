@@ -1,0 +1,51 @@
+* tb_zc_transient.spice — Transient clamping: 10V/us ramp, 200pF Cload
+* Block 07: Zener Clamp
+*
+* Measures: transient_peak_V, peak_current_mA
+
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+
+* Ramp source: 0V to 10V in 1us (= 10 V/us)
+* Use PWL for controlled ramp
+Vpvdd_src pvdd_src 0 PWL(0 0 0.5u 5.0 1.5u 10.0 3u 10.0)
+
+* Source impedance (models realistic driver)
+Rsrc pvdd_src pvdd 1
+
+* Load capacitor
+Cload pvdd 0 200p ic=0
+
+* Clamp
+Xclamp pvdd 0 zener_clamp
+
+.option reltol=1e-4
+.ic v(pvdd)=0
+
+.control
+tran 1n 3u uic
+
+* Find peak voltage on pvdd node
+let vpeak = vecmax(v(pvdd))
+echo "transient_peak_V: $&vpeak"
+
+* Find peak current through clamp (= current into pvdd from source)
+* I_source = (Vpvdd_src - V(pvdd)) / Rsrc
+let i_src = (v(pvdd_src) - v(pvdd)) / 1
+let i_peak = vecmax(i_src)
+let i_peak_mA = i_peak * 1000
+echo "peak_current_mA: $&i_peak_mA"
+
+* Also measure current at 7V: force 7V static test
+dc Vpvdd_src 7 7 1
+let i_7v = -i(Vpvdd_src)
+let i_7v_mA = i_7v * 1000
+echo "static_current_at_7V_mA: $&i_7v_mA"
+
+* Save transient waveform
+wrdata transient_data.txt v(pvdd) vs time
+
+quit
+.endc
+
+.end

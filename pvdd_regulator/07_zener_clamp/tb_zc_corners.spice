@@ -1,0 +1,35 @@
+* tb_zc_corners.spice — Process corner sweep: SS, TT, FF, SF, FS
+* Block 07: Zener Clamp
+*
+* Reports clamp onset at each corner
+
+* We run separate simulations for each corner using .lib
+* This file runs TT only; run_block.sh handles all corners.
+
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 0
+Xclamp pvdd 0 zener_clamp
+
+.option reltol=1e-4
+
+.control
+dc Vpvdd 0 8 0.005
+let i_clamp = -i(Vpvdd)
+
+let idx = 0
+let v_1ma = 0
+dowhile idx < length(i_clamp)
+  if i_clamp[idx] >= 1m
+    let v_1ma = v(pvdd)[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+echo "corner_tt_onset_1mA_V: $&v_1ma"
+
+quit
+.endc
+
+.end

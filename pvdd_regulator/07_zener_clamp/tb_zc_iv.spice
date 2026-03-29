@@ -1,0 +1,77 @@
+* tb_zc_iv.spice — DC I-V characteristic, clamp onset, leakage
+* Block 07: Zener Clamp
+*
+* Measures: clamp_onset_1mA_V, clamp_at_10mA_V,
+*           leakage_at_5v_nA, leakage_at_5p17v_nA
+
+.lib "../sky130.lib.spice" tt
+.include "design.cir"
+
+Vpvdd pvdd 0 DC 0
+Xclamp pvdd 0 zener_clamp
+
+.option reltol=1e-4
+
+.control
+* DC sweep: 0 to 8V
+dc Vpvdd 0 8 0.005
+
+let i_clamp = -i(Vpvdd)
+
+* --- Leakage at 5.0V ---
+let idx = 0
+let leak_5v = 0
+dowhile idx < length(i_clamp)
+  if v(pvdd)[idx] >= 4.998 & v(pvdd)[idx] <= 5.002
+    let leak_5v = i_clamp[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+let leak_5v_nA = leak_5v * 1e9
+echo "leakage_at_5v_nA: $&leak_5v_nA"
+
+* --- Leakage at 5.17V ---
+let idx = 0
+let leak_5p17v = 0
+dowhile idx < length(i_clamp)
+  if v(pvdd)[idx] >= 5.168 & v(pvdd)[idx] <= 5.172
+    let leak_5p17v = i_clamp[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+let leak_5p17v_nA = leak_5p17v * 1e9
+echo "leakage_at_5p17v_nA: $&leak_5p17v_nA"
+
+* --- Clamp onset at 1mA ---
+let idx = 0
+let v_1ma = 0
+dowhile idx < length(i_clamp)
+  if i_clamp[idx] >= 1m
+    let v_1ma = v(pvdd)[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+echo "clamp_onset_1mA_V: $&v_1ma"
+
+* --- Clamp voltage at 10mA ---
+let idx = 0
+let v_10ma = 0
+dowhile idx < length(i_clamp)
+  if i_clamp[idx] >= 10m
+    let v_10ma = v(pvdd)[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+echo "clamp_at_10mA_V: $&v_10ma"
+
+* --- Save data for plotting ---
+wrdata iv_data.txt i_clamp vs v(pvdd)
+
+quit
+.endc
+
+.end

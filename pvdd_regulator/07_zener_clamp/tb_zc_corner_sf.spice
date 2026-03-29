@@ -1,0 +1,22 @@
+* tb_zc_corner_sf.spice — sf corner clamp onset
+.lib "../sky130.lib.spice" sf
+.include "design.cir"
+Vpvdd pvdd 0 DC 0
+Xclamp pvdd 0 zener_clamp
+.option reltol=1e-4
+.control
+dc Vpvdd 0 8 0.005
+let i_clamp = -i(Vpvdd)
+let idx = 0
+let v_1ma = 0
+dowhile idx < length(i_clamp)
+  if i_clamp[idx] >= 1m
+    let v_1ma = v(pvdd)[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+echo "corner_sf_onset_1mA_V: $&v_1ma"
+quit
+.endc
+.end
