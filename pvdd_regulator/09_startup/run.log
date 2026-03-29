@@ -1,5 +1,5 @@
 === Block 09: Startup Circuit ===
-Run started: Sun Mar 29 17:05:00 UTC 2026
+Run started: Sun Mar 29 17:11:43 UTC 2026
 
 --- Running tb_su_basic.spice ---
 Using SPARSE 1.3 as Direct Linear Solver
@@ -7,25 +7,25 @@ Using SPARSE 1.3 as Direct Linear Solver
 Note: No compatibility mode selected!
 
 
-Circuit: * tb_su_basic.spice — basic startup test, 1 v/us bvdd ramp, no load
+Circuit: * tb_su_basic.spice — basic startup test with level shifter
 
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  5.00000e-10 Reference value :  1.44250e-05 Reference value :  2.93250e-05 Reference value :  4.42750e-05 Reference value :  5.96250e-05 Reference value :  7.67250e-05 Reference value :  9.41250e-05 Reference value :  1.11925e-04 Reference value :  1.29275e-04 Reference value :  1.45475e-04 Reference value :  1.62725e-04 Reference value :  1.79975e-04 Reference value :  1.97175e-04
-No. of Data Rows : 4024
+ Reference value :  5.00000e-10 Reference value :  9.98535e-06 Reference value :  2.27354e-05 Reference value :  3.63354e-05 Reference value :  4.80854e-05 Reference value :  6.07854e-05 Reference value :  7.41354e-05 Reference value :  8.74854e-05 Reference value :  9.92854e-05 Reference value :  1.11935e-04 Reference value :  1.24485e-04 Reference value :  1.37085e-04 Reference value :  1.49685e-04 Reference value :  1.63485e-04 Reference value :  1.76735e-04 Reference value :  1.89735e-04
+No. of Data Rows : 4025
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   4.95595e-06
-pvdd_max            =  6.999932e+00 at=  1.592500e-05
-pvdd_at_100u        =  5.968372e+00
-pvdd_at_200u        =  5.957465e+00
+t_pvdd_495          =   4.95598e-06
+pvdd_max            =  6.999932e+00 at=  1.603535e-05
+pvdd_at_100u        =  6.915580e+00
+pvdd_at_200u        =  5.001321e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
 PVDD peak: 6.99993 V
-PVDD final: 5.95746 V
+PVDD final: 5.00132 V
 startup_time_ss150_us: 0
 pvdd_overshoot_mV: 1999.93
 pvdd_monotonic: 1
@@ -33,31 +33,31 @@ no_latch_stuck: 1
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  8.87500e-06 Reference value :  2.60250e-05 Reference value :  4.27750e-05 Reference value :  5.77750e-05 Reference value :  7.34750e-05 Reference value :  8.30250e-05 Reference value :  1.00625e-04 Reference value :  1.17625e-04 Reference value :  1.34025e-04 Reference value :  1.51675e-04 Reference value :  1.69275e-04 Reference value :  1.81675e-04 Reference value :  1.96475e-04
-No. of Data Rows : 4024
+ Reference value :  3.85561e-07 Reference value :  8.13535e-06 Reference value :  1.95854e-05 Reference value :  3.33354e-05 Reference value :  4.60854e-05 Reference value :  5.90354e-05 Reference value :  7.25354e-05 Reference value :  8.56854e-05 Reference value :  9.23854e-05 Reference value :  1.05935e-04 Reference value :  1.19535e-04 Reference value :  1.33035e-04 Reference value :  1.45035e-04 Reference value :  1.58585e-04 Reference value :  1.67635e-04 Reference value :  1.80435e-04 Reference value :  1.93185e-04
+No. of Data Rows : 4025
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   4.95595e-06
-pvdd_max            =  6.999932e+00 at=  1.592500e-05
-pvdd_at_100u        =  5.968372e+00
-pvdd_at_200u        =  5.957465e+00
+t_pvdd_495          =   4.95598e-06
+pvdd_max            =  6.999932e+00 at=  1.603535e-05
+pvdd_at_100u        =  6.915580e+00
+pvdd_at_200u        =  5.001321e+00
 
 
-Total analysis time (seconds) = 3.694
+Total analysis time (seconds) = 4.902
 
-Total elapsed time (seconds) = 4.239 
+Total elapsed time (seconds) = 5.455 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  130.898 MB.
-Maximum ngspice program size =   49.457 MB.
-Current ngspice program size =   32.766 MB.
+DRAM currently available =  119.676 MB.
+Maximum ngspice program size =   50.398 MB.
+Current ngspice program size =   33.699 MB.
 
-Shared ngspice pages =   10.641 MB.
+Shared ngspice pages =   10.691 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   30.211 MB.
+Library pages =   31.152 MB.
 
 
 --- Running tb_su_handoff.spice ---
@@ -71,8 +71,8 @@ Circuit: * tb_su_handoff.spice — measure pvdd disturbance at startup-to-regula
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  3.15968e-06 Reference value :  5.60968e-06 Reference value :  9.06974e-06 Reference value :  1.25697e-05 Reference value :  1.59797e-05 Reference value :  1.94897e-05 Reference value :  2.30097e-05 Reference value :  2.60897e-05 Reference value :  2.83297e-05 Reference value :  3.18297e-05 Reference value :  3.54297e-05 Reference value :  3.86697e-05 Reference value :  4.21097e-05 Reference value :  4.56297e-05 Reference value :  4.90297e-05
-No. of Data Rows : 5022
+ Reference value :  1.00000e-10 Reference value :  2.08958e-06 Reference value :  5.61958e-06 Reference value :  9.01260e-06 Reference value :  1.21226e-05 Reference value :  1.54326e-05 Reference value :  1.90026e-05 Reference value :  2.15226e-05 Reference value :  2.42626e-05 Reference value :  2.78426e-05 Reference value :  3.13826e-05 Reference value :  3.49326e-05 Reference value :  3.80126e-05 Reference value :  4.15526e-05 Reference value :  4.38626e-05 Reference value :  4.74026e-05
+No. of Data Rows : 5021
 handoff_glitch_mV: 50
 Note: Simulation executed from .control section 
 
@@ -87,45 +87,45 @@ Circuit: * tb_su_50ma.spice — startup with 50 ma load
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.22500e-05 Reference value :  5.73500e-05 Reference value :  7.95500e-05 Reference value :  1.14550e-04 Reference value :  1.48350e-04 Reference value :  1.82750e-04 Reference value :  2.16450e-04 Reference value :  2.51450e-04 Reference value :  2.86150e-04
+ Reference value :  1.00000e-09 Reference value :  9.05000e-06 Reference value :  4.47500e-05 Reference value :  8.16500e-05 Reference value :  1.16950e-04 Reference value :  1.46250e-04 Reference value :  1.81550e-04 Reference value :  2.10550e-04 Reference value :  2.37450e-04 Reference value :  2.73850e-04
 No. of Data Rows : 3031
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   5.22440e-06
-pvdd_max            =  6.708558e+00 at=  8.150000e-06
-pvdd_at_200u        =  5.019932e+00
+t_pvdd_495          =   5.22223e-06
+pvdd_max            =  6.716516e+00 at=  2.205000e-05
+pvdd_at_200u        =  5.019940e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
 startup_time_50mA_us: 5
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.19711e-06 Reference value :  3.14500e-05 Reference value :  6.77500e-05 Reference value :  1.00650e-04 Reference value :  1.35350e-04 Reference value :  1.68950e-04 Reference value :  1.98750e-04 Reference value :  2.27350e-04 Reference value :  2.62750e-04 Reference value :  2.98850e-04
+ Reference value :  1.26637e-06 Reference value :  3.38500e-05 Reference value :  6.75500e-05 Reference value :  9.88500e-05 Reference value :  1.20750e-04 Reference value :  1.56550e-04 Reference value :  1.93250e-04 Reference value :  2.26550e-04 Reference value :  2.62350e-04 Reference value :  2.92650e-04
 No. of Data Rows : 3031
 
   Measurements for Transient Analysis
 
 t_bvdd_56           =   5.60000e-06
-t_pvdd_495          =   5.22440e-06
-pvdd_max            =  6.708558e+00 at=  8.150000e-06
-pvdd_at_200u        =  5.019932e+00
+t_pvdd_495          =   5.22223e-06
+pvdd_max            =  6.716516e+00 at=  2.205000e-05
+pvdd_at_200u        =  5.019940e+00
 
 
-Total analysis time (seconds) = 2.839
+Total analysis time (seconds) = 2.94
 
-Total elapsed time (seconds) = 3.362 
+Total elapsed time (seconds) = 3.460 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  139.020 MB.
-Maximum ngspice program size =   48.277 MB.
-Current ngspice program size =   31.777 MB.
+DRAM currently available =  124.137 MB.
+Maximum ngspice program size =   47.859 MB.
+Current ngspice program size =   31.195 MB.
 
-Shared ngspice pages =   10.805 MB.
+Shared ngspice pages =   10.664 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   29.031 MB.
+Library pages =   28.613 MB.
 
 
 --- Running tb_su_fast_ramp.spice ---
@@ -139,43 +139,43 @@ Circuit: * tb_su_fast_ramp.spice — 12 v/us bvdd ramp, overshoot measurement
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  1.80913e-06 Reference value :  5.08913e-06 Reference value :  8.81913e-06 Reference value :  1.21191e-05 Reference value :  1.56091e-05 Reference value :  1.91591e-05 Reference value :  2.13391e-05 Reference value :  2.48991e-05 Reference value :  2.84191e-05 Reference value :  3.19491e-05 Reference value :  3.50391e-05 Reference value :  3.85391e-05 Reference value :  4.20491e-05 Reference value :  4.45191e-05 Reference value :  4.76091e-05 Reference value :  5.11991e-05 Reference value :  5.47191e-05 Reference value :  5.80291e-05 Reference value :  6.15191e-05 Reference value :  6.50691e-05 Reference value :  6.70491e-05 Reference value :  7.04091e-05 Reference value :  7.36791e-05 Reference value :  7.71891e-05 Reference value :  8.07091e-05 Reference value :  8.41991e-05 Reference value :  8.69591e-05 Reference value :  8.98591e-05 Reference value :  9.32291e-05 Reference value :  9.66891e-05 Reference value :  9.99191e-05 Reference value :  1.03379e-04 Reference value :  1.06759e-04 Reference value :  1.08989e-04 Reference value :  1.12199e-04 Reference value :  1.15469e-04 Reference value :  1.18989e-04 Reference value :  1.22399e-04 Reference value :  1.25389e-04 Reference value :  1.28879e-04 Reference value :  1.31239e-04 Reference value :  1.34709e-04 Reference value :  1.38199e-04 Reference value :  1.41649e-04 Reference value :  1.44999e-04 Reference value :  1.48429e-04 Reference value :  1.51899e-04 Reference value :  1.54319e-04 Reference value :  1.57569e-04 Reference value :  1.60959e-04 Reference value :  1.64339e-04 Reference value :  1.67619e-04 Reference value :  1.70729e-04 Reference value :  1.73229e-04 Reference value :  1.76549e-04 Reference value :  1.79839e-04 Reference value :  1.83439e-04 Reference value :  1.86829e-04 Reference value :  1.90259e-04 Reference value :  1.93719e-04 Reference value :  1.95959e-04 Reference value :  1.99339e-04
+ Reference value :  1.00000e-10 Reference value :  2.75916e-06 Reference value :  6.27916e-06 Reference value :  9.60916e-06 Reference value :  1.26392e-05 Reference value :  1.53992e-05 Reference value :  1.88092e-05 Reference value :  2.23292e-05 Reference value :  2.58892e-05 Reference value :  2.92092e-05 Reference value :  3.27292e-05 Reference value :  3.48592e-05 Reference value :  3.83092e-05 Reference value :  4.18492e-05 Reference value :  4.49392e-05 Reference value :  4.83992e-05 Reference value :  5.18192e-05 Reference value :  5.51792e-05 Reference value :  5.71892e-05 Reference value :  6.06092e-05 Reference value :  6.41592e-05 Reference value :  6.76492e-05 Reference value :  7.06492e-05 Reference value :  7.41592e-05 Reference value :  7.68492e-05 Reference value :  7.98992e-05 Reference value :  8.30892e-05 Reference value :  8.62992e-05 Reference value :  8.95492e-05 Reference value :  9.30492e-05 Reference value :  9.61192e-05 Reference value :  9.82492e-05 Reference value :  1.01809e-04 Reference value :  1.05429e-04 Reference value :  1.08899e-04 Reference value :  1.12259e-04 Reference value :  1.15769e-04 Reference value :  1.19109e-04 Reference value :  1.21049e-04 Reference value :  1.24409e-04 Reference value :  1.27809e-04 Reference value :  1.31019e-04 Reference value :  1.34329e-04 Reference value :  1.35729e-04 Reference value :  1.36419e-04 Reference value :  1.38889e-04 Reference value :  1.42079e-04 Reference value :  1.45519e-04 Reference value :  1.48039e-04 Reference value :  1.50459e-04 Reference value :  1.53619e-04 Reference value :  1.56969e-04 Reference value :  1.60139e-04 Reference value :  1.63499e-04 Reference value :  1.66919e-04 Reference value :  1.68569e-04 Reference value :  1.72149e-04 Reference value :  1.75569e-04 Reference value :  1.78759e-04 Reference value :  1.82129e-04 Reference value :  1.85519e-04 Reference value :  1.88549e-04 Reference value :  1.91039e-04 Reference value :  1.94159e-04 Reference value :  1.97419e-04
 No. of Data Rows : 20023
 
   Measurements for Transient Analysis
 
-pvdd_max            =  1.049991e+01 at=  4.769128e-06
+pvdd_max            =  1.049990e+01 at=  6.229157e-06
 pvdd_at_100u        =  9.434974e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
 works_fast_ramp: 1
 Fast ramp PVDD peak: 10.4999 V
-Fast ramp overshoot: 5499.91 mV
+Fast ramp overshoot: 5499.9 mV
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.59913e-06 Reference value :  4.86913e-06 Reference value :  8.40913e-06 Reference value :  1.18791e-05 Reference value :  1.51291e-05 Reference value :  1.70891e-05 Reference value :  2.05091e-05 Reference value :  2.40491e-05 Reference value :  2.76091e-05 Reference value :  3.10391e-05 Reference value :  3.44491e-05 Reference value :  3.69191e-05 Reference value :  4.03591e-05 Reference value :  4.36591e-05 Reference value :  4.72791e-05 Reference value :  5.05791e-05 Reference value :  5.40891e-05 Reference value :  5.72991e-05 Reference value :  5.99491e-05 Reference value :  6.33391e-05 Reference value :  6.67991e-05 Reference value :  7.01091e-05 Reference value :  7.36491e-05 Reference value :  7.69691e-05 Reference value :  8.02391e-05 Reference value :  8.25691e-05 Reference value :  8.60291e-05 Reference value :  8.96691e-05 Reference value :  9.31091e-05 Reference value :  9.65491e-05 Reference value :  1.00059e-04 Reference value :  1.02899e-04 Reference value :  1.05819e-04 Reference value :  1.09079e-04 Reference value :  1.12519e-04 Reference value :  1.16019e-04 Reference value :  1.19579e-04 Reference value :  1.23069e-04 Reference value :  1.24819e-04 Reference value :  1.27979e-04 Reference value :  1.31519e-04 Reference value :  1.34829e-04 Reference value :  1.38109e-04 Reference value :  1.41639e-04 Reference value :  1.45169e-04 Reference value :  1.47109e-04 Reference value :  1.50439e-04 Reference value :  1.54019e-04 Reference value :  1.57559e-04 Reference value :  1.61069e-04 Reference value :  1.64139e-04 Reference value :  1.66979e-04 Reference value :  1.70069e-04 Reference value :  1.73579e-04 Reference value :  1.76759e-04 Reference value :  1.80099e-04 Reference value :  1.83639e-04 Reference value :  1.86739e-04 Reference value :  1.89119e-04 Reference value :  1.92559e-04 Reference value :  1.96149e-04 Reference value :  1.99649e-04
+ Reference value :  4.70534e-10 Reference value :  2.98916e-06 Reference value :  6.51916e-06 Reference value :  8.62916e-06 Reference value :  1.21992e-05 Reference value :  1.56092e-05 Reference value :  1.91592e-05 Reference value :  2.27292e-05 Reference value :  2.60792e-05 Reference value :  2.90792e-05 Reference value :  3.14592e-05 Reference value :  3.50392e-05 Reference value :  3.83792e-05 Reference value :  4.19592e-05 Reference value :  4.54992e-05 Reference value :  4.88792e-05 Reference value :  5.03792e-05 Reference value :  5.14492e-05 Reference value :  5.48792e-05 Reference value :  5.84392e-05 Reference value :  6.03792e-05 Reference value :  6.39392e-05 Reference value :  6.73692e-05 Reference value :  7.09292e-05 Reference value :  7.39592e-05 Reference value :  7.75292e-05 Reference value :  8.10592e-05 Reference value :  8.31792e-05 Reference value :  8.66192e-05 Reference value :  8.98392e-05 Reference value :  9.34192e-05 Reference value :  9.67592e-05 Reference value :  1.00099e-04 Reference value :  1.02549e-04 Reference value :  1.05859e-04 Reference value :  1.09369e-04 Reference value :  1.12729e-04 Reference value :  1.14559e-04 Reference value :  1.17689e-04 Reference value :  1.20879e-04 Reference value :  1.23109e-04 Reference value :  1.26449e-04 Reference value :  1.29999e-04 Reference value :  1.33299e-04 Reference value :  1.36619e-04 Reference value :  1.40049e-04 Reference value :  1.41969e-04 Reference value :  1.45279e-04 Reference value :  1.48559e-04 Reference value :  1.52009e-04 Reference value :  1.55479e-04 Reference value :  1.58749e-04 Reference value :  1.61429e-04 Reference value :  1.64269e-04 Reference value :  1.67829e-04 Reference value :  1.70899e-04 Reference value :  1.74469e-04 Reference value :  1.77699e-04 Reference value :  1.81249e-04 Reference value :  1.83069e-04 Reference value :  1.86549e-04 Reference value :  1.90079e-04 Reference value :  1.93419e-04 Reference value :  1.96749e-04
 No. of Data Rows : 20023
 
   Measurements for Transient Analysis
 
-pvdd_max            =  1.049991e+01 at=  4.769128e-06
+pvdd_max            =  1.049990e+01 at=  6.229157e-06
 pvdd_at_100u        =  9.434974e+00
 
 
-Total analysis time (seconds) = 18.519
+Total analysis time (seconds) = 20.545
 
-Total elapsed time (seconds) = 19.114 
+Total elapsed time (seconds) = 21.146 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  130.527 MB.
-Maximum ngspice program size =   65.305 MB.
-Current ngspice program size =   48.594 MB.
+DRAM currently available =  234.152 MB.
+Maximum ngspice program size =   64.441 MB.
+Current ngspice program size =   47.840 MB.
 
-Shared ngspice pages =   10.711 MB.
+Shared ngspice pages =   10.816 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   46.059 MB.
+Library pages =   45.195 MB.
 
 
 --- Running tb_su_slow_ramp.spice ---
@@ -189,44 +189,44 @@ Circuit: * tb_su_slow_ramp.spice — 0.1 v/us bvdd ramp, verify startup complete
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  5.00000e-09 Reference value :  1.03375e-04 Reference value :  2.81725e-04 Reference value :  4.56225e-04
-No. of Data Rows : 1032
+ Reference value :  5.00000e-09 Reference value :  1.07724e-04 Reference value :  2.83724e-04 Reference value :  4.59224e-04
+No. of Data Rows : 1033
 
   Measurements for Transient Analysis
 
-t_pvdd_495          =   4.95066e-05
+t_pvdd_495          =   4.95065e-05
 pvdd_at_200u        =  9.429890e+00
-pvdd_at_400u        =  9.429891e+00
+pvdd_at_400u        =  9.429890e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
 works_slow_ramp: 1
-Slow ramp: startup completes, PVDD peak = 9.43163 V
+Slow ramp: startup completes, PVDD peak = 9.43167 V
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  7.09491e-05 Reference value :  2.15225e-04 Reference value :  3.89725e-04 Reference value :  5.00000e-04
-No. of Data Rows : 1032
+ Reference value :  4.41618e-05 Reference value :  1.69224e-04 Reference value :  3.46224e-04
+No. of Data Rows : 1033
 
   Measurements for Transient Analysis
 
-t_pvdd_495          =   4.95066e-05
+t_pvdd_495          =   4.95065e-05
 pvdd_at_200u        =  9.429890e+00
-pvdd_at_400u        =  9.429891e+00
+pvdd_at_400u        =  9.429890e+00
 
 
-Total analysis time (seconds) = 1.06
+Total analysis time (seconds) = 1.036
 
-Total elapsed time (seconds) = 1.612 
+Total elapsed time (seconds) = 1.599 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  123.145 MB.
-Maximum ngspice program size =   46.309 MB.
-Current ngspice program size =   29.680 MB.
+DRAM currently available =  244.555 MB.
+Maximum ngspice program size =   45.996 MB.
+Current ngspice program size =   29.383 MB.
 
-Shared ngspice pages =   10.684 MB.
+Shared ngspice pages =   10.801 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   27.062 MB.
+Library pages =   26.750 MB.
 
 
 --- Running tb_su_cold_crank.spice ---
@@ -240,14 +240,14 @@ Circuit: * tb_su_cold_crank.spice — cold crank recovery: bvdd 10.5v -> 3v -> 7
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.50500e-05 Reference value :  5.58500e-05 Reference value :  8.16500e-05 Reference value :  1.13250e-04 Reference value :  1.47950e-04 Reference value :  1.83150e-04 Reference value :  2.15450e-04 Reference value :  2.50150e-04 Reference value :  2.74250e-04 Reference value :  3.07650e-04 Reference value :  3.39150e-04 Reference value :  3.74150e-04 Reference value :  4.09150e-04 Reference value :  4.42250e-04 Reference value :  4.72050e-04 Reference value :  4.93850e-04
+ Reference value :  1.00000e-09 Reference value :  1.49500e-05 Reference value :  4.86500e-05 Reference value :  8.13500e-05 Reference value :  1.15250e-04 Reference value :  1.46050e-04 Reference value :  1.81450e-04 Reference value :  2.05050e-04 Reference value :  2.39450e-04 Reference value :  2.73650e-04 Reference value :  3.08650e-04 Reference value :  3.44150e-04 Reference value :  3.79750e-04 Reference value :  4.10350e-04 Reference value :  4.31550e-04 Reference value :  4.66950e-04
 No. of Data Rows : 5043
 
   Measurements for Transient Analysis
 
-pvdd_at_90u         =  4.993346e+00
-pvdd_at_200u        =  5.957464e+00
-pvdd_at_400u        =  5.957464e+00
+pvdd_at_90u         =  4.993352e+00
+pvdd_at_200u        =  5.957463e+00
+pvdd_at_400u        =  5.957463e+00
 
 Using SPARSE 1.3 as Direct Linear Solver
 cold_crank_ok: 1
@@ -255,29 +255,29 @@ Cold crank recovery: PVDD final = 5.95746 V
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.82500e-05 Reference value :  5.37500e-05 Reference value :  8.47500e-05 Reference value :  1.18650e-04 Reference value :  1.54150e-04 Reference value :  1.89350e-04 Reference value :  2.10150e-04 Reference value :  2.44550e-04 Reference value :  2.79950e-04 Reference value :  3.15350e-04 Reference value :  3.46150e-04 Reference value :  3.81550e-04 Reference value :  4.05350e-04 Reference value :  4.35250e-04 Reference value :  4.67050e-04
+ Reference value :  1.00000e-09 Reference value :  2.26500e-05 Reference value :  5.74500e-05 Reference value :  8.90537e-05 Reference value :  1.14350e-04 Reference value :  1.41450e-04 Reference value :  1.76950e-04 Reference value :  2.11350e-04 Reference value :  2.44850e-04 Reference value :  2.78050e-04 Reference value :  3.13650e-04 Reference value :  3.36150e-04 Reference value :  3.71850e-04 Reference value :  4.00550e-04 Reference value :  4.36250e-04 Reference value :  4.69850e-04
 No. of Data Rows : 5043
 
   Measurements for Transient Analysis
 
-pvdd_at_90u         =  4.993346e+00
-pvdd_at_200u        =  5.957464e+00
-pvdd_at_400u        =  5.957464e+00
+pvdd_at_90u         =  4.993352e+00
+pvdd_at_200u        =  5.957463e+00
+pvdd_at_400u        =  5.957463e+00
 
 
-Total analysis time (seconds) = 4.808
+Total analysis time (seconds) = 4.861
 
-Total elapsed time (seconds) = 5.343 
+Total elapsed time (seconds) = 5.403 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  140.887 MB.
-Maximum ngspice program size =   50.395 MB.
-Current ngspice program size =   34.078 MB.
+DRAM currently available =  227.887 MB.
+Maximum ngspice program size =   49.957 MB.
+Current ngspice program size =   33.195 MB.
 
-Shared ngspice pages =   10.992 MB.
+Shared ngspice pages =   10.621 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   31.148 MB.
+Library pages =   30.711 MB.
 
 
 --- Running tb_su_leakage.spice ---
@@ -293,9 +293,9 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
  Reference value :  0.00000e+00Using SPARSE 1.3 as Direct Linear Solver
 
 No. of Data Rows : 1
-BVDD current (startup leakage): 0.219827 uA
+BVDD current (startup leakage): 0.21982 uA
 PVDD current (divider): 0.485369 uA
-leakage_after_uA: 0.219827
+leakage_after_uA: 0.21982
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 
@@ -306,12 +306,9 @@ No. of Data Rows : 1
 	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#sbody   1.603789e-14
 	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#body   3.207577e-14
 	m.xstartup.xmn_det.msky130_fd_pr__nfet_g5v0d10v5#dbody   8.018943e-14
-	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#sbody   6.301312e-11
-	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#body   1.260262e-10
-	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.132631e-10
-	m.xstartup.xmn_pu.msky130_fd_pr__nfet_g5v0d10v5#sbody   2.316250e-10
-	m.xstartup.xmn_pu.msky130_fd_pr__nfet_g5v0d10v5#body   1.627500e-10
-	m.xstartup.xmn_pu.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.566250e-10
+	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#sbody   4.598768e-11
+	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#body   9.197537e-11
+	m.xstartup.xmn_gate.msky130_fd_pr__nfet_g5v0d10v5#dbody   1.962368e-10
 	m.xstartup.xmp_sd.msky130_fd_pr__pfet_g5v0d10v5#sbody   7.000000e+00
 	m.xstartup.xmp_sd.msky130_fd_pr__pfet_g5v0d10v5#body   7.000000e+00
 	m.xstartup.xmp_sd.msky130_fd_pr__pfet_g5v0d10v5#dbody   7.000000e+00
@@ -326,8 +323,8 @@ No. of Data Rows : 1
 	m.xstartup.xmn_ea.msky130_fd_pr__nfet_g5v0d10v5#dbody   2.732616e-10
 	ea_en                            7.000000e+00
 	startup_done                     7.000000e+00
-	xstartup.pull_mid                5.999999e+00
-	xstartup.xr_gate.t2              5.999999e+00
+	xstartup.pull_mid                5.999964e+00
+	xstartup.xr_gate.t2              5.999964e+00
 	xstartup.xr_gate.t1              6.000000e+00
 	xstartup.xr_pu.t2                1.922721e-03
 	xstartup.xr_pu.t1                6.999982e+00
@@ -345,9 +342,9 @@ No. of Data Rows : 1
 	Source	Current
 	------	-------
 
-	vbvdd#branch                     -2.19827e-07
+	vbvdd#branch                     -2.19820e-07
 	vpvdd#branch                     -4.85369e-07
-	vgate#branch                     -1.48471e-11
+	vgate#branch                     -6.75807e-12
 	vref#branch                      0.000000e+00
 
  BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
@@ -1107,7 +1104,7 @@ No. of Data Rows : 1
    vbdr_max                 1e+99                 1e+99                 1e+99
 
  BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
-      model xstartup.xmp_sd:sky13 xstartup.xmn_pu:sky13 xstartup.xmn_gate:sky
+      model xstartup.xmp_sd:sky13 xstartup.xmn_gate:sky xstartup.xmn_det:sky1
 
      capmod                     2                     2                     2
      diomod                     1                     1                     1
@@ -1138,15 +1135,15 @@ No. of Data Rows : 1
       cdscb                     0                     0                     0
       cdscd                     0                     0                     0
         cit          -1.27312e-05               -0.0008               -0.0008
-    nfactor              0.463163              0.918766              0.632986
+    nfactor              0.463163              0.862818              0.842506
          xj               1.5e-07               1.5e-07               1.5e-07
-       vsat               9128.49                106095               62004.7
-         at               47731.2                151449               70806.9
-         a0                0.6588               2.12238               1.03886
-        ags              0.977017              0.154326              0.339214
+       vsat               9128.49               81147.5                115715
+         at               47731.2                -19802               7825.35
+         a0                0.6588               1.12749               1.66997
+        ags              0.977017              0.128833              0.183631
          a1                     0                     0                     0
          a2                   0.5              0.659726              0.659726
-       keta              -0.15376            -0.0422806              -0.01066
+       keta              -0.15376            -0.0711915              -0.01066
        nsub                 6e+16                 6e+16                 6e+16
        ndep               1.7e+17               1.7e+17               1.7e+17
         nsd                 1e+20                 1e+20                 1e+20
@@ -1158,10 +1155,10 @@ No. of Data Rows : 1
         vbm                    -3                    -3                    -3
          xt              1.55e-07              1.55e-07              1.55e-07
          k1              0.590242               0.88325               0.88325
-        kt1             -0.592764             -0.368218               -0.3792
+        kt1             -0.592764              -0.37273               -0.3792
        kt1l                     0                     0                     0
         kt2             -0.019032             -0.019151             -0.019151
-         k2            0.00468799            -0.0309895            -0.0350596
+         k2            0.00468799            -0.0387719            -0.0307236
          k3               -2.2405                -0.884                -0.884
         k3b                -0.172                  0.43                  0.43
          w0                     0                     0                     0
@@ -1177,20 +1174,20 @@ No. of Data Rows : 1
       dvt2w                     0             -0.036016             -0.036016
       drout              0.335842               0.36075               0.36075
        dsub              0.384694                 0.504                 0.504
-       vth0              -1.26583              0.779993              0.762308
-         ua          -8.31844e-10          -3.64924e-10          -1.70417e-10
+       vth0              -1.26583              0.780343              0.770724
+         ua          -8.31844e-10          -1.49608e-10          -1.50184e-10
         ua1             5.524e-10            3.0044e-09           6.21572e-09
-         ub           8.47491e-18           1.37603e-18           1.51182e-18
-        ub1           -3.5909e-18           -3.7525e-18          -1.05548e-17
-         uc            6.0827e-12          -2.34122e-11            6.6204e-11
+         ub           8.47491e-18           1.75526e-18            1.3039e-18
+        ub1           -3.5909e-18          -4.25346e-18          -1.12106e-17
+         uc            6.0827e-12            6.6204e-11            6.6204e-11
         uc1            -1.092e-10           -5.9821e-11           -5.9821e-11
          ud                     0                     0                     0
         ud1                     0                     0                     0
          up                     0                     0                     0
          lp                     1                     1                     1
-         u0             0.0297664             0.0340911             0.0498106
+         u0             0.0297664             0.0419218             0.0434581
          eu                  1.67                  1.67                  1.67
-        ute              -1.39342              -1.34052               -1.4652
+        ute              -1.39342              -1.48504               -1.4652
        voff             -0.281923              -0.20613              -0.20613
        minv                     0                     0                     0
       voffl                     0          -4.25795e-07          -4.25795e-07
@@ -1212,7 +1209,7 @@ No. of Data Rows : 1
         prt                     0                     0                     0
        eta0            -0.0559185                 0.032                 0.032
        etab            0.00188632              -0.01932              -0.01932
-       pclm               2.02196               3.59544               1.13211
+       pclm               2.02196               1.93617             -0.277871
     pdiblc1              0.195862               0.21098               0.21098
     pdiblc2            -0.0336185                0.0002                0.0002
     pdiblcb                -0.025              -0.26831              -0.26831
@@ -1290,8 +1287,8 @@ No. of Data Rows : 1
         lwn                     1                     1                     1
         lwl                     0                     0                     0
        lwlc                     0                     0                     0
-       lmin                 8e-07                 4e-06                 8e-07
-       lmax                 1e-06                 8e-06                 1e-06
+       lmin                 8e-07                 1e-06                 8e-07
+       lmax                 1e-06                 2e-06                 1e-06
          wr                     1                     1                     1
        wint            1.2277e-08            2.1346e-08            2.1346e-08
         dwg           -4.7338e-09           -4.1292e-09           -4.1292e-09
@@ -1304,10 +1301,10 @@ No. of Data Rows : 1
         wwn                     1                     1                     1
         wwl                     0                     0                     0
        wwlc                     0                     0                     0
-       wmin                 3e-06               4.2e-07                 3e-06
-       wmax                 5e-06                 7e-07                 5e-06
-         b0                     0           1.02956e-07            3.2933e-08
-         b1                     0          -1.72587e-09                     0
+       wmin                 3e-06               1.5e-06                 7e-06
+       wmax                 5e-06                 3e-06                 1e-05
+         b0                     0            3.2933e-08            3.2933e-08
+         b1                     0                     0                     0
        cgsl           9.82591e-12           4.49025e-11           4.49025e-11
        cgdl           9.82591e-12           4.49025e-11           4.49025e-11
     ckappas                   0.6                   0.6                   0.6
@@ -1321,9 +1318,9 @@ No. of Data Rows : 1
          xl                     0                     0                     0
       dlcig                     0                     0                     0
         dwj                     0                     0                     0
-     alpha0           0.000247158           4.25615e-05           0.000120428
+     alpha0           0.000247158           2.02485e-05           2.08534e-07
      alpha1                     0                     0                     0
-      beta0               67.1969               26.6303               45.9821
+      beta0               67.1969               29.5637               24.1239
       agidl           4.96251e-09              5.06e-11              5.06e-11
       bgidl           7.00288e+08             1.058e+09             1.058e+09
       cgidl              -3904.52                  4000                  4000
@@ -1415,15 +1412,15 @@ No. of Data Rows : 1
      lcdscb                     0                     0                     0
      lcdscd                     0                     0                     0
        lcit           1.61221e-11                     0                     0
-   lnfactor           8.68893e-07           4.89039e-07            1.3288e-07
+   lnfactor           8.68893e-07          -4.64922e-08          -1.33709e-08
         lxj                     0                     0                     0
-      lvsat              0.035243             -0.132091             0.0249402
-        lat            -0.0161221             -0.455483            -0.0270485
-        la0           1.31005e-07          -5.55909e-06           5.39192e-08
-       lags          -1.81495e-07           2.27885e-08          -1.15787e-07
+      lvsat              0.035243             0.0152126            -0.0120993
+        lat            -0.0161221             0.0370997             0.0136997
+        la0           1.31005e-07          -1.03192e-08          -3.54396e-07
+       lags          -1.81495e-07           4.03862e-08          -1.51275e-08
         la1                     0                     0                     0
         la2                     0                     0                     0
-      lketa           6.28183e-08           8.69444e-08                     0
+      lketa           6.28183e-08           5.12694e-08                     0
       lnsub                     0                     0                     0
       lndep                     0                     0                     0
        lnsd                     0                     0                     0
@@ -1435,10 +1432,10 @@ No. of Data Rows : 1
        lvbm                     0                     0                     0
         lxt                     0                     0                     0
         lk1          -9.86675e-09                     0                     0
-       lkt1          -3.38565e-08          -8.66018e-08           5.47988e-09
+       lkt1          -3.38565e-08                     0           5.47988e-09
       lkt1l                     0                     0                     0
        lkt2                     0                     0                     0
-        lk2           2.21853e-08          -2.01891e-08           8.63906e-09
+        lk2           2.21853e-08           1.21691e-08           5.68538e-09
         lk3                     0                     0                     0
        lk3b                     0                     0                     0
         lw0                     0                     0                     0
@@ -1454,19 +1451,19 @@ No. of Data Rows : 1
      ldvt2w                     0                     0                     0
      ldrout           6.80546e-08                     0                     0
       ldsub          -7.79255e-08                     0                     0
-      lvth0           2.13085e-07           1.73528e-07           2.98793e-08
-        lua            2.2584e-15            3.8215e-17           1.48073e-17
+      lvth0           2.13085e-07           1.69637e-08           2.30977e-08
+        lua            2.2584e-15           1.53268e-18           1.27407e-18
        lua1                     0                     0          -2.71994e-15
-        lub          -6.16059e-24           1.74072e-24            2.8374e-25
-       lub1                     0                     0           6.01554e-24
-        luc          -6.06302e-18           3.27475e-16                     0
+        lub          -6.16059e-24           3.25972e-26            4.3502e-25
+       lub1                     0           9.25266e-25           6.31693e-24
+        luc          -6.06302e-18                     0                     0
        luc1                     0                     0                     0
         lud                     0                     0                     0
        lud1                     0                     0                     0
         lup                     0                     0                     0
         llp                     0                     0                     0
-        lu0          -7.75838e-09           3.26369e-09          -4.17041e-09
-       lute          -6.12641e-08           7.99485e-07           1.41107e-07
+        lu0          -7.75838e-09           8.77559e-10           2.58924e-10
+       lute          -6.12641e-08           1.57912e-07           1.41107e-07
       lvoff           1.48305e-07                     0                     0
       lminv                     0                     0                     0
      ldelta                     0                     0                     0
@@ -1478,7 +1475,7 @@ No. of Data Rows : 1
        lprt                     0                     0                     0
       leta0           4.01649e-08                     0                     0
       letab          -1.71514e-09                    -0                    -0
-      lpclm          -7.44536e-07          -1.45669e-05          -1.97139e-07
+      lpclm          -7.44536e-07          -1.08959e-06           8.44751e-07
    lpdiblc1           1.85182e-07                     0                     0
    lpdiblc2           3.19371e-08                     0                     0
    lpdiblcb                     0                     0                     0
@@ -1491,8 +1488,8 @@ No. of Data Rows : 1
         lwr                     0                     0                     0
        ldwg                     0                     0                     0
        ldwb                     0                     0                     0
-        lb0                     0          -5.66969e-13                     0
-        lb1                     0           9.87282e-15                     0
+        lb0                     0                     0                     0
+        lb1                     0                     0                     0
       lcgsl                     0                     0                     0
       lcgdl                     0                     0                     0
    lckappas                     0                     0                     0
@@ -1500,9 +1497,9 @@ No. of Data Rows : 1
         lcf                     0                     0                     0
        lclc                     0                     0                     0
        lcle                     0                     0                     0
-    lalpha0          -1.63069e-10           1.38303e-11          -6.48115e-11
+    lalpha0          -1.63069e-10          -8.60212e-12           1.10968e-11
     lalpha1                     0                     0                     0
-     lbeta0          -1.54972e-05           2.04723e-05          -6.79344e-06
+     lbeta0          -1.54972e-05           2.54301e-06           7.34852e-06
      lagidl           8.32907e-15                     0                     0
      lbgidl               785.148                     0                     0
      lcgidl            0.00313809                     0                     0
@@ -1545,15 +1542,15 @@ No. of Data Rows : 1
      wcdscb                     0                     0                     0
      wcdscd                     0                     0                     0
        wcit                     0                     0                     0
-   wnfactor           3.46175e-06           1.17771e-07           1.07966e-06
+   wnfactor           3.46175e-06           1.34315e-07                     0
         wxj                     0                     0                     0
-      wvsat                     0             0.0107063              0.120849
-        wat                     0              0.055942             -0.186256
-        wa0           5.88111e-07          -4.59348e-07           1.84514e-07
-       wags          -1.01258e-06           2.23507e-09          -4.41669e-07
+      wvsat                     0             0.0535436                     0
+        wat                     0             0.0530665                     0
+        wa0           5.88111e-07          -2.29144e-08                     0
+       wags          -1.01258e-06           9.21923e-08                     0
         wa1                     0                     0                     0
         wa2                     0                     0                     0
-      wketa                     0           1.24357e-08                     0
+      wketa                     0           7.15708e-08                     0
       wnsub                     0                     0                     0
       wndep                     0                     0                     0
        wnsd                     0                     0                     0
@@ -1565,10 +1562,10 @@ No. of Data Rows : 1
        wvbm                     0                     0                     0
         wxt                     0                     0                     0
         wk1                     0                     0                     0
-       wkt1                     0           -1.7376e-08                     0
+       wkt1                     0                     0                     0
       wkt1l                     0                     0                     0
        wkt2                     0                     0                     0
-        wk2           4.02267e-08          -4.21324e-09           1.61298e-08
+        wk2           4.02267e-08          -1.39541e-09                     0
         wk3                     0                     0                     0
        wk3b                     0                     0                     0
         ww0                     0                     0                     0
@@ -1584,19 +1581,19 @@ No. of Data Rows : 1
      wdvt2w                     0                     0                     0
      wdrout                     0                     0                     0
       wdsub          -1.68259e-11                     0                     0
-      wvth0            1.0005e-06           9.44024e-09           1.03838e-07
-        wua          -4.43271e-17           1.40745e-16           6.47456e-17
+      wvth0            1.0005e-06           2.22916e-08                     0
+        wua          -4.43271e-17           8.93528e-19                     0
        wua1                     0                     0                     0
-        wub          -1.44634e-23           2.13345e-25          -1.14436e-24
-       wub1                     0                     0                     0
-        wuc          -3.08149e-33             4.724e-17                     0
+        wub          -1.44634e-23            3.1936e-26                     0
+       wub1                     0           7.30053e-25                     0
+        wuc          -3.08149e-33                     0                     0
        wuc1                     0                     0                     0
         wud                     0                     0                     0
        wud1                     0                     0                     0
         wup                     0                     0                     0
         wlp                     0                     0                     0
-        wu0          -5.51586e-08           2.72677e-09          -3.42938e-08
-       wute                     0           9.01814e-08                     0
+        wu0          -5.51586e-08          -3.94597e-09                     0
+       wute                     0           5.51361e-07                     0
       wvoff           5.55422e-07                     0                     0
       wminv                     0                     0                     0
      wdelta                     0                     0                     0
@@ -1608,7 +1605,7 @@ No. of Data Rows : 1
        wprt                     0                     0                     0
       weta0           2.77573e-07                     0                     0
       wetab                     0                     0                     0
-      wpclm                     0          -1.16794e-06                     0
+      wpclm                     0          -3.06616e-06                     0
    wpdiblc1                     0                     0                     0
    wpdiblc2          -1.98523e-23                     0                     0
    wpdiblcb                     0                     0                     0
@@ -1621,8 +1618,8 @@ No. of Data Rows : 1
         wwr                     0                     0                     0
        wdwg                     0                     0                     0
        wdwb                     0                     0                     0
-        wb0                     0          -1.92218e-14                     0
-        wb1                     0           9.18126e-16                     0
+        wb0                     0                     0                     0
+        wb1                     0                     0                     0
       wcgsl                     0                     0                     0
       wcgdl                     0                     0                     0
    wckappas                     0                     0                     0
@@ -1630,9 +1627,9 @@ No. of Data Rows : 1
         wcf                     0                     0                     0
        wclc                     0                     0                     0
        wcle                     0                     0                     0
-    walpha0                     0          -5.98324e-12          -3.14369e-10
+    walpha0                     0          -2.79684e-11                     0
     walpha1                     0                     0                     0
-     wbeta0                     0          -8.91982e-07          -4.95751e-05
+     wbeta0                     0          -9.28258e-06                     0
      wagidl          -1.09684e-13                     0                     0
      wbgidl                     0                     0                     0
      wcgidl             0.0185758                     0                     0
@@ -1675,15 +1672,15 @@ No. of Data Rows : 1
      pcdscb                     0                     0                     0
      pcdscd                     0                     0                     0
        pcit                     0                     0                     0
-   pnfactor          -2.45525e-12           -3.9432e-13          -6.98527e-13
+   pnfactor          -2.45525e-12           5.69473e-14                     0
         pxj                     0                     0                     0
-      pvsat                     0           3.27542e-08          -7.81876e-08
-        pat                     0          -1.47059e-07           1.20505e-07
-        pa0          -4.17118e-13           2.09749e-12          -1.19378e-13
-       pags           7.18171e-13           -8.5983e-15           2.85753e-13
+      pvsat                     0           -4.0362e-08                     0
+        pat                     0          -4.49466e-08                     0
+        pa0          -4.17118e-13           2.42873e-14                     0
+       pags           7.18171e-13           -1.0131e-13                     0
         pa1                     0                     0                     0
         pa2                     0                     0                     0
-      pketa                     0          -4.92917e-14                     0
+      pketa                     0          -6.06194e-14                     0
       pnsub                     0                     0                     0
       pndep                     0                     0                     0
        pnsd                     0                     0                     0
@@ -1695,10 +1692,10 @@ No. of Data Rows : 1
        pvbm                     0                     0                     0
         pxt                     0                     0                     0
         pk1                     0                     0                     0
-       pkt1                     0           6.68452e-14                     0
+       pkt1                     0                     0                     0
       pkt1l                     0                     0                     0
        pkt2                     0                     0                     0
-        pk2          -2.85308e-14           1.55622e-14          -1.04357e-14
+        pk2          -2.85308e-14           3.26717e-15                     0
         pk3                     0                     0                     0
        pk3b                     0                     0                     0
         pw0                     0                     0                     0
@@ -1714,19 +1711,19 @@ No. of Data Rows : 1
      pdvt2w                     0                     0                     0
      pdrout                     0                     0                     0
       pdsub           1.19337e-17                     0                     0
-      pvth0          -7.09604e-13          -6.09829e-14          -6.71815e-14
-        pua            3.1439e-23          -1.31685e-23          -4.18895e-23
+      pvth0          -7.09604e-13          -5.09245e-15                     0
+        pua            3.1439e-23           -6.7285e-25                     0
        pua1                     0                     0                     0
-        pub           1.02582e-29          -7.19809e-31           7.40382e-31
-       pub1                     0                     0                     0
-        puc           2.93874e-39          -1.93644e-22                     0
+        pub           1.02582e-29          -1.22978e-31                     0
+       pub1                     0           -1.3484e-30                     0
+        puc           2.93874e-39                     0                     0
        puc1                     0                     0                     0
         pud                     0                     0                     0
        pud1                     0                     0                     0
         pup                     0                     0                     0
         plp                     0                     0                     0
-        pu0           3.91212e-14          -5.22395e-16           2.21876e-14
-       pute                     0          -3.46927e-13                     0
+        pu0           3.91212e-14           1.31482e-15                     0
+       pute                     0          -4.66995e-13                     0
       pvoff          -3.93933e-13                     0                     0
       pminv                     0                     0                     0
      pdelta                     0                     0                     0
@@ -1738,7 +1735,7 @@ No. of Data Rows : 1
        pprt                     0                     0                     0
       peta0          -1.96869e-13                     0                     0
       petab                     0                     0                     0
-      ppclm                     0           5.49621e-12                     0
+      ppclm                     0           3.22226e-12                     0
    ppdiblc1                     0                     0                     0
    ppdiblc2           6.31089e-30                     0                     0
    ppdiblcb                     0                     0                     0
@@ -1751,8 +1748,8 @@ No. of Data Rows : 1
         pwr                     0                     0                     0
        pdwg                     0                     0                     0
        pdwb                     0                     0                     0
-        pb0                     0           1.62335e-19                     0
-        pb1                     0          -4.79217e-21                     0
+        pb0                     0                     0                     0
+        pb1                     0                     0                     0
       pcgsl                     0                     0                     0
       pcgdl                     0                     0                     0
    pckappas                     0                     0                     0
@@ -1760,9 +1757,9 @@ No. of Data Rows : 1
         pcf                     0                     0                     0
        pclc                     0                     0                     0
        pcle                     0                     0                     0
-    palpha0           1.97215e-31          -2.27274e-17           2.03392e-16
+    palpha0           1.97215e-31           4.55174e-17                     0
     palpha1                     0                     0                     0
-     pbeta0                     0          -4.72596e-12           3.20744e-11
+     pbeta0                     0           1.14614e-11                     0
      pagidl           7.77937e-20                     0                     0
      pbgidl                     0                     0                     0
      pcgidl          -1.31749e-08                     0                     0
@@ -1801,8 +1798,8 @@ No. of Data Rows : 1
   pvfbsdoff                     0                     0                     0
  ptvfbsdoff                     0                     0                     0
      ptvoff                     0                     0                     0
-      saref              2.41e-06                 3e-06              2.41e-06
-      sbref              2.41e-06                 3e-06              2.41e-06
+      saref              2.41e-06              2.81e-06              2.41e-06
+      sbref              2.41e-06              2.81e-06              2.41e-06
        wlod                     0                     0                     0
         ku0                     0                     0                     0
       kvsat                     0                     0                     0
@@ -1862,762 +1859,6 @@ No. of Data Rows : 1
    vbsr_max                 1e+99                 1e+99                 1e+99
    vbdr_max                 1e+99                 1e+99                 1e+99
 
- BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
-      model xstartup.xmn_det:sky1
-
-     capmod                     2
-     diomod                     1
-     rdsmod                     0
-   trnqsmod                     0
-   acnqsmod                     0
-     mobmod                     0
-   rbodymod                     1
-   rgatemod                     0
-     permod                     1
-     geomod                     0
-    rgeomod                     0
-    fnoimod                     1
-    tnoimod                     1
-     igcmod                     0
-     igbmod                     0
-    tempmod                     0
-   paramchk                     1
-    binunit                     2
-    version                   4.5
-       toxe              1.16e-08
-       toxp              1.16e-08
-       toxm              1.16e-08
-     toxref              1.16e-08
-       dtox                     0
-     epsrox                   3.9
-       cdsc                     0
-      cdscb                     0
-      cdscd                     0
-        cit               -0.0008
-    nfactor              0.842506
-         xj               1.5e-07
-       vsat                115715
-         at               7825.35
-         a0               1.66997
-        ags              0.183631
-         a1                     0
-         a2              0.659726
-       keta              -0.01066
-       nsub                 6e+16
-       ndep               1.7e+17
-        nsd                 1e+20
-       phin                     0
-      ngate                 1e+23
-     gamma1                     0
-     gamma2                     0
-        vbx                     0
-        vbm                    -3
-         xt              1.55e-07
-         k1               0.88325
-        kt1               -0.3792
-       kt1l                     0
-        kt2             -0.019151
-         k2            -0.0307236
-         k3                -0.884
-        k3b                  0.43
-         w0                     0
-      dvtp0                     0
-      dvtp1                     0
-       lpe0               2.5e-08
-       lpeb            -2.182e-07
-       dvt0                     0
-       dvt1                  0.53
-       dvt2              -0.19251
-      dvt0w                  0.16
-      dvt1w            6.9091e+06
-      dvt2w             -0.036016
-      drout               0.36075
-       dsub                 0.504
-       vth0              0.770724
-         ua          -1.50184e-10
-        ua1           6.21572e-09
-         ub            1.3039e-18
-        ub1          -1.12106e-17
-         uc            6.6204e-11
-        uc1           -5.9821e-11
-         ud                     0
-        ud1                     0
-         up                     0
-         lp                     1
-         u0             0.0434581
-         eu                  1.67
-        ute               -1.4652
-       voff              -0.20613
-       minv                     0
-      voffl          -4.25795e-07
-       tnom                303.15
-       cgso           2.75468e-10
-       cgdo           2.75468e-10
-       cgbo                     0
-      xpart                     0
-      delta                0.0246
-        rsh                     1
-       rdsw                724.62
-    rdswmin                     0
-        rsw                     0
-        rdw                     0
-     rdwmin                     0
-     rswmin                     0
-       prwg                 0.048
-       prwb               0.05626
-        prt                     0
-       eta0                 0.032
-       etab              -0.01932
-       pclm             -0.277871
-    pdiblc1               0.21098
-    pdiblc2                0.0002
-    pdiblcb              -0.26831
-     fprout                10.125
-      pdits                     0
-     pditsl                     0
-     pditsd                     0
-     pscbe1            9.3731e+08
-     pscbe2              1.68e-06
-       pvag                  1.99
-        jss              0.000375
-       jsws              5.84e-11
-      jswgs                     0
-        pbs               0.72468
-        njs                1.0773
-       xtis                  0.76
-        mjs                 0.295
-      pbsws               0.29067
-      mjsws              0.037586
-     pbswgs               0.54958
-     mjswgs               0.78692
-        cjs           0.000846987
-      cjsws           8.64309e-11
-     cjswgs           5.47776e-11
-        jsd              0.000375
-       jswd              5.84e-11
-      jswgd                     0
-        pbd               0.72468
-        njd                1.0773
-       xtid                  0.76
-        mjd                 0.295
-      pbswd               0.29067
-      mjswd              0.037586
-     pbswgd               0.54958
-     mjswgd               0.78692
-        cjd           0.000846987
-      cjswd           8.64309e-11
-     cjswgd           5.47776e-11
-      vfbcv                    -1
-        vfb                     0
-        tpb              0.001344
-        tcj            0.00067434
-      tpbsw            0.00099005
-      tcjsw             0.0002493
-     tpbswg                     0
-     tcjswg                     0
-       acde                0.4176
-       moin                    15
-       noff                     4
-     voffcv               -0.4104
-       dmcg                     0
-       dmci                     0
-       dmdg                     0
-      dmcgt                     0
-        xgw                     0
-        xgl                     0
-       rshg                   0.1
-      ngcon                     1
-     xrcrg1                    12
-     xrcrg2                     1
-     lambda                     0
-        vtl                     0
-         lc                 5e-09
-         xn                     3
-   vfbsdoff                     0
-  tvfbsdoff                     0
-      tvoff                     0
-    lintnoi <<NAN, error = 7>>
-       lint            7.6507e-08
-         ll                     0
-        llc                     0
-        lln                     1
-         lw                     0
-        lwc                     0
-        lwn                     1
-        lwl                     0
-       lwlc                     0
-       lmin                 8e-07
-       lmax                 1e-06
-         wr                     1
-       wint            2.1346e-08
-        dwg           -4.1292e-09
-        dwb           -1.6944e-09
-         wl                     0
-        wlc                     0
-        wln                     1
-         ww                     0
-        wwc                     0
-        wwn                     1
-        wwl                     0
-       wwlc                     0
-       wmin                 7e-06
-       wmax                 1e-05
-         b0            3.2933e-08
-         b1                     0
-       cgsl           4.49025e-11
-       cgdl           4.49025e-11
-    ckappas                   0.6
-    ckappad                   0.6
-         cf                     0
-        clc                 1e-07
-        cle                   0.6
-        dwc                     0
-        dlc            6.5995e-08
-         xw                     0
-         xl                     0
-      dlcig                     0
-        dwj                     0
-     alpha0           2.08534e-07
-     alpha1                     0
-      beta0               24.1239
-      agidl              5.06e-11
-      bgidl             1.058e+09
-      cgidl                  4000
-      egidl                   0.8
-       aigc                  0.43
-       bigc                 0.054
-       cigc                 0.075
-      aigsd                  0.43
-      bigsd                 0.054
-      cigsd                 0.075
-    aigbacc                     1
-    bigbacc                     0
-    cigbacc                     0
-    aigbinv                  0.35
-    bigbinv                  0.03
-    cigbinv                 0.006
-       nigc                     1
-    nigbinv                     3
-    nigbacc                     1
-       ntox                     1
-    eigbinv                   1.1
-      pigcd                     1
-    poxedge                     1
-   ijthdfwd                   0.1
-   ijthsfwd                   0.1
-   ijthdrev                   0.1
-   ijthsrev                   0.1
-      xjbvd                     1
-      xjbvs                     1
-        bvd                12.636
-        bvs                12.636
-       jtss                     0
-       jtsd                     0
-     jtssws                     0
-     jtsswd                     0
-    jtsswgs                     0
-    jtsswgd                     0
-       njts                    20
-     njtssw                    20
-    njtsswg                    20
-       xtss                  0.02
-       xtsd                  0.02
-     xtssws                  0.02
-     xtsswd                  0.02
-    xtsswgs                  0.02
-    xtsswgd                  0.02
-      tnjts                     0
-    tnjtssw                     0
-   tnjtsswg                     0
-       vtss                    10
-       vtsd                    10
-     vtssws                    10
-     vtsswd                    10
-    vtsswgs                    10
-    vtsswgd                    10
-      gbmin                 1e-12
-       rbdb                    50
-       rbpb                    50
-       rbsb                    50
-       rbps                    50
-       rbpd                    50
-      rbps0                    50
-      rbpsl                     0
-      rbpsw                     0
-     rbpsnf                     0
-      rbpd0                    50
-      rbpdl                     0
-      rbpdw                     0
-     rbpdnf                     0
-     rbpbx0                   100
-     rbpbxl                     0
-     rbpbxw                     0
-    rbpbxnf                     0
-     rbpby0                   100
-     rbpbyl                     0
-     rbpbyw                     0
-    rbpbynf                     0
-     rbsbx0                   100
-     rbsby0                   100
-     rbdbx0                   100
-     rbdby0                   100
-    rbsdbxl                     0
-    rbsdbxw                     0
-   rbsdbxnf                     0
-    rbsdbyl                     0
-    rbsdbyw                     0
-   rbsdbynf                     0
-      lcdsc                     0
-     lcdscb                     0
-     lcdscd                     0
-       lcit                     0
-   lnfactor          -1.33709e-08
-        lxj                     0
-      lvsat            -0.0120993
-        lat             0.0136997
-        la0          -3.54396e-07
-       lags          -1.51275e-08
-        la1                     0
-        la2                     0
-      lketa                     0
-      lnsub                     0
-      lndep                     0
-       lnsd                     0
-      lphin                     0
-     lngate                     0
-    lgamma1                     0
-    lgamma2                     0
-       lvbx                     0
-       lvbm                     0
-        lxt                     0
-        lk1                     0
-       lkt1           5.47988e-09
-      lkt1l                     0
-       lkt2                     0
-        lk2           5.68538e-09
-        lk3                     0
-       lk3b                     0
-        lw0                     0
-     ldvtp0                     0
-     ldvtp1                     0
-      llpe0                     0
-      llpeb                     0
-      ldvt0                     0
-      ldvt1                     0
-      ldvt2                     0
-     ldvt0w                     0
-     ldvt1w                     0
-     ldvt2w                     0
-     ldrout                     0
-      ldsub                     0
-      lvth0           2.30977e-08
-        lua           1.27407e-18
-       lua1          -2.71994e-15
-        lub            4.3502e-25
-       lub1           6.31693e-24
-        luc                     0
-       luc1                     0
-        lud                     0
-       lud1                     0
-        lup                     0
-        llp                     0
-        lu0           2.58924e-10
-       lute           1.41107e-07
-      lvoff                     0
-      lminv                     0
-     ldelta                     0
-      lrdsw                     0
-       lrsw                     0
-       lrdw                     0
-      lprwg                     0
-      lprwb                     0
-       lprt                     0
-      leta0                     0
-      letab                    -0
-      lpclm           8.44751e-07
-   lpdiblc1                     0
-   lpdiblc2                     0
-   lpdiblcb                     0
-    lfprout                     0
-     lpdits                     0
-    lpditsd                     0
-    lpscbe1                     0
-    lpscbe2                     0
-      lpvag                     0
-        lwr                     0
-       ldwg                     0
-       ldwb                     0
-        lb0                     0
-        lb1                     0
-      lcgsl                     0
-      lcgdl                     0
-   lckappas                     0
-   lckappad                     0
-        lcf                     0
-       lclc                     0
-       lcle                     0
-    lalpha0           1.10968e-11
-    lalpha1                     0
-     lbeta0           7.34852e-06
-     lagidl                     0
-     lbgidl                     0
-     lcgidl                     0
-     legidl                     0
-      laigc                     0
-      lbigc                     0
-      lcigc                     0
-     laigsd                     0
-     lbigsd                     0
-     lcigsd                     0
-   laigbacc                     0
-   lbigbacc                     0
-   lcigbacc                     0
-   laigbinv                     0
-   lbigbinv                     0
-   lcigbinv                     0
-      lnigc                     0
-   lnigbinv                     0
-   lnigbacc                     0
-      lntox                     0
-   leigbinv                     0
-     lpigcd                     0
-   lpoxedge                     0
-     lvfbcv                     0
-       lvfb                     0
-      lacde                     0
-      lmoin                     0
-      lnoff                     0
-    lvoffcv                     0
-    lxrcrg1                     0
-    lxrcrg2                     0
-    llambda <<NAN, error = 7>>
-       lvtl <<NAN, error = 7>>
-        lxn <<NAN, error = 7>>
-        leu                     0
-  lvfbsdoff                     0
- ltvfbsdoff                     0
-     ltvoff                     0
-      wcdsc                     0
-     wcdscb                     0
-     wcdscd                     0
-       wcit                     0
-   wnfactor                     0
-        wxj                     0
-      wvsat                     0
-        wat                     0
-        wa0                     0
-       wags                     0
-        wa1                     0
-        wa2                     0
-      wketa                     0
-      wnsub                     0
-      wndep                     0
-       wnsd                     0
-      wphin                     0
-     wngate                     0
-    wgamma1                     0
-    wgamma2                     0
-       wvbx                     0
-       wvbm                     0
-        wxt                     0
-        wk1                     0
-       wkt1                     0
-      wkt1l                     0
-       wkt2                     0
-        wk2                     0
-        wk3                     0
-       wk3b                     0
-        ww0                     0
-     wdvtp0                     0
-     wdvtp1                     0
-      wlpe0                     0
-      wlpeb                     0
-      wdvt0                     0
-      wdvt1                     0
-      wdvt2                     0
-     wdvt0w                     0
-     wdvt1w                     0
-     wdvt2w                     0
-     wdrout                     0
-      wdsub                     0
-      wvth0                     0
-        wua                     0
-       wua1                     0
-        wub                     0
-       wub1                     0
-        wuc                     0
-       wuc1                     0
-        wud                     0
-       wud1                     0
-        wup                     0
-        wlp                     0
-        wu0                     0
-       wute                     0
-      wvoff                     0
-      wminv                     0
-     wdelta                     0
-      wrdsw                     0
-       wrsw                     0
-       wrdw                     0
-      wprwg                     0
-      wprwb                     0
-       wprt                     0
-      weta0                     0
-      wetab                     0
-      wpclm                     0
-   wpdiblc1                     0
-   wpdiblc2                     0
-   wpdiblcb                     0
-    wfprout                     0
-     wpdits                     0
-    wpditsd                     0
-    wpscbe1                     0
-    wpscbe2                     0
-      wpvag                     0
-        wwr                     0
-       wdwg                     0
-       wdwb                     0
-        wb0                     0
-        wb1                     0
-      wcgsl                     0
-      wcgdl                     0
-   wckappas                     0
-   wckappad                     0
-        wcf                     0
-       wclc                     0
-       wcle                     0
-    walpha0                     0
-    walpha1                     0
-     wbeta0                     0
-     wagidl                     0
-     wbgidl                     0
-     wcgidl                     0
-     wegidl                     0
-      waigc                     0
-      wbigc                     0
-      wcigc                     0
-     waigsd                     0
-     wbigsd                     0
-     wcigsd                     0
-   waigbacc                     0
-   wbigbacc                     0
-   wcigbacc                     0
-   waigbinv                     0
-   wbigbinv                     0
-   wcigbinv                     0
-      wnigc                     0
-   wnigbinv                     0
-   wnigbacc                     0
-      wntox                     0
-   weigbinv                     0
-     wpigcd                     0
-   wpoxedge                     0
-     wvfbcv                     0
-       wvfb                     0
-      wacde                     0
-      wmoin                     0
-      wnoff                     0
-    wvoffcv                     0
-    wxrcrg1                     0
-    wxrcrg2                     0
-    wlambda <<NAN, error = 7>>
-       wvtl <<NAN, error = 7>>
-        wxn <<NAN, error = 7>>
-        weu                     0
-  wvfbsdoff                     0
- wtvfbsdoff                     0
-     wtvoff                     0
-      pcdsc                     0
-     pcdscb                     0
-     pcdscd                     0
-       pcit                     0
-   pnfactor                     0
-        pxj                     0
-      pvsat                     0
-        pat                     0
-        pa0                     0
-       pags                     0
-        pa1                     0
-        pa2                     0
-      pketa                     0
-      pnsub                     0
-      pndep                     0
-       pnsd                     0
-      pphin                     0
-     pngate                     0
-    pgamma1                     0
-    pgamma2                     0
-       pvbx                     0
-       pvbm                     0
-        pxt                     0
-        pk1                     0
-       pkt1                     0
-      pkt1l                     0
-       pkt2                     0
-        pk2                     0
-        pk3                     0
-       pk3b                     0
-        pw0                     0
-     pdvtp0                     0
-     pdvtp1                     0
-      plpe0                     0
-      plpeb                     0
-      pdvt0                     0
-      pdvt1                     0
-      pdvt2                     0
-     pdvt0w                     0
-     pdvt1w                     0
-     pdvt2w                     0
-     pdrout                     0
-      pdsub                     0
-      pvth0                     0
-        pua                     0
-       pua1                     0
-        pub                     0
-       pub1                     0
-        puc                     0
-       puc1                     0
-        pud                     0
-       pud1                     0
-        pup                     0
-        plp                     0
-        pu0                     0
-       pute                     0
-      pvoff                     0
-      pminv                     0
-     pdelta                     0
-      prdsw                     0
-       prsw                     0
-       prdw                     0
-      pprwg                     0
-      pprwb                     0
-       pprt                     0
-      peta0                     0
-      petab                     0
-      ppclm                     0
-   ppdiblc1                     0
-   ppdiblc2                     0
-   ppdiblcb                     0
-    pfprout                     0
-     ppdits                     0
-    ppditsd                     0
-    ppscbe1                     0
-    ppscbe2                     0
-      ppvag                     0
-        pwr                     0
-       pdwg                     0
-       pdwb                     0
-        pb0                     0
-        pb1                     0
-      pcgsl                     0
-      pcgdl                     0
-   pckappas                     0
-   pckappad                     0
-        pcf                     0
-       pclc                     0
-       pcle                     0
-    palpha0                     0
-    palpha1                     0
-     pbeta0                     0
-     pagidl                     0
-     pbgidl                     0
-     pcgidl                     0
-     pegidl                     0
-      paigc                     0
-      pbigc                     0
-      pcigc                     0
-     paigsd                     0
-     pbigsd                     0
-     pcigsd                     0
-   paigbacc                     0
-   pbigbacc                     0
-   pcigbacc                     0
-   paigbinv                     0
-   pbigbinv                     0
-   pcigbinv                     0
-      pnigc                     0
-   pnigbinv                     0
-   pnigbacc                     0
-      pntox                     0
-   peigbinv                     0
-     ppigcd                     0
-   ppoxedge                     0
-     pvfbcv                     0
-       pvfb                     0
-      pacde                     0
-      pmoin                     0
-      pnoff                     0
-    pvoffcv                     0
-    pxrcrg1                     0
-    pxrcrg2                     0
-    plambda <<NAN, error = 7>>
-       pvtl <<NAN, error = 7>>
-        pxn <<NAN, error = 7>>
-        peu                     0
-  pvfbsdoff                     0
- ptvfbsdoff                     0
-     ptvoff                     0
-      saref              2.41e-06
-      sbref              2.41e-06
-       wlod                     0
-        ku0                     0
-      kvsat                     0
-      kvth0                     0
-       tku0                     0
-    llodku0                     0
-    wlodku0                     1
-    llodvth                     0
-    wlodvth                     1
-       lku0                     0
-       wku0                     0
-       pku0                     0
-     lkvth0                     0
-     wkvth0                     0
-     pkvth0                     0
-       stk2                     0
-      lodk2                     1
-     steta0                     0
-    lodeta0                     1
-        web                     0
-        wec                     0
-    kvth0we                     0
-       k2we                     0
-      ku0we                     0
-      scref                 1e-06
-     wpemod                     0
-   lkvth0we                     0
-      lk2we                     0
-     lku0we                     0
-   wkvth0we                     0
-      wk2we                     0
-     wku0we                     0
-   pkvth0we                     0
-      pk2we                     0
-     pku0we                     0
-       noia               2.6e+41
-       noib                     0
-       noic                     0
-      tnoia               7.5e+06
-      tnoib               7.2e+06
-      rnoia                 0.794
-      rnoib                  0.38
-      ntnoi                     1
-         em               4.1e+07
-         ef                  0.89
-         af                     1
-         kf                     0
-    vgs_max                 1e+99
-    vgd_max                 1e+99
-    vgb_max                 1e+99
-    vds_max                 1e+99
-    vbs_max                 1e+99
-    vbd_max                 1e+99
-   vgsr_max                 1e+99
-   vgdr_max                 1e+99
-   vgbr_max                 1e+99
-   vbsr_max                 1e+99
-   vbdr_max                 1e+99
-
  Capacitor models (Fixed capacitor)
       model                     C
 
@@ -2676,8 +1917,8 @@ No. of Data Rows : 1
  ASRC: Arbitrary Source 
      device b.xstartup.xr_gate.br b.xstartup.xr_pu.brbo b.xstartup.xr_bot.brb
       dtemp                     0                     0                     0
-          i           8.83711e-12           2.19796e-07           4.85369e-07
-          v           9.56645e-07               6.99806              0.899013
+          i           6.75807e-12           2.19796e-07           4.85369e-07
+          v           3.59171e-05               6.99806              0.899013
    pos_node                    13                    11                     8
    neg_node                    14                    12                     9
 
@@ -2733,7 +1974,7 @@ No. of Data Rows : 1
         vth              0.819732              0.974807              0.819732
          id           4.53551e-13           1.17995e-11           4.53551e-13
         ibd             -7.01e-12          -3.01324e-20             -7.01e-12
-        ibs           1.33187e-22           -1.1402e-27           1.33187e-22
+        ibs           1.33187e-22                     0           1.33187e-22
         gbd                 1e-12           1.28362e-12                 1e-12
         gbs           1.35889e-12           1.28362e-12           1.35889e-12
        isub           5.90217e-13           1.04449e-34           5.90217e-13
@@ -2744,7 +1985,7 @@ No. of Data Rows : 1
         igb                     0                     0                     0
        igcs                     0                     0                     0
        igcd                     0                     0                     0
-        vbs           1.96023e-10          -8.88178e-16           1.96023e-10
+        vbs           1.96023e-10                    -0           1.96023e-10
         vgs            0.00190516               6.99809            0.00190516
         vds                     7           2.34745e-08                     7
         cgg           2.17478e-15           1.05059e-14           2.17478e-15
@@ -2764,7 +2005,7 @@ No. of Data Rows : 1
         csb           -2.6882e-17          -1.82221e-15           -2.6882e-17
         cbb           2.14909e-15           3.19018e-15           2.14909e-15
       capbd           1.39381e-17           5.89256e-16           1.39381e-17
-      capbs          -6.31774e-17           5.89256e-16          -6.31774e-17
+      capbs          -6.31774e-17            1.9087e-16          -6.31774e-17
          qg           2.27543e-15           6.69785e-14           2.27543e-15
          qb          -2.26466e-15          -5.11866e-15          -2.26466e-15
          qd          -4.30699e-18          -3.09299e-14          -4.30699e-18
@@ -2775,10 +2016,10 @@ No. of Data Rows : 1
        gtau                     0                     0                     0
 
  BSIM4v5: Berkeley Short Channel IGFET Model-4
-     device m.xstartup.xmp_sd.msk m.xstartup.xmn_pu.msk m.xstartup.xmn_gate.m
-      model xstartup.xmp_sd:sky13 xstartup.xmn_pu:sky13 xstartup.xmn_gate:sky
-          l                 1e-06                 8e-06                 1e-06
-          w                 4e-06               4.2e-07                 5e-06
+     device m.xstartup.xmp_sd.msk m.xstartup.xmn_gate.m m.xstartup.xmn_det.ms
+      model xstartup.xmp_sd:sky13 xstartup.xmn_gate:sky xstartup.xmn_det:sky1
+          l                 1e-06                 2e-06                 1e-06
+          w                 4e-06                 2e-06                 1e-05
           m                     1                     1                     1
          nf                     1                     1                     1
          sa                     0                     0                     0
@@ -2811,143 +2052,58 @@ No. of Data Rows : 1
    rgatemod                     0                     0                     0
      geomod                     0                     0                     0
     rgeomod                     0                     0                     0
-       gmbs           1.02131e-12           6.18174e-22            7.7855e-12
-         gm           7.70482e-13           4.92236e-21           1.38763e-11
-        gds           0.000502652           3.17317e-24            3.0107e-14
-      vdsat               3.37981              0.050629             0.0376752
-        vth              0.974807               1.97255               0.81618
-         id           1.17995e-11           1.15669e-22            7.9107e-13
-        ibd          -3.01324e-20             -7.01e-12             -6.01e-12
-        ibs           -1.1402e-27             -6.01e-12           8.56281e-23
-        gbd           1.28362e-12                 1e-12                 1e-12
-        gbs           1.28362e-12                 1e-12           1.35889e-12
-       isub           1.04449e-34           8.23984e-34           4.11229e-13
-      igidl                     0                     0           1.62482e-12
+       gmbs           1.02131e-12           1.05414e-12           8.22895e-07
+         gm           7.70482e-13           2.02254e-12           2.06143e-06
+        gds           0.000502652           9.15163e-16           0.000114192
+      vdsat               3.37981             0.0359417              0.103072
+        vth              0.974807              0.804297              0.812549
+         id           1.17995e-11           7.40644e-14           2.19796e-07
+        ibd          -3.01324e-20          -6.00996e-12          -2.56606e-15
+        ibs                     0           6.24923e-23           2.17933e-26
+        gbd           1.28362e-12                 1e-12           1.33517e-12
+        gbs           1.28362e-12           1.35889e-12           1.35889e-12
+       isub           1.04449e-34           2.41507e-14           2.19953e-24
+      igidl                     0           6.49882e-13                     0
       igisl                     0                     0                     0
         igs                     0                     0                     0
         igd                     0                     0                     0
         igb                     0                     0                     0
        igcs                     0                     0                     0
        igcd                     0                     0                     0
-        vbs          -8.88178e-16                    -6           1.26026e-10
-        vgs               6.99809                     1            0.00190516
-        vds           2.34745e-08                     1                     6
-        cgg           1.05059e-14           1.41427e-15            5.4201e-15
-        cgs          -5.72326e-15          -1.42181e-17          -1.65483e-16
-        cgd          -5.23688e-15          -9.90679e-22           9.19387e-22
-        cbg          -8.79627e-19          -1.39887e-15          -5.21312e-15
-        cbd          -2.96437e-15          -9.36452e-23           9.12932e-22
-        cbs          -2.24936e-16          -3.11841e-18          -1.45297e-16
-        cdg          -5.25251e-15          -6.16313e-18          -8.27938e-17
-        cdd           5.46753e-15           8.61222e-22          -6.97079e-22
-        cds           1.60719e-15           6.93676e-18           1.24313e-16
-        csg          -5.25251e-15          -9.23893e-18          -1.24188e-16
-        csd           2.73371e-15           2.23101e-22          -1.13524e-21
-        css           4.34101e-15           1.03997e-17           1.86467e-16
-        cgb           4.54233e-16          -1.40005e-15          -5.25462e-15
-        cdb          -1.82221e-15          -7.74497e-19          -4.15189e-17
-        csb          -1.82221e-15            -1.161e-18          -6.22771e-17
-        cbb           3.19018e-15           1.40199e-15           5.35842e-15
-      capbd           5.89256e-16             2.927e-18           3.89676e-17
-      capbs           5.89256e-16           3.27328e-18          -1.57943e-16
-         qg           6.69785e-14           1.89487e-14           5.70578e-15
-         qb          -5.11866e-15          -1.89472e-14          -5.68117e-15
-         qd          -3.09299e-14          -5.92413e-19          -9.84377e-18
-         qs          -3.09299e-14          -8.88067e-19          -1.47654e-17
+        vbs                    -0           9.19754e-11           3.20758e-14
+        vgs               6.99809            0.00190516              0.899067
+        vds           2.34745e-08               5.99996            0.00190516
+        cgg           1.05059e-14            4.6595e-15           2.39101e-14
+        cgs          -5.72326e-15          -1.75185e-16          -9.36625e-15
+        cgd          -5.23688e-15          -5.82057e-23          -1.16855e-14
+        cbg          -8.79627e-19          -4.44135e-15          -1.82869e-16
+        cbd          -2.96437e-15          -3.94469e-23          -9.08383e-15
+        cbs          -2.24936e-16          -1.59674e-16          -3.00166e-15
+        cdg          -5.25251e-15           -8.7261e-17          -1.18626e-14
+        cdd           5.46753e-15           7.80789e-23           1.38542e-14
+        cds           1.60719e-15           1.33945e-16           2.71175e-15
+        csg          -5.25251e-15          -1.30889e-16          -1.18646e-14
+        csd           2.73371e-15           1.95737e-23           6.91516e-15
+        css           4.34101e-15           2.00914e-16           9.65616e-15
+        cgb           4.54233e-16          -4.48431e-15          -2.85835e-15
+        cdb          -1.82221e-15          -4.66842e-17          -4.70331e-15
+        csb          -1.82221e-15          -7.00249e-17           -4.7067e-15
+        cbb           3.19018e-15           4.60102e-15           1.22684e-14
+      capbd           5.89256e-16           1.55871e-17           5.46286e-16
+      capbs            1.9087e-16          -6.31774e-17          -3.15887e-16
+         qg           6.69785e-14            4.9672e-15           2.69266e-14
+         qb          -5.11866e-15          -4.94043e-15          -1.53518e-14
+         qd          -3.09299e-14          -1.07085e-17          -5.78083e-15
+         qs          -3.09299e-14          -1.60625e-17          -5.79405e-15
        qinv                     0                     0                     0
        qdef                    -0                     0                     0
        gcrg                     0                     0                     0
        gtau                     0                     0                     0
 
- BSIM4v5: Berkeley Short Channel IGFET Model-4
-     device m.xstartup.xmn_det.ms
-      model xstartup.xmn_det:sky1
-          l                 1e-06
-          w                 1e-05
-          m                     1
-         nf                     1
-         sa                     0
-         sb                     0
-         sd                     0
-        sca                     0
-        scb                     0
-        scc                     0
-         sc                     0
-        min                     0
-         ad                     0
-         as                     0
-         pd                     0
-         ps                     0
-        nrd                     0
-        nrs                     0
-        off                     0
-       rbdb                    50
-       rbsb                    50
-       rbpb                    50
-       rbps                    50
-       rbpd                    50
-     delvto                     0
-      mulu0                     1
-        xgw                     0
-      ngcon                     1
-   trnqsmod                     0
-   acnqsmod                     0
-   rbodymod                     1
-   rgatemod                     0
-     geomod                     0
-    rgeomod                     0
-       gmbs           8.22895e-07
-         gm           2.06143e-06
-        gds           0.000114192
-      vdsat              0.103072
-        vth              0.812549
-         id           2.19796e-07
-        ibd          -2.56606e-15
-        ibs           2.17933e-26
-        gbd           1.33517e-12
-        gbs           1.35889e-12
-       isub           2.19953e-24
-      igidl                     0
-      igisl                     0
-        igs                     0
-        igd                     0
-        igb                     0
-       igcs                     0
-       igcd                     0
-        vbs           3.20758e-14
-        vgs              0.899067
-        vds            0.00190516
-        cgg           2.39101e-14
-        cgs          -9.36625e-15
-        cgd          -1.16855e-14
-        cbg          -1.82869e-16
-        cbd          -9.08383e-15
-        cbs          -3.00166e-15
-        cdg          -1.18626e-14
-        cdd           1.38542e-14
-        cds           2.71175e-15
-        csg          -1.18646e-14
-        csd           6.91516e-15
-        css           9.65616e-15
-        cgb          -2.85835e-15
-        cdb          -4.70331e-15
-        csb           -4.7067e-15
-        cbb           1.22684e-14
-      capbd           5.46286e-16
-      capbs          -3.15887e-16
-         qg           2.69266e-14
-         qb          -1.53518e-14
-         qd          -5.78083e-15
-         qs          -5.79405e-15
-       qinv                     0
-       qdef                     0
-       gcrg                     0
-       gtau                     0
-
  Capacitor: Fixed capacitor
      device c.xstartup.xr_gate.xc c.xstartup.xr_gate.xc c.xstartup.xr_pu.xc0.
       model                     C                     C                     C
-capacitance              2.55e-15              2.55e-15            7.5005e-13
+capacitance            1.2505e-13            1.2505e-13            7.5005e-13
       dtemp                     0                     0                     0
      bv_max                 1e+99                 1e+99                 1e+99
           i                     0                     0                     0
@@ -2979,8 +2135,8 @@ capacitance               8.2e-13               8.2e-13
       dtemp                     0                     0                     0
      bv_max                 1e+99                 1e+99                 1e+99
       noisy                     1                     1                     1
-          i           8.83712e-12           8.83712e-12           2.19796e-07
-          p           6.23789e-21           6.23789e-21           3.85883e-12
+          i           6.75807e-12           6.75807e-12           2.19796e-07
+          p           3.64806e-21           3.64806e-21           3.85883e-12
 
  Resistor: Simple linear resistor
      device r.xstartup.xr_pu.rend r.xstartup.xr_bot.ren r.xstartup.xr_bot.ren
@@ -3021,8 +2177,8 @@ capacitance               8.2e-13               8.2e-13
         pwr                     0                     0                     0
        freq                     0                     0                     0
       phase                     0                     0                     0
-          i                     0          -1.48471e-11          -4.85369e-07
-          p                     0          -8.90827e-11          -2.42684e-06
+          i                     0          -6.75807e-12          -4.85369e-07
+          p                     0          -4.05484e-11          -2.42684e-06
 
  Vsource: Independent voltage source
      device                 vbvdd
@@ -3041,23 +2197,23 @@ capacitance               8.2e-13               8.2e-13
         pwr                     0
        freq                     0
       phase                     0
-          i          -2.19827e-07
-          p          -1.53879e-06
+          i           -2.1982e-07
+          p          -1.53874e-06
 
 
-Total analysis time (seconds) = 0.002
+Total analysis time (seconds) = 0.001
 
-Total elapsed time (seconds) = 0.330 
+Total elapsed time (seconds) = 0.359 
 
 Total DRAM available = 3834.176 MB.
-DRAM currently available =  154.531 MB.
-Maximum ngspice program size =   36.672 MB.
-Current ngspice program size =   20.098 MB.
+DRAM currently available =  235.699 MB.
+Maximum ngspice program size =   36.953 MB.
+Current ngspice program size =   20.316 MB.
 
-Shared ngspice pages =   10.727 MB.
+Shared ngspice pages =   10.668 MB.
 Text (code) pages =    6.156 MB.
 Stack = 0 bytes.
-Library pages =   17.426 MB.
+Library pages =   17.707 MB.
 
 
 --- Running tb_su_pvt.spice ---
@@ -3071,11 +2227,11 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.66500e-05 Reference value :  5.97500e-05 Reference value :  9.22500e-05 Reference value :  1.25150e-04 Reference value :  1.46150e-04 Reference value :  1.79150e-04Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  1.00000e-09 Reference value :  2.74500e-05 Reference value :  5.24500e-05 Reference value :  8.12500e-05 Reference value :  1.16450e-04 Reference value :  1.51650e-04 Reference value :  1.84650e-04Using SPARSE 1.3 as Direct Linear Solver
 
 No. of Data Rows : 2030
-pvdd_max_tt27       =  7.000318e+00 at=  7.030000e-06
-TT 27C: peak=7.00032 V, final=5.95746 V
+pvdd_max_tt27       =  7.000312e+00 at=  7.030000e-06
+TT 27C: peak=7.00031 V, final=5.95746 V
 Reset re-loads circuit * tb_su_pvt.spice — pvt corner analysis
 
 Circuit: * tb_su_pvt.spice — pvt corner analysis
@@ -3083,10 +2239,10 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  2.15049e-05 Reference value :  5.39049e-05 Reference value :  7.52049e-05 Reference value :  1.09605e-04 Reference value :  1.40605e-04 Reference value :  1.71905e-04Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  1.00000e-09 Reference value :  1.24003e-05 Reference value :  4.80003e-05 Reference value :  7.84003e-05 Reference value :  1.13400e-04 Reference value :  1.48800e-04 Reference value :  1.82900e-04Using SPARSE 1.3 as Direct Linear Solver
 
-No. of Data Rows : 2031
-pvdd_max_m40        =  6.999950e+00 at=  3.120492e-05
+No. of Data Rows : 2029
+pvdd_max_m40        =  6.999951e+00 at=  3.260025e-05
 TT -40C: peak=6.99995 V
 Reset re-loads circuit * tb_su_pvt.spice — pvt corner analysis
 
@@ -3095,13 +2251,13 @@ Circuit: * tb_su_pvt.spice — pvt corner analysis
 Doing analysis at TEMP = 150.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  1.79500e-05 Reference value :  5.15500e-05 Reference value :  8.70500e-05 Reference value :  1.21050e-04 Reference value :  1.54950e-04 Reference value :  1.88950e-04Warning from checkvalid: vector pm40 is not available or has zero length.
+ Reference value :  1.00000e-09 Reference value :  2.85500e-05 Reference value :  6.13500e-05 Reference value :  9.62500e-05 Reference value :  1.29150e-04 Reference value :  1.64250e-04 Reference value :  1.87850e-04Warning from checkvalid: vector pm40 is not available or has zero length.
 Error: RHS "(pm40 - 5.0) * 1000" invalid
 Warning from checkvalid: vector ovs_m40 is not available or has zero length.
 
 No. of Data Rows : 2025
-pvdd_max_150        =  7.000266e+00 at=  7.030000e-06
-TT 150C: peak=7.00027 V, final=6.15316 V
+pvdd_max_150        =  7.000263e+00 at=  7.030000e-06
+TT 150C: peak=7.00026 V, final=6.15316 V
 works_ss_150c: 1
 no_latch_stuck: 1
 no_overshoot_ff_m40: 1
@@ -3124,4 +2280,4 @@ Note: Simulation executed from .control section
 specs_pass: 10/11
 primary (startup_time_ss150_us): 0
 
-Run finished: Sun Mar 29 17:05:41 UTC 2026
+Run finished: Sun Mar 29 17:12:27 UTC 2026

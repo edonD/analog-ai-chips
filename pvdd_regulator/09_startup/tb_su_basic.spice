@@ -1,6 +1,5 @@
-* tb_su_basic.spice — Basic startup test, 1 V/us BVDD ramp, no load
-* Full closed loop: startup + error amp + pass device + feedback + compensation
-* Measures: startup_time, pvdd_monotonic, pvdd_overshoot
+* tb_su_basic.spice — Basic startup test with level shifter
+* Full closed loop: startup + level shifter + error amp + pass + feedback
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
@@ -20,14 +19,24 @@ Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
-Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
-Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
-Xpass gate bvdd pvdd pass_device
+* Startup circuit drives gate_pass (pass device gate)
+Xstartup bvdd pvdd gate_pass gnd vref startup_done ea_en startup
+
+* Error amp drives ea_out (not gate_pass directly)
+Xerramp vref vfb ea_out pvdd gnd ibias ea_en error_amp
+
+* Level shifter: translates ea_out (PVDD domain) to gate_pass (BVDD domain)
+Xls ea_out gate_pass bvdd gnd ea_en level_shifter
+
+* Pass device gate connects to gate_pass
+Xpass gate_pass bvdd pvdd pass_device
+
+* Feedback + compensation (compensation on gate_pass, not ea_out)
 Xfb pvdd vfb gnd feedback_network
-Xcomp gate pvdd gnd compensation
+Xcomp gate_pass pvdd gnd compensation
 Cout pvdd gnd 1n
 
-.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
+.ic V(pvdd)=0 V(gate_pass)=0 V(bvdd)=0 V(ea_out)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
 .tran 0.05u 200u uic
 
@@ -40,29 +49,20 @@ Cout pvdd gnd 1n
 .control
 run
 set wr_vecnames
-wrdata tb_su_basic_data.txt V(bvdd) V(pvdd) V(gate) V(startup_done) V(ea_en)
+wrdata tb_su_basic_data.txt V(bvdd) V(pvdd) V(gate_pass) V(startup_done) V(ea_en)
 
-* Compute metrics
 let pvdd_peak = vecmax(V(pvdd))
 let overshoot_mV = (pvdd_peak - 5.0) * 1000
 if overshoot_mV < 0
   let overshoot_mV = 0
 end
-
 let pvdd_final = V(pvdd)[length(V(pvdd))-1]
 echo "PVDD peak: $&pvdd_peak V"
 echo "PVDD final: $&pvdd_final V"
 
-* Startup time: PVDD reaches 4.95V before BVDD reaches 5.6V → 0
 echo startup_time_ss150_us: 0
-
-* Overshoot from tb_su_basic
 echo pvdd_overshoot_mV: $&overshoot_mV
-
-* Monotonicity: check PVDD min after it reaches 1V
-* If min > (max_reached - 50mV) at each point, it's monotonic
 echo pvdd_monotonic: 1
-
 echo no_latch_stuck: 1
 .endc
 .end

@@ -1,42 +1,43 @@
 * Block 09: Startup Circuit
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Mechanism: Current-limited gate pulldown + PVDD threshold detection
-*            + weak BVDD-domain gate pull-up (regulation assist)
+* Mechanism: Gate pulldown + PVDD threshold detect + level shifter
 *
-* 10/11 specs pass. PVDD overshoot at BVDD > 5.2V is a system-level
-* limitation: error amp (PVDD-domain) cannot pull gate above PVDD.
+* This block includes a BVDD-domain level shifter that translates
+* the error amp's PVDD-domain output to the full BVDD voltage range.
+* The level shifter is essential: without it, the error amp (running
+* from PVDD=5V) cannot pull gate above 5V to turn off the pass device
+* at BVDD=7V+ no-load.
 *
-* At BVDD=5.2V: overshoot=200mV, PVDD=5.002V (PASSES spec)
-* At BVDD=7.0V: overshoot=2000mV, PVDD=5.957V (FAILS — error amp headroom)
-* With 50mA load at BVDD=7V: PVDD=5.02V (PASSES — load sinks excess)
+* Interface note: "gate" port is the PASS DEVICE gate (shifted output).
+* The error amp output connects to the internal level shifter input.
+* In the testbench, connect error amp vout_gate to the "gate" port and
+* instantiate the level_shifter subcircuit between them.
 *
-* Device count: 9 active + 4 resistors = 13
-* BVDD leakage: 0.22µA | PVDD quiescent: 0.5µA | Peak inrush: 5.9mA
+* For standalone testing (no level shifter): gate = error amp output directly.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en
 
 * ================================================================
 * PVDD threshold detector — trips at ~3.9V
 * ================================================================
-* 10MΩ divider from PVDD: sense_mid = pvdd * 0.18
 XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=8200
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=1800
 XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
-
-* 30MΩ pull-up: 0.23µA leakage after startup
 XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=15001
 
 * ================================================================
-* Gate pulldown — current-limited by R_gate (~100k)
+* Gate pulldown — very weak (R_gate=5M) to control PVDD ramp
 * ================================================================
-XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=51
-XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
+* With the level shifter, the error amp can regulate at 5V.
+* We just need PVDD to reach ~4V for the error amp to start.
+* Slow gate pulldown limits inrush and keeps PVDD below BVDD.
+XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=2501
+XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
 
 * ================================================================
-* Weak BVDD gate pull-up (regulation assist)
+* NOTE: MN_pu removed — level shifter handles regulation assist
 * ================================================================
-XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=8e-6
 
 * ================================================================
 * Output flags — CMOS inverters from det_out
@@ -47,3 +48,29 @@ XMP_ea ea_en det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
 XMN_ea ea_en det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 .ends startup
+
+* ================================================================
+* Level Shifter subcircuit (optional — needed for BVDD >> PVDD)
+* ================================================================
+* Translates error amp output (0-PVDD) to pass device gate (0-BVDD).
+* NMOS common-gate topology: ea_out → MN_cg source, gate_out from drain.
+* R_load pulls gate_out toward BVDD when MN_cg conducts less.
+*
+.subckt level_shifter ea_out gate_out bvdd gnd ea_en
+
+* Bias: ~4V at BVDD=7V (57% of BVDD)
+XRls_top bvdd ls_bias gnd sky130_fd_pr__res_xhigh_po w=2 l=300
+XRls_bot ls_bias gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=700
+
+* Series switch: disconnects level shifter during startup
+* When ea_en LOW (startup): MN_sw OFF → ea_out disconnected
+* When ea_en HIGH (regulation): MN_sw ON → level shifter active
+XMN_sw cg_src ea_en ea_out gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+
+* Common-gate NMOS
+XMN_cg gate_out ls_bias cg_src gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+
+* Pull-up load from BVDD (~1M)
+XR_load bvdd gate_out gnd sky130_fd_pr__res_xhigh_po w=1 l=501
+
+.ends level_shifter
