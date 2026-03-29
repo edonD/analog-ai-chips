@@ -1,5 +1,5 @@
 === Block 08: Mode Control ===
-Run started: Sun Mar 29 20:01:27 UTC 2026
+Run started: Sun Mar 29 21:16:23 UTC 2026
 
 --- Running tb_mc_ramp_normal.spice ---
 Using SPARSE 1.3 as Direct Linear Solver
@@ -12,7 +12,7 @@ Circuit: * testbench: mode control — normal ramp (1 v/µs)
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.85707e-06 Reference value :  5.52058e-06 Reference value :  9.56256e-06
+ Reference value :  1.00000e-10 Reference value :  2.50409e-06 Reference value :  4.44306e-06 Reference value :  7.86256e-06
 No. of Data Rows : 1322
 thresh_por_v        =  2.507080e+00
 thresh_ret_v        =  4.158363e+00
@@ -42,11 +42,6 @@ Error: measure  g_uv2  find(AT) : out of interval
 
 
 Error: measure  g_po2  find(AT) : out of interval
-Warning from checkvalid: vector g_by3 is not available or has zero length.
-Warning from checkvalid: vector g_ea3 is not available or has zero length.
-Warning from checkvalid: vector g_rs2 is not available or has zero length.
-Warning from checkvalid: vector g_uv2 is not available or has zero length.
-Warning from checkvalid: vector g_po2 is not available or has zero length.
  meas tran g_po2 find v(bvdd) when v(pass_off)=2.5 fall=2 td=2u failed!
 
 glitch_free: 1
@@ -63,7 +58,7 @@ Circuit: * testbench: mode control — fast ramp (12 v/us)
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-11 Reference value :  3.42250e-07 Reference value :  6.17874e-07
+ Reference value :  1.00000e-11 Reference value :  2.45250e-07 Reference value :  4.85061e-07 Reference value :  8.54874e-07
 No. of Data Rows : 1093
 th1                 =  2.749101e+00
 th2                 =  4.480320e+00
@@ -88,7 +83,7 @@ Circuit: * testbench: mode control — slow ramp (0.1 v/us)
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-09 Reference value :  3.69121e-05 Reference value :  6.04464e-05 Reference value :  1.09350e-04
+ Reference value :  1.00000e-09 Reference value :  1.74568e-05 Reference value :  3.77121e-05 Reference value :  5.45925e-05 Reference value :  8.56464e-05
 No. of Data Rows : 1235
 th1                 =  2.453922e+00
 th2                 =  4.097503e+00
@@ -186,7 +181,7 @@ vsvdd#branch                                 0
 vpvdd#branch                      -1.77077e-06
 vbvdd#branch                      -2.58787e-05
 
- Reference value :  0.00000e+00 Reference value :  4.08280e-06 Reference value :  6.59123e-06 Reference value :  9.93986e-06
+ Reference value :  0.00000e+00 Reference value :  3.26280e-06 Reference value :  5.23671e-06 Reference value :  7.15737e-06 Reference value :  9.84986e-06
 No. of Data Rows : 1299
 th4f                =  5.286037e+00
 th3f                =  4.210051e+00
@@ -206,7 +201,7 @@ Circuit: * testbench: mode control — hysteresis (triangle ramp up/down)
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  2.50722e-06 Reference value :  4.43918e-06 Reference value :  6.54256e-06 Reference value :  1.05150e-05 Reference value :  1.39050e-05 Reference value :  1.67997e-05 Reference value :  1.96740e-05
+ Reference value :  1.00000e-10 Reference value :  3.14707e-06 Reference value :  5.52485e-06 Reference value :  9.68256e-06 Reference value :  1.39350e-05 Reference value :  1.67976e-05 Reference value :  1.95340e-05
 No. of Data Rows : 2418
 th1r                =  2.506849e+00
 th2r                =  4.159613e+00
@@ -235,39 +230,36 @@ Circuit: * testbench: mode control — quiescent current
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  1.26785e-06 Reference value :  5.79785e-06 Reference value :  1.04379e-05
+ Reference value :  1.00000e-10 Reference value :  1.07940e-07 Reference value :  3.47785e-06 Reference value :  7.25785e-06 Reference value :  1.12179e-05 Reference value :  1.45579e-05
 No. of Data Rows : 1651
 iq_val              =  -1.726334e-05 from=  1.000000e-05 to=  1.400785e-05
 iq_active_uA: 17.2633
 Note: Simulation executed from .control section 
 
 --- Running tb_mc_pvt.spice ---
-Using SPARSE 1.3 as Direct Linear Solver
+Running TT corner...
+Running SS corner...
+Running FF corner...
+Running SF corner...
+Running FS corner...
+  TT: POR=2.507V  RET=4.158V  PUP=4.439V  ACT=5.520V  max_err=1.43%
+  SS: POR=2.508V  RET=4.159V  PUP=4.439V  ACT=5.519V  max_err=1.45%
+  FF: POR=2.502V  RET=4.152V  PUP=4.432V  ACT=5.512V  max_err=1.58%
+  SF: POR=2.342V  RET=3.881V  PUP=4.143V  ACT=5.149V  max_err=8.05%
+  FS: POR=2.672V  RET=4.436V  PUP=4.735V  ACT=5.890V  max_err=6.89%
+thresh_max_error_pct: 8.0488
+Note: No ".plot", ".print", or ".fourier" lines; no simulations run
 
 Note: No compatibility mode selected!
 
 
-Circuit: * testbench: mode control — pvt (tt corner only)
+Circuit: * testbench: mode control — pvt (all 5 corners)
 
-Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
-
-Using transient initial conditions
- Reference value :  1.00000e-10 Reference value :  3.16707e-06 Reference value :  5.52112e-06 Reference value :  9.97256e-06
-No. of Data Rows : 1322
-thresh_por_v        =  2.507080e+00
-thresh_ret_v        =  4.158363e+00
-thresh_pup_v        =  4.439253e+00
-thresh_act_v        =  5.519689e+00
-thresh_por_V: 2.50708
-thresh_ret_V: 4.15836
-thresh_pup_V: 4.43925
-thresh_act_V: 5.51969
-thresh_max_error_pct: 1.43413
-Note: Simulation executed from .control section 
+WARNING: tb_mc_pvt.spice exited with code 1
 
 --- Evaluation ---
 ---
-* thresh_max_error_pct                  1.434  pct       (spec <= 15.0)  PASS
+* thresh_max_error_pct                  8.049  pct       (spec <= 15.0)  PASS
   thresh_por_V                          2.507  V         (spec >= 2.3)  PASS
   thresh_por_V_max                      2.507  V         (spec <= 2.7)  PASS
   thresh_ret_V                          4.158  V         (spec >= 4.0)  PASS
@@ -284,6 +276,6 @@ Note: Simulation executed from .control section
   works_slow_ramp                           1  bool      (spec >= 1.0)  PASS
   iq_active_uA                          17.26  uA        (spec <= 20.0)  PASS
 specs_pass: 16/16
-primary (thresh_max_error_pct): 1.43413
+primary (thresh_max_error_pct): 8.0488
 
-Run finished: Sun Mar 29 20:01:36 UTC 2026
+Run finished: Sun Mar 29 21:16:38 UTC 2026

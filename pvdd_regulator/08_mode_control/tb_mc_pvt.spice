@@ -1,40 +1,7 @@
-* Testbench: Mode Control — PVT (TT corner only)
-.include "parasitic_res_po.spice"
-.lib "../sky130.lib.spice" tt
-.include "design.cir"
-.option method=gear reltol=1e-3 abstol=1e-12 vntol=1e-6 gmin=1e-12
-.option itl1=300 itl2=200 itl4=50
-Vbvdd bvdd gnd PWL(0 0 10.5u 10.5)
-Vpvdd pvdd gnd 5.0
-Vsvdd svdd gnd 2.2
-Vref  vref gnd 1.226
-Ven   en_ret gnd 0
-XDUT bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off mode_control
-.tran 10n 12u uic
+* Testbench: Mode Control — PVT (all 5 corners)
+* Delegates to run_pvt.py which generates and runs per-corner netlists
+V1 dummy 0 0
 .control
-run
-meas tran thresh_por_v FIND v(bvdd) WHEN v(bypass_en)=0.5 RISE=1 TD=2u
-meas tran thresh_ret_v FIND v(bvdd) WHEN v(ea_en)=0.5 RISE=1 TD=2u
-meas tran thresh_pup_v FIND v(bvdd) WHEN v(bypass_en)=0.5 RISE=2 TD=2u
-meas tran thresh_act_v FIND v(bvdd) WHEN v(uvov_en)=0.5 RISE=1 TD=2u
-let e1 = abs(thresh_por_v - 2.5)/2.5*100
-let e2 = abs(thresh_ret_v - 4.2)/4.2*100
-let e3 = abs(thresh_pup_v - 4.5)/4.5*100
-let e4 = abs(thresh_act_v - 5.6)/5.6*100
-let max_err = e1
-if e2 > max_err
-  let max_err = e2
-end
-if e3 > max_err
-  let max_err = e3
-end
-if e4 > max_err
-  let max_err = e4
-end
-echo "thresh_por_V: $&thresh_por_v"
-echo "thresh_ret_V: $&thresh_ret_v"
-echo "thresh_pup_V: $&thresh_pup_v"
-echo "thresh_act_V: $&thresh_act_v"
-echo "thresh_max_error_pct: $&max_err"
+shell python3 run_pvt.py
 .endc
 .end
