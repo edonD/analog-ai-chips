@@ -256,6 +256,8 @@ Update this section after every commit.
 | 8 | Mobile nav dot overlap | ✅ Done | 4d09e9d (confirmed OK, no change needed) |
 | 9 | Loader CDN timing guard | ✅ Done | 4d09e9d |
 | 10 | Three.js mobile density | ✅ Done | 4d09e9d |
+| 11 | TAU redeclaration in canvas-neuro + canvas-csac (neuro + CSAC invisible) | ✅ Fixed | e8319d7 |
+| 12 | Visual polish pass — waves, stats, chip glow | ✅ Done | 55d3af9 |
 
 ---
 
