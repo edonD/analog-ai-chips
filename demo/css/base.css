@@ -230,6 +230,9 @@ body:has(a:hover) #cursor-ring{width:52px;height:52px;border-color:var(--violet)
   .scene{padding:60px 20px}
   .scene-tall{min-height:120vh}
 
+  /* hero title — prevent wrapping on narrow screens */
+  .hero-title{font-size:clamp(2.8rem,15vw,4.5rem)!important;white-space:nowrap}
+
   /* nav dots smaller on mobile */
   .nav-dots{right:0.75rem;gap:7px}
   .nav-dot{width:4px;height:4px}
