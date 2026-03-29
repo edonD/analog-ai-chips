@@ -78,13 +78,13 @@ def plot_iv_characteristic():
 def plot_iv_vs_temperature():
     """Plot I-V curves at multiple temperatures."""
     temps = [-40, 27, 85, 150]
+    fnames = ['iv_temp_m40.txt', 'iv_temp_27.txt', 'iv_temp_85.txt', 'iv_temp_150.txt']
     colors = ['blue', 'green', 'orange', 'red']
 
     fig, ax = plt.subplots(figsize=(8, 5))
 
     found_any = False
-    for temp, color in zip(temps, colors):
-        fname = f'iv_temp_{temp}.txt'
+    for temp, fname, color in zip(temps, fnames, colors):
         if not os.path.exists(fname):
             continue
         v, i = load_wrdata(fname)

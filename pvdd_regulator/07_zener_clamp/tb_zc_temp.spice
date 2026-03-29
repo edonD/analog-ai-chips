@@ -13,61 +13,59 @@ Xclamp pvdd 0 zener_clamp
 
 .control
 
-* --- Temperature sweep ---
-set temps = ( -40 27 85 150 )
-set run_idx = 0
-foreach t $temps
-  set temp = $t
-  dc Vpvdd 0 8 0.005
-  let i_clamp = -i(Vpvdd)
-
-  * Find 1mA onset
-  let idx = 0
-  let v_1ma = 0
-  dowhile idx < length(i_clamp)
-    if i_clamp[idx] >= 1m
-      let v_1ma = v(pvdd)[idx]
-      let idx = length(i_clamp)
-    end
-    let idx = idx + 1
-  end
-  echo "temp_${t}_onset_1mA_V: $&v_1ma"
-
-  * Save per-temperature data
-  wrdata iv_temp_${t}.txt i_clamp vs v(pvdd)
-
-  let run_idx = run_idx + 1
-end
-
-* Extract key metrics for evaluate.py
-* Re-run specific temps for clean extraction
-set temp = 150
-dc Vpvdd 0 8 0.005
-let i_clamp = -i(Vpvdd)
-let idx = 0
-let v_1ma_150 = 0
-dowhile idx < length(i_clamp)
-  if i_clamp[idx] >= 1m
-    let v_1ma_150 = v(pvdd)[idx]
-    let idx = length(i_clamp)
-  end
-  let idx = idx + 1
-end
-echo "clamp_onset_150c_V: $&v_1ma_150"
-
+* --- -40C ---
 set temp = -40
 dc Vpvdd 0 8 0.005
 let i_clamp = -i(Vpvdd)
+wrdata iv_temp_m40.txt i_clamp vs v(pvdd)
 let idx = 0
-let v_1ma_m40 = 0
+let v_1ma = 0
 dowhile idx < length(i_clamp)
   if i_clamp[idx] >= 1m
-    let v_1ma_m40 = v(pvdd)[idx]
+    let v_1ma = v(pvdd)[idx]
     let idx = length(i_clamp)
   end
   let idx = idx + 1
 end
-echo "clamp_onset_m40c_V: $&v_1ma_m40"
+echo "clamp_onset_m40c_V: $&v_1ma"
+
+* --- 27C ---
+set temp = 27
+dc Vpvdd 0 8 0.005
+let i_clamp = -i(Vpvdd)
+wrdata iv_temp_27.txt i_clamp vs v(pvdd)
+let idx = 0
+let v_1ma = 0
+dowhile idx < length(i_clamp)
+  if i_clamp[idx] >= 1m
+    let v_1ma = v(pvdd)[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+echo "temp_27_onset_1mA_V: $&v_1ma"
+
+* --- 85C ---
+set temp = 85
+dc Vpvdd 0 8 0.005
+let i_clamp = -i(Vpvdd)
+wrdata iv_temp_85.txt i_clamp vs v(pvdd)
+
+* --- 150C ---
+set temp = 150
+dc Vpvdd 0 8 0.005
+let i_clamp = -i(Vpvdd)
+wrdata iv_temp_150.txt i_clamp vs v(pvdd)
+let idx = 0
+let v_1ma = 0
+dowhile idx < length(i_clamp)
+  if i_clamp[idx] >= 1m
+    let v_1ma = v(pvdd)[idx]
+    let idx = length(i_clamp)
+  end
+  let idx = idx + 1
+end
+echo "clamp_onset_150c_V: $&v_1ma"
 
 quit
 .endc
