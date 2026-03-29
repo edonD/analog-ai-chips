@@ -1,6 +1,4 @@
 /* ─── ANIMATIONS ─── */
-const TAU = Math.PI*2;
-
 gsap.registerPlugin(ScrollTrigger);
 
 /* ─── OPENING SEQUENCE ─── */
