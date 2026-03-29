@@ -41,9 +41,10 @@ XRpbias pbias gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=30
 * Separate voltage divider from BVDD sets the tap ratio
 * Inverter from PVDD: trip at ~1.4V. Divider ratio = 1.4/2.5 = 0.56
 * PFET W=20 (min), NFET W=60 → lower trip point
-* Divider: ratio=0.73, Rtotal~600kΩ for moderate BVDD current
-XRc1top bvdd c1tap gnd sky130_fd_pr__res_xhigh_po w=1 l=80
-XRc1bot c1tap gnd  gnd sky130_fd_pr__res_xhigh_po w=1 l=220
+* Divider: ratio=0.82, Rtotal~300kΩ for faster RC response
+* At BVDD=2.5V: c1tap_ss = 2.5*0.82 = 2.05V → above trip ~1.82V
+XRc1top bvdd c1tap gnd sky130_fd_pr__res_xhigh_po w=1 l=20
+XRc1bot c1tap gnd  gnd sky130_fd_pr__res_xhigh_po w=1 l=130
 C_c1tap c1tap gnd 50f
 * Inverter from PVDD: W_p=W_n=20µm → trip ~1.82V
 XMc1ivp c1inv c1tap pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=20e-6
