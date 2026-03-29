@@ -1,5 +1,5 @@
 === Block 04: Current Limiter ===
-Run started: Sat Mar 28 23:56:57 UTC 2026
+Run started: Sun Mar 29 00:02:44 UTC 2026
 
 --- Running tb_ilim_trip.spice ---
 ilim_tt27_mA: 78.9728
@@ -53,4 +53,4 @@ loop_pm_with_limiter_deg: 50.0
 specs_pass: 9/9
 primary (ilim_ss150_mA): 135.695
 
-Run finished: Sat Mar 28 23:57:05 UTC 2026
+Run finished: Sun Mar 29 00:02:55 UTC 2026
