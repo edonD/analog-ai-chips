@@ -58,8 +58,8 @@ XMp_ld vout_gate pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m
 * ================================================================
 * Miller compensation: Cc + Rc from vout_gate to d2
 * ================================================================
-* Cc = 102pF (all TT specs pass)
-Cc d2 comp_mid 102p
+* Cc = 104pF (optimized — all TT specs pass)
+Cc d2 comp_mid 104p
 * Rc = 12.3k nulling resistor
 Rc comp_mid vout_gate 12.3k
 
