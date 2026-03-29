@@ -132,23 +132,34 @@ on('#s5', ()=>{
   tl.to(['#pfey','#pfh','#pfp'],{opacity:1,y:0,duration:0.5,stagger:0.1})
     .to('#term',{opacity:1,y:0,duration:0.7,ease:'power2.out'},'-=0.1');
 
-  // typewriter: each line appears then "types" by expanding width
+  const isMobile = window.innerWidth < 768;
   const lines = document.querySelectorAll('.tl');
-  lines.forEach((ln, i) => {
-    // set each line: visible but clipped at width:0
-    gsap.set(ln, { opacity:1, x:0, overflow:'hidden', whiteSpace:'nowrap', maxWidth:'0%' });
-    tl.to(ln, {
-      maxWidth:'100%',
-      duration: 0.35 + ln.textContent.trim().length * 0.004,
-      ease:'steps(30)',
-      delay: i === 0 ? 0.15 : 0,
-    }, `>+${i===0 ? 0 : 0.05}`);
-  });
 
-  // after last line, re-allow wrapping for readability on narrow screens
-  tl.call(()=>{
-    lines.forEach(ln=>{ ln.style.whiteSpace=''; ln.style.maxWidth=''; });
-  });
+  if (isMobile) {
+    // On mobile: simple fade-in stagger — no maxWidth clip that breaks wrapping
+    lines.forEach((ln, i) => {
+      tl.to(ln, {
+        opacity: 1,
+        duration: 0.25,
+        ease: 'power1.out',
+      }, `>+${i === 0 ? 0.15 : 0.05}`);
+    });
+  } else {
+    // Desktop: typewriter by expanding maxWidth
+    lines.forEach((ln, i) => {
+      gsap.set(ln, { opacity:1, x:0, overflow:'hidden', whiteSpace:'nowrap', maxWidth:'0%' });
+      tl.to(ln, {
+        maxWidth:'100%',
+        duration: 0.35 + ln.textContent.trim().length * 0.004,
+        ease:'steps(30)',
+        delay: i === 0 ? 0.15 : 0,
+      }, `>+${i===0 ? 0 : 0.05}`);
+    });
+    // after last line, re-allow wrapping for readability on narrow screens
+    tl.call(()=>{
+      lines.forEach(ln=>{ ln.style.whiteSpace=''; ln.style.maxWidth=''; });
+    });
+  }
 });
 
 // S6

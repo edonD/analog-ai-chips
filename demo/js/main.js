@@ -42,16 +42,34 @@ const loaderPct  = document.getElementById('loader-pct');
 const loaderEl   = document.getElementById('loader');
 
 let loadVal = 0;
+let pageLoaded = false;
+
+// Only complete the loader after window.load fires (all scripts ready)
+window.addEventListener('load', () => { pageLoaded = true; });
+
 const loadTick = setInterval(() => {
   loadVal += Math.random() * 18 + 4;
   if (loadVal >= 100) {
     loadVal = 100;
+    loaderFill.style.width = '100%';
+    loaderPct.textContent = 'INITIALIZING 100%';
     clearInterval(loadTick);
-    setTimeout(() => {
-      gsap.to(loaderEl, { opacity:0, duration:0.6, ease:'power2.in',
-        onComplete: () => { loaderEl.style.display='none'; startOpening(); }
-      });
-    }, 220);
+
+    // Wait for window.load before starting GSAP animations
+    const finishLoader = () => {
+      setTimeout(() => {
+        gsap.to(loaderEl, { opacity:0, duration:0.6, ease:'power2.in',
+          onComplete: () => { loaderEl.style.display='none'; startOpening(); }
+        });
+      }, 220);
+    };
+
+    if (pageLoaded) {
+      finishLoader();
+    } else {
+      window.addEventListener('load', finishLoader, { once: true });
+    }
+    return;
   }
   loaderFill.style.width = loadVal + '%';
   loaderPct.textContent = `INITIALIZING ${Math.floor(loadVal)}%`;

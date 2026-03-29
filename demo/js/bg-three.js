@@ -17,8 +17,8 @@
     camera.updateProjectionMatrix();
   });
 
-  // particles
-  const N = 1800;
+  // particles — reduce density on mobile for performance
+  const N = window.innerWidth < 768 ? 600 : 1800;
   const positions = new Float32Array(N*3);
   const colors    = new Float32Array(N*3);
   const sizes     = new Float32Array(N);

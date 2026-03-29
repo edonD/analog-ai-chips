@@ -3,8 +3,16 @@
   const canvas = document.getElementById('wave-c');
   const ctx = canvas.getContext('2d');
   let W,H,t=0;
-  function resize(){ W=canvas.width=canvas.offsetWidth; H=canvas.height=canvas.offsetHeight }
-  resize(); window.addEventListener('resize',resize);
+  function resize(){
+    const parent = canvas.parentElement;
+    W = canvas.width  = parent ? parent.offsetWidth  : window.innerWidth;
+    H = canvas.height = parent ? parent.offsetHeight : window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(resize).observe(canvas.parentElement || document.body);
+  }
   function draw(){
     requestAnimationFrame(draw);
     t+=0.012;
