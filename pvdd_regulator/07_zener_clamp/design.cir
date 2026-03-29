@@ -7,8 +7,9 @@
 *   W=1.5u: narrow devices for low leakage with margin.
 *   Body = Source (isolated P-well via deep N-well — see Issue #1 analysis).
 *
-*   Rpd=600k: larger pulldown to further suppress gate voltage at 5V.
-*   At onset: I_stack needs higher PVDD to develop enough vg for clamp.
+*   Rpd=500k: balanced pulldown for good TT margins.
+*   At 5.0V: stack current ~430nA, vg ~215mV, clamp OFF.
+*   At onset (~6.1V): I_stack ~1.8uA, vg ~0.9V, clamp activates.
 *
 *   Cff=20pF for transient feedforward.
 *
@@ -28,7 +29,7 @@ XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 
 * ================================================================
-* GATE PULLDOWN: 800 kOhm
+* GATE PULLDOWN: 500 kOhm
 * ================================================================
 Rpd vg gnd 500k
 
