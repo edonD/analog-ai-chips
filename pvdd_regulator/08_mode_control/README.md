@@ -50,6 +50,9 @@ All logic gates powered from PVDD (5V) to avoid cross-domain crowbar current:
 ### Mode Transition Timing (1V/µs)
 ![Mode transition full](mode_transition_full.png)
 
+### Mode Transition — Fast Ramp (12V/µs)
+![Mode transition fast ramp](mode_transition_fast.png)
+
 ### Threshold Accuracy
 ![Threshold PVT](threshold_pvt.png)
 
