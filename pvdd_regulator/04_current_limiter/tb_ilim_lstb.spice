@@ -1,80 +1,112 @@
-* tb_ilim_lstb.spice — Loop stability with limiter
-* v2: Honest measurement — print UNMEASURED if real closed-loop sim not possible
-*
-* A true LSTB requires the full closed-loop (error amp + pass device + feedback).
-* Blocks 02/03 are stubs, so we attempt a simplified inline loop.
-* If the AC analysis fails or gives unreliable results, report UNMEASURED.
+* tb_ilim_lstb.spice — Loop stability with limiter (v2)
+* Real error amp + pass device + limiter, break-loop AC measurement
 *
 .include "parasitic_res_po.spice"
 .lib "sky130.lib.spice" tt
 .temp 27
 
-Vbvdd bvdd 0 DC 7.0
-
-* Pass device (Block 01: 10x W=100u L=0.5u)
-XM1  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM2  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM3  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM4  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM5  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM6  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM7  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-
+.include "error_amp_scaled.cir"
 .include "design.cir"
-Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
 
-* Simplified error amp: VCVS with gain=-1000, 1MHz bandwidth
-* Vin+ = Vref=1.226, Vin- = vfb
-* Vout = gate voltage
+Vbvdd bvdd 0 DC 7.0
 Vref vref 0 DC 1.226
+Ibias bvdd ibias DC 1u
+Ven en 0 DC 7.0
 
-* Feedback divider (308k/100k for 1.226V at pvdd=5V)
-Rtop pvdd vfb 308k
-Rbot vfb 0 100k
+* Error amplifier
+Xea vref vfb_ea vout_gate bvdd 0 ibias en error_amp
 
-* Error amp model: E source with finite bandwidth
-* Gain = -1000 from (vref - vfb), single-pole at 1kHz for 1MHz GBW
-Eamp amp_out 0 vref vfb 1000
-Ramp amp_out gate_filt 10k
-Camp gate_filt 0 16n
+* Pass device
+XM1  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd vout_gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 
-* Gate drive through Rgate
-Rgate gate_filt gate_int 10k
+* Current limiter
+Xlim vout_gate bvdd pvdd 0 ilim_flag current_limiter
 
-* Force pvdd operating point
-Vpvdd pvdd 0 DC 5.0
+* Feedback divider
+Rtop pvdd vfb_div 308k
+Rbot vfb_div 0 100k
 
-* Load
+* Load + output cap
 Rload pvdd 0 100
+Cload pvdd 0 200p
 
-.nodeset v(pvdd)=5 v(gate_int)=5.5 v(vfb)=1.226
+* === Break-loop measurement ===
+* At DC: Lbreak is short → vfb_ea = vfb_div (normal closed loop)
+* At AC: Lbreak blocks → vfb_ea holds DC bias, Vac perturbs vfb_ea
+*
+* Lbreak: passes DC between divider output and error amp input
+Lbreak vfb_div vfb_ea 100Meg
+
+* AC injection via capacitor (blocks DC, passes AC)
+* Cinj + Vac injects AC only at vfb_ea
+Vac ac_src 0 AC 1 DC 0
+Cinj ac_src vfb_ea 100
+
+.nodeset v(pvdd)=5 v(vout_gate)=5.5 v(vfb_ea)=1.226 v(vfb_div)=1.226
 
 .option reltol=1e-4 gmin=1e-12
 
 .control
-* Try to find DC operating point first
 op
+echo "=== LSTB Operating Point ==="
+echo "pvdd: $&v(pvdd)"
+echo "vout_gate: $&v(vout_gate)"
+echo "vfb_ea: $&v(vfb_ea)"
+echo "vfb_div: $&v(vfb_div)"
 
-* Check if the operating point converged to a reasonable state
-let vpvdd_op = v(pvdd)
-let vgate_op = v(gate_int)
-echo "=== LSTB DC Operating Point ==="
-echo "pvdd_op: $&vpvdd_op"
-echo "gate_op: $&vgate_op"
+ac dec 50 1 100Meg
 
-* Since this is a simplified model without true loop break,
-* and the error amp is a behavioral VCVS (not a real transistor-level OTA),
-* any PM measurement would be approximate at best and misleading at worst.
-*
-* The honest answer: without the real error amp transistor models (which need
-* 1.8V device models not in our sky130.lib.spice), we cannot reliably measure
-* the loop phase margin with the limiter in the circuit.
-*
-* Report UNMEASURED rather than a fake value.
-echo "loop_pm_with_limiter_deg: UNMEASURED"
+* Open-loop gain T(s) = V(vfb_div) per unit injection at vfb_ea
+* V(vfb_div) is the signal returned through the loop
+* Vac injects through Cinj into vfb_ea, blocked from vfb_div by Lbreak
+let tloop_dB = db(v(vfb_div))
+let tloop_ph = 180/3.14159265*ph(v(vfb_div))
+
+meas ac g1 find tloop_dB at=1
+meas ac g10 find tloop_dB at=10
+meas ac g100 find tloop_dB at=100
+meas ac g1k find tloop_dB at=1000
+meas ac g10k find tloop_dB at=10000
+meas ac g100k find tloop_dB at=100000
+
+echo "gain_1Hz: $&g1"
+echo "gain_10Hz: $&g10"
+echo "gain_100Hz: $&g100"
+echo "gain_1kHz: $&g1k"
+echo "gain_10kHz: $&g10k"
+echo "gain_100kHz: $&g100k"
+
+meas ac f_ugb when tloop_dB = 0 fall=last
+
+if f_ugb > 0
+  meas ac pm_raw find tloop_ph at=f_ugb
+  * T(s) starts at +180 degrees (negative feedback). PM is the phase at UGB.
+  * The system is unstable when phase reaches 0 degrees.
+  * PM = phase at UGB (which starts from 180 and decreases).
+  let pm = pm_raw
+  echo "loop_pm_with_limiter_deg: $&pm"
+  echo "unity_gain_bw_Hz: $&f_ugb"
+else
+  meas ac f_ugb2 when tloop_dB = 0 cross=last
+  if f_ugb2 > 0
+    meas ac pm_raw2 find tloop_ph at=f_ugb2
+    let pm2 = pm_raw2
+    echo "loop_pm_with_limiter_deg: $&pm2"
+    echo "unity_gain_bw_Hz: $&f_ugb2"
+  else
+    echo "loop_pm_with_limiter_deg: UNMEASURED"
+    echo "Note: No 0dB crossing found"
+  end
+end
 
 quit
 .endc

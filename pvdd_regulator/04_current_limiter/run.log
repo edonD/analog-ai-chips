@@ -1,5 +1,5 @@
 === Block 04: Current Limiter (v2) ===
-Run started: Sun Mar 29 11:56:37 UTC 2026
+Run started: Sun Mar 29 12:08:13 UTC 2026
 
 --- Running tb_ilim_trip.spice ---
 ilim_tt27_mA: 78.2587
@@ -33,7 +33,7 @@ sense_quiescent_uA: 0.000215443
 pvdd_impact_mV: 0
 
 --- Running tb_ilim_lstb.spice ---
-loop_pm_with_limiter_deg: UNMEASURED
+loop_pm_with_limiter_deg: 104.896
 
 --- Running tb_ilim_short.spice ---
 short_circuit_with_limiter_mA: 103.679
@@ -54,9 +54,9 @@ Circuit: * tb_ilim_iv.spice — iout vs vout i-v curve showing current limiting
   response_time_us                        0.1  us        (spec <= 10.0)  PASS
   pvdd_impact_mV                            0  mV        (spec <= 10.0)  PASS
   sense_quiescent_uA                0.0002154  uA        (spec <= 10.0)  PASS
-  loop_pm_with_limiter_deg                ???  deg       (spec >= 45.0)  MISSING
+  loop_pm_with_limiter_deg              104.9  deg       (spec >= 45.0)  PASS
   no_oscillation                            1  bool      (spec >= 1.0)  PASS
-specs_pass: 8/9
+specs_pass: 9/9
 primary (ilim_ss150_mA): 130.013
 
-Run finished: Sun Mar 29 11:56:47 UTC 2026
+Run finished: Sun Mar 29 12:08:23 UTC 2026
