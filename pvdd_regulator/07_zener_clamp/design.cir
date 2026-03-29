@@ -1,20 +1,15 @@
-* Block 07: Zener Clamp — v7
+* Block 07: Zener Clamp — v8
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* TOPOLOGY: 5 long-channel diode-stack + low Rpd + wide clamp NMOS
+* TOPOLOGY: 5 long-channel diode-stack + wide clamp NMOS
 *
 *   5 diode-connected HV NFETs, ALL L=4u (Vth~1.07V, TC~-0.6mV/C).
-*   Long channels give much better TC than L=0.5u (-0.6 vs -1.1 mV/C).
-*   5 devices at L=4u: onset ~6.1V at 27C.
+*   W=2u: narrow devices for low leakage (<1uA at 5.0V).
+*   At 5.0V: per-diode=1.0V, 66mV below Vth → I_stack ~300nA.
 *
-*   W=5u keeps leakage at 5.0V ~960nA (just under 1uA).
-*   Per-diode at 5.0V: 1.0V, which is 66mV below Vth.
-*
-*   Rpd=200k: low enough to keep vg well below Vth_clamp at 5.0V.
-*   At onset: I_stack ~4uA → vg ~0.84V → clamp activates.
-*
-*   TC budget: 5×(-0.6) + 1×(-1.1) = -4.1 mV/C (Vth only).
-*   Total TC ~6.7 mV/C with subthreshold effects.
+*   Rpd=500k: with 300nA stack current → vg ~150mV → clamp OFF.
+*   At onset: I_stack ~1.7uA → vg ~0.84V → clamp activates.
+*   onset(27C) ~6.1V. TC ~6.7 mV/°C.
 *   onset(150C) ~5.3V > 5.0V ✓
 *
 *   Cff=20pF for transient feedforward.
@@ -26,23 +21,21 @@
 
 * ================================================================
 * DIODE REFERENCE STACK: 5x L=4u diode-connected NFETs
-* Body = Source (no body effect). W=5u (narrow for low leakage)
+* Body = Source (no body effect). W=2u (narrow for low leakage)
 * ================================================================
-XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
-XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
-XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
-XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
-XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=4e-6
+XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
+XMd2 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
+XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
+XMd4 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
+XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
 
 * ================================================================
-* GATE PULLDOWN: 200 kOhm
-* Low R keeps vg < 200mV at 5.0V (clamp off)
-* At onset: vg = I_stack × 200k ≈ 0.84V → clamp threshold
+* GATE PULLDOWN: 500 kOhm
 * ================================================================
-Rpd vg gnd 200k
+Rpd vg gnd 500k
 
 * ================================================================
-* FEEDFORWARD CAP: 20 pF for fast transient response
+* FEEDFORWARD CAP: 20 pF
 * ================================================================
 Cff pvdd vg 20p
 
