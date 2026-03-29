@@ -158,6 +158,54 @@ body:has(a:hover) #cursor-ring{width:52px;height:52px;border-color:var(--violet)
   color:rgba(255,255,255,0.25);
 }
 
+/* ═══════════════ TOP NAV ═══════════════ */
+#top-nav{
+  position:fixed;top:0;left:0;right:0;
+  height:48px;z-index:500;
+  display:flex;align-items:center;
+  padding:0 1.5rem;gap:1rem;
+  background:rgba(0,0,0,0.72);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.tn-brand{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.65rem;letter-spacing:0.22em;text-transform:uppercase;
+  font-variant-caps:small-caps;
+  color:var(--cyan);
+  white-space:nowrap;
+  min-width:80px;
+}
+
+.tn-progress-wrap{
+  flex:1;
+  height:1px;
+  background:rgba(255,255,255,0.07);
+  border-radius:1px;
+  overflow:hidden;
+}
+.tn-progress-bar{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--violet),var(--cyan));
+  border-radius:1px;
+  transition:width 0.1s linear;
+}
+
+.tn-section{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:rgba(255,255,255,0.28);
+  white-space:nowrap;min-width:80px;text-align:right;
+  transition:color 0.3s;
+}
+
+@media(max-width:480px){
+  .tn-brand{font-size:0.58rem;letter-spacing:0.15em}
+  .tn-section{display:none}
+}
+
 /* ═══════════════ SCENES ═══════════════ */
 .scene{
   position:relative;z-index:10;
@@ -174,4 +222,20 @@ body:has(a:hover) #cursor-ring{width:52px;height:52px;border-color:var(--violet)
   content:'';position:absolute;
   bottom:0;left:15%;right:15%;height:1px;
   background:linear-gradient(to right,transparent,rgba(255,255,255,0.06),transparent);
+}
+
+/* ═══════════════ MOBILE GLOBAL BREAKPOINTS (375px) ═══════════════ */
+@media(max-width:480px){
+  .scene{padding:60px 20px}
+  .scene-tall{min-height:120vh}
+
+  /* nav dots smaller on mobile */
+  .nav-dots{right:0.75rem;gap:7px}
+  .nav-dot{width:4px;height:4px}
+  .nav-dot.active{height:14px}
+
+  /* canvases never overflow */
+  canvas{max-width:100%;overflow:hidden}
+  #loop-c{height:auto;aspect-ratio:1/1}
+  #nr-canvas{max-width:100%}
 }

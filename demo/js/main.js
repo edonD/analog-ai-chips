@@ -63,18 +63,24 @@ gsap.to('#progress', {
   scrollTrigger:{ scrub:0.3, start:'top top', end:'bottom bottom' }
 });
 
-/* ─── NAV DOTS ─── */
+/* ─── NAV DOTS + TOP NAV SECTION NAME ─── */
 const allScenes = document.querySelectorAll('[data-s]');
 const allDots   = document.querySelectorAll('.nav-dot');
-new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting && e.intersectionRatio > 0.35) {
-      allDots.forEach(d=>d.classList.remove('active'));
-      const d = document.querySelector(`.nav-dot[data-s="${e.target.dataset.s}"]`);
-      if(d) d.classList.add('active');
-    }
-  });
-}, { threshold:0.35 }).observe; // call per scene
+
+// Section name map for the top nav
+const sectionNames = {
+  '0': 'Hero',
+  '1': 'The Problem',
+  '2': 'VibroSense-1',
+  'm': 'MEMS Pipeline',
+  'n': 'Neuro MEMS',
+  '3': 'The Loop',
+  '5': 'AI Design',
+  '6': 'By the Numbers',
+  '7': 'The Future',
+};
+const tnSection = document.getElementById('tn-section');
+
 allScenes.forEach(sc => {
   new IntersectionObserver(entries => {
     entries.forEach(e => {
@@ -82,6 +88,8 @@ allScenes.forEach(sc => {
         allDots.forEach(d=>d.classList.remove('active'));
         const d = document.querySelector(`.nav-dot[data-s="${e.target.dataset.s}"]`);
         if(d) d.classList.add('active');
+        // update top nav label
+        if(tnSection) tnSection.textContent = sectionNames[e.target.dataset.s] || '';
       }
     });
   }, { threshold:0.35 }).observe(sc);
@@ -89,3 +97,12 @@ allScenes.forEach(sc => {
 allDots.forEach(d => d.addEventListener('click', () => {
   document.querySelector(`[data-s="${d.dataset.s}"]`).scrollIntoView({behavior:'smooth'});
 }));
+
+/* ─── TOP NAV SCROLL PROGRESS ─── */
+const tnProgress = document.getElementById('tn-progress');
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  if(tnProgress) tnProgress.style.width = pct + '%';
+}, { passive: true });

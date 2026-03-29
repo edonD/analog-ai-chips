@@ -165,41 +165,93 @@
   display:flex;flex-direction:column;align-items:center;
   opacity:0;transform:translateY(18px);
   position:relative;overflow:hidden;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
 }
+/* bottom accent line */
 .st-cell::before{
   content:'';position:absolute;bottom:0;left:0;right:0;
   height:2px;
   background:linear-gradient(90deg,transparent,var(--c),transparent);
-  opacity:0;transition:opacity 0.3s;
+  opacity:0;transition:opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+/* cyan underline under the label — slides in */
+.st-cell::after{
+  content:'';
+  position:absolute;
+  bottom:1.5rem;left:50%;
+  transform:translateX(-50%) scaleX(0);
+  width:40px;height:1px;
+  background:var(--cyan);
+  transform-origin:center;
+  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.st-cell:hover{
+  background:linear-gradient(160deg,var(--deep) 60%,rgba(124,58,237,0.1) 100%);
 }
 .st-cell:hover::before{opacity:1}
+.st-cell:hover::after{transform:translateX(-50%) scaleX(1)}
+.st-cell:hover .st-n{transform:scale(1.05)}
 
 .st-n{
   font-size:clamp(2.5rem,5.5vw,4rem);
   font-weight:900;letter-spacing:-0.04em;
   line-height:1;color:var(--white);
+  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  display:inline-block;
 }
 .st-u{font-size:0.95rem;color:var(--cyan);font-weight:600;margin-left:2px}
-.st-d{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:0.6rem}
+.st-d{
+  font-size:0.72rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.12em;margin-top:0.6rem;
+  transition:color 0.3s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+}
+.st-cell:hover .st-d{color:var(--off)}
 
 /* ═══════════════ BUTTONS ═══════════════ */
 .btn{
   display:inline-flex;align-items:center;gap:0.5rem;
-  padding:0.9rem 2.2rem;border-radius:9px;
-  font-size:0.88rem;font-weight:600;letter-spacing:0.03em;
-  text-decoration:none;border:none;cursor:none;transition:all 0.25s;
+  padding:16px 40px;border-radius:4px;
+  font-size:0.85rem;font-weight:700;
+  letter-spacing:0.05em;text-transform:uppercase;
+  text-decoration:none;border:none;cursor:none;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  position:relative;overflow:hidden;
 }
 .btn-v{
-  background:linear-gradient(135deg,#6d28d9,#7c3aed);
+  background:linear-gradient(135deg,var(--violet),var(--cyan));
   color:#fff;
   box-shadow:0 0 30px var(--violet-glow),0 8px 30px rgba(0,0,0,0.4);
 }
-.btn-v:hover{transform:translateY(-3px);box-shadow:0 0 50px var(--violet-glow),0 16px 40px rgba(0,0,0,0.5)}
-.btn-o{
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.12);color:var(--off);
+.btn-v::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+  opacity:0;
+  transition:opacity 0.3s cubic-bezier(0.4,0,0.2,1);
 }
-.btn-o:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.25)}
+.btn-v:hover::before{opacity:1}
+.btn-v:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 50px var(--violet-glow),0 16px 40px rgba(0,0,0,0.5);
+}
+.btn-v span{position:relative;z-index:1}
+.btn-o{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.22);color:var(--off);
+}
+.btn-o::before{
+  content:'';
+  position:absolute;inset:0;
+  background:rgba(255,255,255,0.10);
+  opacity:0;
+  transition:opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.btn-o:hover::before{opacity:1}
+.btn-o:hover{
+  border-color:rgba(255,255,255,0.45);
+  transform:translateY(-2px);
+}
 
 /* ═══════════════ MEMS LAYOUT ═══════════════ */
 .mems-ey{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--cyan);opacity:0}
@@ -435,6 +487,44 @@
 @keyframes pulse-dot{0%,100%{box-shadow:0 0 6px var(--cyan-glow)}50%{box-shadow:0 0 16px var(--cyan-glow),0 0 30px var(--cyan-glow)}}
 .np-name{font-size:0.85rem;font-weight:600;color:var(--white)}
 .np-desc{font-size:0.75rem;color:var(--muted);margin-top:0.15rem;line-height:1.5}
+
+/* ═══════════════ MOBILE COMPONENT BREAKPOINTS (375px) ═══════════════ */
+@media(max-width:480px){
+  /* neuro specs single column */
+  .nr-metric-grid{grid-template-columns:1fr 1fr}
+  .nr-grid{gap:1.5rem}
+  .nr-h{font-size:clamp(1.5rem,7vw,2.2rem)}
+  .nr-tag{font-size:0.9rem}
+  .nr-gap-row{grid-template-columns:1fr}
+  .ng-lacks{border-left:none;border-top:1px solid rgba(255,61,90,0.2);padding-left:0;margin-top:0.4rem}
+
+  /* mems */
+  .mems-h{font-size:clamp(1.5rem,7vw,2.2rem)}
+  .pipeline-title,.csac-title{font-size:0.6rem}
+  .pipe-name{font-size:0.82rem}
+  .csac-name{font-size:1rem}
+
+  /* chip */
+  .chip-h1{font-size:clamp(2rem,10vw,3rem)}
+  .chip-halo{width:220px;height:220px}
+  .chip-rings{width:220px;height:220px}
+  .chip-ring:nth-child(1){width:160px!important;height:160px!important}
+  .chip-ring:nth-child(2){width:190px!important;height:190px!important}
+  .chip-ring:nth-child(3){width:220px!important;height:220px!important}
+
+  /* terminal body text */
+  .term-body{font-size:min(3.5vw,0.72rem);padding:1rem 0.9rem}
+  .t-ttl{display:none}
+
+  /* stats */
+  .stats-row{grid-template-columns:1fr 1fr;border-radius:12px}
+  .st-cell{padding:1.5rem 0.6rem}
+  .st-n{font-size:clamp(1.6rem,8.5vw,2.8rem)}
+
+  /* section headings */
+  .loop-h,.mems-h{font-size:clamp(1.6rem,7vw,2.4rem)}
+  .cl-h{font-size:clamp(2.2rem,10vw,4rem)}
+}
 
 /* ═══════════════ Q-GRID (legacy quotes) ═══════════════ */
 .q-grid{
