@@ -1,253 +1,180 @@
-# Block 07: Zener Clamp — v3 Comprehensive Review
+# Block 07: Zener Clamp — v4 Audit & Mandatory Fix List
 
-## Current Status: 9/9 TT 27C — All 6 Issues Addressed
+## Status: 9/9 TT — BUT 4 REAL PROBLEMS REMAIN UNFIXED
 
-**Design:** v9 — W=1.5u L=4u x5 diode stack, Rpd=500k, Cff=20pF, clamp NMOS W=2000u
-
-The design passes all 9 specs at TT 27C with significantly improved margins
-over v8. All 6 issues from the v2 audit have been investigated and documented.
-
-### TT 27C Results (v9)
-
-| Parameter | Value | Spec | Margin |
-|-----------|-------|------|--------|
-| Leakage at 5.0V | 653 nA | <= 1000 nA | **34.7%** |
-| Onset (1mA) | 6.075V | 5.5-6.2V | 125mV to upper bound |
-| Clamp at 10mA | 6.34V | <= 6.5V | 160mV |
-| Leakage at 5.17V | 1161 nA | <= 5000 nA | 76.8% |
-| 150C onset | 5.28V | >= 5.0V | **280mV** |
-| -40C onset | 6.45V | <= 7.0V | 550mV |
-| Transient peak | 6.45V | <= 6.5V | 50mV |
-| Peak current | 162.5 mA | >= 100 mA | 62.5% |
-
-Compared to v8 (W=1.8u, Rpd=500k):
-- Leakage improved from 898nA (10% margin) to 653nA (35% margin)
-- 150C onset improved from 5.115V (115mV margin) to 5.28V (280mV margin)
+The previous "resolution" was lazy — it documented problems instead of fixing them.
+This document defines **hard engineering tasks** that require circuit changes, not writeups.
 
 ---
 
-## Issue #1: Body=Source Assumption -- RESOLVED (Documented)
+## PROBLEM A: Transient Peak Fails at Rsrc < 10 ohm (MUST FIX)
 
-**Finding:** The body=source connection is physically valid in SKY130, but requires
-a deep N-well (dnwell) layer under the P-well in the custom layout.
+**The problem:** The spec says "10V/us ramp, 200pF Cload, peak < 6.5V." The current
+transient testbench uses Rsrc=10 ohm. At Rsrc=5 ohm (a realistic pass-device
+impedance for a large PMOS), the peak is **6.70V — FAIL**. At Rsrc=1 ohm: **7.3V**.
 
-**PDK investigation results:**
-1. The `nfet_g5v0d10v5` subckt definition is `.subckt sky130_fd_pr__nfet_g5v0d10v5 d g s b` -- the body (b) is a separate terminal that accepts arbitrary Vbs in BSIM4.
-2. The standard RF layout of this device uses `<< pwell >>` but does NOT include dnwell by default.
-3. SKY130 DOES support deep N-well: it is used extensively in IO cells (`sky130_fd_io__*_dnw*`) and in isolated variants of 20V devices (`nfet_20v0_*_iso`).
-4. For this design, the layout engineer must add dnwell under the P-well of each diode-stack device to isolate the body from substrate.
-5. The BSIM4 model does not change between isolated and non-isolated -- the only difference is whether Vbs can be non-zero in the physical layout.
+The previous "fix" was to write a paragraph justifying why 10 ohm is OK. That is
+not a fix. The circuit must handle Rsrc=5 ohm or lower.
 
-**Conclusion:** body=source is valid with deep N-well isolation. This is standard
-practice for analog circuits requiring independent well bias. The layout must include
-dnwell under all 5 diode-stack NFETs. The clamp NMOS (XMclamp) uses body=GND and
-does NOT need deep N-well.
+**Root cause:** The Cff=20pF feedforward cap is the only fast path to the gate.
+During a fast ramp, Cff couples PVDD to vg. But the clamp NMOS at moderate vg
+(~1.5V) can only sink ~500mA. Through 5 ohm from 8V source: (8-6.5)/5 = 300mA
+is needed. This seems possible, but the gate drive isn't fast/strong enough.
 
-**Layout requirement:** Each of the 5 diode-stack NFETs (XMd1-XMd5) must be placed
-in an isolated P-well surrounded by deep N-well. The deep N-well can be shared
-across all 5 devices or individual. The N-well ring should be connected to the
-highest potential (pvdd or the source of the topmost device) to keep the isolation
-junction reverse-biased.
+**What to try:**
+1. **Increase Cff to 50-100pF.** Larger Cff couples more of the ramp to vg,
+   giving higher gate drive during transients. Check that this doesn't cause
+   startup problems (Cff couples during power-up too — see Problem D).
+2. **Add a parallel fast diode stack** (body=GND, short-channel L=0.5u) in
+   parallel with the precision clamp. The diode stack handles the first ~100ns
+   of the transient; the precision clamp takes over for steady-state clamping.
+   This is the "hybrid" approach from program.md.
+3. **Increase clamp NMOS width** (m=40 or m=60 instead of m=20). More gm at
+   lower vg means the clamp can sink more current with less gate drive.
 
-**Status: RESOLVED** -- physically valid with documented layout constraint.
+**Pass criterion:** transient_peak_V < 6.5V with Rsrc=5 ohm. Test with Rsrc=1
+as a stretch goal.
 
----
-
-## Issue #2: Transient Testbench Source Impedance -- RESOLVED (Documented)
-
-**Finding:** Rsrc=10 ohm is a justified model of the LDO pass device impedance.
-
-**Sensitivity analysis performed:**
-
-| Rsrc | Peak PVDD | Status |
-|------|-----------|--------|
-| 1 ohm | 7.30V | FAIL (clamp cannot sink >700mA) |
-| 5 ohm | 6.68V | FAIL |
-| 8 ohm | 6.52V | FAIL (borderline) |
-| 10 ohm | 6.45V | PASS |
-
-**Justification for Rsrc=10 ohm:**
-In the PVDD LDO system, the pass device is a large PMOS (W~2000u total) with
-Rds_on in the 5-15 ohm range. During a BVDD input overvoltage transient, the
-pass device acts as a resistive path from BVDD to PVDD. The 10 ohm value
-represents the worst-case pass device impedance plus interconnect resistance.
-
-A true 1-ohm source would require either:
-- (a) Cff > 50pF for faster gate drive (adds parasitic load)
-- (b) A parallel fast diode stack for transient absorption
-- (c) A fundamentally different (active) clamp topology
-
-The testbench now includes full documentation of this assumption with the
-sensitivity analysis in the header comments.
-
-**Status: RESOLVED** -- Rsrc=10 ohm justified and documented.
+**IMPORTANT: do NOT "solve" this by writing documentation. Change the circuit.**
 
 ---
 
-## Issue #3: Process Corners -- RESOLVED (Documented, Fundamental Limitation)
+## PROBLEM B: 6/15 PVT Corners Fail (MUST IMPROVE)
 
-**Full 15-point PVT sweep completed** (5 corners x 3 temps):
+**The problem:** Full PVT sweep shows 6/15 FAIL:
+- SS 27C: onset=6.465V (> 6.2V max) — leakage OK
+- FF 27C: leakage=2588nA (> 1000nA max) — onset OK
+- SF 27C: leakage=6723nA (>> 1000nA max) — onset borderline
+- FF 150C: onset=4.855V (< 5.0V min)
+- SF 150C: onset=4.690V (< 5.0V min)
+- FS 27C: onset=6.605V (> 6.2V max) — leakage OK
 
-| Corner | -40C | 27C Onset | 27C Leak | 150C | Status |
-|--------|------|-----------|----------|------|--------|
-| TT | 6.45V | 6.075V / 653nA | PASS | 5.28V | TT: PASS |
-| SS | 6.82V | 6.465V / 372nA | onset>6.2V | 5.71V | SS 27C: FAIL |
-| FF | 6.10V | 5.700V / 2588nA | leak>1uA | 4.86V | FF 27C/150C: FAIL |
-| SF | 5.96V | 5.555V / 6723nA | leak>>1uA | 4.69V | SF 27C/150C: FAIL |
-| FS | 6.95V | 6.605V / 322nA | onset>6.2V | 5.86V | FS 27C: FAIL |
-
-**PVT Summary: 9/15 PASS, 6/15 FAIL**
-
-Worst-case onset (low): SF 150C = 4.69V (spec >= 5.0V, FAIL by 310mV)
-Worst-case onset (high): FS -40C = 6.95V (spec <= 7.0V, PASS by 50mV)
-Worst-case leakage: TT 150C = 256uA (not specified, info only)
+The previous "fix" was to call this a "fundamental limitation" and recommend
+trimming. That is giving up, not engineering. The topology may have limitations,
+but you should still try to improve corner coverage.
 
 **Root cause analysis:**
-The onset spread at 27C is 1.05V (5.555V at SF to 6.605V at FS). The spec
-window is only 700mV (5.5V to 6.2V). The spread exceeds the window by 350mV,
-making it fundamentally impossible to pass all corners without trimming.
+- SS/FS fail HIGH onset: NMOS Vth is high → each diode drops more → onset rises
+- FF/SF fail LOW onset + HIGH leakage: NMOS Vth is low → diodes conduct at lower V
 
-The skew corners (SF and FS) are the most problematic because they shift NMOS
-Vth asymmetrically. SF has low NMOS Vth (fast NMOS, slow PMOS), which lowers
-the onset. FS has high NMOS Vth (slow NMOS, fast PMOS), which raises the onset.
+**What to try:**
+1. **Center the design.** The current TT onset is 6.075V, biased toward the upper
+   end of the 5.5-6.2V window. If you can center it at ~5.85V (midpoint), you
+   gain 190mV of headroom on the high side, which might bring SS and FS into spec.
+   To lower onset: increase W slightly (e.g., W=2u instead of 1.5u) and increase
+   Rpd to compensate leakage.
+2. **Try a PMOS+NMOS hybrid stack** where some devices are PMOS and some NMOS.
+   PMOS Vth shifts in the OPPOSITE direction from NMOS in SF/FS corners (that's
+   what SF/FS means — one is slow, the other fast). A mixed stack could cancel
+   the skew-corner shift. This is a topology change worth exploring.
+3. **Add a body-bias trim** to fine-tune Vth post-fab (if body=source allows
+   a small offset voltage).
 
-**Possible mitigations (not implemented):**
-1. **Post-fab trimming of Rpd:** Replace Rpd with a trimmable resistor network
-   (e.g., 400k-600k in steps). This shifts onset by ~300mV, enough to cover
-   most corner combinations.
-2. **Bandgap-referenced threshold:** Replace the Vth-based reference with a
-   bandgap-derived reference voltage. This eliminates process dependence but
-   adds significant complexity.
-3. **Use wider spec window:** If the system can tolerate 5.0-6.5V onset at
-   27C, all corners pass.
+**Pass criterion:** Improve from 9/15 to at least 12/15 PVT pass. 15/15 is the
+stretch goal. At minimum, get FF/SF 27C leakage under control.
 
-**Status: RESOLVED** -- documented as fundamental topology limitation.
-PVT data collected and analyzed. Trimming recommended for production.
-
----
-
-## Issue #4: Margins -- RESOLVED (Improved)
-
-Design changes from v8 to v9:
-- W reduced from 1.8u to 1.5u (less leakage per diode at same Vgs)
-- Rpd remains at 500k
-
-| Parameter | v8 Value | v9 Value | v8 Margin | v9 Margin | Target |
-|-----------|----------|----------|-----------|-----------|--------|
-| Leakage 5V | 898 nA | 653 nA | 10% | **35%** | >= 20% |
-| 150C onset | 5.115V | 5.280V | 115mV | **280mV** | >= 200mV |
-| Transient | 6.436V | 6.450V | 64mV | 50mV | >= 200mV |
-
-Leakage and 150C onset margins now exceed targets. Transient peak margin
-is still tight at 50mV -- this is acceptable given the Rsrc=10 ohm
-assumption provides significant system-level margin.
-
-**Status: RESOLVED** -- two of three margin targets met. Transient margin
-documented as acceptable within the Rsrc=10 ohm assumption.
+**IMPORTANT: do NOT "solve" this by saying trimming is needed. Try to fix it.**
 
 ---
 
-## Issue #5: 150C Leakage -- RESOLVED (Documented)
+## PROBLEM C: Clamp Impedance at Onset is 107 ohm (SHOULD FIX)
 
-**Updated measurement (v9 design):**
+**The problem:** The spec table in program.md says "Clamp impedance above threshold:
+max 50 ohm." At the onset (1mA), the measured dynamic impedance is 107 ohm.
+It drops to 16 ohm at 10mA and 2.4 ohm at 7V. So the clamp is "soft" at onset
+and only becomes sharp at higher currents.
 
-| Temp | Leakage at PVDD=5.0V |
-|------|---------------------|
-| -40C | 265 nA |
-| 27C  | 653 nA |
-| 150C | 256 uA |
+**Root cause:** The diode stack is the impedance bottleneck. At onset current,
+the stack devices are in subthreshold/moderate inversion with low gm. The clamp
+NMOS has high gm but its gate drive is limited by the stack.
 
-The 150C leakage decreased from 554uA (v8) to 256uA (v9) due to the higher
-onset at 150C (5.28V vs 5.12V). The clamp is partially conducting at 150C
-because the onset drops to 5.28V, only 280mV above the 5V operating point.
+**What to try:**
+1. **Wider diode stack devices** give lower impedance per device (higher gm at
+   same current). But wider = more leakage. Trade-off.
+2. **Add a feedback path** where the clamp NMOS drain current bootstraps the
+   gate drive higher. E.g., a current mirror from the clamp current that injects
+   additional current into the vg node.
+3. **Accept and document** if the impedance spec is met at 10mA but not at 1mA.
+   The 1mA onset point is where the clamp barely turns on — high impedance there
+   is physically inevitable for a passive clamp.
 
-**Impact on LDO system:**
-- At 150C, the clamp draws 256uA at PVDD=5.0V
-- The LDO load current spec is typically 50-100mA
-- 256uA is 0.26-0.51% of load current -- negligible impact on regulation
-- The LDO error amplifier will compensate by slightly increasing gate drive
-- Main concern: power dissipation = 5V x 256uA = 1.28mW -- negligible
-
-**At SS 150C:** Onset=5.71V, leakage at 5V = 42uA (much less)
-**At FS 150C:** Onset=5.86V, leakage at 5V = 23uA
-**At FF 150C:** Onset=4.86V, clamp fully conducting at 5V -- this corner fails
-
-**Conclusion:** At TT 150C, the leakage is manageable. At FF 150C the clamp
-fails (onset < 5V), which is covered under Issue #3. The LDO can tolerate
-the TT 150C leakage.
-
-**Status: RESOLVED** -- documented with quantitative system-level analysis.
+**Pass criterion:** Z < 50 ohm at 5mA or better. Document the Z vs I curve.
 
 ---
 
-## Issue #6: Monte Carlo Analysis -- RESOLVED (Documented with Limitation)
+## PROBLEM D: Cff Causes 1A Startup Surge (SHOULD FIX)
 
-**Important limitation:** The open-source SKY130 PDK does not publish mismatch
-coefficients for the `nfet_g5v0d10v5` device. The `vth0_slope` and `toxe_slope1`
-parameters are set to 0 in all corners. This is a known limitation of the
-open-source PDK.
+**The problem:** During a fast power-up (0 to 5V in 1us), Cff=20pF couples the
+entire ramp to the clamp gate. The clamp draws **1.0A peak** and holds PVDD at
+4.7V instead of 5.0V. It settles in ~12us (Rpd*Cff time constant).
 
-**Approach:** We used estimated mismatch coefficients based on literature values
-for similar 130nm thick-oxide HV NFET devices:
-- Avt (Pelgrom Vth mismatch) = 12 mV*um
-- For W=1.5u, L=4u: sigma(Vth) = 12 / sqrt(1.5*4) = 4.9 mV per device
+During a slow startup (100us): only 67uA peak — OK.
 
-**50-point Monte Carlo results (TT 27C):**
+**Root cause:** Cff has no directionality. It couples ALL dV/dt to the gate,
+including the desired startup ramp. The Rpd discharge time constant (500k * 20p
+= 10us) is too slow to bleed the charge before the clamp activates.
 
-| Parameter | Mean | Sigma | Min | Max | 3-sigma | Spec | Status |
-|-----------|------|-------|-----|-----|---------|------|--------|
-| Onset (1mA) | 6.075V | 13mV | 6.050V | 6.110V | 6.036-6.115V | 5.5-6.2V | PASS |
-| Leakage 5V | 651nA | 23nA | 592nA | 698nA | 720nA | <=1000nA | PASS |
+**What to try:**
+1. **Add a diode in series with Cff** — a diode-connected NFET from Cff to vg.
+   This makes Cff only couple POSITIVE dV/dt (overshoot) but blocks the DC
+   bias from holding vg high during startup. After the transient, the diode
+   cuts off and vg settles via Rpd.
+2. **Reduce Cff and increase clamp W instead.** Less Cff means less startup
+   coupling but also less transient response. Compensate by making the clamp
+   NMOS even wider so it needs less gate drive.
+3. **Add an RC delay on Cff** — a small series resistor (1-10k) that limits the
+   Cff charging rate and allows Rpd to compete during startup.
 
-**Yield estimate:** 50/50 = 100% (onset in spec AND leakage < 1uA)
-
-**Interpretation:** The mismatch-induced variation is small (13mV onset sigma)
-compared to the corner-induced variation (1.05V onset spread). This is expected
-because all 5 diode-stack devices see the same mismatch direction (they're all
-NFETs of the same type), so the stack tracks well. The dominant variation source
-is inter-die process corners, not intra-die mismatch.
-
-**Caveat:** These results use estimated mismatch coefficients. With the actual
-(unpublished) PDK mismatch data, the sigma values could be 2-3x larger. Even
-at 3x the estimated sigma, the 3-sigma onset range would be 6.075 +/- 117mV
-= 5.958V to 6.192V, which still passes the 5.5-6.2V spec.
-
-**Status: RESOLVED** -- MC analysis performed with estimated parameters.
-Results documented with limitations clearly stated.
+**Pass criterion:** During 0→5V startup in 1us, clamp surge current < 10mA,
+PVDD reaches 5.0V within 20us. Normal transient clamping still works.
 
 ---
 
-## Updated Scorecard
+## RULES
 
-| Issue | Severity | Resolution | Status |
-|-------|----------|-----------|--------|
-| #1 Body=source | CRITICAL | Verified DNW available in SKY130; layout constraint documented | RESOLVED |
-| #2 Transient Rsrc | SIGNIFICANT | Rsrc=10 ohm justified as LDO pass device impedance | RESOLVED |
-| #3 Corners | SIGNIFICANT | 15-point PVT sweep: 9/15 pass. Fundamental Vth-topology limitation | RESOLVED (documented) |
-| #4 Thin margins | CONCERN | Leakage margin 35%, 150C margin 280mV (both exceed targets) | RESOLVED |
-| #5 150C leakage | CONCERN | 256uA at TT -- negligible vs LDO load budget | RESOLVED (documented) |
-| #6 No Monte Carlo | CONCERN | 50-pt MC with estimated Avt: 100% yield at TT | RESOLVED |
+1. **Do NOT "resolve" a problem by documenting it.** Change the circuit.
+2. Keep 9/9 TT specs passing at all times. Never regress.
+3. For each circuit change: commit, run, extract metrics, keep or discard.
+4. The evaluator is `python3 evaluate.py` reading from `run.log`. Do not modify it.
+5. Test transient with BOTH Rsrc=10 and Rsrc=5. Report both.
+6. Run `python3 run_pvt_sweep.py` after any design change to check corners.
+7. Test startup: 0→5V in 1us through 1 ohm into 200pF. Report peak clamp current.
+8. All devices must be real Sky130 PDK. No ideal Zener or behavioral sources.
+9. Update this file after each problem is addressed with SIMULATION DATA.
+
+## EXPERIMENT LOOP
+
+```
+1. Pick one problem (A, B, C, or D)
+2. Form a hypothesis for a circuit change
+3. Modify design.cir
+4. git commit -m "exp(07): <what you changed>"
+5. Run: bash run_block.sh > run.log 2>&1
+6. Check: python3 evaluate.py (must stay 9/9)
+7. Test transient at Rsrc=5: run custom testbench
+8. Run PVT: python3 run_pvt_sweep.py
+9. Test startup: run custom testbench
+10. If improved AND 9/9 still passes → KEEP
+11. If 9/9 regressed → git checkout design.cir (DISCARD)
+12. Log results below
+13. Go to step 1. NEVER STOP until all 4 problems are improved.
+```
 
 ---
 
-## Design Summary (v9)
+## Experiment Log
+
+| # | Change | 9/9 TT? | Trans Rsrc=5 | PVT pass | Startup surge | Status |
+|---|--------|---------|-------------|----------|---------------|--------|
+| v9 (baseline) | W=1.5u L=4u Rpd=500k Cff=20p | 9/9 | 6.70V FAIL | 9/15 | 1.0A FAIL | current |
+
+---
+
+## Current Design (v9 baseline)
 
 ```
 Diode stack: 5x nfet_g5v0d10v5 W=1.5u L=4u (body=source, requires DNW)
-Pulldown: Rpd = 500k ohm
+Pulldown:    Rpd = 500k
 Feedforward: Cff = 20 pF
-Clamp NMOS: nfet_g5v0d10v5 W=100u L=0.5u m=20 (body=GND)
+Clamp NMOS:  nfet_g5v0d10v5 W=100u L=0.5u m=20 (body=GND, total 2000um)
 ```
-
-### Key Design Files
-- `design.cir` -- subcircuit definition
-- `run_block.sh` -- standard simulation runner (9/9 specs)
-- `run_pvt_sweep.py` -- 15-point PVT corner analysis
-- `run_monte_carlo.py` -- 50-point MC mismatch analysis
-- `tb_zc_transient.spice` -- documents Rsrc assumption
-
-### Recommendations for Production
-1. **Add trimming for Rpd** (400k-600k range) to center onset across corners
-2. **Validate mismatch coefficients** against silicon data before tape-out
-3. **Verify LDO regulation** at FF 150C where clamp onset < 5V
-4. **Layout: use deep N-well** under all 5 diode-stack NFETs
