@@ -17,7 +17,7 @@ The startup circuit solves the chicken-and-egg bootstrap problem of the PVDD LDO
 |-----------|--------|----------|
 | R_top + R_bot | xhigh_po 4.1MΩ + 900kΩ | PVDD threshold divider (trips at ~3.9V) |
 | MN_det | nfet 10µm/1µm | Detection comparator |
-| R_pu | xhigh_po 10MΩ | det_out pull-up (0.7µA leakage) |
+| R_pu | xhigh_po 30MΩ | det_out pull-up (0.22µA leakage) |
 | R_gate | xhigh_po 102kΩ | Gate pulldown current limiter |
 | MN_gate | nfet 5µm/1µm | Gate pulldown switch |
 | MN_pu | nfet 0.42µm/8µm | BVDD-domain regulation assist |
@@ -37,7 +37,7 @@ The startup circuit solves the chicken-and-egg bootstrap problem of the PVDD LDO
 | Works at 0.1 V/µs | Yes | Yes | **PASS** |
 | Works at 12 V/µs | Yes | Yes | **PASS** |
 | Cold crank recovery | Yes | Yes | **PASS** |
-| Leakage after startup | 0.74 µA | ≤ 1 µA | **PASS** |
+| Leakage after startup | 0.22 µA | ≤ 1 µA | **PASS** |
 | No overshoot FF −40°C | Yes | Yes | **PASS** |
 | No latch-up/stuck | Yes | Yes | **PASS** |
 
@@ -73,7 +73,7 @@ The PVDD overshoot is a **system-level limitation** of the error amp / pass devi
 
 - **With 50mA load:** PVDD = 5.02V at 200µs — excellent regulation
 - **Cold crank:** PVDD = 4.998V during recovery — clean restart
-- **Leakage:** 0.74µA from BVDD after startup — well within 1µA spec
+- **Leakage:** 0.22µA from BVDD after startup — 78% margin to 1µA spec
 - **Startup time:** Near-zero (PVDD tracks BVDD during ramp)
 - **All ramp rates work:** 0.1, 1, and 12 V/µs verified
 - **Peak inrush:** 5.9 mA (well within 150 mA SOA limit)

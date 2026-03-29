@@ -30,7 +30,7 @@ All devices use Sky130 HV 5V/10.5V transistors and xhigh_po resistors.
 | Works at 0.1 V/µs ramp | Yes | Yes | PASS |
 | Works at 12 V/µs ramp | Yes | Yes | PASS |
 | Cold crank recovery | Yes | Yes | PASS |
-| Leakage after startup | 0.66 µA | ≤ 1 µA | PASS |
+| Leakage after startup | 0.22 µA | ≤ 1 µA | PASS |
 | No overshoot FF −40°C | Yes | Yes | PASS |
 | No latch-up/stuck | Yes | Yes | PASS |
 | **Specs pass** | **10/11** | | |
