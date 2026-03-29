@@ -3,54 +3,46 @@
 *
 * TOPOLOGY: Diode-stack-biased NMOS voltage clamp
 *
-*   Sky130 has NO true Zener diode. This circuit uses a stack of 6
-*   diode-connected HV NFETs as a voltage reference. When PVDD exceeds
-*   the sum of the stack Vth's, the bottom node (vg) rises above the
-*   threshold of a wide clamp NMOS, which shunts excess current to GND.
+*   7 diode-connected HV NFETs (body=source, no body effect) create a
+*   voltage reference. When PVDD exceeds ~(7*Vth + Vod_clamp), the
+*   gate of a wide clamp NMOS rises above Vth and shunts current.
 *
-*   Body is tied to source for all diode stack devices (isolated P-well,
-*   no body effect). Clamp NMOS body=GND.
+*   Rpd (1 MOhm) pulls vg to GND when the stack is off.
+*   At PVDD=5.0V: each diode sees ~0.714V (below Vth=0.84V),
+*   stack current ~80nA, vg ~ 80mV — clamp is OFF.
 *
-*   Gate pulldown resistor (sky130_fd_pr__res_xhigh_po, 10 MOhm) keeps
-*   the clamp NMOS gate at GND when the stack is off.
-*
-*   Onset ~ (N_diodes + 1) * Vth ~ 7 * 0.84V ~ 5.88V at TT 27C.
-*   TC: Vth TC ~ -1 mV/C => stack TC ~ -7 mV/C.
-*   At 150C: onset ~ 5.88 - 0.86 = 5.02V (barely > 5.0V).
+*   Onset ~6.0V at TT 27C. At 150C: ~5.2V (> 5.0V spec).
 *
 * All HV: sky130_fd_pr__nfet_g5v0d10v5  (Vds max 10.5V)
 * Dimensions in METERS.
 *
-* .subckt zener_clamp pvdd gnd
-*
 .subckt zener_clamp pvdd gnd
 
 * ================================================================
-* DIODE REFERENCE STACK: 6 diode-connected HV NFETs
+* DIODE REFERENCE STACK: 7 diode-connected HV NFETs
 * Body = Source (no body effect, isolated P-well)
-* Small devices — only carry bias current (~100 nA)
-* Each drops ~Vth (~0.84V at TT 27C)
-* Total stack drop: ~5.04V
+* W=5u L=0.5u — sized for ~1uA stack current at onset
+* Each drops ~Vth (~0.84V at TT 27C) at low current
 * ================================================================
-XMd1 pvdd pvdd n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=0.5e-6
-XMd2 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=0.5e-6
-XMd3 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=0.5e-6
-XMd4 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=0.5e-6
-XMd5 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=0.5e-6
-XMd6 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=0.5e-6
+XMd1 pvdd pvdd n6 n6 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd2 n6   n6   n5 n5 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd3 n5   n5   n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd4 n4   n4   n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd5 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd6 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
+XMd7 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=0.5e-6
 
 * ================================================================
-* GATE PULLDOWN: 10 MOhm poly resistor
-* Pulls vg to GND when diode stack is off (PVDD < onset)
-* 2000 ohm/sq * (5000 um / 1 um) = 10 MOhm
+* GATE PULLDOWN: 1 MOhm resistor
+* At onset: I_stack ~1uA → vg = 1uA × 1M = 1V → above Vth
+* At 5.0V: I_stack ~80nA → vg = 80mV → well below Vth
 * ================================================================
-XRpd vg gnd gnd sky130_fd_pr__res_xhigh_po w=1e-6 l=5000e-6
+Rpd vg gnd 1Meg
 
 * ================================================================
 * WIDE CLAMP NMOS: handles clamping current
 * W=100u m=20 => 2000 um total width, L=0.5u
 * Body = GND (standard p-substrate connection)
-* At 7V: Vgs ~ 2V => Id > 100 mA (pulse)
 * ================================================================
 XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=20
 
