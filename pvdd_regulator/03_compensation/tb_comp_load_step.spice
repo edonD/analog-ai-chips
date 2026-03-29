@@ -11,6 +11,7 @@ c1 r1 sub 0.05f
 
 .include "../00_error_amp/design.cir"
 .include "../01_pass_device/design.cir"
+.include "../02_feedback_network/design.cir"
 .include "design.cir"
 
 * Supplies
@@ -31,9 +32,8 @@ Xpass vout_gate bvdd pvdd pass_device
 * Load cap
 Cload pvdd 0 200p
 
-* Feedback divider (closed loop)
-Rtop pvdd vfb 314.75k
-Rbot vfb 0 102.25k
+* Real feedback divider (Block 02, closed loop)
+Xfb pvdd vfb 0 feedback_network
 
 * Load current step: 1mA for 50u, ramp to 10mA in 1us, hold 30u, ramp back in 1us
 Iload pvdd 0 PWL(0 1m 49u 1m 50u 10m 79u 10m 80u 1m 120u 1m)

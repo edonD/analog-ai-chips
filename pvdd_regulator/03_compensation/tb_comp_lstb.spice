@@ -1,4 +1,5 @@
 * tb_comp_lstb.spice — Loop Stability at 5 load points
+* Full LDO loop with real Block 02 feedback network
 * Method: DC-closed (100M), AC-open, injection through 1F cap
 
 * Parasitic model for poly resistor
@@ -12,6 +13,7 @@ c1 r1 sub 0.05f
 
 .include "../00_error_amp/design.cir"
 .include "../01_pass_device/design.cir"
+.include "../02_feedback_network/design.cir"
 .include "design.cir"
 
 * Supplies
@@ -34,10 +36,12 @@ Cload pvdd 0 200p
 Rload pvdd 0 rload_ohm
 .param rload_ohm = 500
 
-* Feedback divider + loop break
-Rtop pvdd vfb_dc 314.75k
-Rbot vfb_dc 0 102.25k
-Rdc vfb_dc vfb 100Meg
+* Real feedback divider (Block 02) + loop break
+* The feedback network connects pvdd → vfb_div → gnd
+Xfb pvdd vfb_div 0 feedback_network
+
+* DC loop closure through high R, AC injection through cap
+Rdc vfb_div vfb 100Meg
 Cinj ac_src vfb 1
 Vac ac_src 0 AC 1
 
@@ -45,9 +49,6 @@ Vac ac_src 0 AC 1
 .option reltol=1e-4 abstol=1e-12 vntol=1e-6 gmin=1e-12
 
 .control
-  * Helper: measure PM and GM from loop gain
-  * After AC analysis, compute T and extract PM/GM
-
   let beta = 0.2452
   let pm_min = 999
   let gm_min = 999
@@ -103,7 +104,6 @@ Vac ac_src 0 AC 1
   if gm_v < gm_min
     let gm_min = gm_v
   end
-  wrdata bode_0mA.dat T_db T_ph
   destroy all
 
   * ==== 100 uA (Rload=50k) ====
@@ -149,8 +149,6 @@ Vac ac_src 0 AC 1
   end
   echo "pm_100uA_deg: $&pm"
   echo "gm_100uA_dB: $&gm_v"
-  let ugb_k = ugb/1000
-  echo "ugb_100uA_kHz: $&ugb_k"
   if pm < pm_min
     let pm_min = pm
   end
@@ -202,8 +200,6 @@ Vac ac_src 0 AC 1
   end
   echo "pm_1mA_deg: $&pm"
   echo "gm_1mA_dB: $&gm_v"
-  let ugb_k = ugb/1000
-  echo "ugb_1mA_kHz: $&ugb_k"
   if pm < pm_min
     let pm_min = pm
   end
@@ -255,8 +251,6 @@ Vac ac_src 0 AC 1
   end
   echo "pm_10mA_deg: $&pm"
   echo "gm_10mA_dB: $&gm_v"
-  let ugb_k = ugb/1000
-  echo "ugb_10mA_kHz: $&ugb_k"
   if pm < pm_min
     let pm_min = pm
   end
@@ -308,8 +302,6 @@ Vac ac_src 0 AC 1
   end
   echo "pm_50mA_deg: $&pm"
   echo "gm_50mA_dB: $&gm_v"
-  let ugb_k = ugb/1000
-  echo "ugb_50mA_kHz: $&ugb_k"
   if pm < pm_min
     let pm_min = pm
   end
