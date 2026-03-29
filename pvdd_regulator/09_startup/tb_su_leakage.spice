@@ -20,6 +20,7 @@ Vref vref gnd 1.226
 * Startup circuit under test
 Xstartup bvdd pvdd gate gnd vref startup_done ea_en startup
 
+.option gmin=1e-10 abstol=1e-13
 .op
 
 .control

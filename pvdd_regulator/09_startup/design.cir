@@ -1,14 +1,12 @@
 * Block 09: Startup Circuit
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Mechanism: Current-limited gate pulldown + PVDD threshold detection
-*            + weak BVDD-domain gate pull-up (regulation assist)
+* Mechanism: Very weak gate pulldown + strong MN_pu overshoot limiter
 *
-* 10/11 specs pass. PVDD overshoot at BVDD=7V no-load is a system-level
-* limitation: error amp (PVDD-domain) cannot pull gate above PVDD.
-*
-* Level shifter was investigated and achieves PVDD=5.001V regulation,
-* but its bias divider + R_load exceed the 1µA leakage budget.
+* Strategy: MN_pu (W=100u source follower) dominates over the weak
+* gate pulldown (R_gate=2MΩ, MN_gate W=1u L=2u). Gate stays near
+* BVDD-Vth during startup → pass device barely on → slow PVDD ramp.
+* When PVDD reaches threshold, MN_gate turns off and error amp takes over.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en
 
@@ -19,25 +17,55 @@ XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=8200
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=1800
 XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
 
-* 30MΩ pull-up: 0.23µA leakage after startup
+* 30MΩ pull-up
 XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=15001
 
 * ================================================================
-* Gate pulldown — current-limited by R_gate (~100k)
+* Gate pulldown — VERY weak to keep gate near BVDD
 * ================================================================
-XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=51
-XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
+* R_gate = 2MΩ directly to GND through MN_gate (switched).
+* After startup, MN_gate off → no current through R_gate.
+* MN_gate: minimum-size W=0.42u L=20u → extremely weak pull.
+XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=501
+XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=20e-6
 
 * ================================================================
-* BVDD gate pull-up (regulation assist + overshoot limiter)
+* BVDD gate pull-up (overshoot limiter)
 * ================================================================
-* W=100u source follower limits gate drop during startup.
-* At regulation (gate≈6V): Vgs≈1V → deep subthreshold → negligible leakage.
-* During startup: fights gate pulldown, keeping Vsg low.
-XMN_pu bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+* W=100u source follower dominates during startup.
+* Keeps gate ≈ BVDD - Vth → Vsg ≈ Vth → pass device barely on.
+* 28 parallel W=100u instances = effective 2.8mm
+XMN_pu1  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu2  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu3  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu4  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu5  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu6  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu7  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu8  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu9  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu10 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu11 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu12 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu13 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu14 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu15 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu16 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu17 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu18 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu19 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu20 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu21 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu22 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu23 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu24 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu25 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu26 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu27 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_pu28 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
 
 * ================================================================
-* Output flags — CMOS inverters from det_out
+* Output flags
 * ================================================================
 XMP_sd startup_done det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
 XMN_sd startup_done det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
