@@ -20,8 +20,8 @@
 
     const waves = [
       {freq:1.8,  amp:40, color:'rgba(0,212,255,',   offset:0},
-      {freq:3.2,  amp:22, color:'rgba(124,58,237,',  offset:1.1},
-      {freq:5.6,  amp:14, color:'rgba(0,255,135,',   offset:2.3},
+      {freq:3.2,  amp:25, color:'rgba(124,58,237,',  offset:1.1},
+      {freq:5.6,  amp:16, color:'rgba(0,255,135,',   offset:2.3},
     ];
 
     waves.forEach(w=>{
@@ -33,10 +33,10 @@
       }
       const grad = ctx.createLinearGradient(0,0,W,0);
       grad.addColorStop(0,  w.color+'0)');
-      grad.addColorStop(0.2,w.color+'0.6)');
-      grad.addColorStop(0.8,w.color+'0.6)');
+      grad.addColorStop(0.15,w.color+'0.8)');
+      grad.addColorStop(0.85,w.color+'0.8)');
       grad.addColorStop(1,  w.color+'0)');
-      ctx.strokeStyle=grad; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.strokeStyle=grad; ctx.lineWidth=2; ctx.stroke();
     });
   }
   draw();
