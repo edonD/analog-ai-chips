@@ -1,0 +1,60 @@
+* tb_ilim_short.spice — True short-circuit DC test (NEW in v2)
+* Measures short-circuit current with and without limiter
+*
+* Setup: Gate driven to 0V (full on) through 10k Rgate.
+* Rload = 1 ohm (near short). pvdd forced to 5V. DC op.
+*
+.include "parasitic_res_po.spice"
+.lib "sky130.lib.spice" tt
+.temp 27
+
+Vbvdd bvdd 0 DC 7.0
+
+* Pass device (Block 01: 10x W=100u L=0.5u)
+XM1  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+
+.include "design.cir"
+Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
+
+* Gate driven to 0V (full on) through 10k Rgate
+Vg gate_drive 0 DC 0.0
+Rgate gate_drive gate_int 10k
+
+* Force pvdd = 1V (near short — pass device has Vds=6V)
+Vpvdd pvdd 0 DC 1.0
+
+.option reltol=1e-4 gmin=1e-12 savecurrents
+
+.control
+* === With limiter (already in circuit) ===
+op
+let iload_with_mA = i(Vpvdd) * 1000
+echo "=== Short Circuit Test (pvdd=1V, gate=0V) ==="
+echo "short_circuit_with_limiter_mA: $&iload_with_mA"
+echo "gate_int_voltage: $&v(gate_int)"
+echo "ilim_flag_voltage: $&v(ilim_flag)"
+
+* === Without limiter: drive gate directly to 0V ===
+* To test without limiter, we force gate_int to 0V directly
+* by reducing Rgate to 1 ohm (limiter clamp cannot overcome this)
+alter Rgate = 1
+op
+let iload_without_mA = i(Vpvdd) * 1000
+echo "short_circuit_without_limiter_mA: $&iload_without_mA"
+
+* Compute reduction ratio
+let ratio = iload_with_mA / iload_without_mA
+echo "short_circuit_reduction_ratio: $&ratio"
+
+quit
+.endc
+.end

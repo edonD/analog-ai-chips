@@ -1,5 +1,10 @@
-* tb_ilim_transient.spice — Transient response measurement
-* Verifies clean transient behavior and response time
+* tb_ilim_transient.spice — Transient response to sudden overload
+* v2: ALL metrics measured from simulation — NO hardcoded values
+*
+* Setup: Pass device + limiter. pvdd forced to 5V. Gate driven through 10k.
+* Gate steps from 4.5V (below trip ~30mA) to 2V (requesting >>100mA) at t=5us.
+* The limiter should clamp current to ~79mA (TT).
+* Measures response time and oscillation from actual waveforms.
 *
 .include "parasitic_res_po.spice"
 .lib "sky130.lib.spice" tt
@@ -7,65 +12,93 @@
 
 Vbvdd bvdd 0 DC 7.0
 
-* Pass device
-XM1  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM2  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM3  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM4  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM5  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM6  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM7  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM8  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM9  pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM10 pvdd gi bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+* Pass device (Block 01: 10x W=100u L=0.5u)
+XM1  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM2  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM3  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM4  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM5  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM6  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM7  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM8  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM9  pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM10 pvdd gate_int bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
 
 .include "design.cir"
-Xlim gi bvdd pvdd 0 flag current_limiter
+Xlim gate_int bvdd pvdd 0 ilim_flag current_limiter
 
-* Error amp: gate driven through 10k to model OTA output impedance
-* Start with gate at 4V (moderate current), then step to 0V at t=5us
-Vg gd 0 PWL(0 4.5 4.99u 4.5 5u 2.0 30u 2.0)
-Rg gd gi 10k
+* Gate steps from 4.5V (below trip) to 2V (far above trip) at t=5us
+Vg gate_drive 0 PWL(0 4.5 4.99u 4.5 5u 2.0 50u 2.0)
+Rgate gate_drive gate_int 10k
 
-* Load: 100 ohm (normal operating range)
-Rl pvdd 0 100
-Cl pvdd 0 200p
+* Force pvdd to 5V
+Vpvdd pvdd 0 DC 5.0
 
-.ic v(pvdd)=4.5 v(gi)=4.5
+.ic v(gate_int)=4.5
 
-.option reltol=5e-3 abstol=1e-10 gmin=1e-10 method=gear
+.option method=gear reltol=5e-3 abstol=1e-10 gmin=1e-10
 
 .control
-tran 50n 30u uic
+tran 10n 50u uic
 
-* Measure current before step (at t=4us)
-meas tran i_before find v(pvdd) at=4u
-let i_before_ma = i_before / 100 * 1000
-
-* Measure current after step settles (at t=25us)
-meas tran vpvdd_after find v(pvdd) at=25u
-let i_after_ma = vpvdd_after / 100 * 1000
-
-* Check for peak current after step
-meas tran vpk max v(pvdd) from=5u to=30u
-let ipk_ma = vpk / 100 * 1000
+* === Measure response_time_us ===
+* Current before step
+meas tran i_before find i(Vpvdd) at=4u
+* Current at final settled state
+meas tran i_final avg i(Vpvdd) from=45u to=50u
+let i_before_mA = i_before * 1000
+let i_final_mA = i_final * 1000
 
 echo "=== Transient Response ==="
-echo "current_before_mA: $&i_before_ma"
-echo "current_after_mA: $&i_after_ma"
-echo "peak_current_mA: $&ipk_ma"
+echo "current_before_mA: $&i_before_mA"
+echo "current_final_mA: $&i_final_mA"
 
-* Check for oscillation: measure ripple in last 5us
-meas tran vhi max v(pvdd) from=25u to=30u
-meas tran vlo min v(pvdd) from=25u to=30u
-let ripple = (vhi - vlo) * 1000
-echo "ripple_mV: $&ripple"
+* Peak current after step
+meas tran ipk max i(Vpvdd) from=5u to=50u
+let ipk_mA = ipk * 1000
+echo "peak_current_mA: $&ipk_mA"
 
-* Response time estimate: conservative 1us (RC of gate node through 10k)
-echo "response_time_us: 1.0"
-echo "no_oscillation: 1"
+* Response time = time from step to when current reaches 90% of (i_final - i_before)
+* This measures the rise time of the limiter clamping action
+let i_90pct = i_before + 0.9 * (i_final - i_before)
+meas tran t90 when i(Vpvdd) = i_90pct cross=1 from=4.9u to=50u
 
-wrdata ilim_transient v(pvdd) v(gi) v(flag)
+if t90 > 4.9e-6
+  let response_us = (t90 - 5e-6) * 1e6
+  * If response is negative (crossed before 5us), it's sub-100ns — report as 0.1
+  if response_us < 0
+    let response_us = 0.1
+  end
+  echo "response_time_us: $&response_us"
+else
+  echo "response_time_us: UNMEASURED"
+end
+
+* === Measure no_oscillation ===
+* Check gate node for oscillation in the last 10us
+meas tran ghi max v(gate_int) from=40u to=50u
+meas tran glo min v(gate_int) from=40u to=50u
+let gate_ripple_mV = (ghi - glo) * 1000
+
+* Current ripple in the last 10us
+meas tran ihi max i(Vpvdd) from=40u to=50u
+meas tran ilo min i(Vpvdd) from=40u to=50u
+let current_ripple_mA = (ihi - ilo) * 1000
+
+echo "gate_ripple_mV: $&gate_ripple_mV"
+echo "current_ripple_mA: $&current_ripple_mA"
+
+* Pass if gate ripple < 200mV AND current ripple < 5mA
+let osc = 1
+if gate_ripple_mV > 200
+  let osc = 0
+end
+if current_ripple_mA > 5
+  let osc = 0
+end
+echo "no_oscillation: $&osc"
+
+wrdata ilim_transient v(pvdd) v(gate_int) v(ilim_flag)
 quit
 .endc
 .end

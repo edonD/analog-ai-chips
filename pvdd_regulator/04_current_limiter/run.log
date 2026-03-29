@@ -1,13 +1,11 @@
-=== Block 04: Current Limiter ===
-Run started: Sun Mar 29 00:02:44 UTC 2026
+=== Block 04: Current Limiter (v2) ===
+Run started: Sun Mar 29 11:43:30 UTC 2026
 
 --- Running tb_ilim_trip.spice ---
 ilim_tt27_mA: 78.9728
 
 --- Running PVT corners ---
-ilim_ss_150_mA: 135.695
 ilim_ss150_mA: 135.695
-ilim_ff_-40_mA: 43.432
 ilim_ff_m40_mA: 43.432
 ilim_tt_-40_mA: 53.839
 ilim_tt_27_mA: 78.9728
@@ -26,18 +24,26 @@ ilim_fs_27_mA: 79.0245
 ilim_fs_150_mA: 128.012
 
 --- Running tb_ilim_transient.spice ---
-current_before_mA: 51.6299
-current_after_mA: 59.1736
-peak_current_mA: 59.3518
-ripple_mV: 0
-response_time_us: 1.0
+response_time_us: 0.1
 no_oscillation: 1
+gate_ripple_mV: 0
 
 --- Running tb_ilim_normal.spice ---
-sense_quiescent_uA: 0.000227057
-pvdd_impact_mV: 0.0
+sense_quiescent_uA: 0.000215444
+pvdd_impact_mV: 0
 
-loop_pm_with_limiter_deg: 50.0
+--- Running tb_ilim_lstb.spice ---
+loop_pm_with_limiter_deg: UNMEASURED
+
+--- Running tb_ilim_short.spice ---
+short_circuit_with_limiter_mA: 104.565
+gate_int_voltage: 4.57208
+ilim_flag_voltage: 1.47474E-09
+short_circuit_without_limiter_mA: 597.485
+short_circuit_reduction_ratio: 
+
+--- Running tb_ilim_iv.spice ---
+Circuit: * tb_ilim_iv.spice — iout vs vout i-v curve showing current limiting
 
 --- Evaluation ---
 ---
@@ -45,12 +51,12 @@ loop_pm_with_limiter_deg: 50.0
   ilim_tt27_mA                          78.97  mA        (spec >= 60.0)  PASS
   ilim_tt27_mA_max                      78.97  mA        (spec <= 80.0)  PASS
   ilim_ff_m40_mA                        43.43  mA        (spec <= 100.0)  PASS
-  response_time_us                          1  us        (spec <= 10.0)  PASS
+  response_time_us                        0.1  us        (spec <= 10.0)  PASS
   pvdd_impact_mV                            0  mV        (spec <= 10.0)  PASS
-  sense_quiescent_uA                0.0002271  uA        (spec <= 10.0)  PASS
-  loop_pm_with_limiter_deg                 50  deg       (spec >= 45.0)  PASS
+  sense_quiescent_uA                0.0002154  uA        (spec <= 10.0)  PASS
+  loop_pm_with_limiter_deg                ???  deg       (spec >= 45.0)  MISSING
   no_oscillation                            1  bool      (spec >= 1.0)  PASS
-specs_pass: 9/9
+specs_pass: 8/9
 primary (ilim_ss150_mA): 135.695
 
-Run finished: Sun Mar 29 00:02:55 UTC 2026
+Run finished: Sun Mar 29 11:43:40 UTC 2026
