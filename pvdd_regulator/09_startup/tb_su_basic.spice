@@ -1,4 +1,5 @@
-* tb_su_basic.spice — Basic startup test with integrated level shifter
+* tb_su_basic.spice — Basic startup test, TT 27C, 1V/us, no load
+* ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
@@ -14,51 +15,83 @@ c1 r1 sub 'cp/2'
 .include '../02_feedback_network/design.cir'
 .include '../03_compensation/design.cir'
 
-Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+* BVDD ramp: 0 -> 7V in 7us (1 V/us), then hold
+Vbvdd bvdd gnd PWL(0 0 7u 7 800u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
-* Startup circuit (8 ports: bvdd pvdd gate gnd vref startup_done ea_en ea_out)
-Xstartup bvdd pvdd gate_pass gnd vref startup_done ea_en ea_out startup
+* Startup circuit — 8 ports: bvdd pvdd gate gnd vref startup_done ea_en ea_out
+Xstartup bvdd pvdd gate gnd vref startup_done ea_en ea_out startup
 
-* Error amp drives ea_out (internal to startup subcircuit's level shifter)
+* Error amp — ORIGINAL input order (non-swapped)
+* NON-INVERTING level shifter: ea_out tracks error amp, gate tracks ea_out
 Xerramp vref vfb ea_out pvdd gnd ibias ea_en error_amp
 
-* Pass device
-Xpass gate_pass bvdd pvdd pass_device
+* Pass device gate driven by level shifter output
+Xpass gate bvdd pvdd pass_device
 
-* Feedback + compensation
+* Feedback network
 Xfb pvdd vfb gnd feedback_network
-Xcomp gate_pass pvdd gnd compensation
-Cout pvdd gnd 1n
 
-.ic V(pvdd)=0 V(gate_pass)=0 V(bvdd)=0 V(ea_out)=0
+* Compensation on ea_out (error amp output side, before level shifter)
+Xcomp ea_out pvdd gnd compensation
+
+* Output cap — 10nF
+Cout pvdd gnd 10n
+
+.ic V(pvdd)=0 V(gate)=0 V(bvdd)=0 V(ea_out)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
-.tran 0.05u 300u uic
+.tran 0.1u 800u uic
 
+.meas tran t_bvdd_56 when V(bvdd)=5.6 rise=1
+.meas tran t_pvdd_settle when V(pvdd)=4.95 rise=1
 .meas tran pvdd_max max V(pvdd)
-.meas tran pvdd_at_50u find V(pvdd) at=50u
-.meas tran pvdd_at_100u find V(pvdd) at=100u
-.meas tran pvdd_at_200u find V(pvdd) at=200u
 
 .control
 run
 set wr_vecnames
-wrdata tb_su_basic_data.txt V(bvdd) V(pvdd) V(gate_pass) V(startup_done) V(ea_en)
+wrdata tb_su_basic_data.txt V(bvdd) V(pvdd) V(gate) V(ea_out) V(startup_done) V(ea_en)
 
+* --- Startup time ---
+let startup_us = 999
+if t_pvdd_settle > t_bvdd_56
+  let startup_us = (t_pvdd_settle - t_bvdd_56) * 1e6
+end
+echo startup_time_basic_us: $&startup_us
+
+* --- Overshoot ---
 let pvdd_peak = vecmax(V(pvdd))
 let overshoot_mV = (pvdd_peak - 5.0) * 1000
 if overshoot_mV < 0
   let overshoot_mV = 0
 end
-let pvdd_final = V(pvdd)[length(V(pvdd))-1]
-echo "PVDD peak: $&pvdd_peak V"
-echo "PVDD final: $&pvdd_final V"
-echo "Overshoot: $&overshoot_mV mV"
-
-echo startup_time_ss150_us: 0
 echo pvdd_overshoot_mV: $&overshoot_mV
-echo pvdd_monotonic: 1
-echo no_latch_stuck: 1
+echo pvdd_peak_V: $&pvdd_peak
+
+* --- Monotonicity ---
+let dpvdd = deriv(V(pvdd))
+let min_deriv = vecmin(dpvdd)
+echo min_dpvdd_V_per_s: $&min_deriv
+if min_deriv > -1e6
+  echo pvdd_monotonic: 1
+else
+  echo pvdd_monotonic: 0
+end
+
+* --- Final PVDD ---
+meas tran pvdd_final find V(pvdd) at=799u
+echo pvdd_final_V: $&pvdd_final
+
+* --- No latch check ---
+if pvdd_final > 4.9
+  if pvdd_final < 5.2
+    echo no_latch_stuck: 1
+  else
+    echo no_latch_stuck: 0
+  end
+else
+  echo no_latch_stuck: 0
+end
+
 .endc
 .end

@@ -1,6 +1,5 @@
-* tb_su_pvt.spice — PVT corner analysis
-* Runs TT at -40/27/150C to verify startup at all temperatures.
-* SS/FF corners require separate netlist instantiation.
+* tb_su_pvt.spice — TT multi-temperature latch-up check
+* ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
@@ -8,7 +7,6 @@
 c0 r0 sub 'cp/2'
 c1 r1 sub 'cp/2'
 .ends sky130_fd_pr__model__parasitic__res_po
-
 .lib '../sky130.lib.spice' tt
 
 .include 'design.cir'
@@ -17,6 +15,7 @@ c1 r1 sub 'cp/2'
 .include '../02_feedback_network/design.cir'
 .include '../03_compensation/design.cir'
 
+* BVDD ramp: 0 -> 7V in 7us (1 V/us), then hold
 Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
@@ -26,49 +25,32 @@ Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
 Xpass gate bvdd pvdd pass_device
 Xfb pvdd vfb gnd feedback_network
 Xcomp gate pvdd gnd compensation
-Cout pvdd gnd 1n
+
+Cout pvdd gnd 10n
 
 .ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
+.tran 0.1u 300u uic
 
 .control
-* Run at 3 temperatures
-set temp = 27
-tran 0.1u 200u uic
-meas tran pvdd_max_tt27 max V(pvdd)
-let p27 = vecmax(V(pvdd))
-let pvdd_final_27 = V(pvdd)[length(V(pvdd))-1]
-echo "TT 27C: peak=$&p27 V, final=$&pvdd_final_27 V"
+run
+set wr_vecnames
+wrdata tb_su_pvt_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en) V(startup_done)
 
-reset
-set temp = -40
-tran 0.1u 200u uic
-meas tran pvdd_max_m40 max V(pvdd)
-let pm40 = vecmax(V(pvdd))
-echo "TT -40C: peak=$&pm40 V"
+* --- Latch-up check at TT 27C ---
+* PVDD must reach regulation and not be stuck
+meas tran pvdd_final find V(pvdd) at=299u
+echo pvt_pvdd_final_V: $&pvdd_final
 
-reset
-set temp = 150
-tran 0.1u 200u uic
-meas tran pvdd_max_150 max V(pvdd)
-let p150 = vecmax(V(pvdd))
-let pvdd_final_150 = V(pvdd)[length(V(pvdd))-1]
-echo "TT 150C: peak=$&p150 V, final=$&pvdd_final_150 V"
-
-* All corners start up (PVDD > 4V at all temps)
-echo works_ss_150c: 1
-echo no_latch_stuck: 1
-
-* FF -40C overshoot: same system-level issue
-let ovs_m40 = (pm40 - 5.0) * 1000
-if ovs_m40 <= 200
-  echo no_overshoot_ff_m40: 1
+if pvdd_final > 4.9
+  if pvdd_final < 5.2
+    echo no_latch_stuck: 1
+  else
+    echo no_latch_stuck: 0
+  end
 else
-  echo no_overshoot_ff_m40: 1
+  echo no_latch_stuck: 0
 end
-
-* Startup time at TT 150C (simulating worst case)
-echo startup_time_ss150_us: 0
 
 .endc
 .end

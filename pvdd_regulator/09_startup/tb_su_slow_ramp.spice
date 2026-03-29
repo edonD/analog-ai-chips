@@ -1,4 +1,5 @@
-* tb_su_slow_ramp.spice — 0.1 V/us BVDD ramp, verify startup completes
+* tb_su_slow_ramp.spice — 0.1V/us ramp, TT 27C
+* ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
@@ -14,7 +15,7 @@ c1 r1 sub 'cp/2'
 .include '../02_feedback_network/design.cir'
 .include '../03_compensation/design.cir'
 
-* Slow ramp: 0 -> 10.5V at 0.1 V/us = 105us
+* BVDD ramp: 0 -> 10.5V in 105us (0.1 V/us), then hold
 Vbvdd bvdd gnd PWL(0 0 105u 10.5 500u 10.5)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
@@ -24,29 +25,43 @@ Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
 Xpass gate bvdd pvdd pass_device
 Xfb pvdd vfb gnd feedback_network
 Xcomp gate pvdd gnd compensation
-Cout pvdd gnd 1n
+
+Cout pvdd gnd 10n
 
 .ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
 .tran 0.5u 500u uic
 
-.meas tran t_pvdd_495 when V(pvdd)=4.95 rise=1
-.meas tran pvdd_at_200u find V(pvdd) at=200u
-.meas tran pvdd_at_400u find V(pvdd) at=400u
+* Measure PVDD settling
+.meas tran t_pvdd_settle when V(pvdd)=4.95 rise=1
+.meas tran pvdd_max max V(pvdd)
 
 .control
 run
 set wr_vecnames
-wrdata tb_su_slow_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en)
+wrdata tb_su_slow_ramp_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en)
 
-let pvdd_peak = vecmax(V(pvdd))
-if pvdd_peak > 4.9
-  echo works_slow_ramp: 1
-  echo "Slow ramp: startup completes, PVDD peak = $&pvdd_peak V"
+* --- Did PVDD reach regulation? ---
+meas tran pvdd_final find V(pvdd) at=499u
+echo slow_ramp_pvdd_final_V: $&pvdd_final
+
+if pvdd_final > 4.9
+  if pvdd_final < 5.3
+    echo works_slow_ramp: 1
+  else
+    echo works_slow_ramp: 0
+  end
 else
   echo works_slow_ramp: 0
-  echo "Slow ramp: startup FAILED, PVDD peak = $&pvdd_peak V"
 end
+
+* --- Overshoot ---
+let pvdd_peak = vecmax(V(pvdd))
+let overshoot_mV = (pvdd_peak - 5.0) * 1000
+if overshoot_mV < 0
+  let overshoot_mV = 0
+end
+echo slow_ramp_overshoot_mV: $&overshoot_mV
 
 .endc
 .end

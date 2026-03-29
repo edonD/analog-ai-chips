@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 # run_block.sh — Block 09: Startup Circuit
 # Usage: bash run_block.sh > run.log 2>&1
-#
-# NOTE: Startup simulations are the most convergence-challenging in the project.
-# Allow up to 45 minutes for the full suite.
-# Run tb_su_basic.spice first (5 min) to verify basic startup before adding closed loop.
 
 set -o pipefail
 cd "$(dirname "$0")"
@@ -34,6 +30,9 @@ run_tb tb_su_fast_ramp.spice
 run_tb tb_su_slow_ramp.spice
 run_tb tb_su_cold_crank.spice
 run_tb tb_su_leakage.spice
+run_tb tb_su_inrush.spice
+run_tb tb_su_ss150.spice
+run_tb tb_su_ff_m40.spice
 run_tb tb_su_pvt.spice
 
 echo "--- Evaluation ---"

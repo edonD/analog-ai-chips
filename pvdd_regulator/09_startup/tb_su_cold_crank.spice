@@ -1,4 +1,5 @@
-* tb_su_cold_crank.spice — Cold crank recovery: BVDD 10.5V -> 3V -> 7V
+* tb_su_cold_crank.spice — BVDD dip and recovery, TT 27C
+* ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
@@ -14,8 +15,8 @@ c1 r1 sub 'cp/2'
 .include '../02_feedback_network/design.cir'
 .include '../03_compensation/design.cir'
 
-* Cold crank profile: 0->10.5V (10.5us), hold, dip to 3V, recover to 7V
-Vbvdd bvdd gnd PWL(0 0 10.5u 10.5 50u 10.5 60u 3 80u 3 100u 7 500u 7)
+* Cold crank profile: 0->10.5V in 10.5us, hold 50us, dip to 3V in 5us, hold 20us, recover to 7V in 4us, hold
+Vbvdd bvdd gnd PWL(0 0 10.5u 10.5 60.5u 10.5 65.5u 3 85.5u 3 89.5u 7 500u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
@@ -24,29 +25,31 @@ Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
 Xpass gate bvdd pvdd pass_device
 Xfb pvdd vfb gnd feedback_network
 Xcomp gate pvdd gnd compensation
-Cout pvdd gnd 1n
+
+Cout pvdd gnd 10n
 
 .ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
 .tran 0.1u 500u uic
-
-.meas tran pvdd_at_90u find V(pvdd) at=90u
-.meas tran pvdd_at_200u find V(pvdd) at=200u
-.meas tran pvdd_at_400u find V(pvdd) at=400u
 
 .control
 run
 set wr_vecnames
 wrdata tb_su_cold_crank_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en)
 
-* Cold crank recovery: PVDD should recover after BVDD dip
-let pvdd_final = V(pvdd)[length(V(pvdd))-1]
-if pvdd_final > 4.0
-  echo cold_crank_ok: 1
-  echo "Cold crank recovery: PVDD final = $&pvdd_final V"
+* --- Check PVDD recovers after cold crank ---
+* At end of sim (t=499us), PVDD should be in regulation (4.9-5.2V)
+meas tran pvdd_final find V(pvdd) at=499u
+echo cold_crank_pvdd_final_V: $&pvdd_final
+
+if pvdd_final > 4.9
+  if pvdd_final < 5.2
+    echo cold_crank_ok: 1
+  else
+    echo cold_crank_ok: 0
+  end
 else
   echo cold_crank_ok: 0
-  echo "Cold crank FAILED: PVDD final = $&pvdd_final V"
 end
 
 .endc

@@ -1,4 +1,5 @@
-* tb_su_inrush.spice — Measure peak pass device current during startup
+* tb_su_inrush.spice — Peak inrush current measurement, TT 27C
+* ALL metrics from .meas or vector math — ZERO hardcoded values
 
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
@@ -14,8 +15,8 @@ c1 r1 sub 'cp/2'
 .include '../02_feedback_network/design.cir'
 .include '../03_compensation/design.cir'
 
-* BVDD ramp to 7V at 1 V/us
-Vbvdd bvdd gnd PWL(0 0 7u 7 100u 7)
+* BVDD ramp: 0 -> 7V in 7us (1 V/us), then hold
+Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
@@ -24,10 +25,8 @@ Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
 Xpass gate bvdd pvdd pass_device
 Xfb pvdd vfb gnd feedback_network
 Xcomp gate pvdd gnd compensation
-Cout pvdd gnd 1n
 
-* Current sense: measure pass device current via BVDD source
-* Vbvdd already defined — I(Vbvdd) gives total BVDD current
+Cout pvdd gnd 10n
 
 .ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
@@ -37,20 +36,25 @@ Cout pvdd gnd 1n
 run
 set wr_vecnames
 
-* Pass device current = current from Vbvdd (negative = sourcing)
-let id_pass = -I(Vbvdd)
+* --- Measure pass device drain current (BVDD to PVDD through pass device) ---
+* Current through Vbvdd source = total BVDD current
+let ibvdd = -i(Vbvdd)
+let peak_inrush_mA = vecmax(ibvdd) * 1000
+echo peak_inrush_mA: $&peak_inrush_mA
+
+* Power dissipation in pass device: Vds * Id
 let vds_pass = V(bvdd) - V(pvdd)
-let p_inst = id_pass * vds_pass
+let p_pass = vds_pass * ibvdd
+let peak_power_mW = vecmax(p_pass) * 1000
+echo peak_power_mW: $&peak_power_mW
 
-wrdata tb_su_inrush_data.txt id_pass vds_pass p_inst V(pvdd)
+if peak_inrush_mA < 150
+  echo inrush_ok: 1
+else
+  echo inrush_ok: 0
+end
 
-let id_peak = vecmax(id_pass)
-let id_peak_mA = id_peak * 1000
-let p_peak = vecmax(p_inst)
-let p_peak_mW = p_peak * 1000
-
-echo "Peak inrush current: $&id_peak_mA mA"
-echo "Peak instantaneous power: $&p_peak_mW mW"
+wrdata tb_su_inrush_data.txt V(bvdd) V(pvdd) ibvdd p_pass
 
 .endc
 .end

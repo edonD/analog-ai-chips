@@ -1,75 +1,78 @@
-* Block 09: Startup Circuit
+* Block 09: Startup Circuit — v14
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Mechanism: Very weak gate pulldown + strong MN_pu overshoot limiter
+* Phase 1 (startup, PVDD < 4V):
+*   - ea_en LOW, error amp disabled, Mpu pulls ea_out toward PVDD
+*   - MP_pu_ea also pulls ea_out toward PVDD (self-regulation backup)
+*   - Switched source followers clamp gate to ~BVDD-1.5V (body effect)
+*   - Vsg ≈ 1.5V → moderate pass device current → PVDD charges to ~4V
+* Phase 2 (after startup, PVDD > 4V):
+*   - Source followers OFF, startup pullup OFF
+*   - ea_en HIGH, error amp takes over
+*   - Level shifter translates ea_out to gate in BVDD domain
 *
-* Strategy: MN_pu (W=100u source follower) dominates over the weak
-* gate pulldown (R_gate=2MΩ, MN_gate W=1u L=2u). Gate stays near
-* BVDD-Vth during startup → pass device barely on → slow PVDD ramp.
-* When PVDD reaches threshold, MN_gate turns off and error amp takes over.
-*
-.subckt startup bvdd pvdd gate gnd vref startup_done ea_en
+.subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
 * ================================================================
-* PVDD threshold detector — trips at ~3.9V
+* PVDD threshold detector — trips at PVDD ~ 4V
 * ================================================================
-XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=8200
-XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=1800
-XMN_det det_out sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+* sense_mid = PVDD * 0.2125 → Vth at PVDD≈4V
+XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=788
+XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=212
+XMN_det det_n sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
+XR_pu bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=2000
 
-* 30MΩ pull-up
-XR_pu bvdd det_out gnd sky130_fd_pr__res_xhigh_po w=1 l=15001
+* det_out: HIGH when PVDD > ~4V
+XMP_inv1 det_out det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+XMN_inv1 det_out det_n gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
-* ================================================================
-* Gate pulldown — VERY weak to keep gate near BVDD
-* ================================================================
-* R_gate = 2MΩ directly to GND through MN_gate (switched).
-* After startup, MN_gate off → no current through R_gate.
-* MN_gate: minimum-size W=0.42u L=20u → extremely weak pull.
-XR_gate gate pull_mid gnd sky130_fd_pr__res_xhigh_po w=1 l=501
-XMN_gate pull_mid det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=20e-6
+* inv_det: HIGH during startup, LOW after
+XMP_inv2 inv_det det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+XMN_inv2 inv_det det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 * ================================================================
-* BVDD gate pull-up (overshoot limiter)
+* SWITCHED SOURCE FOLLOWERS — active during startup only
+* gate=inv_det: ON during startup (BVDD), OFF after (0V)
+* With body effect: gate_node ≈ BVDD - 1.5V → Vsg ≈ 1.5V
 * ================================================================
-* W=100u source follower dominates during startup.
-* Keeps gate ≈ BVDD - Vth → Vsg ≈ Vth → pass device barely on.
-* 28 parallel W=100u instances = effective 2.8mm
-XMN_pu1  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu2  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu3  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu4  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu5  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu6  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu7  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu8  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu9  bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu10 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu11 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu12 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu13 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu14 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu15 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu16 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu17 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu18 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu19 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu20 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu21 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu22 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu23 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu24 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu25 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu26 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu27 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
-XMN_pu28 bvdd bvdd gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=1e-6
+XMN_sf1 bvdd inv_det gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6
+XMN_sf2 bvdd inv_det gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6
 
 * ================================================================
-* Output flags
+* NON-INVERTING LEVEL SHIFTER (active after startup)
 * ================================================================
-XMP_sd startup_done det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
-XMN_sd startup_done det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
-XMP_ea ea_en det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
-XMN_ea ea_en det_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
+XR_lb1 bvdd ls_bias gnd sky130_fd_pr__res_xhigh_po w=2 l=1000
+XR_lb2 ls_bias gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=6000
+
+XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=4e-6
+
+* R_load: 100kΩ from BVDD to gate
+XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
+
+* ================================================================
+* STARTUP ea_out PULLUP — self-regulation backup
+* Pulls ea_out toward PVDD when det_out=LOW (startup)
+* Disables when det_out=HIGH (after startup)
+* ================================================================
+XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+
+* ================================================================
+* ea_en: inverter driven by inv_det + RC delay for soft handoff
+* Slow ea_en rise gives error amp time to establish operating point
+* R_delay = 1MΩ, C_delay = 100pF → tau = 100µs
+* ================================================================
+XMN_ea ea_en_fast inv_det gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
+XMP_ea ea_en_fast inv_det bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
+* R = 2000*10000/1 = 20MΩ, C = 120pF → tau = 2.4ms
+XR_delay ea_en_fast ea_en gnd sky130_fd_pr__res_xhigh_po w=1 l=10000
+C_delay ea_en gnd 120p
+
+* ================================================================
+* startup_done: double-inversion buffer of det_out
+* ================================================================
+XMP_sd1 sd_inv det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+XMN_sd1 sd_inv det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
+XMP_sd2 startup_done sd_inv bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+XMN_sd2 startup_done sd_inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 .ends startup

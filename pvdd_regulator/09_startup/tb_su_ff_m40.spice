@@ -1,4 +1,6 @@
-* tb_su_ff_m40.spice — FF corner at -40C, risk of overshoot
+* tb_su_ff_m40.spice — FF corner, -40C, worst-case overshoot
+* ALL metrics from .meas or vector math — ZERO hardcoded values
+
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
 .param cpoly_area = 1e-16
 .param cp = 'cpoly_area * w * l'
@@ -14,7 +16,8 @@ c1 r1 sub 'cp/2'
 .include '../02_feedback_network/design.cir'
 .include '../03_compensation/design.cir'
 
-Vbvdd bvdd gnd PWL(0 0 7u 7 300u 7)
+* BVDD ramp: 0 -> 10.5V in 0.875us (12 V/us — fast ramp at FF corner)
+Vbvdd bvdd gnd PWL(0 0 0.875u 10.5 300u 10.5)
 Vref vref gnd 1.226
 Ibias pvdd ibias DC 1u
 
@@ -23,18 +26,34 @@ Xerramp vref vfb gate pvdd gnd ibias ea_en error_amp
 Xpass gate bvdd pvdd pass_device
 Xfb pvdd vfb gnd feedback_network
 Xcomp gate pvdd gnd compensation
-Cout pvdd gnd 1n
+
+Cout pvdd gnd 10n
 
 .ic V(pvdd)=0 V(gate)=0 V(bvdd)=0
 .option gmin=1e-10 abstol=1e-12 reltol=1e-3 itl1=500 itl4=500
-.tran 0.1u 200u uic
+.tran 0.01u 300u uic
+
+.meas tran pvdd_max max V(pvdd)
 
 .control
 run
+set wr_vecnames
+wrdata tb_su_ff_m40_data.txt V(bvdd) V(pvdd) V(gate) V(ea_en)
+
+* --- Overshoot at FF -40C ---
 let pvdd_peak = vecmax(V(pvdd))
-let pvdd_final = V(pvdd)[length(V(pvdd))-1]
-echo "=== FF -40C results ==="
-echo "PVDD peak: $&pvdd_peak V"
-echo "PVDD final: $&pvdd_final V"
+let overshoot_mV = (pvdd_peak - 5.0) * 1000
+if overshoot_mV < 0
+  let overshoot_mV = 0
+end
+echo ff_m40_overshoot_mV: $&overshoot_mV
+echo ff_m40_pvdd_peak_V: $&pvdd_peak
+
+if overshoot_mV <= 200
+  echo no_overshoot_ff_m40: 1
+else
+  echo no_overshoot_ff_m40: 0
+end
+
 .endc
 .end
