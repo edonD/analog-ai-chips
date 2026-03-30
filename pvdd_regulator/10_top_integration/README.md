@@ -8,6 +8,16 @@ Full hierarchical block diagram showing all 10 sub-blocks, inter-block wiring, a
 
 Source: [`pvdd_regulator_top.sch`](pvdd_regulator_top.sch) (xschem schematic)
 
+## Full Transistor-Level Schematic (xschem)
+
+Complete flattened schematic with every MOSFET, resistor, and capacitor from all 10 blocks drawn with real SKY130 PDK symbols. **136 MOSFETs + 33 passives = 169 components total.**
+
+![Full Transistor-Level Schematic](pvdd_regulator_full.png)
+
+10 sections: Error Amp (12 FETs), Pass Device (10 PFETs), Feedback (2 R), Compensation (2 caps + 1 R), Current Limiter (5 FETs + 2 R), UV/OV Comparators (24 FETs + 8 R), Level Shifter (6 FETs), Zener Clamp (13 FETs + 1 R), Mode Control (62 FETs + 5 R), Startup (4 FETs + 7 R), plus 3 top-level passives.
+
+Source: [`pvdd_regulator_full.sch`](pvdd_regulator_full.sch) | Generator: [`gen_full_sch.py`](gen_full_sch.py)
+
 ## Architecture
 
 ```
