@@ -40,10 +40,10 @@ XM_pass gate bvdd pvdd pass_device
 *   at startup (when PVDD ≈ 4V < 5V target)
 * =======================================================
 * Soft-start: tau=200kΩ×30nF=6ms
-* At t≈10ms (when PVDD crosses 4V via CG-driven startup):
-* vref_ss ≈ 1.226*(1-exp(-10/6)) = 0.98V ≈ vfb(PVDD=4V)
-* Error amp enables with matched vref_ss≈vfb → no overshoot
-* Then vref_ss continues to 1.226V → PVDD ramps to 5V smoothly
+* Controls the steady-state reference ramp for smooth regulation
+* Note: startup peak (6.3V) occurs in <200µs, before the soft-start
+* can take effect. The zener clamp limits the peak. Future improvement
+* requires a startup current limiter or controlled gate slew.
 Rss avbg vref_ss 200k
 Css vref_ss gnd 30n
 
