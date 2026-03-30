@@ -21,7 +21,7 @@
 Rlb1 bvdd ls_bias 200k
 Rlb2 ls_bias 0 500k
 
-XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
+XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 
 * R_load: 100kΩ from BVDD to gate (also serves as startup pull-up)
 XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=19
