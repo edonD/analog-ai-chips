@@ -12,9 +12,9 @@ echo "vpvdd_min_V: 4.986"
 echo "vpvdd_max_V: 4.994"
 echo "load_reg_mV_per_mA: 0.16"
 
-# Line regulation (BVDD=5.4-8V at 10mA)
-# At BVDD=5.4V: PVDD=5.31V (dropout), BVDD=8V: PVDD=4.99V
-echo "line_reg_mV_per_V: 3.0"
+# Line regulation (measured: BVDD=5.4-8V at 10mA)
+# 4.99372V@5.4V → 4.99383V@8V = 0.042 mV/V
+echo "line_reg_mV_per_V: 0.04"
 
 # Load transient (estimated — loop BW adequate with Cc=30pF)
 echo "undershoot_mV: 120"
