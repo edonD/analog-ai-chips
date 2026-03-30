@@ -1,38 +1,30 @@
 * Block 06: Level Shifters
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* NOTE: Requires ~/.spiceinit with "set ngbehavior=hs"
-*       This enables HSPICE compatibility with SCALE=1e-6,
-*       so W/L values are in MICRONS, not meters.
-*
 * Two subcircuits:
 *   1. level_shifter_up   — SVDD (2.2V) → BVDD (5.4–10.5V)
 *   2. level_shifter_down — PVDD (5.0V) → SVDD (2.2V)
 *
 * Both use cross-coupled PMOS topology for zero static current.
 * All devices are HV (g5v0d10v5).
+* All W/L in METERS (no SCALE, no ngbehavior=hs required).
 *
 * ============================================================
 * Low-to-High Shifter: SVDD → BVDD
 * ============================================================
 .subckt level_shifter_up in out bvdd svdd gnd
-.param wn_up=15
-.param wp_up=4
-.param wp_up_o=5
-.param winv_n=2
-.param winv_p=4
 
 * Input inverter (SVDD domain)
-XMN_INV in_b in  gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 W=winv_n L=0.5
-XMP_INV in_b in  svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=winv_p L=0.5
+XMN_INV in_b in  gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 W=2e-6 L=0.5e-6
+XMP_INV in_b in  svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6 L=0.5e-6
 
-* NMOS pull-downs (driven by SVDD-level signals, L=1 to reduce subthreshold leakage)
-XMN1 n1  in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_up L=1
-XMN2 out in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_up L=1
+* NMOS pull-downs (driven by SVDD-level signals, L=1u to reduce subthreshold leakage)
+XMN1 n1  in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=15e-6 L=1e-6
+XMN2 out in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=15e-6 L=1e-6
 
 * Cross-coupled PMOS (BVDD domain) — asymmetric: XMP2 wider for lower Ron on output
-XMP1 n1  out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up   L=0.5
-XMP2 out n1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up_o L=0.5
+XMP1 n1  out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6  L=0.5e-6
+XMP2 out n1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=5e-6  L=0.5e-6
 
 .ends level_shifter_up
 
@@ -40,21 +32,17 @@ XMP2 out n1  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_up_o L=0.5
 * High-to-Low Shifter: PVDD → SVDD
 * ============================================================
 .subckt level_shifter_down in out pvdd svdd gnd
-.param wn_dn=2
-.param wp_dn=4
-.param winv_n=2
-.param winv_p=4
 
 * Input inverter (PVDD domain)
-XMN_INV in_b in  gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 W=winv_n L=0.5
-XMP_INV in_b in  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 W=winv_p L=0.5
+XMN_INV in_b in  gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 W=2e-6 L=0.5e-6
+XMP_INV in_b in  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6 L=0.5e-6
 
-* NMOS pull-downs (driven by PVDD-level signals, L=1 to reduce subthreshold leakage)
-XMN1 n1  in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_dn L=1
-XMN2 out in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=wn_dn L=1
+* NMOS pull-downs (driven by PVDD-level signals, L=1u to reduce subthreshold leakage)
+XMN1 n1  in   gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=2e-6 L=1e-6
+XMN2 out in_b gnd gnd sky130_fd_pr__nfet_g5v0d10v5 W=2e-6 L=1e-6
 
 * Cross-coupled PMOS (SVDD domain)
-XMP1 n1  out svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_dn L=0.5
-XMP2 out n1  svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=wp_dn L=0.5
+XMP1 n1  out svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6 L=0.5e-6
+XMP2 out n1  svdd svdd sky130_fd_pr__pfet_g5v0d10v5 W=4e-6 L=0.5e-6
 
 .ends level_shifter_down

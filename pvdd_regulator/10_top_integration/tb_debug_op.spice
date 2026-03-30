@@ -1,0 +1,58 @@
+* tb_debug_op.spice — DC operating point debug
+* Just error amp + pass + feedback, NO compensation, ideal level shift
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+
+* Pass device
+XM_pass gate bvdd pvdd pass_device
+
+* Error amp (en=bvdd=7V to fully enable)
+XEA avbg vfb ea_out pvdd 0 ibias bvdd error_amp
+
+* Feedback network
+XFB pvdd vfb 0 feedback_network
+
+* Ideal level shifter: gate = ea_out + (bvdd - pvdd)
+Egate gate 0 vol='v(ea_out) + v(bvdd) - v(pvdd)'
+
+* Stimuli
+Vbvdd bvdd 0 DC 7.0
+Vavbg avbg 0 DC 1.226
+Ibias ibias 0 DC 1u
+
+Rload pvdd 0 500
+Cout pvdd 0 1u
+
+.option reltol=1e-4
+
+.control
+* Try OP
+op
+echo "=== DC OP Results ==="
+echo "pvdd: $&v(pvdd)"
+echo "ea_out: $&v(ea_out)"
+echo "vfb: $&v(vfb)"
+echo "gate: $&v(gate)"
+echo "avbg: $&v(avbg)"
+
+* Print operating point of Stage 2
+echo "d2: $&v(xea.d2)"
+echo "d1: $&v(xea.d1)"
+echo "tail_s: $&v(xea.tail_s)"
+echo "pb_tail: $&v(xea.pb_tail)"
+echo "ibias_en: $&v(xea.ibias_en)"
+
+quit
+.endc
+
+.end

@@ -1,22 +1,15 @@
-* Block 09: Startup Circuit — v14
+* Block 09: Startup Circuit — v18
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Phase 1 (startup, PVDD < 4V):
-*   - ea_en LOW, error amp disabled, Mpu pulls ea_out toward PVDD
-*   - MP_pu_ea also pulls ea_out toward PVDD (self-regulation backup)
-*   - Switched source followers clamp gate to ~BVDD-1.5V (body effect)
-*   - Vsg ≈ 1.5V → moderate pass device current → PVDD charges to ~4V
-* Phase 2 (after startup, PVDD > 4V):
-*   - Source followers OFF, startup pullup OFF
-*   - ea_en HIGH, error amp takes over
-*   - Level shifter translates ea_out to gate in BVDD domain
+* v18: CG level shifter with ls_bias≈5V (clamped). Works for BVDD=5.4-8V.
+*   PMOS charger for startup. Fast ea_en (tau=0.1µs).
+*   Known limitation: BVDD > 8V needs additional high-voltage level shift.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
 * ================================================================
 * PVDD threshold detector — trips at PVDD ~ 4V
 * ================================================================
-* sense_mid = PVDD * 0.2125 → Vth at PVDD≈4V
 XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=788
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=212
 XMN_det det_n sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
@@ -31,25 +24,17 @@ XMP_inv2 inv_det det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
 XMN_inv2 inv_det det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 * ================================================================
-* SWITCHED SOURCE FOLLOWERS — active during startup only
-* gate=inv_det: ON during startup (BVDD), OFF after (0V)
-* With body effect: gate_node ≈ BVDD - 1.5V → Vsg ≈ 1.5V
+* PMOS STARTUP PVDD CHARGER
 * ================================================================
-* Source followers — help at BVDD=7V for faster PVDD charge
-XMN_sf1 bvdd inv_det gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6
-XMN_sf2 bvdd inv_det gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6
+XMP_charge pvdd_su det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=1e-6
+Rcharge pvdd_su pvdd 50
 
 * ================================================================
-* NON-INVERTING LEVEL SHIFTER (active after startup)
+* CG NFET LEVEL SHIFTER
+* ls_bias ≈ 5V from resistor divider + 4-diode clamp
 * ================================================================
-* Bias: R divider gives high ls_bias, diode clamp limits it to ~6V
-* R divider: ls_bias = BVDD * 6/7 (same as before) = 6V at 7V, 9V at 10.5V
-* Clamp: 5 stacked diode-connected NMOS clamp ls_bias to ~5.5V
-* Net: ls_bias ≈ 5.5V at BVDD=7V, ~5.5V at BVDD=10.5V (clamped)
 XR_lb1 bvdd ls_bias gnd sky130_fd_pr__res_xhigh_po w=2 l=1000
 XR_lb2 ls_bias gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=6000
-* Diode clamp: 5 stacked NMOS → clamp at ~5.7V
-* Self-reg equilibrium ≈ 5.7-0.85 = 4.85V (above 4V detector threshold)
 XMD1 ls_bias ls_bias d1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
 XMD2 d1 d1 d2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
 XMD3 d2 d2 d3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
@@ -60,24 +45,18 @@ XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
 * R_load: 100kΩ from BVDD to gate
 XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 
-* STARTUP ea_out PULLUP — pulls ea_out toward PVDD during startup
-XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=1e-6
-
-
 * ================================================================
-* ea_en: inverter driven by inv_det + RC delay for soft handoff
-* Slow ea_en rise gives error amp time to establish operating point
-* R_delay = 1MΩ, C_delay = 100pF → tau = 100µs
+* ea_en: fast inverter of inv_det + tiny RC
 * ================================================================
 XMN_ea ea_en_fast inv_det gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
 XMP_ea ea_en_fast inv_det bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
-* R = 2000*10000/1 = 20MΩ, C = 120pF → tau = 2.4ms
-XR_delay ea_en_fast ea_en gnd sky130_fd_pr__res_xhigh_po w=1 l=10000
-C_delay ea_en gnd 120p
+XR_delay ea_en_fast ea_en gnd sky130_fd_pr__res_xhigh_po w=1 l=10
+C_delay ea_en gnd 5p
 
-* ================================================================
-* startup_done: double-inversion buffer of det_out
-* ================================================================
+* STARTUP ea_out PULLUP
+XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=1e-6
+
+* startup_done
 XMP_sd1 sd_inv det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
 XMN_sd1 sd_inv det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 XMP_sd2 startup_done sd_inv bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6

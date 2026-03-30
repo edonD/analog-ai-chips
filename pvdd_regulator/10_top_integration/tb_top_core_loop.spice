@@ -1,0 +1,93 @@
+* tb_top_core_loop.spice — Core Regulation Loop Only
+* Test error amp + pass device + feedback + compensation
+* WITHOUT startup, UV/OV, current limiter, mode control
+* This verifies the basic regulation loop works.
+
+* ============================================================
+* PDK Models
+* ============================================================
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+
+* ============================================================
+* Include only core blocks
+* ============================================================
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+
+* ============================================================
+* Core regulation loop (flat wiring)
+* ============================================================
+* Pass device
+XM_pass gate bvdd pvdd pass_device
+
+* Error amp: vref=avbg, vfb=feedback, output=ea_out
+* Enable is tied HIGH (BVDD level = always on)
+XEA avbg vfb ea_out pvdd 0 ibias bvdd error_amp
+
+* Feedback network
+XFB pvdd vfb 0 feedback_network
+
+* Compensation
+XCOMP ea_out pvdd 0 compensation
+
+* Gate drive: simple resistor from ea_out to gate (simulates level shift)
+* For a PMOS pass device, gate must be pulled toward BVDD (off) or toward
+* some lower voltage (on). ea_out is in PVDD domain (0 to ~5V).
+* Direct connection for now: gate = ea_out
+* (PMOS source=BVDD=7V, gate=ea_out, Vsg=BVDD-ea_out)
+* Low ea_out → high Vsg → ON, High ea_out → low Vsg → OFF
+Rgate ea_out gate 100
+
+* ============================================================
+* Stimuli
+* ============================================================
+Vbvdd bvdd 0 DC 7.0
+Vavbg avbg 0 DC 1.226
+Ibias ibias 0 DC 1u
+
+* Load: 10mA
+Rload pvdd 0 500
+
+* Output cap (1µF)
+Cout pvdd 0 1u
+
+* ============================================================
+* Operating point first, then transient
+* ============================================================
+.option reltol=1e-4 abstol=1e-12 vntol=1e-6
+.option method=gear
+.option itl1=500 itl2=500
+
+* Initial conditions
+.ic V(pvdd)=5.0 V(ea_out)=2.0 V(gate)=2.0
+
+.tran 1u 5m uic
+
+.meas tran vpvdd_ss avg V(pvdd) from=4m to=5m
+.meas tran vgate_ss avg V(gate) from=4m to=5m
+.meas tran vea_out_ss avg V(ea_out) from=4m to=5m
+.meas tran vfb_ss avg V(vfb) from=4m to=5m
+
+.control
+run
+
+echo "=== Core Loop Test ==="
+echo "vpvdd_ss: $&vpvdd_ss"
+echo "vgate_ss: $&vgate_ss"
+echo "vea_out_ss: $&vea_out_ss"
+echo "vfb_ss: $&vfb_ss"
+
+quit
+.endc
+
+.end

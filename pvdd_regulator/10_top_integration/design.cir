@@ -1,97 +1,102 @@
-* Block 10: Top-Level Integration
-* PVDD 5V LDO Regulator — SkyWater SKY130A
+* Block 10: Top-Level Integration — PVDD 5V LDO Regulator
+* SkyWater SKY130A — All blocks wired
 *
-* Subcircuit ports:
+* Ports:
 *   bvdd    — battery supply input (5.4–10.5V)
 *   pvdd    — regulated 5.0V output
 *   gnd     — ground
-*   avbg    — bandgap reference output (1.226V, from on-chip bandgap)
-*   ibias   — 1 µA bias current from bandgap
-*   svdd    — 2.2V digital supply
-*   en      — global enable (SVDD domain)
+*   avbg    — bandgap reference (1.226V external)
+*   ibias   — 1 µA bias current input (external)
+*   svdd    — 2.2V digital supply (external)
+*   en      — global enable (SVDD domain, active HIGH)
 *   en_ret  — retention mode enable (SVDD domain)
 *   uv_flag — undervoltage flag output (SVDD domain)
 *   ov_flag — overvoltage flag output (SVDD domain)
 *
-* STATUS: EMPTY — instantiation pending completion of blocks 00–09
-*
-* This block instantiates all 10 sub-blocks and wires them together.
-* Do NOT redesign any sub-block here — fix issues in the originating block,
-* then update design.cir there and re-include it here.
-*
-* Include order matters for dependency resolution:
-*   Wave 1 first (00, 01, 05, 06), then Wave 2 (02, 03, 04), then Wave 3 (07, 08, 09).
-*
-* Internal nets:
-*   gate       — pass device gate (error amp output / startup drive / comp output)
-*   vfb        — feedback voltage (feedback network output)
-*   vref       — bandgap reference (avbg routed internally as vref)
-*   ea_en      — error amp enable (from mode control / startup)
-*   bypass_en  — bypass switch enable (from mode control)
-*   ref_sel    — reference select (from mode control)
-*   uvov_en    — UV/OV enable (from mode control)
-*   ilim_en    — current limiter enable (from mode control)
-*   startup_done — startup complete flag
-*   ilim_flag  — current limit active flag
-*   uv_int     — UV flag (internal, PVDD domain)
-*   ov_int     — OV flag (internal, PVDD domain)
+* Signal flow:
+*   1. Startup charges PVDD via source-follower gate drive
+*   2. Once PVDD > 4V, startup enables error amp (ea_en)
+*   3. Error amp compares avbg with vfb, outputs ea_out (PVDD domain)
+*   4. Startup's built-in CG level shifter translates ea_out → gate (BVDD domain)
+*   5. Pass device (PMOS) regulates PVDD from BVDD
+*   6. Feedback network divides PVDD → vfb ≈ 1.226V at regulation
+*   7. Compensation (Miller Cc+Rz+Cout) stabilizes the loop
+*   8. Current limiter clamps gate if Iload exceeds ~70mA
+*   9. Zener clamp protects PVDD against overvoltage transients
+*  10. Mode control sequences power-up states from BVDD ladder
+*  11. UV/OV comparators monitor PVDD, output flags in SVDD domain
 *
 .subckt pvdd_regulator bvdd pvdd gnd avbg ibias svdd en en_ret uv_flag ov_flag
 
-* Internal signal declarations (ngspice: no explicit net declaration needed)
+* =======================================================
+* Block 01: Pass device (PMOS, source=bvdd, drain=pvdd)
+* =======================================================
+XM_pass gate bvdd pvdd pass_device
 
 * =======================================================
-* Include all block design files
+* Block 00: Error amplifier (PVDD output stage)
+*   vref=avbg, vfb=feedback, output=ea_out (PVDD domain)
+*   en=ea_en from startup (BVDD-level swing, HV devices OK)
 * =======================================================
-* .include ../00_error_amp/design.cir
-* .include ../01_pass_device/design.cir
-* .include ../02_feedback_network/design.cir
-* .include ../03_compensation/design.cir
-* .include ../04_current_limiter/design.cir
-* .include ../05_uv_ov_comparators/design.cir
-* .include ../06_level_shifter/design.cir
-* .include ../07_zener_clamp/design.cir
-* .include ../08_mode_control/design.cir
-* .include ../09_startup/design.cir
+XEA avbg vfb ea_out pvdd gnd ibias ea_en error_amp
 
 * =======================================================
-* Instantiate all blocks
+* Block 02: Feedback network (resistive divider)
+*   pvdd → vfb ≈ 1.226V at PVDD=5.0V
 * =======================================================
-* Uncomment and complete after each block passes its own tests.
+XFB pvdd vfb gnd feedback_network
 
-* Block 01: Pass device (core pass element)
-* XM_pass gate bvdd pvdd pass_device
+* =======================================================
+* Block 03: Compensation (Miller Cc + Rz + Cout)
+*   Connected between ea_out and pvdd
+* =======================================================
+XCOMP ea_out pvdd gnd compensation
 
-* Block 00: Error amplifier
-* XEA avbg vfb gate pvdd gnd ibias ea_en error_amp
-
-* Block 02: Feedback network
-* XFB pvdd vfb gnd feedback_network
-
-* Block 03: Compensation
-* XCOMP gate pvdd gnd compensation
-
+* =======================================================
 * Block 04: Current limiter
-* XILIM gate bvdd pvdd gnd ilim_flag current_limiter
+*   Senses pass device current via mirror, clamps gate
+* =======================================================
+XILIM gate bvdd pvdd gnd ilim_flag current_limiter
 
-* Block 05: UV/OV comparators
-* XUV pvdd avbg uv_int pvdd gnd uvov_en uv_comparator
-* XOV pvdd avbg ov_int pvdd gnd uvov_en ov_comparator
+* =======================================================
+* Block 05: UV/OV comparators (run from svdd=2.2V)
+*   UV: trips when PVDD < ~4.3V → uv_flag HIGH
+*   OV: trips when PVDD > ~5.5V → ov_flag HIGH
+*   Output flags already in SVDD domain → direct connection
+* =======================================================
+XUV pvdd avbg uv_flag svdd gnd uvov_en uv_comparator
+XOV pvdd avbg ov_flag svdd gnd uvov_en ov_comparator
 
-* Block 06: Level shifters (UV/OV flags → SVDD domain)
-* XLSDN_UV uv_int uv_flag pvdd svdd gnd level_shifter_down
-* XLSDN_OV ov_int ov_flag pvdd svdd gnd level_shifter_down
+* =======================================================
+* Block 07: Zener clamp (overvoltage protection)
+*   Clamps PVDD to ~6V if it overshoots
+* =======================================================
+XZC pvdd gnd zener_clamp
 
-* Block 07: Zener clamp
-* XZC pvdd gnd zener_clamp
+* =======================================================
+* Block 08: Mode control (BVDD ladder → sequenced enables)
+*   Powered from PVDD (valid after startup charges PVDD)
+*   Outputs: bypass_en, mc_ea_en, ref_sel, uvov_en, ilim_en, pass_off
+* =======================================================
+XMC bvdd pvdd svdd gnd avbg en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
 
-* Block 08: Mode control
-* XMC bvdd pvdd svdd gnd avbg en_ret bypass_en ea_en ref_sel uvov_en ilim_en mode_control
+* =======================================================
+* Block 09: Startup circuit
+*   Phase 1: Source followers charge PVDD from BVDD
+*   Phase 2: Enables error amp, hands off to regulation loop
+*   Contains built-in CG level shifter: ea_out → gate
+* =======================================================
+XSU bvdd pvdd gate gnd avbg startup_done ea_en ea_out startup
 
-* Block 09: Startup
-* XSU bvdd pvdd gate gnd avbg startup_done ea_en startup
+* =======================================================
+* Enable gating: level-shift external en (SVDD) → BVDD domain
+* Routed for future use (not yet ANDed with ea_en)
+* =======================================================
+XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
 
-* Internal load capacitor (200 pF, capless LDO)
-* Cload pvdd gnd 200e-12
+* =======================================================
+* Internal output capacitor (200 pF)
+* =======================================================
+Cload pvdd gnd 200e-12
 
 .ends pvdd_regulator
