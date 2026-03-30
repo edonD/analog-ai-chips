@@ -1,0 +1,97 @@
+* tb_top_lstb.spice — Loop Stability (PM/GM)
+* Adapted from block 03: DC closed (100M), AC injection through 1F cap
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/parameters/invariant.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../09_startup/design.cir
+
+* Core regulation loop only (no protection/UV/OV for cleaner AC)
+XM_pass gate bvdd pvdd pass_device
+* No soft-start: use avbg directly for AC analysis
+XEA avbg vfb ea_out pvdd 0 ibias en error_amp
+XFB pvdd vfb_div 0 feedback_network
+XCOMP ea_out pvdd 0 compensation
+XSU bvdd pvdd gate 0 avbg startup_done ea_en ea_out startup
+
+* DC loop closure + AC injection at feedback
+Rdc vfb_div vfb 100Meg
+Cinj ac_src vfb 1
+Vac ac_src 0 AC 1
+
+Vbvdd bvdd 0 DC 7.0
+Vavbg avbg 0 DC 1.226
+Ibias ibias 0 DC 1u
+Ven en 0 DC 7.0
+
+Rload pvdd 0 500
+Cout pvdd 0 1u
+
+.nodeset v(pvdd)=5.0 v(ea_out)=2.5 v(gate)=5.6 v(vfb)=1.226 v(ea_en)=7.0
+
+.option reltol=1e-4 abstol=1e-12 vntol=1e-6 gmin=1e-12
+
+.control
+op
+echo "DC OP: pvdd=$&v(pvdd) vfb=$&v(vfb) ea_out=$&v(ea_out) gate=$&v(gate)"
+
+ac dec 100 1 10Meg
+
+* Loop gain = V(pvdd) * beta (beta ≈ 0.245)
+let beta = 0.2452
+let T_db = 20*log10(abs(v(pvdd))+1e-30) + 20*log10(beta)
+let T_ph = 180/PI * cph(v(pvdd)) + 180
+
+* Unwrap phase
+let npts = length(T_db)
+let i = 0
+dowhile i < npts
+  if T_ph[i] > 180
+    let T_ph[i] = T_ph[i] - 360
+  end
+  let i = i + 1
+end
+
+* Find UGB and PM
+let ugb_hz = 0
+let pm_deg = 0
+let i = 1
+dowhile i < npts
+  if ugb_hz = 0
+    if T_db[i-1] > 0
+      if T_db[i] <= 0
+        let ugb_hz = frequency[i]
+        let pm_deg = T_ph[i]
+      end
+    end
+  end
+  let i = i + 1
+end
+
+echo ""
+echo "=== Loop Stability ==="
+echo "pm_min_deg: $&pm_deg"
+echo "ugb_hz: $&ugb_hz"
+
+* DC gain
+let dc_gain = T_db[0]
+echo "dc_gain_dB: $&dc_gain"
+
+quit
+.endc
+
+.end
