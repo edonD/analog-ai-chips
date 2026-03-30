@@ -45,6 +45,17 @@ All logic gates powered from PVDD (5V) to avoid cross-domain crowbar current:
 
 **specs_pass: 16/16**
 
+## Schematics
+
+### Sub-block 1: Resistor Ladder
+![Resistor ladder schematic](mode_control_1_ladder.png)
+
+### Sub-block 2: Schmitt Trigger Comparators (20 MOSFETs)
+![Comparators schematic](mode_control_2_comparators.png)
+
+### Sub-block 3: Logic Decode & Output Drivers (42 MOSFETs)
+![Logic schematic](mode_control_3_logic.png)
+
 ## Plots
 
 ### Mode Transition Timing (1V/µs)
