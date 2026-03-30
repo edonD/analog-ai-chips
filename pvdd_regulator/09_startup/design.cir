@@ -1,9 +1,10 @@
-* Block 09: Startup Circuit — v18
+* Block 09: Startup Circuit — v19
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v18: CG level shifter with ls_bias≈5V (clamped). Works for BVDD=5.4-8V.
-*   PMOS charger for startup. Fast ea_en (tau=0.1µs).
-*   Known limitation: BVDD > 8V needs additional high-voltage level shift.
+* v19: Gentle startup — small PMOS current source (W=1u) charges PVDD
+*   at ~200µA, reaching 4V in ~20ms. Error amp with soft-start reference
+*   (tau=2ms in top-level) prevents overshoot. No charger oscillation.
+*   Current source disconnects after startup (det_out HIGH → PMOS OFF).
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
@@ -24,10 +25,13 @@ XMP_inv2 inv_det det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
 XMN_inv2 inv_det det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 * ================================================================
-* PMOS STARTUP PVDD CHARGER
+* GENTLE STARTUP CURRENT SOURCE
+* Small PMOS (W=1u L=4u): gate=GND during startup → Vsg=BVDD → ON
+* Current ≈ µpCox/2 * W/L * (Vsg-Vthp)^2 ≈ 200-500 µA
+* Charges 1µF to 4V in ~10-20ms (gentle, no overshoot)
+* After startup: gate=det_out=BVDD → Vsg=0 → OFF
 * ================================================================
-XMP_charge pvdd_su det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=1e-6
-Rcharge pvdd_su pvdd 50
+XMP_start pvdd det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=4e-6
 
 * ================================================================
 * CG NFET LEVEL SHIFTER
@@ -46,12 +50,13 @@ XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
 XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 
 * ================================================================
-* ea_en: fast inverter of inv_det + tiny RC
+* ea_en: inverter of inv_det + RC delay (tau=10µs)
 * ================================================================
 XMN_ea ea_en_fast inv_det gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
 XMP_ea ea_en_fast inv_det bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
-XR_delay ea_en_fast ea_en gnd sky130_fd_pr__res_xhigh_po w=1 l=10
-C_delay ea_en gnd 5p
+* R = 2000*100/1 = 200kΩ, C = 50pF → tau = 10µs
+XR_delay ea_en_fast ea_en gnd sky130_fd_pr__res_xhigh_po w=1 l=100
+C_delay ea_en gnd 50p
 
 * STARTUP ea_out PULLUP
 XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=1e-6

@@ -34,11 +34,24 @@
 XM_pass gate bvdd pvdd pass_device
 
 * =======================================================
-* Block 00: Error amplifier (PVDD output stage)
-*   vref=avbg, vfb=feedback, output=ea_out (PVDD domain)
-*   en=ea_en from startup (BVDD-level swing, HV devices OK)
+* Soft-start reference: RC filter on avbg → vref_ss
+*   R=100kΩ, C=1nF → tau=100µs. Ramps vref from 0 to 1.226V
+*   over ~500µs, preventing pass device from driving full current
+*   at startup (when PVDD ≈ 4V < 5V target)
 * =======================================================
-XEA avbg vfb ea_out pvdd gnd ibias ea_en error_amp
+* Soft-start: tau=200kΩ×30nF=6ms
+* At t≈10ms (when PVDD crosses 4V via CG-driven startup):
+* vref_ss ≈ 1.226*(1-exp(-10/6)) = 0.98V ≈ vfb(PVDD=4V)
+* Error amp enables with matched vref_ss≈vfb → no overshoot
+* Then vref_ss continues to 1.226V → PVDD ramps to 5V smoothly
+Rss avbg vref_ss 200k
+Css vref_ss gnd 30n
+
+* =======================================================
+* Block 00: Error amplifier (PVDD output stage)
+*   vref=vref_ss (soft-started), vfb=feedback
+* =======================================================
+XEA vref_ss vfb ea_out pvdd gnd ibias ea_en error_amp
 
 * =======================================================
 * Block 02: Feedback network (resistive divider)

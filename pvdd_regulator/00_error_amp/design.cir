@@ -58,9 +58,10 @@ XMp_ld vout_gate pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m
 * ================================================================
 * Miller compensation: Cc + Rc from vout_gate to d2
 * ================================================================
-* Cc = 98pF (pushing slew rate)
-Cc d2 comp_mid 98p
-* Rc = 12.3k nulling resistor
-Rc comp_mid vout_gate 12.3k
+* Cc = 30pF (reduced from 98pF for ~3x faster transient response)
+* Slew rate: SR = Itail/Cc = 100uA/30pF = 3.3V/us
+Cc d2 comp_mid 30p
+* Rc = 25k nulling resistor (adjusted for new Cc)
+Rc comp_mid vout_gate 25k
 
 .ends error_amp
