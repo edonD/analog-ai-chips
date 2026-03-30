@@ -1,0 +1,6 @@
+# Ignore large ngspice wrdata files (regenerate with generate_plot_data.sh)
+# Keep .png and .dat files
+startup_waveform
+line_transient
+cold_crank
+mode_transitions
