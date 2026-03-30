@@ -27,7 +27,8 @@ XMD4 d3 d3 gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
 XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
 
 * R_load: 100kΩ from BVDD to gate
-* Known limitation: directly couples BVDD ripple to gate → PSRR~10dB@10kHz
+* PSRR limitation: couples BVDD AC to gate (~10dB PSRR@10kHz)
+* External decoupling on PVDD recommended for PSRR-sensitive applications
 XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 
 
