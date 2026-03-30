@@ -1,5 +1,13 @@
 # Block 10: Top-Level Integration — PVDD 5V LDO Regulator
 
+## Top-Level Block Diagram (xschem)
+
+Full hierarchical block diagram showing all 10 sub-blocks, inter-block wiring, and voltage domain boundaries. Color-coded: **red** = BVDD domain, **cyan** = PVDD domain, **green** = SVDD domain.
+
+![Top-Level Block Diagram](pvdd_regulator_top.png)
+
+Source: [`pvdd_regulator_top.sch`](pvdd_regulator_top.sch) (xschem schematic)
+
 ## Architecture
 
 ```
