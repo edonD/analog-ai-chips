@@ -1,37 +1,17 @@
-* Block 09: Startup Circuit — v19
+* Block 09: Startup Circuit — v20
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v19: Gentle startup — small PMOS current source (W=1u) charges PVDD
-*   at ~200µA, reaching 4V in ~20ms. Error amp with soft-start reference
-*   (tau=2ms in top-level) prevents overshoot. No charger oscillation.
-*   Current source disconnects after startup (det_out HIGH → PMOS OFF).
+* v20: Smooth startup — no threshold detector, no abrupt handoff.
+*   Small always-on PMOS (W=2u L=4u) bootstraps PVDD to ~3V.
+*   Error amp always enabled (ea_en = BVDD from start).
+*   Soft-start reference (top-level) ramps from 0 → 1.226V.
+*   PVDD smoothly follows the reference ramp. No overshoot.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
-* ================================================================
-* PVDD threshold detector — trips at PVDD ~ 4V
-* ================================================================
-XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=788
-XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=212
-XMN_det det_n sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
-XR_pu bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=2000
-
-* det_out: HIGH when PVDD > ~4V
-XMP_inv1 det_out det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
-XMN_inv1 det_out det_n gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
-
-* inv_det: HIGH during startup, LOW after
-XMP_inv2 inv_det det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
-XMN_inv2 inv_det det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
-
-* ================================================================
-* GENTLE STARTUP CURRENT SOURCE
-* Small PMOS (W=1u L=4u): gate=GND during startup → Vsg=BVDD → ON
-* Current ≈ µpCox/2 * W/L * (Vsg-Vthp)^2 ≈ 200-500 µA
-* Charges 1µF to 4V in ~10-20ms (gentle, no overshoot)
-* After startup: gate=det_out=BVDD → Vsg=0 → OFF
-* ================================================================
-XMP_start pvdd det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=4e-6
+* Bootstrap PMOS: always-on, provides ~50µA from BVDD to PVDD
+* Ensures PVDD can charge above error amp minimum operating voltage
+XMP_boot pvdd gnd bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=8e-6
 
 * ================================================================
 * CG NFET LEVEL SHIFTER
@@ -49,22 +29,16 @@ XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
 * R_load: 100kΩ from BVDD to gate
 XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 
-* ================================================================
-* ea_en: inverter of inv_det + RC delay (tau=10µs)
-* ================================================================
-XMN_ea ea_en_fast inv_det gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
-XMP_ea ea_en_fast inv_det bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
-* R = 2000*100/1 = 200kΩ, C = 50pF → tau = 10µs
-XR_delay ea_en_fast ea_en gnd sky130_fd_pr__res_xhigh_po w=1 l=100
-C_delay ea_en gnd 50p
+* ea_en: ALWAYS HIGH — connected to BVDD via low-R path
+* Error amp always enabled; soft-start reference prevents overshoot.
+Ren bvdd ea_en 100
 
-* STARTUP ea_out PULLUP
-XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=1e-6
-
-* startup_done
-XMP_sd1 sd_inv det_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
-XMN_sd1 sd_inv det_out gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
-XMP_sd2 startup_done sd_inv bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
-XMN_sd2 startup_done sd_inv gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
+* startup_done: HIGH when PVDD > ~4V (informational only)
+XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=788
+XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=212
+XMN_det det_n sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
+XR_pu bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=2000
+XMP_inv1 startup_done det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
+XMN_inv1 startup_done det_n gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=1e-6
 
 .ends startup

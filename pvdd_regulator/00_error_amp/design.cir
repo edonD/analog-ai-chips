@@ -26,7 +26,8 @@ XMbn0  ibias_en ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=1
 * ================================================================
 * Bias: PMOS tail (100uA — increased for fast transient slew)
 * ================================================================
-XMbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=400
+* Mirror ratio 200:1 → Itail=200µA. Balance of speed and Iq.
+XMbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=200
 XMbp0   pb_tail pb_tail  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
 
 * ================================================================
