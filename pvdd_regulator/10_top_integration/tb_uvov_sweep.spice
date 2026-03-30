@@ -1,0 +1,35 @@
+* UV/OV trip point test
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/parameters/invariant.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
+.include ../05_uv_ov_comparators/design.cir
+
+* UV comparator standalone test
+Vpvdd pvdd 0 DC 5.0
+Vref vref 0 DC 1.226
+Vsvdd svdd 0 DC 2.2
+Ven en 0 DC 2.2
+
+XUV pvdd vref uv_flag svdd 0 en uv_comparator
+XOV pvdd vref ov_flag svdd 0 en ov_comparator
+
+.control
+* DC sweep PVDD from 3V to 7V
+dc Vpvdd 3 7 0.01
+
+* Find UV trip (where uv_flag crosses 1.1V going down as PVDD rises)
+meas dc uv_trip WHEN v(uv_flag)=1.1 RISE=1
+
+* Find OV trip (where ov_flag crosses 1.1V going up as PVDD rises)
+meas dc ov_trip WHEN v(ov_flag)=1.1 RISE=1
+
+quit
+.endc
+.end
