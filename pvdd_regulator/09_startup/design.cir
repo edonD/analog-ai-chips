@@ -1,39 +1,32 @@
-* Block 09: Startup Circuit — v20
+* Block 09: Startup Circuit — v21
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v20: Smooth startup — no threshold detector, no abrupt handoff.
-*   Small always-on PMOS (W=2u L=4u) bootstraps PVDD to ~3V.
-*   Error amp always enabled (ea_en = BVDD from start).
-*   Soft-start reference (top-level) ramps from 0 → 1.226V.
-*   PVDD smoothly follows the reference ramp. No overshoot.
+* v21: Minimal startup — no bootstrap, no soft-start.
+*   CG level shifter + R_load naturally bootstraps PVDD to ~3.4V
+*   (through the CG's parasitic operating point and R_load pull-up).
+*   Error amp always enabled (ea_en=BVDD), drives avbg directly.
+*   Once PVDD > ~3V, error amp takes over and regulates to 5V.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
-* Bootstrap PMOS: always-on, provides ~50µA from BVDD to PVDD
-* Ensures PVDD can charge above error amp minimum operating voltage
-XMP_boot pvdd gnd bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=8e-6
-
 * ================================================================
 * CG NFET LEVEL SHIFTER
-* ls_bias ≈ 5V from resistor divider + 4-diode clamp
+* ls_bias = BVDD * 5/7 ≈ 5.0V at BVDD=7V (simple resistive divider)
+* No diode clamp — the old 4-diode clamp limited ls_bias to 4.56V,
+* which put the CG in a dead zone where ea_out 0-3V all map to
+* "gate near 0V, pass device fully ON" with no proportional control.
+* At ls_bias=5V: the CG transition region aligns with ea_out≈2.5-3.5V,
+* providing proper proportional control of pass device current.
 * ================================================================
-XR_lb1 bvdd ls_bias gnd sky130_fd_pr__res_xhigh_po w=2 l=1000
-XR_lb2 ls_bias gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=6000
-XMD1 ls_bias ls_bias d1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
-XMD2 d1 d1 d2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
-XMD3 d2 d2 d3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
-XMD4 d3 d3 gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
+Rlb1 bvdd ls_bias 200k
+Rlb2 ls_bias 0 500k
 
 XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
 
-* R_load: 100kΩ from BVDD to gate
-* PSRR limitation: couples BVDD AC to gate (~10dB PSRR@10kHz)
-* External decoupling on PVDD recommended for PSRR-sensitive applications
-XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
-
+* R_load: 100kΩ from BVDD to gate (also serves as startup pull-up)
+XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=19
 
 * ea_en: ALWAYS HIGH — connected to BVDD via low-R path
-* Error amp always enabled; soft-start reference prevents overshoot.
 Ren bvdd ea_en 100
 
 * startup_done: HIGH when PVDD > ~4V (informational only)

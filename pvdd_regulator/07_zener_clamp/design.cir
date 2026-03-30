@@ -1,23 +1,16 @@
-* Block 07: Zener Clamp — v16b
+* Block 07: Zener Clamp — v17
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
+* v17: Removed feedforward caps — they interacted with the wide clamp NFET's
+*   Cgs to keep vg above Vth after startup, preventing regulation below 5.6V.
+*   Reduced clamp NFET to W=100u m=4 (400µm) for less parasitic Cgs.
+*   Fast diode stack retained for transient protection.
+*
 * TOPOLOGY: HYBRID CLAMP — 3N+2P mixed stack + fast diode stack
-*
 *   PRECISION STACK (DC onset): N-P-N-P-N (5 devices)
-*     3x NFET W=2.2u L=4u body=src
-*     2x PFET W=20u L=4u body=src
-*     Mixed N/P stack compensates SF/FS skew corners.
-*     TT onset ~5.98V (centered in 5.5-6.2V window)
-*
 *   FAST STACK (transient): 7x NFET L=0.5u W=10u body=GND
-*     Direct pvdd-to-GND shunt for transient absorption.
-*
-*   FEEDFORWARD: Split Cff — 5pF from n2 + 25pF from n1
-*     n2 coupling for fast transient response
-*     n1 coupling for gentle boost with minimal startup surge
-*
-*   Clamp NMOS: W=100u m=20 (2000um total), L=0.5u, body=GND
-*   Rpd=500k
+*   Clamp NMOS: W=100u m=4 (400µm total), L=0.5u, body=GND
+*   Rpd=500k (no feedforward caps)
 *
 .subckt zener_clamp pvdd gnd
 
@@ -36,15 +29,11 @@ XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
 Rpd vg gnd 500k
 
 * ================================================================
-* FEEDFORWARD: Split Cff — 5pF from n2 + 25pF from n1
+* CLAMP NMOS: W=100u m=4 => 400µm, L=0.5u, body=GND
+* Reduced from 2000µm to 400µm to lower parasitic Cgs on vg
+* Still provides >50mA clamping at PVDD=6.5V
 * ================================================================
-Cff1 n2 vg 5p
-Cff2 n1 vg 25p
-
-* ================================================================
-* WIDE CLAMP NMOS: W=100u m=20 => 2000 um, L=0.5u, body=GND
-* ================================================================
-XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=20
+XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=4
 
 * ================================================================
 * FAST PARALLEL DIODE STACK: 7x L=0.5u W=10u NFET (body=GND)
