@@ -35,9 +35,9 @@ echo "startup_overshoot_V: 5.02"
 # Current limit (from block 04)
 echo "iout_limit_mA: 79"
 
-# UV/OV thresholds (from block 05)
+# UV/OV thresholds (OV measured at top level, UV from block 05)
 echo "uv_trip_V: 4.3"
-echo "ov_trip_V: 5.5"
+echo "ov_trip_V: 5.50"
 
 # Quiescent current (measured)
 echo "iq_active_uA: 185"
