@@ -50,19 +50,18 @@ XR_lb1 bvdd ls_bias gnd sky130_fd_pr__res_xhigh_po w=2 l=1000
 XR_lb2 ls_bias gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=6000
 * Diode clamp: 5 stacked NMOS → clamp at ~5.7V
 * Self-reg equilibrium ≈ 5.7-0.85 = 4.85V (above 4V detector threshold)
-XMD1 ls_bias ls_bias d1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
-XMD2 d1 d1 d2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
-XMD3 d2 d2 d3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
-XMD4 d3 d3 d4 gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
-XMD5 d4 d4 gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=1e-6 l=1e-6
+XMD1 ls_bias ls_bias d1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
+XMD2 d1 d1 d2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
+XMD3 d2 d2 d3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
+XMD4 d3 d3 gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=18e-6 l=1e-6
 
-XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=0.42e-6 l=4e-6
+XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=4e-6
 
 * R_load: 100kΩ from BVDD to gate
 XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=50
 
 * STARTUP ea_out PULLUP — pulls ea_out toward PVDD during startup
-XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
+XMP_pu_ea ea_out det_out pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=1e-6
 
 
 * ================================================================
