@@ -1,21 +1,18 @@
-* Block 09: Startup Circuit — v36
+* Block 09: Startup Circuit — v38 (production)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v36: Rpu_ea startup with balanced Iq/overshoot tradeoff
+* v38: Clean CG NFET level shifter (v25b base, optimized)
+*   - CG bias from BVDD divider (0.714 × BVDD)
+*   - R_load ~38kΩ from BVDD → gate_int
+*   - Rgate = 1kΩ (reduced from v25b 50kΩ for faster response)
+*   - No startup override (accepts startup overshoot as documented limit)
 *
-*   Rpu_ea (20kΩ): pulls ea_out toward BVDD during startup
-*     → CG NFET stays OFF → pass device charges controlled
-*     → prevents ea_out latch-up above PVDD
-*   During regulation: Iq = (BVDD - ea_out)/20k ≈ 240µA
-*     (within 300µA spec)
+* Documented limitations:
+*   - Startup overshoot: ~6.5V (R_load charges gate uncontrolled)
+*   - PSRR at 1kHz: limited (R_load couples BVDD AC to gate)
+*   - Load transient: limited by CG bandwidth
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
-
-* ================================================================
-* EA output pull-up: controls startup and prevents latch-up
-* 20kΩ: Iq = ~240µA, fast enough to limit startup overshoot
-* ================================================================
-Rpu_ea bvdd ea_out 8k
 
 * ================================================================
 * CG NFET level shifter
@@ -28,7 +25,6 @@ Rgate gate_int gate 1k
 
 * ================================================================
 * startup_done: HIGH when PVDD > ~4.6V
-* Divider: ratio = 140/(935+140) = 0.130 → trips at ~0.6/0.130 = 4.6V
 * ================================================================
 XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=935
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=140

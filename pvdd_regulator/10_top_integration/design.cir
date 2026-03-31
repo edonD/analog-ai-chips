@@ -102,10 +102,11 @@ XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
 
 * =======================================================
 * FIX 2: Output capacitors
-* Cload (200pF) original + Cout_big (100nF) for load transient
-* 100nF → ΔV = 10mA×1µs/100nF = 100mV (PASS <150mV spec)
+* Cload (200pF) + Cout_big (1µF external bypass)
+* 1µF → ΔV = 10mA×1µs/1µF = 10mV during fast transient
+* Loop response time ~50ms limits actual improvement
 * =======================================================
 Cload pvdd gnd 200e-12
-Cout_big pvdd gnd 100n
+Cout_ext pvdd gnd 1u
 
 .ends pvdd_regulator

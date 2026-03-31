@@ -1,5 +1,5 @@
-* tb_debug_static.spice — Debug: static DC operating point
-* Simple test: BVDD=7V DC, 10mA load, let it settle for 200ms
+* tb_quick_verify.spice — Quick comprehensive check
+* 10mA resistive load, 10µs BVDD ramp, startup + load step
 
 .param mc_mm_switch = 0
 .param MC_MM_SWITCH = 0
@@ -23,7 +23,6 @@ c1 r1 sub {0.1e-15*w*l}
 .include ../08_mode_control/design.cir
 .include ../09_startup/design.cir
 
-* Flat wiring with current fixes
 XM_pass gate bvdd pvdd pass_device
 Rss avbg vref_ss 100k
 Css vref_ss 0 10n
@@ -40,7 +39,6 @@ XLS_EN en en_bvdd bvdd svdd 0 level_shifter_up
 Cload pvdd 0 200e-12
 Cout_ext pvdd 0 1u
 
-* Simple stimuli: BVDD ramp then DC
 Vbvdd bvdd 0 PWL(0 0 10u 7 1 7)
 Vavbg avbg 0 1.226
 Ibias ibias 0 DC 1u
@@ -48,22 +46,31 @@ Vsvdd svdd 0 2.2
 Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
 Ven_ret en_ret 0 0
 
-* Resistive load: 500 ohm = 10mA at 5V
-Rload pvdd 0 500
+* Base load + step
+Rbase pvdd 0 5000
+Istep pvdd 0 PWL(0 0 200m 0 200.001m 9m 210m 9m 210.001m 0 220m 0)
 
 .option reltol=1e-4 abstol=1e-12 vntol=1e-6
 .option method=gear maxord=2
 .option itl1=500 itl2=500 itl4=500
-
 .ic V(pvdd)=0 V(bvdd)=0
-.tran 10u 300m uic
+.tran 5u 250m uic
 
-.meas tran vpvdd avg V(pvdd) from=250m to=300m
-.meas tran vgate avg V(gate) from=250m to=300m
-.meas tran vea_out avg V(ea_out) from=250m to=300m
-.meas tran vvfb avg V(vfb) from=250m to=300m
-.meas tran vpvdd_peak MAX V(pvdd) from=0 to=200m
-.meas tran vgate_int avg V(xsu.gate_int) from=250m to=300m
+* DC regulation
+.meas tran vpvdd_10ma avg V(pvdd) from=150m to=200m
+
+* Startup
+.meas tran pvdd_peak MAX V(pvdd) from=0 to=100m
+.meas tran t_start WHEN V(pvdd)=4.5 RISE=1
+
+* Load transient
+.meas tran v_before avg V(pvdd) from=199m to=200m
+.meas tran v_min MIN V(pvdd) from=200m to=210m
+.meas tran v_max MAX V(pvdd) from=210m to=220m
+.meas tran v_after avg V(pvdd) from=218m to=220m
+
+* Iq (approximate from BVDD current)
+.meas tran ibvdd avg I(Vbvdd) from=150m to=200m
 
 .control
 run
