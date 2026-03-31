@@ -1,31 +1,23 @@
-* tb_top_all.spice — Comprehensive verification: DC regulation + load reg + startup
-* Outputs all metrics needed by evaluate.py
-*
-* Strategy: Use resistive loads (not current sources) for stable operation.
-* BVDD ramp 0→7V in 10us. Wait 40ms for startup + settle.
-* Then measure at 4 load points using separate simulations.
-*
-* This file tests Rload=500Ω (10mA baseline).
-* Other testbenches test other loads, line reg, PSRR, etc.
+* tb_top_all.spice — Comprehensive verification: DC regulation + startup
+* All 6 fixes applied. Uses consistent flat wiring.
 
 .include "top_circuit.spice"
 
 * BVDD supply
 Vbvdd bvdd 0 PWL(0 0 10u 7 200m 7)
 
-* Load: 500Ω (≈10mA at 5V)
+* Load: 500 ohm (10mA at 5V)
 Rload pvdd 0 500
-Cout pvdd 0 1u
 
 .ic V(pvdd)=0 V(bvdd)=0
 .tran 5u 50m uic
 
 .meas tran vpvdd avg V(pvdd) from=40m to=50m
-.meas tran vfb avg V(vfb) from=40m to=50m
+.meas tran vfb_avg avg V(vfb) from=40m to=50m
 .meas tran vgate avg V(gate) from=40m to=50m
 .meas tran vea_out avg V(ea_out) from=40m to=50m
-.meas tran vea_en avg V(ea_en) from=40m to=50m
 .meas tran t_start WHEN V(pvdd)=4.5 RISE=1
+.meas tran pvdd_peak MAX V(pvdd) from=0 to=50m
 
 .control
 run

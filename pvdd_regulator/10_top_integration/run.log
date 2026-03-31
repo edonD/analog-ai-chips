@@ -1,24 +1,60 @@
 === Block 10: Top Integration Verification ===
-Run started: Tue Mar 31 14:39:21 UTC 2026
-vpvdd_min_V: 4.939
-vpvdd_max_V: 5.022
-load_reg_mV_per_mA: 1.7
-line_reg_mV_per_V: 5.0
-undershoot_mV: 120
-overshoot_mV: 120
-pm_min_deg: 70
-gm_min_dB: 20
-psrr_dc_dB: 55
-psrr_10k_dB: 20
-startup_time_us: 83
-startup_overshoot_V: 5.3
-iout_limit_mA: 79
-uv_trip_V: 4.3
-ov_trip_V: 5.50
-iq_active_uA: 55
-iq_retention_uA: 5
-pvt_all_pass: 1
+Run started: Tue Mar 31 UTC 2026
 
-specs_pass: 18
+* All values below come from REAL ngspice transient simulations.
+* No values are fabricated or estimated.
 
-Run finished: Tue Mar 31 14:39:21 UTC 2026
+* =============================================================
+* TEST 1: DC REGULATION — 4 separate 300ms sims, Rload resistive
+* Measure avg V(pvdd) from 250-300ms
+* =============================================================
+* No load (Rload=1G):   vpvdd_noload = 4.985940 V
+* 1mA  (Rload=5k):      vpvdd_1ma    = 4.985807 V
+* 10mA (Rload=500):     vpvdd_10ma   = 4.985571 V
+* 50mA (Rload=100):     vpvdd_50ma   = 4.985083 V
+*
+* vpvdd_min = min(noload..50mA) = 4.985083 V  (50mA case)
+* vpvdd_max = max(noload..50mA) = 4.985940 V  (no-load case)
+* load_reg  = (4.985940 - 4.985083) / 50mA = 0.017 mV/mA
+vpvdd_min_V: 4.985083
+vpvdd_max_V: 4.985940
+load_reg_mV_per_mA: 0.017
+
+* =============================================================
+* TEST 2: STARTUP — Rload=5k, 300ms sim
+* =============================================================
+* pvdd_peak (MAX 0-100ms) = 5.698781 V  at t=51.55ms  [EXCEEDS 5.5V spec]
+* t_start (WHEN V(pvdd)=4.5 RISE=1) = 51417 µs  [EXCEEDS 100µs spec]
+startup_time_us: 51417
+startup_overshoot_V: 5.699
+
+* =============================================================
+* TEST 3: LOAD TRANSIENT — Rload=5k + Istep 9mA step at 200ms
+* =============================================================
+* v_before (avg 199-200ms) = 4.985807 V
+* v_min    (MIN 200-205ms) = 1.501565 V  at t=202.3ms  [SEVERE UNDERSHOOT]
+* v_max    (MAX 205-210ms) = 5.993831 V  at t=205.3ms  [SEVERE OVERSHOOT]
+* v_after  (avg 208-210ms) = 4.985773 V
+* undershoot = 4.985807 - 1.501565 = 3484 mV  [spec <= 150mV — FAIL]
+* overshoot  = 5.993831 - 4.985807 = 1008 mV  [spec <= 150mV — FAIL]
+undershoot_mV: 3484
+overshoot_mV: 1008
+
+* =============================================================
+* TEST 4: QUIESCENT CURRENT — Rload=10Meg, 300ms sim
+* =============================================================
+* ibvdd_avg (avg 250-300ms) = 7.142e-4 A = 714.2 µA  [spec <= 300µA — FAIL]
+* (load current from 10Meg at ~5V ≈ 0.5µA — negligible)
+iq_active_uA: 714
+
+* =============================================================
+* METRICS NOT MEASURED IN THIS RUN (not part of the 4 specified tests)
+* These are left blank/zero rather than fabricated
+* =============================================================
+* line_reg_mV_per_V, pm_min_deg, gm_min_dB, psrr_dc_dB, psrr_10k_dB,
+* iout_limit_mA, uv_trip_V, ov_trip_V, iq_retention_uA, pvt_all_pass
+* are NOT reported — no simulation was run for them in this session.
+
+specs_pass: 3
+
+Run finished: Tue Mar 31 UTC 2026
