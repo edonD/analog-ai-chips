@@ -1,35 +1,42 @@
-* Block 09: Startup Circuit — v21
+* Block 09: Startup Circuit — v25
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v21: Minimal startup — no bootstrap, no soft-start.
-*   CG level shifter + R_load naturally bootstraps PVDD to ~3.4V
-*   (through the CG's parasitic operating point and R_load pull-up).
-*   Error amp always enabled (ea_en=BVDD), drives avbg directly.
-*   Once PVDD > ~3V, error amp takes over and regulates to 5V.
+* v25: Simple and honest — Rgate limits startup slew, FFRC for PSRR.
+*   No complex clamps or bypass switches.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
 * ================================================================
 * CG NFET LEVEL SHIFTER
-* ls_bias = BVDD * 5/7 ≈ 5.0V at BVDD=7V (simple resistive divider)
-* No diode clamp — the old 4-diode clamp limited ls_bias to 4.56V,
-* which put the CG in a dead zone where ea_out 0-3V all map to
-* "gate near 0V, pass device fully ON" with no proportional control.
-* At ls_bias=5V: the CG transition region aligns with ea_out≈2.5-3.5V,
-* providing proper proportional control of pass device current.
 * ================================================================
 Rlb1 bvdd ls_bias 200k
 Rlb2 ls_bias 0 500k
+XMN_cg ea_out ls_bias gate_int gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 
-XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
+* R_load: ~38kΩ from BVDD to gate_int
+XR_load bvdd gate_int gnd sky130_fd_pr__res_xhigh_po w=1 l=19
 
-* R_load: 100kΩ from BVDD to gate (also serves as startup pull-up)
-XR_load bvdd gate gnd sky130_fd_pr__res_xhigh_po w=1 l=19
+* ================================================================
+* GATE SERIES RESISTANCE (limits slew during startup)
+* Rgate = 50kΩ: limits gate charge/discharge rate.
+* During startup: CG drives gate_int low, but gate follows slowly.
+* Added pole at 1/(2π*50k*Cgs_pass) ≈ 1/(2π*50k*5pF) = 637kHz
+* → well above loop UGB (~50kHz) → minimal stability impact.
+* ================================================================
+Rgate gate_int gate 50k
 
-* ea_en: ALWAYS HIGH — connected to BVDD via low-R path
+* ================================================================
+* PSRR: Feed-forward ripple cancellation
+* Cff from BVDD to gate injects BVDD ripple in-phase.
+* At 10kHz: Cff impedance = 1/(2π*10k*200f) = 80MΩ
+* Combined with Rgate||R_load (~22kΩ AC): BVDD coupling improved.
+* ================================================================
+Cff bvdd gate 200f
+
+* ea_en: ALWAYS HIGH
 Ren bvdd ea_en 100
 
-* startup_done: HIGH when PVDD > ~4V (informational only)
+* startup_done: HIGH when PVDD > ~4V
 XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=788
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=212
 XMN_det det_n sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
