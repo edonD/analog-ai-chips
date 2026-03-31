@@ -1,0 +1,68 @@
+* FINAL Test 1b: DC Regulation — 1mA load (Rload=5k)
+* Cout_ext = 1uF (new design)
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/ngspice/parameters/invariant.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+
+* Flat wiring (FINAL — Cout_ext=1uF, no Rpu_ea)
+XM_pass gate bvdd pvdd pass_device
+Rss avbg vref_ss 100k
+Css vref_ss 0 10n
+XEA vref_ss vfb ea_out pvdd 0 ibias bvdd bvdd error_amp
+XFB pvdd vfb 0 feedback_network
+XCOMP ea_out pvdd 0 compensation
+XILIM gate bvdd pvdd 0 ilim_flag current_limiter
+XUV pvdd avbg uv_flag svdd 0 uvov_en uv_comparator
+XOV pvdd avbg ov_flag svdd 0 uvov_en ov_comparator
+XZC pvdd 0 zener_clamp
+XMC bvdd pvdd svdd 0 avbg en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
+XSU bvdd pvdd gate 0 avbg startup_done bvdd ea_out startup
+XLS_EN en en_bvdd bvdd svdd 0 level_shifter_up
+Cload pvdd 0 200e-12
+Cout_ext pvdd 0 1u
+
+* Load: ~1mA at 5V
+Rload pvdd 0 5k
+
+* Stimuli
+Vbvdd bvdd 0 PWL(0 0 10u 7 300m 7)
+Vavbg avbg 0 1.226
+Ibias ibias 0 DC 1u
+Vsvdd svdd 0 2.2
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
+Ven_ret en_ret 0 0
+
+.option reltol=1e-4 abstol=1e-12 vntol=1e-6
+.option method=gear maxord=2
+.option itl1=500 itl2=500 itl4=500
+
+.ic V(pvdd)=0 V(bvdd)=0
+.tran 10u 300m uic
+
+.meas tran vpvdd_1ma avg V(pvdd) from=250m to=300m
+
+.control
+run
+quit
+.endc
+.end
