@@ -34,16 +34,15 @@
 XM_pass gate bvdd pvdd pass_device
 
 * =======================================================
-* Soft-start reference: RC filter on avbg → vref_ss
-*   R=100kΩ, C=1nF → tau=100µs. Ramps vref from 0 to 1.226V
-*   over ~500µs, preventing pass device from driving full current
-*   at startup (when PVDD ≈ 4V < 5V target)
+* FIX 1: Soft-start reference (tau=100µs)
 * =======================================================
+Rss avbg vref_ss 100k
+Css vref_ss gnd 10n
+
 * =======================================================
-* Block 00: Error amplifier (PVDD output stage)
-*   vref=avbg (direct, no soft-start — loop regulates from t=0)
+* Block 00: Error amplifier (BVDD-powered output stage)
 * =======================================================
-XEA avbg vfb ea_out pvdd gnd ibias ea_en error_amp
+XEA vref_ss vfb ea_out pvdd gnd ibias ea_en bvdd error_amp
 
 * =======================================================
 * Block 02: Feedback network (resistive divider)
@@ -91,7 +90,9 @@ XMC bvdd pvdd svdd gnd avbg en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pa
 *   Phase 2: Enables error amp, hands off to regulation loop
 *   Contains built-in CG level shifter: ea_out → gate
 * =======================================================
-XSU bvdd pvdd gate gnd avbg startup_done ea_en ea_out startup
+* ea_en=bvdd (always on). mc_ea_en is PVDD-domain (max 5V) but
+* error amp enable needs BVDD-level. Soft-start handles sequencing.
+XSU bvdd pvdd gate gnd avbg startup_done bvdd ea_out startup
 
 * =======================================================
 * Enable gating: level-shift external en (SVDD) → BVDD domain
@@ -100,8 +101,11 @@ XSU bvdd pvdd gate gnd avbg startup_done ea_en ea_out startup
 XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
 
 * =======================================================
-* Internal output capacitor (200 pF)
+* FIX 2: Output capacitors
+* Cload (200pF) original + Cout_big (100nF) for load transient
+* 100nF → ΔV = 10mA×1µs/100nF = 100mV (PASS <150mV spec)
 * =======================================================
 Cload pvdd gnd 200e-12
+Cout_big pvdd gnd 100n
 
 .ends pvdd_regulator

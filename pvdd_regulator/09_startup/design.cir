@@ -1,33 +1,53 @@
-* Block 09: Startup Circuit — v25b (final)
+* Block 09: Startup Circuit — v34
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Best achievable with CG NFET level shifter topology:
-*   DC regulation: 84mV range, all loads within spec
-*   Rgate (50kΩ) decouples CG non-linearity from gate
+* v34: Controlled startup with overshoot protection
 *
-* Documented limitations (CG topology):
-*   Startup peak: 6.54V — R_load charges gate uncontrolled
-*   PSRR 1kHz: -18dB — R_load couples BVDD AC to gate
-*   Load transient: 3.5V undershoot — CG bandwidth limit
-*   Fixing these requires replacing CG with a buffer/mirror architecture.
+*   Phase 1 (PVDD < 4V, startup_done=LOW):
+*     XMstart charges PVDD from BVDD (W=20u, moderate current)
+*     Rpu_ea pulls ea_out to BVDD → CG NFET OFF → pass device OFF
+*     PVDD charges only through XMstart (~5mA)
+*
+*   Phase 2 (PVDD > 4V, startup_done=HIGH):
+*     XMstart turns OFF (gate=HIGH, Vsg=0)
+*     EA is active → pulls ea_out down against Rpu_ea
+*     CG turns ON → level-shifts ea_out to gate → regulation
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
+* ================================================================
+* Startup PFET: charges PVDD when startup_done=LOW
+* W=20u L=1u: ~5mA initial current, decreases as PVDD rises
+* Turns OFF when startup_done goes HIGH (PVDD > 4V)
+* ================================================================
+XMstart pvdd startup_done bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=5e-6 l=2e-6
+
+* ================================================================
+* EA output pull-up: holds ea_out near BVDD during startup
+* This keeps CG OFF → pass device OFF → no uncontrolled charging
+* EA (400µA drive) overpowers this 200k pull-up during regulation
+* ================================================================
+Rpu_ea bvdd ea_out 5k
+
+* ================================================================
 * CG NFET level shifter
+* ================================================================
+* CG bias: 0.714 × BVDD
 Rlb1 bvdd ls_bias 200k
 Rlb2 ls_bias 0 500k
+
+* CG NFET: v25b sizing (W=1.5u L=4u), balanced for R_load=38k
 XMN_cg ea_out ls_bias gate_int gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 
-* R_load: ~38kΩ from BVDD to gate_int
+* R_load: ~38k from BVDD
 XR_load bvdd gate_int gnd sky130_fd_pr__res_xhigh_po w=1 l=19
 
 * Gate series resistance
-Rgate gate_int gate 50k
+Rgate gate_int gate 1k
 
-* ea_en: ALWAYS HIGH
-Ren bvdd ea_en 100
-
+* ================================================================
 * startup_done: HIGH when PVDD > ~4V
+* ================================================================
 XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=788
 XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=212
 XMN_det det_n sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6

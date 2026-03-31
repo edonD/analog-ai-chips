@@ -26,13 +26,13 @@
 .subckt current_limiter gate bvdd pvdd gnd ilim_flag
 
 * === Sense PMOS ===
-XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=0.5e-6
+XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=0.5e-6
 
 * === Sense Resistor ===
-* xhigh_po W=1u L=3.15u → Rs ~ 2000*(3.15-0.059)/1 = 6182 ohm
-* At 79mA trip: Isense_eff ~ 450uA (Vds mismatch)
-* Vsense = 450uA * 6182 = 2.78V → well above Vth for detection
-XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.12
+* Reduced sense resistor and narrowed sense PMOS to fix Vds mismatch.
+* W=1u instead of 2u halves sense current; L=1.0 reduces Rs to ~1.9k.
+* Combined: trip current roughly doubles.
+XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=1.0
 
 * === Detection NMOS ===
 * No source degeneration — direct connection to ground

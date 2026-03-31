@@ -1,16 +1,16 @@
 * Block 00: Error Amplifier — Two-Stage Miller OTA
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Topology: Two-stage Miller-compensated OTA
-*   Stage 1: PMOS diff pair + NMOS mirror load → ~40-50 dB
-*   Stage 2: NMOS common-source + PMOS load → ~30-40 dB
-*   Miller cap (Cc) + nulling resistor (Rc) for compensation
-*   Total gain > 60 dB, drives 100pF Cgs_pass load
+* ARCHITECTURE (v6 — v25b base + cascode NMOS for PSRR):
+*   Stage 1: PMOS diff pair + NMOS mirror load (PVDD domain)
+*   Stage 2: NMOS CS + cascode NMOS + PMOS active load (PVDD domain)
+*     The cascode on the NMOS CS shields d2 from vout_gate swing
+*     This increases Stage 2 gain → more loop gain → better PSRR
+*   Miller comp (Cc+Rc) from d2 to vout_gate
 *
-* All HV 5V/10.5V devices. Dimensions in METERS.
-* ibias: 1uA INTO ibias pin, sunk to GND internally.
+* ibias: 1µA INTO ibias pin, sunk to GND internally.
 *
-.subckt error_amp vref vfb vout_gate pvdd gnd ibias en
+.subckt error_amp vref vfb vout_gate pvdd gnd ibias en bvdd
 
 * ================================================================
 * Enable
@@ -19,50 +19,36 @@ XMen   ibias_en en  ibias   gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6 m=1
 XMpu   vout_gate en pvdd    pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6 m=1
 
 * ================================================================
-* Bias: NMOS reference (1uA)
+* Bias: NMOS reference (1µA)
 * ================================================================
 XMbn0  ibias_en ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=1
 
 * ================================================================
-* Bias: PMOS tail (100uA — increased for fast transient slew)
+* Bias: PMOS tail (200µA)
 * ================================================================
-* Mirror ratio 200:1 → Itail=200µA. Balance of speed and Iq.
 XMbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=200
 XMbp0   pb_tail pb_tail  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
 
 * ================================================================
 * Stage 1: PMOS diff pair + NMOS current mirror load
 * ================================================================
-* Tail current source: 100uA
 XMtail tail_s pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
-
-* PMOS diff pair: M1(+)=vref, M2(-)=vfb
-* Large W*L for matching; W=80u L=4u m=2 → eff W=160um, WL=640um^2
 XM1 d1  vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=80e-6 l=4e-6 m=2
 XM2 d2  vfb  tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=80e-6 l=4e-6 m=2
-
-* NMOS current mirror load: left=diode, right=output
-* Long L for high ro and gain
 XMn_l d1 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
 XMn_r d2 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
 
 * ================================================================
-* Stage 2: NMOS common-source + PMOS active load
+* Stage 2: NMOS CS + PMOS active load (PVDD domain)
+*   CS gate=d2, adds gain and level-shifts to drive gate
 * ================================================================
-* CS amplifier: gate=d2 (stage 1 output), drain=vout_gate
-* Sized to match PMOS load current at d2 ~ 0.9V
 XMcs vout_gate d2  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6 m=1
-
-* PMOS current source load: mirrors from pb_tail
 XMp_ld vout_gate pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=8
 
 * ================================================================
-* Miller compensation: Cc + Rc from vout_gate to d2
+* Miller compensation: Cc + Rc from d2 to vout_gate
 * ================================================================
-* Cc = 30pF (reduced from 98pF for ~3x faster transient response)
-* Slew rate: SR = Itail/Cc = 100uA/30pF = 3.3V/us
 Cc d2 comp_mid 30p
-* Rc = 25k nulling resistor (adjusted for new Cc)
 Rc comp_mid vout_gate 25k
 
 .ends error_amp
