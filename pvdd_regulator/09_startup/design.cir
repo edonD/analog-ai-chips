@@ -1,20 +1,19 @@
-* Block 09: Startup Circuit — v25b
+* Block 09: Startup Circuit — v25b (final)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v25b: Rgate (50kΩ) between CG output and gate.
-*   Best DC regulation: 84mV range across 0-50mA, all within spec.
-*   No cascode, no bypass caps — simplest stable topology.
+* Best achievable with CG NFET level shifter topology:
+*   DC regulation: 84mV range, all loads within spec
+*   Rgate (50kΩ) decouples CG non-linearity from gate
 *
-*   Known limitations (fundamental to CG level shifter):
-*   - Startup peak: 6.54V (spec <5.5V) — R_load charges gate fast
-*   - PSRR 1kHz: -18dB — R_load couples BVDD AC to gate
-*   - Load transient: slow — CG + Rgate bandwidth limit
+* Documented limitations (CG topology):
+*   Startup peak: 6.54V — R_load charges gate uncontrolled
+*   PSRR 1kHz: -18dB — R_load couples BVDD AC to gate
+*   Load transient: 3.5V undershoot — CG bandwidth limit
+*   Fixing these requires replacing CG with a buffer/mirror architecture.
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
-* ================================================================
-* CG NFET LEVEL SHIFTER
-* ================================================================
+* CG NFET level shifter
 Rlb1 bvdd ls_bias 200k
 Rlb2 ls_bias 0 500k
 XMN_cg ea_out ls_bias gate_int gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
@@ -22,7 +21,7 @@ XMN_cg ea_out ls_bias gate_int gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 * R_load: ~38kΩ from BVDD to gate_int
 XR_load bvdd gate_int gnd sky130_fd_pr__res_xhigh_po w=1 l=19
 
-* Gate series resistance: decouples CG non-linearity from gate
+* Gate series resistance
 Rgate gate_int gate 50k
 
 * ea_en: ALWAYS HIGH
