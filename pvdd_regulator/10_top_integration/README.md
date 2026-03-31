@@ -18,6 +18,45 @@ Complete flattened schematic with every MOSFET, resistor, and capacitor from all
 
 Source: [`pvdd_regulator_full.sch`](pvdd_regulator_full.sch) | Generator: [`gen_full_sch.py`](gen_full_sch.py)
 
+## Per-Block Transistor-Level Schematics
+
+Detailed, readable schematics for each block with proper analog layout (diff pairs side-by-side, mirrors stacked, etc.). All use real SKY130 PDK symbols with W/L annotations.
+
+### Block 00: Error Amplifier — Two-Stage Miller OTA (12 FETs + Cc + Rc)
+![Error Amplifier](schematics/pvdd_00_error_amp.png)
+
+### Block 01: Pass Device — 10x PMOS W=100u/0.5u (Total W=1mm)
+![Pass Device](schematics/pvdd_01_pass_device.png)
+
+### Block 02: Feedback Network — Resistive Divider (vfb=1.226V at 5V)
+![Feedback Network](schematics/pvdd_02_feedback.png)
+
+### Block 03: Compensation — Miller Cc + Rz + Cout
+![Compensation](schematics/pvdd_03_compensation.png)
+
+### Block 04: Current Limiter — Sense Mirror + Gate Clamp (Ilim~70mA)
+![Current Limiter](schematics/pvdd_04_current_limiter.png)
+
+### Block 05: UV/OV Comparators — 1.8V NMOS Diff Pair + NOR Output
+![UV/OV Comparators](schematics/pvdd_05_uv_ov.png)
+
+### Block 06: Level Shifter — SVDD→BVDD Cross-Coupled PMOS
+![Level Shifter](schematics/pvdd_06_level_shifter.png)
+
+### Block 07: Zener Clamp — Hybrid N-P-N-P-N + Fast Diode Stack
+![Zener Clamp](schematics/pvdd_07_zener_clamp.png)
+
+### Block 08: Mode Control — BVDD Ladder + Schmitt Comparators + Logic
+Already documented in [`../08_mode_control/`](../08_mode_control/) with 3 sub-block schematics (ladder, comparators, logic).
+
+### Block 09: Startup — CG NFET Level Shifter + Threshold Detector
+![Startup Circuit](schematics/pvdd_09_startup.png)
+
+### Top-Level Interconnect — Block-to-Block Wiring
+![Top Interconnect](schematics/pvdd_top_interconnect.png)
+
+All schematic sources in [`schematics/`](schematics/) directory.
+
 ## Architecture
 
 ```

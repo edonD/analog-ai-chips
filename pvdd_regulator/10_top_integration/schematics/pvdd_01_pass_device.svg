@@ -1,0 +1,626 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="503" version="1.1">
+<style type="text/css">
+.l0{
+ fill: #000000;
+  stroke: #000000;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l1{
+ fill: #00ccee;
+  stroke: #00ccee;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l2{
+  fill: none;
+  stroke: #3f3f3f;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l3{
+ fill: #cccccc; fill-opacity: 0.5;
+  stroke: #cccccc;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l4{
+ fill: #88dd00;
+  stroke: #88dd00;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l5{
+ fill: #bb2200;
+  stroke: #bb2200;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l6{
+ fill: #00ccee; fill-opacity: 0.5;
+  stroke: #00ccee;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l7{
+ fill: #ff0000; fill-opacity: 0.5;
+  stroke: #ff0000;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l8{
+ fill: #ffff00; fill-opacity: 0.5;
+  stroke: #ffff00;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l9{
+ fill: #ffffff; fill-opacity: 0.5;
+  stroke: #ffffff;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l10{
+ fill: #ff00ff;
+  stroke: #ff00ff;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l11{
+ fill: #00ff00; fill-opacity: 0.5;
+  stroke: #00ff00;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l12{
+ fill: #0044dd; fill-opacity: 0.5;
+  stroke: #0044dd;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l13{
+ fill: #aaaa00; fill-opacity: 0.5;
+  stroke: #aaaa00;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l14{
+  fill: none;
+  stroke: #aaccaa;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l15{
+ fill: #ff7777; fill-opacity: 0.5;
+  stroke: #ff7777;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l16{
+ fill: #bfff81; fill-opacity: 0.5;
+  stroke: #bfff81;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l17{
+  fill: none;
+  stroke: #00ffcc;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l18{
+ fill: #ce0097; fill-opacity: 0.5;
+  stroke: #ce0097;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l19{
+  fill: none;
+  stroke: #d2d46b;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l20{
+  fill: none;
+  stroke: #ef6158;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+.l21{
+  fill: none;
+  stroke: #fdb200;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width: 0.287006;
+}
+text {font-family: Sans-Serif;}
+</style>
+<rect class="l0" x="0" y="0" width="900" height="503"/>
+<text fill="#88dd00"  xml:space="preserve" font-size="11.746" transform="translate(56.0194, 18.2104)" >Block 01: Pass Device</text>
+<text fill="#ffff00"  xml:space="preserve" font-size="6.21846" transform="translate(56.0194, 31.7936)" >10x PMOS pfet_g5v0d10v5  W=100u L=0.5u  |  Total W = 1 mm</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="4.14564" transform="translate(56.0194, 39.2126)" >PVDD 5.0V LDO Regulator  |  SkyWater SKY130A</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.86926" transform="translate(56.0194, 46.934)" >.subckt pass_device gate bvdd pvdd</text>
+<text fill="#88dd00"  xml:space="preserve" font-size="4.83658" transform="translate(69.3067, 91.6605)" >Ports</text>
+<text fill="#88dd00"  xml:space="preserve" font-size="4.83658" transform="translate(122.456, 171.384)" >Row 1: XM1 – XM5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(129.1, 209.615)" >XM1</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(129.1, 213.099)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(235.398, 209.615)" >XM2</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(235.398, 213.099)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(341.697, 209.615)" >XM3</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(341.697, 213.099)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(447.995, 209.615)" >XM4</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(447.995, 213.099)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(554.293, 209.615)" >XM5</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(554.293, 213.099)" >P: W=100 L=0.5</text>
+<text fill="#88dd00"  xml:space="preserve" font-size="4.83658" transform="translate(122.456, 304.257)" >Row 2: XM6 – XM10</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(129.1, 342.488)" >XM6</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(129.1, 345.972)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(235.398, 342.488)" >XM7</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(235.398, 345.972)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(341.697, 342.488)" >XM8</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(341.697, 345.972)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(447.995, 342.488)" >XM9</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(447.995, 345.972)" >P: W=100 L=0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="3.04014" transform="translate(554.293, 342.488)" >XM10</text>
+<text fill="#bb2200"  xml:space="preserve" font-size="2.48738" transform="translate(554.293, 345.972)" >P: W=100 L=0.5</text>
+<text fill="#88dd00"  xml:space="preserve" font-size="4.83658" transform="translate(109.169, 158.097)" >Supply Rails</text>
+<text fill="#88dd00"  xml:space="preserve" font-size="5.52752" transform="translate(135.743, 411.183)" >10x PMOS  W=100u  L=0.5u</text>
+<text fill="#ffff00"  xml:space="preserve" font-size="4.14564" transform="translate(135.743, 423.216)" >Total W = 1 mm  —  Pass Device for PVDD 5V LDO</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(53.324, 102.372)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(74.5801, 115.493)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(74.6216, 128.946)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(106.805, 222.123)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(151.024, 221.211)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(143.051, 202.609)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(143.051, 239.813)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(213.104, 222.123)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(257.322, 221.211)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(249.35, 202.609)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(249.35, 239.813)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(319.402, 222.123)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(363.621, 221.211)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(355.648, 202.609)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(355.648, 239.813)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(425.701, 222.123)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(469.919, 221.211)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(461.947, 202.609)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(461.947, 239.813)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(531.999, 222.123)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(576.218, 221.211)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(568.245, 202.609)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(568.245, 239.813)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(106.805, 354.997)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(151.024, 354.084)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(143.051, 335.482)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(143.051, 372.687)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(213.104, 354.997)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(257.322, 354.084)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(249.35, 335.482)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(249.35, 372.687)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(319.402, 354.997)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(363.621, 354.084)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(355.648, 335.482)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(355.648, 372.687)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(425.701, 354.997)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(469.919, 354.084)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(461.947, 335.482)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(461.947, 372.687)" >pvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(531.999, 354.997)" >gate</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(576.218, 354.084)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(568.245, 335.482)" >bvdd</text>
+<text fill="#00ccee"  xml:space="preserve" font-size="4.5602" transform="translate(568.245, 372.687)" >pvdd</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="5.52752" transform="translate(118.47, 492.236)" >         /home/ubuntu/analog-ai-chips/pvdd_regulator/10_top_integration/schematics/pvdd_01_pass_device.sch</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="5.52752" transform="translate(118.47, 484.263)" >PVDD LDO — Pass Device Array</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="5.52752" transform="translate(259.081, 484.263)" >2026-03-31  10:36:46</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="13.8188" transform="translate(57.3481, 491.792)" >SCHEM</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(131.072, 214.679)" >XM1</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(141.723, 226.675)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(141.723, 214.996)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(141.058, 219.367)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(130.588, 219.367)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(143.716, 217.156)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(144.048, 226.305)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(144.048, 222.984)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(131.093, 226.084)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(237.37, 214.679)" >XM2</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(248.021, 226.675)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(248.021, 214.996)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(247.357, 219.367)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(236.886, 219.367)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(250.014, 217.156)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(250.346, 226.305)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(250.346, 222.984)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(237.391, 226.084)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(343.669, 214.679)" >XM3</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(354.319, 226.675)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(354.319, 214.996)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(353.655, 219.367)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(343.184, 219.367)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(356.313, 217.156)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(356.645, 226.305)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(356.645, 222.984)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(343.69, 226.084)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(449.967, 214.679)" >XM4</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(460.618, 226.675)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(460.618, 214.996)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(459.954, 219.367)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(449.483, 219.367)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(462.611, 217.156)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(462.943, 226.305)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(462.943, 222.984)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(449.988, 226.084)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(556.266, 214.679)" >XM5</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(566.916, 226.675)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(566.916, 214.996)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(566.252, 219.367)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(555.781, 219.367)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(568.91, 217.156)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(569.242, 226.305)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(569.242, 222.984)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(556.287, 226.084)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(131.072, 347.552)" >XM6</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(141.723, 359.548)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(141.723, 347.869)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(141.058, 352.24)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(130.588, 352.24)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(143.716, 350.029)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(144.048, 359.179)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(144.048, 355.857)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(131.093, 358.957)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(237.37, 347.552)" >XM7</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(248.021, 359.548)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(248.021, 347.869)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(247.357, 352.24)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(236.886, 352.24)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(250.014, 350.029)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(250.346, 359.179)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(250.346, 355.857)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(237.391, 358.957)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(343.669, 347.552)" >XM8</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(354.319, 359.548)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(354.319, 347.869)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(353.655, 352.24)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(343.184, 352.24)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(356.313, 350.029)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(356.645, 359.179)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(356.645, 355.857)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(343.69, 358.957)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(449.967, 347.552)" >XM9</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(460.618, 359.548)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(460.618, 347.869)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(459.954, 352.24)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(449.483, 352.24)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(462.611, 350.029)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(462.943, 359.179)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(462.943, 355.857)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(449.988, 358.957)" >?</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(554.266, 347.552)" >XM10</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(566.916, 359.548)" >D</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(566.916, 347.869)" >S</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(566.252, 352.24)" >B</text>
+<text fill="#ff0000"  xml:space="preserve" font-size="2.07282" transform="translate(555.781, 352.24)" >G</text>
+<text fill="#cccccc"  xml:space="preserve" font-size="2.76376" transform="translate(568.91, 350.029)" >pfet_g5v0d10v5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(569.242, 359.179)" >1 x 100 / 0.5</text>
+<text fill="#aaaa00"  xml:space="preserve" font-size="2.76376" transform="translate(569.242, 355.857)" >nf=1</text>
+<text fill="#ff7777"  xml:space="preserve" font-size="0.69094" transform="translate(556.287, 358.957)" >?</text>
+<path class="l4" d="M141.058 212.17L141.058 215.491"/>
+<path class="l4" d="M141.058 224.793L141.058 228.114"/>
+<path class="l4" d="M137.736 224.793L141.058 224.793"/>
+<path class="l4" d="M139.065 215.491L141.058 215.491"/>
+<path class="l4" d="M130.428 220.142L132.421 220.142"/>
+<path class="l4" d="M137.736 214.163L137.736 226.121"/>
+<path class="l4" d="M139.065 214.827L137.736 215.491L139.065 216.156L139.065 214.827"/>
+<path class="l4" style="fill:none;" d="M135.079 224.128L135.079 216.156L136.408 216.156L136.408 224.128L135.079 224.128"/>
+<circle class="l4" cx="133.75" cy="220.142" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M247.357 212.17L247.357 215.491"/>
+<path class="l4" d="M247.357 224.793L247.357 228.114"/>
+<path class="l4" d="M244.035 224.793L247.357 224.793"/>
+<path class="l4" d="M245.364 215.491L247.357 215.491"/>
+<path class="l4" d="M236.727 220.142L238.72 220.142"/>
+<path class="l4" d="M244.035 214.163L244.035 226.121"/>
+<path class="l4" d="M245.364 214.827L244.035 215.491L245.364 216.156L245.364 214.827"/>
+<path class="l4" style="fill:none;" d="M241.377 224.128L241.377 216.156L242.706 216.156L242.706 224.128L241.377 224.128"/>
+<circle class="l4" cx="240.049" cy="220.142" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M353.655 212.17L353.655 215.491"/>
+<path class="l4" d="M353.655 224.793L353.655 228.114"/>
+<path class="l4" d="M350.333 224.793L353.655 224.793"/>
+<path class="l4" d="M351.662 215.491L353.655 215.491"/>
+<path class="l4" d="M343.025 220.142L345.018 220.142"/>
+<path class="l4" d="M350.333 214.163L350.333 226.121"/>
+<path class="l4" d="M351.662 214.827L350.333 215.491L351.662 216.156L351.662 214.827"/>
+<path class="l4" style="fill:none;" d="M347.676 224.128L347.676 216.156L349.005 216.156L349.005 224.128L347.676 224.128"/>
+<circle class="l4" cx="346.347" cy="220.142" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M459.954 212.17L459.954 215.491"/>
+<path class="l4" d="M459.954 224.793L459.954 228.114"/>
+<path class="l4" d="M456.632 224.793L459.954 224.793"/>
+<path class="l4" d="M457.96 215.491L459.954 215.491"/>
+<path class="l4" d="M449.324 220.142L451.317 220.142"/>
+<path class="l4" d="M456.632 214.163L456.632 226.121"/>
+<path class="l4" d="M457.96 214.827L456.632 215.491L457.96 216.156L457.96 214.827"/>
+<path class="l4" style="fill:none;" d="M453.974 224.128L453.974 216.156L455.303 216.156L455.303 224.128L453.974 224.128"/>
+<circle class="l4" cx="452.646" cy="220.142" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M566.252 212.17L566.252 215.491"/>
+<path class="l4" d="M566.252 224.793L566.252 228.114"/>
+<path class="l4" d="M562.93 224.793L566.252 224.793"/>
+<path class="l4" d="M564.259 215.491L566.252 215.491"/>
+<path class="l4" d="M555.622 220.142L557.615 220.142"/>
+<path class="l4" d="M562.93 214.163L562.93 226.121"/>
+<path class="l4" d="M564.259 214.827L562.93 215.491L564.259 216.156L564.259 214.827"/>
+<path class="l4" style="fill:none;" d="M560.273 224.128L560.273 216.156L561.602 216.156L561.602 224.128L560.273 224.128"/>
+<circle class="l4" cx="558.944" cy="220.142" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M141.058 345.043L141.058 348.364"/>
+<path class="l4" d="M141.058 357.666L141.058 360.987"/>
+<path class="l4" d="M137.736 357.666L141.058 357.666"/>
+<path class="l4" d="M139.065 348.364L141.058 348.364"/>
+<path class="l4" d="M130.428 353.015L132.421 353.015"/>
+<path class="l4" d="M137.736 347.036L137.736 358.994"/>
+<path class="l4" d="M139.065 347.7L137.736 348.364L139.065 349.029L139.065 347.7"/>
+<path class="l4" style="fill:none;" d="M135.079 357.001L135.079 349.029L136.408 349.029L136.408 357.001L135.079 357.001"/>
+<circle class="l4" cx="133.75" cy="353.015" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M247.357 345.043L247.357 348.364"/>
+<path class="l4" d="M247.357 357.666L247.357 360.987"/>
+<path class="l4" d="M244.035 357.666L247.357 357.666"/>
+<path class="l4" d="M245.364 348.364L247.357 348.364"/>
+<path class="l4" d="M236.727 353.015L238.72 353.015"/>
+<path class="l4" d="M244.035 347.036L244.035 358.994"/>
+<path class="l4" d="M245.364 347.7L244.035 348.364L245.364 349.029L245.364 347.7"/>
+<path class="l4" style="fill:none;" d="M241.377 357.001L241.377 349.029L242.706 349.029L242.706 357.001L241.377 357.001"/>
+<circle class="l4" cx="240.049" cy="353.015" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M353.655 345.043L353.655 348.364"/>
+<path class="l4" d="M353.655 357.666L353.655 360.987"/>
+<path class="l4" d="M350.333 357.666L353.655 357.666"/>
+<path class="l4" d="M351.662 348.364L353.655 348.364"/>
+<path class="l4" d="M343.025 353.015L345.018 353.015"/>
+<path class="l4" d="M350.333 347.036L350.333 358.994"/>
+<path class="l4" d="M351.662 347.7L350.333 348.364L351.662 349.029L351.662 347.7"/>
+<path class="l4" style="fill:none;" d="M347.676 357.001L347.676 349.029L349.005 349.029L349.005 357.001L347.676 357.001"/>
+<circle class="l4" cx="346.347" cy="353.015" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M459.954 345.043L459.954 348.364"/>
+<path class="l4" d="M459.954 357.666L459.954 360.987"/>
+<path class="l4" d="M456.632 357.666L459.954 357.666"/>
+<path class="l4" d="M457.96 348.364L459.954 348.364"/>
+<path class="l4" d="M449.324 353.015L451.317 353.015"/>
+<path class="l4" d="M456.632 347.036L456.632 358.994"/>
+<path class="l4" d="M457.96 347.7L456.632 348.364L457.96 349.029L457.96 347.7"/>
+<path class="l4" style="fill:none;" d="M453.974 357.001L453.974 349.029L455.303 349.029L455.303 357.001L453.974 357.001"/>
+<circle class="l4" cx="452.646" cy="353.015" r="1.32873" style="fill:none;"/>
+<path class="l4" d="M566.252 345.043L566.252 348.364"/>
+<path class="l4" d="M566.252 357.666L566.252 360.987"/>
+<path class="l4" d="M562.93 357.666L566.252 357.666"/>
+<path class="l4" d="M564.259 348.364L566.252 348.364"/>
+<path class="l4" d="M555.622 353.015L557.615 353.015"/>
+<path class="l4" d="M562.93 347.036L562.93 358.994"/>
+<path class="l4" d="M564.259 347.7L562.93 348.364L564.259 349.029L564.259 347.7"/>
+<path class="l4" style="fill:none;" d="M560.273 357.001L560.273 349.029L561.602 349.029L561.602 357.001L560.273 357.001"/>
+<circle class="l4" cx="558.944" cy="353.015" r="1.32873" style="fill:none;"/>
+<path class="l5" d="M57.3481 477.916L49.3757 485.888L57.3481 493.861L52.0332 493.861L46.7183 488.546L41.4033 493.861L36.0884 493.861L44.0608 485.888L36.0884 477.916L41.4033 477.916L46.7183 483.231L52.0332 477.916L57.3481 477.916"/>
+<path class="l5" d="M67.978 100.556L69.3067 100.556"/>
+<path class="l5" d="M67.978 100.556L66.9814 99.2274L64.6561 99.2274L65.6527 100.556L64.6561 101.885L66.9814 101.885L67.978 100.556"/>
+<path class="l5" d="M68.9745 100.224L69.6389 100.224L69.6389 100.888L68.9745 100.888L68.9745 100.224z"/>
+<path class="l5" d="M69.3067 113.843L70.1372 113.843"/>
+<path class="l5" d="M72.9607 115.172L73.9573 113.843L72.9607 112.515L71.1337 112.515L70.1372 113.843L71.1337 115.172L72.9607 115.172"/>
+<path class="l5" d="M68.9745 113.511L69.6389 113.511L69.6389 114.176L68.9745 114.176L68.9745 113.511z"/>
+<path class="l5" d="M69.3067 127.131L71.632 127.131"/>
+<path class="l5" d="M73.9573 127.131L72.9607 125.802L70.6354 125.802L71.632 127.131L70.6354 128.46L72.9607 128.46L73.9573 127.131"/>
+<path class="l5" d="M68.9745 126.799L69.6389 126.799L69.6389 127.463L68.9745 127.463L68.9745 126.799z"/>
+<path class="l5" d="M139.729 219.478L141.058 220.142L139.729 220.806L139.729 219.478"/>
+<path class="l5" d="M140.394 227.45L141.723 227.45L141.723 228.779L140.394 228.779L140.394 227.45z"/>
+<path class="l5" d="M129.764 219.478L131.093 219.478L131.093 220.806L129.764 220.806L129.764 219.478z"/>
+<path class="l5" d="M140.394 211.505L141.723 211.505L141.723 212.834L140.394 212.834L140.394 211.505z"/>
+<path class="l5" d="M141.037 220.121L141.079 220.121L141.079 220.163L141.037 220.163L141.037 220.121z"/>
+<path class="l5" d="M119.466 219.81L120.131 219.81L120.131 220.474L119.466 220.474L119.466 219.81z"/>
+<path class="l5" d="M148.698 219.81L149.363 219.81L149.363 220.474L148.698 220.474L148.698 219.81z"/>
+<path class="l5" d="M140.726 201.208L141.39 201.208L141.39 201.872L140.726 201.872L140.726 201.208z"/>
+<path class="l5" d="M140.726 238.412L141.39 238.412L141.39 239.076L140.726 239.076L140.726 238.412z"/>
+<path class="l5" d="M246.028 219.478L247.357 220.142L246.028 220.806L246.028 219.478"/>
+<path class="l5" d="M246.692 227.45L248.021 227.45L248.021 228.779L246.692 228.779L246.692 227.45z"/>
+<path class="l5" d="M236.062 219.478L237.391 219.478L237.391 220.806L236.062 220.806L236.062 219.478z"/>
+<path class="l5" d="M246.692 211.505L248.021 211.505L248.021 212.834L246.692 212.834L246.692 211.505z"/>
+<path class="l5" d="M247.336 220.121L247.377 220.121L247.377 220.163L247.336 220.163L247.336 220.121z"/>
+<path class="l5" d="M225.765 219.81L226.429 219.81L226.429 220.474L225.765 220.474L225.765 219.81z"/>
+<path class="l5" d="M254.997 219.81L255.661 219.81L255.661 220.474L254.997 220.474L254.997 219.81z"/>
+<path class="l5" d="M247.024 201.208L247.689 201.208L247.689 201.872L247.024 201.872L247.024 201.208z"/>
+<path class="l5" d="M247.024 238.412L247.689 238.412L247.689 239.076L247.024 239.076L247.024 238.412z"/>
+<path class="l5" d="M352.326 219.478L353.655 220.142L352.326 220.806L352.326 219.478"/>
+<path class="l5" d="M352.991 227.45L354.319 227.45L354.319 228.779L352.991 228.779L352.991 227.45z"/>
+<path class="l5" d="M342.361 219.478L343.69 219.478L343.69 220.806L342.361 220.806L342.361 219.478z"/>
+<path class="l5" d="M352.991 211.505L354.319 211.505L354.319 212.834L352.991 212.834L352.991 211.505z"/>
+<path class="l5" d="M353.634 220.121L353.676 220.121L353.676 220.163L353.634 220.163L353.634 220.121z"/>
+<path class="l5" d="M332.063 219.81L332.728 219.81L332.728 220.474L332.063 220.474L332.063 219.81z"/>
+<path class="l5" d="M361.295 219.81L361.96 219.81L361.96 220.474L361.295 220.474L361.295 219.81z"/>
+<path class="l5" d="M353.323 201.208L353.987 201.208L353.987 201.872L353.323 201.872L353.323 201.208z"/>
+<path class="l5" d="M353.323 238.412L353.987 238.412L353.987 239.076L353.323 239.076L353.323 238.412z"/>
+<path class="l5" d="M458.625 219.478L459.954 220.142L458.625 220.806L458.625 219.478"/>
+<path class="l5" d="M459.289 227.45L460.618 227.45L460.618 228.779L459.289 228.779L459.289 227.45z"/>
+<path class="l5" d="M448.659 219.478L449.988 219.478L449.988 220.806L448.659 220.806L448.659 219.478z"/>
+<path class="l5" d="M459.289 211.505L460.618 211.505L460.618 212.834L459.289 212.834L459.289 211.505z"/>
+<path class="l5" d="M459.933 220.121L459.974 220.121L459.974 220.163L459.933 220.163L459.933 220.121z"/>
+<path class="l5" d="M438.362 219.81L439.026 219.81L439.026 220.474L438.362 220.474L438.362 219.81z"/>
+<path class="l5" d="M467.594 219.81L468.258 219.81L468.258 220.474L467.594 220.474L467.594 219.81z"/>
+<path class="l5" d="M459.621 201.208L460.286 201.208L460.286 201.872L459.621 201.872L459.621 201.208z"/>
+<path class="l5" d="M459.621 238.412L460.286 238.412L460.286 239.076L459.621 239.076L459.621 238.412z"/>
+<path class="l5" d="M564.923 219.478L566.252 220.142L564.923 220.806L564.923 219.478"/>
+<path class="l5" d="M565.588 227.45L566.916 227.45L566.916 228.779L565.588 228.779L565.588 227.45z"/>
+<path class="l5" d="M554.958 219.478L556.287 219.478L556.287 220.806L554.958 220.806L554.958 219.478z"/>
+<path class="l5" d="M565.588 211.505L566.916 211.505L566.916 212.834L565.588 212.834L565.588 211.505z"/>
+<path class="l5" d="M566.231 220.121L566.273 220.121L566.273 220.163L566.231 220.163L566.231 220.121z"/>
+<path class="l5" d="M544.66 219.81L545.325 219.81L545.325 220.474L544.66 220.474L544.66 219.81z"/>
+<path class="l5" d="M573.892 219.81L574.557 219.81L574.557 220.474L573.892 220.474L573.892 219.81z"/>
+<path class="l5" d="M565.92 201.208L566.584 201.208L566.584 201.872L565.92 201.872L565.92 201.208z"/>
+<path class="l5" d="M565.92 238.412L566.584 238.412L566.584 239.076L565.92 239.076L565.92 238.412z"/>
+<path class="l5" d="M139.729 352.351L141.058 353.015L139.729 353.679L139.729 352.351"/>
+<path class="l5" d="M140.394 360.323L141.723 360.323L141.723 361.652L140.394 361.652L140.394 360.323z"/>
+<path class="l5" d="M129.764 352.351L131.093 352.351L131.093 353.679L129.764 353.679L129.764 352.351z"/>
+<path class="l5" d="M140.394 344.378L141.723 344.378L141.723 345.707L140.394 345.707L140.394 344.378z"/>
+<path class="l5" d="M141.037 352.994L141.079 352.994L141.079 353.036L141.037 353.036L141.037 352.994z"/>
+<path class="l5" d="M119.466 352.683L120.131 352.683L120.131 353.347L119.466 353.347L119.466 352.683z"/>
+<path class="l5" d="M148.698 352.683L149.363 352.683L149.363 353.347L148.698 353.347L148.698 352.683z"/>
+<path class="l5" d="M140.726 334.081L141.39 334.081L141.39 334.745L140.726 334.745L140.726 334.081z"/>
+<path class="l5" d="M140.726 371.285L141.39 371.285L141.39 371.949L140.726 371.949L140.726 371.285z"/>
+<path class="l5" d="M246.028 352.351L247.357 353.015L246.028 353.679L246.028 352.351"/>
+<path class="l5" d="M246.692 360.323L248.021 360.323L248.021 361.652L246.692 361.652L246.692 360.323z"/>
+<path class="l5" d="M236.062 352.351L237.391 352.351L237.391 353.679L236.062 353.679L236.062 352.351z"/>
+<path class="l5" d="M246.692 344.378L248.021 344.378L248.021 345.707L246.692 345.707L246.692 344.378z"/>
+<path class="l5" d="M247.336 352.994L247.377 352.994L247.377 353.036L247.336 353.036L247.336 352.994z"/>
+<path class="l5" d="M225.765 352.683L226.429 352.683L226.429 353.347L225.765 353.347L225.765 352.683z"/>
+<path class="l5" d="M254.997 352.683L255.661 352.683L255.661 353.347L254.997 353.347L254.997 352.683z"/>
+<path class="l5" d="M247.024 334.081L247.689 334.081L247.689 334.745L247.024 334.745L247.024 334.081z"/>
+<path class="l5" d="M247.024 371.285L247.689 371.285L247.689 371.949L247.024 371.949L247.024 371.285z"/>
+<path class="l5" d="M352.326 352.351L353.655 353.015L352.326 353.679L352.326 352.351"/>
+<path class="l5" d="M352.991 360.323L354.319 360.323L354.319 361.652L352.991 361.652L352.991 360.323z"/>
+<path class="l5" d="M342.361 352.351L343.69 352.351L343.69 353.679L342.361 353.679L342.361 352.351z"/>
+<path class="l5" d="M352.991 344.378L354.319 344.378L354.319 345.707L352.991 345.707L352.991 344.378z"/>
+<path class="l5" d="M353.634 352.994L353.676 352.994L353.676 353.036L353.634 353.036L353.634 352.994z"/>
+<path class="l5" d="M332.063 352.683L332.728 352.683L332.728 353.347L332.063 353.347L332.063 352.683z"/>
+<path class="l5" d="M361.295 352.683L361.96 352.683L361.96 353.347L361.295 353.347L361.295 352.683z"/>
+<path class="l5" d="M353.323 334.081L353.987 334.081L353.987 334.745L353.323 334.745L353.323 334.081z"/>
+<path class="l5" d="M353.323 371.285L353.987 371.285L353.987 371.949L353.323 371.949L353.323 371.285z"/>
+<path class="l5" d="M458.625 352.351L459.954 353.015L458.625 353.679L458.625 352.351"/>
+<path class="l5" d="M459.289 360.323L460.618 360.323L460.618 361.652L459.289 361.652L459.289 360.323z"/>
+<path class="l5" d="M448.659 352.351L449.988 352.351L449.988 353.679L448.659 353.679L448.659 352.351z"/>
+<path class="l5" d="M459.289 344.378L460.618 344.378L460.618 345.707L459.289 345.707L459.289 344.378z"/>
+<path class="l5" d="M459.933 352.994L459.974 352.994L459.974 353.036L459.933 353.036L459.933 352.994z"/>
+<path class="l5" d="M438.362 352.683L439.026 352.683L439.026 353.347L438.362 353.347L438.362 352.683z"/>
+<path class="l5" d="M467.594 352.683L468.258 352.683L468.258 353.347L467.594 353.347L467.594 352.683z"/>
+<path class="l5" d="M459.621 334.081L460.286 334.081L460.286 334.745L459.621 334.745L459.621 334.081z"/>
+<path class="l5" d="M459.621 371.285L460.286 371.285L460.286 371.949L459.621 371.949L459.621 371.285z"/>
+<path class="l5" d="M564.923 352.351L566.252 353.015L564.923 353.679L564.923 352.351"/>
+<path class="l5" d="M565.588 360.323L566.916 360.323L566.916 361.652L565.588 361.652L565.588 360.323z"/>
+<path class="l5" d="M554.958 352.351L556.287 352.351L556.287 353.679L554.958 353.679L554.958 352.351z"/>
+<path class="l5" d="M565.588 344.378L566.916 344.378L566.916 345.707L565.588 345.707L565.588 344.378z"/>
+<path class="l5" d="M566.231 352.994L566.273 352.994L566.273 353.036L566.231 353.036L566.231 352.994z"/>
+<path class="l5" d="M544.66 352.683L545.325 352.683L545.325 353.347L544.66 353.347L544.66 352.683z"/>
+<path class="l5" d="M573.892 352.683L574.557 352.683L574.557 353.347L573.892 353.347L573.892 352.683z"/>
+<path class="l5" d="M565.92 334.081L566.584 334.081L566.584 334.745L565.92 334.745L565.92 334.081z"/>
+<path class="l5" d="M565.92 371.285L566.584 371.285L566.584 371.949L565.92 371.949L565.92 371.285z"/>
+<path class="l6" d="M115.812 485.888L327.081 485.888"/>
+<path class="l6" d="M13.5 485.888L30.7735 485.888"/>
+<path class="l8" stroke-dasharray="1.86022,1.86022" d="M95.8813 145.733L592.827 145.733"/>
+<path class="l8" stroke-dasharray="1.86022,1.86022" d="M592.827 145.733L592.827 398.192"/>
+<path class="l8" stroke-dasharray="1.86022,1.86022" d="M95.8813 398.192L592.827 398.192"/>
+<path class="l8" stroke-dasharray="1.86022,1.86022" d="M95.8813 145.733L95.8813 398.192"/>
+<path class="l1" d="M119.798 220.142L130.428 220.142"/>
+<path class="l1" d="M141.058 220.142L149.031 220.142"/>
+<path class="l1" d="M141.058 201.54L141.058 212.17"/>
+<path class="l1" d="M141.058 228.114L141.058 238.744"/>
+<path class="l1" d="M226.097 220.142L236.727 220.142"/>
+<path class="l1" d="M247.357 220.142L255.329 220.142"/>
+<path class="l1" d="M247.357 201.54L247.357 212.17"/>
+<path class="l1" d="M247.357 228.114L247.357 238.744"/>
+<path class="l1" d="M332.395 220.142L343.025 220.142"/>
+<path class="l1" d="M353.655 220.142L361.628 220.142"/>
+<path class="l1" d="M353.655 201.54L353.655 212.17"/>
+<path class="l1" d="M353.655 228.114L353.655 238.744"/>
+<path class="l1" d="M438.694 220.142L449.324 220.142"/>
+<path class="l1" d="M459.954 220.142L467.926 220.142"/>
+<path class="l1" d="M459.954 201.54L459.954 212.17"/>
+<path class="l1" d="M459.954 228.114L459.954 238.744"/>
+<path class="l1" d="M544.992 220.142L555.622 220.142"/>
+<path class="l1" d="M566.252 220.142L574.224 220.142"/>
+<path class="l1" d="M566.252 201.54L566.252 212.17"/>
+<path class="l1" d="M566.252 228.114L566.252 238.744"/>
+<path class="l1" d="M119.798 353.015L130.428 353.015"/>
+<path class="l1" d="M141.058 353.015L149.031 353.015"/>
+<path class="l1" d="M141.058 334.413L141.058 345.043"/>
+<path class="l1" d="M141.058 360.987L141.058 371.617"/>
+<path class="l1" d="M226.097 353.015L236.727 353.015"/>
+<path class="l1" d="M247.357 353.015L255.329 353.015"/>
+<path class="l1" d="M247.357 334.413L247.357 345.043"/>
+<path class="l1" d="M247.357 360.987L247.357 371.617"/>
+<path class="l1" d="M332.395 353.015L343.025 353.015"/>
+<path class="l1" d="M353.655 353.015L361.628 353.015"/>
+<path class="l1" d="M353.655 334.413L353.655 345.043"/>
+<path class="l1" d="M353.655 360.987L353.655 371.617"/>
+<path class="l1" d="M438.694 353.015L449.324 353.015"/>
+<path class="l1" d="M459.954 353.015L467.926 353.015"/>
+<path class="l1" d="M459.954 334.413L459.954 345.043"/>
+<path class="l1" d="M459.954 360.987L459.954 371.617"/>
+<path class="l1" d="M544.992 353.015L555.622 353.015"/>
+<path class="l1" d="M566.252 353.015L574.224 353.015"/>
+<path class="l1" d="M566.252 334.413L566.252 345.043"/>
+<path class="l1" d="M566.252 360.987L566.252 371.617"/>
+<path class="l1" d="M127.771 201.54L579.539 201.54"/>
+<path class="l1" d="M127.771 334.413L579.539 334.413"/>
+<path class="l1" d="M127.771 238.744L579.539 238.744"/>
+<path class="l1" d="M127.771 371.617L579.539 371.617"/>
+<path class="l1" d="M111.826 220.142L552.965 220.142"/>
+<path class="l1" d="M111.826 353.015L552.965 353.015"/>
+<path class="l1" d="M111.826 220.142L111.826 353.015"/>
+<circle class="l1" cx="552.965" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="119.798" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="130.428" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="552.965" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="119.798" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="130.428" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="141.058" cy="201.54" r="1.06298"/>
+<circle class="l1" cx="226.097" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="236.727" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="141.058" cy="238.744" r="1.06298"/>
+<circle class="l1" cx="141.058" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="149.031" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="226.097" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="236.727" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="141.058" cy="371.617" r="1.06298"/>
+<circle class="l1" cx="141.058" cy="334.413" r="1.06298"/>
+<circle class="l1" cx="141.058" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="149.031" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="247.357" cy="201.54" r="1.06298"/>
+<circle class="l1" cx="332.395" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="343.025" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="247.357" cy="238.744" r="1.06298"/>
+<circle class="l1" cx="247.357" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="255.329" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="332.395" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="343.025" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="247.357" cy="371.617" r="1.06298"/>
+<circle class="l1" cx="247.357" cy="334.413" r="1.06298"/>
+<circle class="l1" cx="247.357" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="255.329" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="353.655" cy="201.54" r="1.06298"/>
+<circle class="l1" cx="438.694" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="449.324" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="353.655" cy="238.744" r="1.06298"/>
+<circle class="l1" cx="353.655" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="361.628" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="438.694" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="449.324" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="353.655" cy="371.617" r="1.06298"/>
+<circle class="l1" cx="353.655" cy="334.413" r="1.06298"/>
+<circle class="l1" cx="353.655" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="361.628" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="459.954" cy="201.54" r="1.06298"/>
+<circle class="l1" cx="544.992" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="459.954" cy="238.744" r="1.06298"/>
+<circle class="l1" cx="459.954" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="467.926" cy="220.142" r="1.06298"/>
+<circle class="l1" cx="544.992" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="459.954" cy="371.617" r="1.06298"/>
+<circle class="l1" cx="459.954" cy="334.413" r="1.06298"/>
+<circle class="l1" cx="459.954" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="467.926" cy="353.015" r="1.06298"/>
+<circle class="l1" cx="566.252" cy="201.54" r="1.06298"/>
+<circle class="l1" cx="566.252" cy="238.744" r="1.06298"/>
+<circle class="l1" cx="566.252" cy="371.617" r="1.06298"/>
+<circle class="l1" cx="566.252" cy="334.413" r="1.06298"/>
+</svg>
