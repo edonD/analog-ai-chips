@@ -1,8 +1,8 @@
 === Block 10: Top Integration Verification ===
-Run started: Mon Mar 30 22:55:24 UTC 2026
-vpvdd_min_V: 4.936
-vpvdd_max_V: 5.101
-load_reg_mV_per_mA: 1.9
+Run started: Tue Mar 31 10:56:11 UTC 2026
+vpvdd_min_V: 4.939
+vpvdd_max_V: 5.022
+load_reg_mV_per_mA: 1.7
 line_reg_mV_per_V: 5.0
 undershoot_mV: 120
 overshoot_mV: 120
@@ -10,15 +10,15 @@ pm_min_deg: 70
 gm_min_dB: 20
 psrr_dc_dB: 55
 psrr_10k_dB: 20
-startup_time_us: 73
+startup_time_us: 83
 startup_overshoot_V: 5.3
 iout_limit_mA: 79
 uv_trip_V: 4.3
 ov_trip_V: 5.50
-iq_active_uA: 52
+iq_active_uA: 55
 iq_retention_uA: 5
 pvt_all_pass: 1
 
 specs_pass: 18
 
-Run finished: Mon Mar 30 22:55:24 UTC 2026
+Run finished: Tue Mar 31 10:56:11 UTC 2026

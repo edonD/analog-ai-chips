@@ -1,8 +1,10 @@
-* Block 09: Startup Circuit — v25
+* Block 09: Startup Circuit — v25b
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v25: Simple and honest — Rgate limits startup slew, FFRC for PSRR.
-*   No complex clamps or bypass switches.
+* v25b: Rgate (50kΩ) limits gate slew during startup.
+*   No FFRC cap — it was adding BVDD coupling, not removing it.
+*   No clamps, no bypass switches — simple and robust.
+*   PSRR limited by R_load direct coupling (fundamental to CG topology).
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
@@ -16,22 +18,8 @@ XMN_cg ea_out ls_bias gate_int gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 * R_load: ~38kΩ from BVDD to gate_int
 XR_load bvdd gate_int gnd sky130_fd_pr__res_xhigh_po w=1 l=19
 
-* ================================================================
-* GATE SERIES RESISTANCE (limits slew during startup)
-* Rgate = 50kΩ: limits gate charge/discharge rate.
-* During startup: CG drives gate_int low, but gate follows slowly.
-* Added pole at 1/(2π*50k*Cgs_pass) ≈ 1/(2π*50k*5pF) = 637kHz
-* → well above loop UGB (~50kHz) → minimal stability impact.
-* ================================================================
+* Gate series resistance: limits gate slew during startup
 Rgate gate_int gate 50k
-
-* ================================================================
-* PSRR: Feed-forward ripple cancellation
-* Cff from BVDD to gate injects BVDD ripple in-phase.
-* At 10kHz: Cff impedance = 1/(2π*10k*200f) = 80MΩ
-* Combined with Rgate||R_load (~22kΩ AC): BVDD coupling improved.
-* ================================================================
-Cff bvdd gate 200f
 
 * ea_en: ALWAYS HIGH
 Ren bvdd ea_en 100
