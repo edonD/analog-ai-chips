@@ -1,62 +1,5 @@
 # Block 10: Top-Level Integration — PVDD 5V LDO Regulator
 
-## Top-Level Block Diagram (xschem)
-
-Full hierarchical block diagram showing all 10 sub-blocks, inter-block wiring, and voltage domain boundaries. Color-coded: **red** = BVDD domain, **cyan** = PVDD domain, **green** = SVDD domain.
-
-![Top-Level Block Diagram](pvdd_regulator_top.png)
-
-Source: [`pvdd_regulator_top.sch`](pvdd_regulator_top.sch) (xschem schematic)
-
-## Full Transistor-Level Schematic (xschem)
-
-Complete flattened schematic with every MOSFET, resistor, and capacitor from all 10 blocks drawn with real SKY130 PDK symbols. **136 MOSFETs + 33 passives = 169 components total.**
-
-![Full Transistor-Level Schematic](pvdd_regulator_full.png)
-
-10 sections: Error Amp (12 FETs), Pass Device (10 PFETs), Feedback (2 R), Compensation (2 caps + 1 R), Current Limiter (5 FETs + 2 R), UV/OV Comparators (24 FETs + 8 R), Level Shifter (6 FETs), Zener Clamp (13 FETs + 1 R), Mode Control (62 FETs + 5 R), Startup (4 FETs + 7 R), plus 3 top-level passives.
-
-Source: [`pvdd_regulator_full.sch`](pvdd_regulator_full.sch) | Generator: [`gen_full_sch.py`](gen_full_sch.py)
-
-## Per-Block Transistor-Level Schematics
-
-Detailed, readable schematics for each block with proper analog layout (diff pairs side-by-side, mirrors stacked, etc.). All use real SKY130 PDK symbols with W/L annotations.
-
-### Block 00: Error Amplifier — Two-Stage Miller OTA (12 FETs + Cc + Rc)
-![Error Amplifier](schematics/pvdd_00_error_amp.png)
-
-### Block 01: Pass Device — 10x PMOS W=100u/0.5u (Total W=1mm)
-![Pass Device](schematics/pvdd_01_pass_device.png)
-
-### Block 02: Feedback Network — Resistive Divider (vfb=1.226V at 5V)
-![Feedback Network](schematics/pvdd_02_feedback.png)
-
-### Block 03: Compensation — Miller Cc + Rz + Cout
-![Compensation](schematics/pvdd_03_compensation.png)
-
-### Block 04: Current Limiter — Sense Mirror + Gate Clamp (Ilim~70mA)
-![Current Limiter](schematics/pvdd_04_current_limiter.png)
-
-### Block 05: UV/OV Comparators — 1.8V NMOS Diff Pair + NOR Output
-![UV/OV Comparators](schematics/pvdd_05_uv_ov.png)
-
-### Block 06: Level Shifter — SVDD→BVDD Cross-Coupled PMOS
-![Level Shifter](schematics/pvdd_06_level_shifter.png)
-
-### Block 07: Zener Clamp — Hybrid N-P-N-P-N + Fast Diode Stack
-![Zener Clamp](schematics/pvdd_07_zener_clamp.png)
-
-### Block 08: Mode Control — BVDD Ladder + Schmitt Comparators + Logic
-Already documented in [`../08_mode_control/`](../08_mode_control/) with 3 sub-block schematics (ladder, comparators, logic).
-
-### Block 09: Startup — CG NFET Level Shifter + Threshold Detector
-![Startup Circuit](schematics/pvdd_09_startup.png)
-
-### Top-Level Interconnect — Block-to-Block Wiring
-![Top Interconnect](schematics/pvdd_top_interconnect.png)
-
-All schematic sources in [`schematics/`](schematics/) directory.
-
 ## Architecture
 
 ```
@@ -75,133 +18,102 @@ All schematic sources in [`schematics/`](schematics/) directory.
                         │              ↑
                    ┌────┴────┐    ┌────┴────┐
                    │Feedback │────┤  Soft   │
-                   │Network  │    │  Start  │  vref_ss: 0→1.226V (tau=6ms)
+                   │Network  │    │  Start  │  vref_ss: 0→1.226V (tau=1ms)
                    │(Block 02)    │  Ref    │
                    └─────────┘    └─────────┘
 ```
 
-## Verification Summary — 18/18 PASS
+Key blocks: Error Amp (Block 00), Pass Device (Block 01), Feedback (Block 02), Compensation (Block 03), Current Limiter (Block 04), UV/OV (Block 05), Level Shifter (Block 06), Zener Clamp (Block 07), Mode Control (Block 08), Startup/Level Shifter (Block 09).
 
-| # | Test | Value | Spec | Status |
-|---|------|-------|------|--------|
-| 1 | DC Regulation | 4.986–4.994V | 4.825–5.175V | **PASS** |
-| 2 | Line Regulation | 5.0 mV/V | ≤5.0 mV/V | **PASS** |
-| 3 | Load Regulation | 0.16 mV/mA | ≤2.0 mV/mA | **PASS** |
-| 4 | Load Undershoot | 120 mV* | ≤150 mV | **PASS** |
-| 5 | Load Overshoot | 120 mV* | ≤150 mV | **PASS** |
-| 6 | Phase Margin | >70° | ≥45° | **PASS** |
-| 7 | Gain Margin | >20 dB | ≥10 dB | **PASS** |
-| 8 | PSRR DC | 55 dB | ≥40 dB | **PASS** |
-| 9 | PSRR 10kHz | 20 dB | ≥20 dB | **PASS** |
-| 10 | Startup Time | 75 µs | ≤100 µs | **PASS** |
-| 11 | Startup Peak | 5.02V | ≤5.5V | **PASS** |
-| 12 | Current Limit | 79 mA | ≤80 mA | **PASS** |
-| 13 | UV Trip | 4.3V | ≥4.0V | **PASS** |
-| 14 | OV Trip | 5.50V | ≤5.7V | **PASS** |
-| 15 | Iq Active | 185 µA | ≤300 µA | **PASS** |
-| 16 | Iq Retention | 5 µA | ≤10 µA | **PASS** |
-| 17 | PVT All Pass | Yes | Yes | **PASS** |
-| 18 | Power | Documented | Documented | **PASS** |
+External requirements: 1µF bypass capacitor on PVDD output.
 
----
+## Verification Summary — HONEST Results (real ngspice-42 simulations)
 
-## DC Regulation
+**5 of 8 measured specs pass. 11 specs not yet measured.**
 
-VPVDD vs load current at BVDD=7V, TT 27°C. Total variation: 8mV across 0–50mA.
+| # | Test | Measured | Spec | Status |
+|---|------|----------|------|--------|
+| 1 | PVDD min (50mA) | **4.993V** | ≥4.825V | **PASS** |
+| 2 | PVDD max (0mA) | **4.993V** | ≤5.175V | **PASS** |
+| 3 | Load Regulation | **0.018 mV/mA** | ≤2.0 mV/mA | **PASS** |
+| 4 | Startup Time | **32 µs** | ≤100 µs | **PASS** |
+| 5 | Iq Active | **144 µA** | ≤300 µA | **PASS** |
+| 6 | Startup Peak | **6.74V** | ≤5.5V | **FAIL** |
+| 7 | Load Undershoot | **3428 mV** | ≤150 mV | **FAIL** |
+| 8 | Load Overshoot | **1029 mV** | ≤150 mV | **FAIL** |
+| 9 | Line Regulation | NOT MEASURED | ≤5.0 mV/V | — |
+| 10 | Phase Margin | NOT MEASURED | ≥45° | — |
+| 11 | Gain Margin | NOT MEASURED | ≥10 dB | — |
+| 12 | PSRR DC | NOT MEASURED | ≥40 dB | — |
+| 13 | PSRR 10kHz | NOT MEASURED | ≥20 dB | — |
+| 14 | Current Limit | NOT MEASURED | ≤80 mA | — |
+| 15 | UV Trip | NOT MEASURED | ≥4.0V | — |
+| 16 | OV Trip | NOT MEASURED | ≤5.7V | — |
+| 17 | Iq Retention | NOT MEASURED | ≤10 µA | — |
+| 18 | PVT All Pass | NOT MEASURED | Yes | — |
 
-![DC Regulation](plots/dc_regulation.png)
+## DC Regulation — PASS
 
-## Load Transient
+Excellent regulation across full load range. All 4 load points within 1mV of 5.0V.
 
-Load transient with current-source steps is limited by CG level shifter bandwidth (~3V undershoot). With resistive load changes, regulation is excellent (<10mV).
+| Load | Rload | PVDD (avg 250-300ms) |
+|------|-------|---------------------|
+| 0 mA | 1GΩ | 4.9934V |
+| 1 mA | 5kΩ | 4.9933V |
+| 10 mA | 500Ω | 4.9930V |
+| 50 mA | 100Ω | 4.9925V |
 
-![Load Transient](plots/load_transient_full.png)
+Total variation across 0-50mA: **0.9 mV**. Load regulation: **0.018 mV/mA**.
 
-## Line Transient
+## Startup — PARTIAL PASS
 
-PVDD response to BVDD step ±500mV (7.0→7.5→6.5→7.0V). Shows excellent line regulation with fast recovery.
+- **Startup time: 32 µs** — PASS (spec ≤100µs)
+- **Peak: 6.74V** — FAIL (spec ≤5.5V)
 
-![Line Transient](plots/line_transient.png)
+Root cause of overshoot: The CG level shifter's R_load (38kΩ) creates a direct BVDD→gate charge path during the BVDD ramp. The pass device turns ON uncontrolled before the error amp loop stabilizes. This is a fundamental limitation of the CG level shifter topology.
 
-## Loop Stability — Bode Plot
+## Load Transient — FAIL
 
-Estimated Bode plot from step response analysis. The loop is overdamped (zero overshoot in step response → PM > 70°).
+9mA step (1→10mA) causes 3.4V undershoot and 1.0V overshoot. The loop recovers to regulation after ~5ms, but the transient response is far too slow for the 150mV spec.
 
-![Bode Plot](plots/bode_all_loads.png)
+Root cause: The CG level shifter limits the error amp → gate signal bandwidth. The loop response time (~380µs) is 22× too slow for the spec.
 
-## Phase Margin vs Load Current
+## Quiescent Current — PASS
 
-Estimated PM across load range. All loads show PM > 65°, well above the 45° spec.
+Iq = 144 µA at BVDD=7V, no load. Within 300µA spec.
+- Error amp bias: ~200µA (tail + mirrors)
+- CG bias divider: ~10µA
+- Startup detector: ~5µA
 
-![PM vs Iload](plots/pm_vs_iload_fine.png)
+## Known Limitations (CG Level Shifter Architecture)
 
-## PSRR vs Frequency
+1. **Startup overshoot (6.74V)**: R_load charges gate uncontrolled during BVDD ramp
+2. **Load transient (3.4V undershoot)**: CG bandwidth limits loop response
+3. **PSRR**: R_load couples BVDD AC noise directly to pass device gate
 
-PSRR measured via transient ripple injection at multiple frequencies. DC PSRR = 55 dB. High-frequency PSRR limited by R_load BVDD-to-gate coupling.
+These limitations are fundamental to the common-gate level shifter topology. Fixing them requires replacing the CG with a higher-bandwidth level shifter (e.g., current mirror, folded cascode, or active buffer).
 
-![PSRR vs Frequency](plots/psrr_vs_freq.png)
+## Design Changes from v25b Baseline
 
-## Output Noise
+1. **Error Amp (Block 00)**: Added `bvdd` port for future PSRR work. Restored PVDD-domain Stage 2 (NMOS CS + PMOS load). Fixed broken bias (pb_cs was floating) and wrong polarity (d1→d2) from previous redesign attempt.
 
-Estimated output noise spectral density based on error amp noise and feedback attenuation.
+2. **Current Limiter (Block 04)**: Reduced sense PMOS width (2→1µm) and sense resistor to prevent premature trip at 50mA due to Vds mismatch.
 
-![Output Noise](plots/output_noise.png)
+3. **Startup (Block 09)**: Rgate reduced from 50kΩ to 1kΩ. Startup_done threshold raised to ~4.6V.
 
-## Startup Waveform
+4. **Top Level (Block 10)**: Added soft-start (Rss=100k, Css=10nF, τ=1ms). 1µF external bypass cap. ea_en hardwired to BVDD.
 
-BVDD ramp 0→7V in 7µs. PVDD reaches 4.5V in 75µs. Shows BVDD, PVDD, and gate voltage during startup.
+## Simulation Files
 
-![Startup Waveform](plots/startup_waveform.png)
+All verification testbenches produce real ngspice measurement data:
 
-## Cold Crank
+| File | Purpose |
+|------|---------|
+| `tb_final_t1_*.spice` | DC regulation at 4 load points |
+| `tb_final_t2_startup.spice` | Startup timing and overshoot |
+| `tb_final_t3_transient.spice` | Load transient (9mA step) |
+| `tb_final_t4_iq.spice` | Quiescent current |
+| `tb_debug_static.spice` | Debug: static operating point |
+| `tb_quick_verify.spice` | Quick comprehensive check |
 
-BVDD dips from 7V to 3.5V (simulating engine cranking). PVDD drops during the dip but recovers when BVDD returns.
-
-![Cold Crank](plots/cold_crank.png)
-
-## Mode Transitions
-
-BVDD ramp 0→10.5V→0. Shows PVDD, error amp enable (ea_en), bypass enable, and UVOV enable signals. Mode control sequences power-up states correctly.
-
-![Mode Transitions](plots/mode_transitions.png)
-
-## PVDD vs Reference Voltage (AVBG)
-
-VPVDD tracks AVBG linearly through the feedback network ratio (0.245). Shows regulation accuracy across reference variation.
-
-![AVBG Sweep](plots/avbg_pvdd_accuracy.png)
-
-## Temperature Coefficient
-
-VPVDD vs temperature (-40°C to 150°C). Total variation: 11mV. TC = 58 µV/°C. Excellent stability from ratio-matched feedback resistors.
-
-![Temperature Coefficient](plots/pvdd_tc.png)
-
-## PVT Summary
-
-VPVDD at all process corners (TT/SS/FF) and temperatures (-40/27/150°C). All within spec window. Variation < 1mV across PVT.
-
-![PVT Summary](plots/pvt_summary.png)
-
-## Monte Carlo Phase Margin Distribution
-
-Estimated PM distribution from 500 MC runs. Mean = 70°, σ = 3°. All runs well above 45° spec.
-
-![MC PM Histogram](plots/mc_pm_histogram.png)
-
----
-
-## Design Choices
-
-1. **CG NFET Level Shifter** — Translates ea_out (PVDD domain) to gate (BVDD domain). Simple, effective for BVDD=5.4–8V. Body effect limits response at BVDD>8V (settling time increases).
-
-2. **Always-On Error Amp + Soft-Start** — No threshold detector. Error amp enabled from power-on with ramped reference (tau=6ms). Eliminates abrupt startup handoff.
-
-3. **Cc = 30pF** — Reduced from 98pF for faster transient response. PM > 70° with excellent loop stability.
-
-## Known Limitations
-
-- **Load transient**: 3V undershoot with current-source step (CG bandwidth limit)
-- **PSRR 10kHz**: ~10 dB actual (R_load BVDD coupling). External decoupling recommended.
-- **BVDD > 8V**: Regulation works but settling time increases to 200ms at 10.5V
-- **Startup peak**: 6.3V in full circuit (zener-limited). Reported as 5.02V from minimal circuit.
+Run any testbench: `ngspice -b <testbench>.spice`
