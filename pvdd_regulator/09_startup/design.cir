@@ -1,10 +1,11 @@
-* Block 09: Startup Circuit — v25b
+* Block 09: Startup Circuit — v27
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v25b: Rgate (50kΩ) limits gate slew during startup.
-*   No FFRC cap — it was adding BVDD coupling, not removing it.
-*   No clamps, no bypass switches — simple and robust.
-*   PSRR limited by R_load direct coupling (fundamental to CG topology).
+* v27: CASCODE PMOS between BVDD and R_load.
+*   BVDD → XMP_casc (gate=ls_bias) → mid → R_load (38kΩ) → gate
+*   DC: cascode passes current, R_load sets gate equilibrium (stable)
+*   AC: cascode output impedance blocks BVDD ripple → improved PSRR
+*   Startup: R_load + cascode limits gate charging rate
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
@@ -13,13 +14,22 @@
 * ================================================================
 Rlb1 bvdd ls_bias 200k
 Rlb2 ls_bias 0 500k
-XMN_cg ea_out ls_bias gate_int gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
+XMN_cg ea_out ls_bias gate gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
 
-* R_load: ~38kΩ from BVDD to gate_int
-XR_load bvdd gate_int gnd sky130_fd_pr__res_xhigh_po w=1 l=19
-
-* Gate series resistance: limits gate slew during startup
-Rgate gate_int gate 50k
+* ================================================================
+* CASCODE PMOS + R_LOAD: blocks BVDD AC, passes DC
+* XMP_casc: source=BVDD, gate=ls_bias, drain=rload_top, body=BVDD
+*   Vsg = BVDD - ls_bias ≈ 2V → ON, passes DC current
+*   Output impedance ≈ gm*ro² ≈ very high → blocks BVDD AC
+* R_load: from rload_top to gate (38kΩ)
+*   Sees clean DC from cascode, no BVDD ripple
+* ================================================================
+* Cascode gate = ls_bias (filtered by Cls)
+* Cls (1nF) on ls_bias: filters BVDD AC. Pole at ~1.1kHz.
+* Combined with cascode: BVDD rejection at gate is greatly improved.
+Cls ls_bias 0 10n
+XMP_casc rload_top ls_bias bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
+XR_load rload_top gate gnd sky130_fd_pr__res_xhigh_po w=1 l=19
 
 * ea_en: ALWAYS HIGH
 Ren bvdd ea_en 100
