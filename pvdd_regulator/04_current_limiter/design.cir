@@ -12,6 +12,9 @@
 *
 * v3 changes: Increased Rs (l=1→7), XMdet (5u→20u), XRpu (10k→1MΩ),
 *   clamp (0.42u/20u → 4×50u/0.5u) to fix T11 FAIL (619mA→61mA).
+* v4 changes: Added cascode PMOS (XMcas) between sense PMOS and sense resistor
+*   to match Vds_sense ≈ Vds_pass. Fixes trip point from ~20mA to ~50mA.
+*   cas_bias tied to pvdd for automatic tracking across operating points.
 *
 * Measured (v3, full integration):
 *   T11 short-circuit: 60.9mA (spec <80mA) PASS
@@ -20,7 +23,14 @@
 .subckt current_limiter gate bvdd pvdd gnd ilim_flag
 
 * === Sense PMOS ===
-XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=0.5e-6
+XMs  cas_mid gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=0.5e-6
+
+* === Cascode PMOS for Vds matching ===
+* Forces Vds_sense ≈ Vds_pass by tying cas_bias to pvdd.
+* cas_mid ≈ pvdd + |Vth| ≈ 5.7V → Vds_sense ≈ 1.3V ≈ Vds_pass ≈ 2V
+* W=10u (not 1u) needed: thick-oxide PFET has very low µpCox (~10µA/V²),
+* so W/L=20 required to pass ~50µA sense current with Vsg≈2V headroom.
+XMcas sense_n pvdd cas_mid cas_mid sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=0.5e-6
 
 * === Sense Resistor ===
 * L=7.0 → Rs≈14kΩ. Trip at ~50mA, hard clamp at short circuit.

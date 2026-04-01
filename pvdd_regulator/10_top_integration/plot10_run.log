@@ -1,0 +1,43 @@
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: Plot10 UV OV Thresholds
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+pvdd                                         0
+vref                                     1.226
+svdd                                       2.2
+en                                         2.2
+xuv.mid_uv                         1.28326e-06
+xuv.out_n                          2.37885e-05
+xuv.bias_n                            0.803784
+xuv.tail                           2.27713e-05
+xuv.out_p                              1.60559
+xuv.en_bar                         2.99248e-06
+xuv.nor_mid                                2.2
+uv_flag                                    2.2
+xov.mid_ov                         6.76861e-09
+ov_flag                            4.85949e-07
+xov.bias_n                            0.803784
+xov.tail                               0.47825
+xov.out_p                              1.07652
+xov.out_n                              2.19999
+xov.en_bar                         2.99248e-06
+xov.nor_mid                           0.222956
+ven#branch                                   0
+vsvdd#branch                      -5.21911e-06
+vref#branch                                  0
+vpvdd#branch                       2.58005e-12
+
+ Reference value :  0.00000e+00 Reference value :  8.27280e-03 Reference value :  1.55928e-02 Reference value :  2.90128e-02 Reference value :  4.44528e-02 Reference value :  6.01428e-02 Reference value :  7.15259e-02 Reference value :  8.62059e-02
+No. of Data Rows : 10039
+ngspice-42 done

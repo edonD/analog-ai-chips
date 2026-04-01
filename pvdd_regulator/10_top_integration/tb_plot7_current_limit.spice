@@ -1,6 +1,6 @@
-* Plot 7: Current Limit — PVDD vs Iload sweep (0 to 100mA)
-* Uses .dc sweep of Iload current source
-.title Plot7 Current Limit
+* Plot 7: Current Limit — PVDD vs Iload (transient PWL ramp)
+* Uses transient sweep to avoid bi-stable equilibrium problems with .dc
+.title Plot7 Current Limit Transient
 
 .param mc_mm_switch = 0
 .param MC_MM_SWITCH = 0
@@ -22,24 +22,26 @@ c1 r1 sub {0.1e-15*w*l}
 .include ../09_startup/design.cir
 .include design.cir
 
-* Supplies
-Vbvdd bvdd 0 7
+* Supplies — BVDD ramps 0→7V in 10us to trigger proper startup sequencing
+Vbvdd bvdd 0 PWL(0 0 10u 7 200m 7)
 Vavbg avbg 0 1.226
 Iibias 0 ibias 1u
 Vsvdd svdd 0 2.2
-Ven en 0 2.2
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
 Ven_ret en_ret 0 0
 
-* Load: current source from pvdd to ground
-Iload pvdd 0 0
+* Load: PWL current source
+* 0-20ms: no load (let regulator start up and settle, soft-start tau=1ms)
+* 20ms-120ms: ramp 0 to 500mA over 100ms (5 A/s ramp rate)
+* Ramp rate slow enough for regulation loop to track
+Iload pvdd 0 PWL(0 0 20m 0 120m 500m)
 
 * DUT
 XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag pvdd_regulator
 
 .option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
-.nodeset v(pvdd)=5.0
-
-.dc Iload 0 100m 1m
+.ic V(pvdd)=0 V(bvdd)=0
+.tran 100u 120m uic
 
 .control
 run

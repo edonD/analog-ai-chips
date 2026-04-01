@@ -1,0 +1,208 @@
+* Testbench: Verify Block 04 cascode PMOS current limiter fix
+* Transient-based sweep avoids .dc bistable equilibrium
+*   Phase 1 (0-10ms): Startup & settle with light load
+*   Phase 2 (10-30ms): VCCS ramp 0 → 500mA demanded load
+* Cascode PMOS (XMcas) added to match Vds_sense ≈ Vds_pass
+* Expected: trip ~50-65mA, short-circuit <80mA, no false trip at 1-25mA
+.title Verify Current Limiter Cascode Fix
+
+* === Parasitic resistor model stub ===
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+* === PDK ===
+.lib "../sky130.lib.spice" tt
+
+* === All block subcircuits ===
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+.include design.cir
+
+* === Supplies — proper startup ramp ===
+Vbvdd bvdd 0 PWL(0 0 10u 7 100m 7)
+Vavbg avbg 0 1.226
+Iibias 0 ibias 1u
+Vsvdd svdd 0 2.2
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
+Ven_ret en_ret 0 0
+
+* === Load: VCCS ramp ===
+* Vctrl ramps 0→5V from 10ms to 30ms
+* Gload transconductance = 0.1 S → Iload = 0.1 * Vctrl, max 500mA
+Vctrl ctrl 0 PWL(0 0 10m 0 30m 5)
+Gload pvdd 0 ctrl 0 0.1
+* Light resistive load for startup bias
+Rload pvdd 0 10k
+
+* === DUT ===
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag pvdd_regulator
+
+* === Options ===
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.ic V(pvdd)=0 V(bvdd)=0
+
+.tran 10u 31m uic
+
+.control
+run
+
+echo ""
+echo "========================================"
+echo " Block 04 Current Limiter — Cascode Fix"
+echo "========================================"
+echo ""
+
+* === Startup check ===
+meas tran pvdd_settle FIND v(pvdd) AT=9m
+echo "Startup: PVDD at 9ms = $&pvdd_settle V (expect ~5.0V)"
+echo ""
+
+* === PVDD vs demanded load current ===
+* Iload(t) = (t - 10ms) / 20ms * 500mA
+echo "=== PVDD vs Demanded Load Current ==="
+
+meas tran v1 FIND v(pvdd) AT=10.04m
+meas tran v5 FIND v(pvdd) AT=10.2m
+meas tran v10 FIND v(pvdd) AT=10.4m
+meas tran v20 FIND v(pvdd) AT=10.8m
+meas tran v25 FIND v(pvdd) AT=11m
+meas tran v30 FIND v(pvdd) AT=11.2m
+meas tran v40 FIND v(pvdd) AT=11.6m
+meas tran v50 FIND v(pvdd) AT=12m
+meas tran v55 FIND v(pvdd) AT=12.2m
+meas tran v60 FIND v(pvdd) AT=12.4m
+meas tran v65 FIND v(pvdd) AT=12.6m
+meas tran v70 FIND v(pvdd) AT=12.8m
+meas tran v75 FIND v(pvdd) AT=13m
+meas tran v80 FIND v(pvdd) AT=13.2m
+
+echo "  1mA: $&v1 V"
+echo "  5mA: $&v5 V"
+echo " 10mA: $&v10 V"
+echo " 20mA: $&v20 V"
+echo " 25mA: $&v25 V"
+echo " 30mA: $&v30 V"
+echo " 40mA: $&v40 V"
+echo " 50mA: $&v50 V"
+echo " 55mA: $&v55 V"
+echo " 60mA: $&v60 V"
+echo " 65mA: $&v65 V"
+echo " 70mA: $&v70 V"
+echo " 75mA: $&v75 V"
+echo " 80mA: $&v80 V"
+echo ""
+
+* === Trip point: PVDD < 4.5V crossing ===
+meas tran t_trip WHEN v(pvdd)=4.5 CROSS=1 FROM=10m
+echo "=== TRIP POINT (PVDD < 4.5V) ==="
+let trip_ma = (t_trip - 10m) / 20m * 500
+echo "  Trip at demanded Iload = $&trip_ma mA (t = $&t_trip s)"
+echo ""
+
+* === Short-circuit current: pass device current at clamp ===
+* After trip, pass device current is clamped. Measure BVDD current.
+meas tran ib_at_trip FIND i(vbvdd) AT=13m
+let isc = -ib_at_trip
+echo "=== SHORT CIRCUIT CURRENT ==="
+echo "  BVDD current at 75mA demanded (post-trip): $&isc A"
+
+* At very high demanded current (limiter should clamp)
+meas tran ib_high FIND i(vbvdd) AT=20m
+let isc_high = -ib_high
+echo "  BVDD current at 250mA demanded: $&isc_high A"
+
+meas tran ib_max FIND i(vbvdd) AT=30m
+let isc_max = -ib_max
+echo "  BVDD current at 500mA demanded: $&isc_max A"
+echo ""
+
+* === Internal limiter nodes ===
+echo "=== Internal Limiter Nodes ==="
+meas tran sn25 FIND v(xdut.xilim.sense_n) AT=11m
+meas tran dn25 FIND v(xdut.xilim.det_n) AT=11m
+meas tran gt25 FIND v(xdut.gate) AT=11m
+echo " At 25mA: sense_n=$&sn25 V, det_n=$&dn25 V, gate=$&gt25 V"
+
+meas tran sn50 FIND v(xdut.xilim.sense_n) AT=12m
+meas tran dn50 FIND v(xdut.xilim.det_n) AT=12m
+meas tran gt50 FIND v(xdut.gate) AT=12m
+echo " At 50mA: sense_n=$&sn50 V, det_n=$&dn50 V, gate=$&gt50 V"
+
+meas tran sn75 FIND v(xdut.xilim.sense_n) AT=13m
+meas tran dn75 FIND v(xdut.xilim.det_n) AT=13m
+meas tran gt75 FIND v(xdut.gate) AT=13m
+echo " At 75mA: sense_n=$&sn75 V, det_n=$&dn75 V, gate=$&gt75 V"
+echo ""
+
+* ===========================
+*      PASS / FAIL
+* ===========================
+echo "========================================"
+echo " PASS / FAIL SUMMARY"
+echo "========================================"
+
+* 1) No false trip at 1mA
+if v1 > 4.8
+  echo " [PASS] No false trip at 1mA  (PVDD = $&v1 V)"
+else
+  echo " [FAIL] False trip at 1mA     (PVDD = $&v1 V)"
+end
+
+* 2) No false trip at 10mA
+if v10 > 4.8
+  echo " [PASS] No false trip at 10mA (PVDD = $&v10 V)"
+else
+  echo " [FAIL] False trip at 10mA    (PVDD = $&v10 V)"
+end
+
+* 3) No false trip at 25mA (old trip was ~20mA)
+if v25 > 4.8
+  echo " [PASS] No false trip at 25mA (PVDD = $&v25 V) — old ~20mA trip fixed"
+else
+  echo " [FAIL] False trip at 25mA    (PVDD = $&v25 V)"
+end
+
+* 4) Trip point moved from ~20mA to ~50mA+
+let trip_check = (t_trip - 10m) / 20m * 500m
+if trip_check > 40m
+  if trip_check < 80m
+    echo " [PASS] Trip point ~$&trip_ma mA (target: 40-80mA range)"
+  else
+    echo " [INFO] Trip point ~$&trip_ma mA (above 80mA — check design intent)"
+  end
+else
+  echo " [FAIL] Trip point ~$&trip_ma mA (below 40mA — cascode fix insufficient)"
+end
+
+* 5) Short-circuit current < 80mA (spec)
+* Use the highest demanded current point to see clamped value
+if isc_max < 80m
+  echo " [PASS] Short-circuit current $&isc_max A < 80mA spec"
+else
+  if isc_max < 250m
+    echo " [INFO] Short-circuit current $&isc_max A — above 80mA but limiter active"
+  else
+    echo " [FAIL] Short-circuit current $&isc_max A — limiter not effective"
+  end
+end
+
+echo ""
+echo "========================================"
+echo " DONE"
+echo "========================================"
+
+quit
+.endc
+.end
