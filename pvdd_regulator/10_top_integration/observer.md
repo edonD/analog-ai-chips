@@ -415,3 +415,10 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **No new commits** — expected for heavy simulation work
 - **Assessment:** Both agents actively working. PVT sims take time. Let them run.
 - **Next check:** 5 minutes
+
+### 2026-04-01 Check 10 — Plots Done, PVT Still Running
+- **Supervisor status:** WORKING (Fluttering 15m)
+- **Plot agent:** DONE, 45 tool uses. Committed 311283d (all 7 plots regenerated post-fix)
+- **PVT agent:** Still at 18 tool uses — same as last check. May be stuck on sim or rate-limited.
+- **Assessment:** Plots done. PVT agent progress stalled (no new tool uses in 5 min). Will check if stuck next time.
+- **Next check:** 5 minutes
