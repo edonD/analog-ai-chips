@@ -61,3 +61,11 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Current task:** Still trying to run the same ngspice simulation that keeps timing out
 **Issues:** CRITICAL — worker is in a loop: launch sim → timeout → launch again. Not changing approach. The m=50 multiplier and 500ms transient are likely causing extreme simulation time. Guidance.txt was written at 11:33 but worker hasn't read it (it's in a different file, worker may not check).
 **Guidance:** Already written to guidance.txt. Key advice: (1) Replace m=50 with single wide device, (2) Shorten transient to 100µs, (3) Add .options for convergence, (4) Try .DC sweep first instead of transient. Worker needs to break out of the retry loop.
+
+
+### 2026-04-01 11:54 UTC
+**Status:** stuck (CRITICAL)
+**Progress:** ZERO progress for 41 minutes. Worker has been pondering for 1h8m total. Now on 6th ngspice attempt, all previous backgrounded without results. 4 background shells accumulated. Worker is trapped in an infinite retry loop — keeps launching the exact same simulation that never completes.
+**Current task:** Same as 11:13 — trying to run tb_v7_dc_startup.spice
+**Issues:** Worker is not reading guidance.txt. Not changing approach. Not modifying simulation parameters. Just retrying the same failing command. The m=50 multiplier + 500ms transient + 1µF cap is too computationally expensive for ngspice to solve within timeout.
+**Guidance:** URGENT — worker needs external intervention. The simulation needs fundamental changes: shorter transient, simpler device models, or switch to DC sweep first. Guidance.txt already has detailed recommendations but worker is not reading it.
