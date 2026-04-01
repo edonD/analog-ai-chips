@@ -1,0 +1,70 @@
+* Test T5: Load Transient Overshoot — 10mA->1mA step, 1us edge, BVDD=7V
+* PASS: overshoot < 150mV above regulated PVDD
+.title PVDD LDO T5 Load Transient Overshoot
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+.include design.cir
+
+* Supplies
+Vbvdd bvdd 0 PWL(0 0 10u 7 300m 7)
+Vavbg avbg 0 1.226
+Iibias 0 ibias 1u
+Vsvdd svdd 0 2.2
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
+Ven_ret en_ret 0 0
+
+* DUT
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag pvdd_regulator
+
+* Load: 10mA steady, step down to 1mA at 200ms (1us edge)
+* Use 500 ohm for 10mA at 5V, then switch to ~5k for 1mA
+* PWL current source: 10mA before step, 1mA after
+Iload pvdd 0 PWL(0 0 10u 10m 199.999m 10m 200m 10m 200.001m 1m 300m 1m)
+
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.option itl1=500 itl2=500 itl4=500
+
+.ic V(pvdd)=0 V(bvdd)=0
+.tran 5u 300m uic
+
+* Measure steady-state PVDD before step (at 10mA load)
+.meas tran v_before avg V(pvdd) from=195m to=200m
+* Measure max PVDD after load release (overshoot)
+.meas tran v_peak MAX V(pvdd) from=200m to=210m
+* Measure settled PVDD after step (at 1mA)
+.meas tran v_after avg V(pvdd) from=280m to=300m
+
+.control
+run
+echo "=== TEST T5: LOAD TRANSIENT OVERSHOOT ==="
+echo "V_before (10mA): $&v_before V"
+echo "V_peak (after step): $&v_peak V"
+echo "V_after (1mA settled): $&v_after V"
+let overshoot = v_peak - v_after
+let overshoot_mv = overshoot * 1000
+echo "Overshoot = $&overshoot_mv mV"
+if overshoot_mv < 150
+  echo "RESULT: PASS (overshoot < 150mV)"
+else
+  echo "RESULT: FAIL (overshoot >= 150mV)"
+end
+quit
+.endc
+.end

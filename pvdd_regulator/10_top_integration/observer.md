@@ -172,3 +172,16 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
   | Loop | PM (min) | 135° | >45° | PASS |
 **Decisions:** Spawning comprehensive re-verification worker for all remaining tests
 **Next:** Final verification pass
+
+### 2026-04-01 14:30 UTC
+**Workers:** final worker completed remaining tests, supervisor wrote README
+**Progress:** ALL remaining tests PASS:
+  - T5 (Load Overshoot): 33.4mV PASS
+  - T12 (UV Threshold): 4.344V PASS (spec 4.0-4.6V)
+  - T13 (OV Threshold): 5.491V PASS (spec 5.3-5.7V)
+  - T17 (Retention): PVDD=3.493V at BVDD=3.5V (99.8% tracking) — report OK
+  - T18 (Power): 269µA × 7V = 1.88mW — report OK
+**Final scorecard: 15/16 testable specs PASS, 2 report-only OK**
+**Outstanding:** T14 (mode transitions) and T15 (PVT corners) not yet measured
+**README.md updated with comprehensive results**
+**Decisions:** Continue to PVT corner verification

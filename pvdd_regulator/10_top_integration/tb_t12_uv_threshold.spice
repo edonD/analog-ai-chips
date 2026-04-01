@@ -1,0 +1,81 @@
+* Test T12: UV Threshold — measure when uv_flag trips
+* Use regulator with slow BVDD ramp, monitor uv_flag
+* PASS: UV trip between 4.0V and 4.6V on PVDD
+.title PVDD LDO T12 UV Threshold
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+* Only need UV/OV comparator block for standalone test
+.include ../05_uv_ov_comparators/design.cir
+
+* Force PVDD externally with slow ramp 0->6V
+Vpvdd pvdd 0 PWL(0 0 100m 6)
+Vref vref 0 1.226
+Vsvdd svdd 0 2.2
+Ven en 0 2.2
+
+* UV comparator
+XUV pvdd vref uv_flag svdd 0 en uv_comparator
+
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+
+.tran 10u 100m
+
+.control
+run
+echo "=== TEST T12: UV THRESHOLD ==="
+
+* UV flag should be HIGH (asserted) when PVDD is low, and go LOW when PVDD is OK
+* Check both possible polarities — find where uv_flag crosses 1.1V
+meas tran uv_trip_rise WHEN v(uv_flag)=1.1 RISE=1
+meas tran uv_trip_fall WHEN v(uv_flag)=1.1 FALL=1
+
+* PVDD = 6V * (t/100ms), so PVDD at time t = 60*t
+* Convert time to PVDD voltage
+let pvdd_at_rise = 60 * uv_trip_rise
+let pvdd_at_fall = 60 * uv_trip_fall
+echo "UV flag rise crossing at PVDD = $&pvdd_at_rise V"
+echo "UV flag fall crossing at PVDD = $&pvdd_at_fall V"
+
+* The UV trip is where the flag de-asserts (PVDD is now OK)
+* Could be rise or fall depending on polarity
+* Report both and check
+if pvdd_at_fall > 3.5
+  if pvdd_at_fall < 5.0
+    echo "UV trip (fall) at PVDD = $&pvdd_at_fall V"
+    if pvdd_at_fall > 4.0
+      if pvdd_at_fall < 4.6
+        echo "RESULT: PASS (UV trip between 4.0V and 4.6V)"
+      else
+        echo "RESULT: FAIL (UV trip above 4.6V)"
+      end
+    else
+      echo "RESULT: FAIL (UV trip below 4.0V)"
+    end
+  end
+end
+
+if pvdd_at_rise > 3.5
+  if pvdd_at_rise < 5.0
+    echo "UV trip (rise) at PVDD = $&pvdd_at_rise V"
+    if pvdd_at_rise > 4.0
+      if pvdd_at_rise < 4.6
+        echo "RESULT: PASS (UV trip between 4.0V and 4.6V)"
+      else
+        echo "RESULT: FAIL (UV trip above 4.6V)"
+      end
+    else
+      echo "RESULT: FAIL (UV trip below 4.0V)"
+    end
+  end
+end
+
+quit
+.endc
+.end
