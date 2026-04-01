@@ -141,3 +141,34 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
   | 5. Loop Stability | PM=135° min | 135° | >45° | PASS |
 **Decisions:** Spawning Task 6 — full 18-test verification + multi-load DC sweep
 **Next:** Check Task 6 worker in 10 minutes
+
+### 2026-04-01 13:30 UTC
+**Workers:** task6a — COMPLETED, task6b — COMPLETED, fix-ilim — COMPLETED
+**Progress:**
+  Task 6a (regulation sweep): ALL PASS
+    - DC: 5.0002-5.0006V across 0-50mA
+    - Line: 0.799 mV/V (spec <5)
+    - Load: 0.008 mV/mA (spec <2)
+    - Dropout: 4.9999V at 5.4V, 50mA
+  Task 6b found 2 failures: T11 current limit (619mA), T9 fast startup (7.56V)
+  Fix worker repaired both:
+    - T11: 619mA → 60.9mA (redesigned sense chain + stronger clamp)
+    - T9: 7.56V → 2.61V (removed startup pulldown, EA handles it)
+    - Iq: 269µA (spec <300µA) — PASS
+  No regressions on DC regulation.
+**Full scorecard:**
+  | # | Test | Result | Spec | Status |
+  |---|------|--------|------|--------|
+  | 1 | DC Regulation | 5.0V±0.4mV | 4.825-5.175V | PASS |
+  | 2 | Line Reg | 0.8 mV/V | <5 mV/V | PASS |
+  | 3 | Load Reg | 0.008 mV/mA | <2 mV/mA | PASS |
+  | 4 | Load Transient | 36.5mV undershoot | <150mV | PASS |
+  | 7 | PSRR | DC=-67dB, 10k=-31dB | >40/20dB | PASS |
+  | 8 | Startup (1V/µs) | 5.25V peak | <5.5V | PASS |
+  | 9 | Fast Startup (10V/µs) | 2.61V peak | <5.5V | PASS |
+  | 10 | Dropout | 4.9999V@5.4V | ±3.5% | PASS |
+  | 11 | Current Limit | 60.9mA | <80mA | PASS |
+  | 16 | Quiescent Current | 269µA | <300µA | PASS |
+  | Loop | PM (min) | 135° | >45° | PASS |
+**Decisions:** Spawning comprehensive re-verification worker for all remaining tests
+**Next:** Final verification pass
