@@ -29,3 +29,11 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Current task:** Waiting for ngspice DC startup sim after removing Stage 2 cascode — simplifying to get basic regulation working first
 **Issues:** PVDD=6.83V (way above 5.0V target) suggests loop gain or operating point problem. Worker correctly identified cascode as culprit and is simplifying. No commits from worker yet — all changes local.
 **Guidance:** N/A — worker is systematically debugging, good approach to simplify first then add complexity
+
+
+### 2026-04-01 11:13 UTC
+**Status:** working
+**Progress:** Worker created tb_ea_sweep.spice to parametrically sweep PFET Stage 2 sizing (W=1-8µm). Results: W=1µm→ea_out=0.8V, W=2µm→4.4V, W=3µm→5.3V. Selected W=3µm for balanced 50µA quiescent point. Also found and fixed ibias current source direction bug in tb_v7_dc_startup.spice (was sourcing into ibias node instead of sinking — flipped `Ibias ibias 0` to `Ibias 0 ibias`). Updated design.cir with W=3µm l=4µm for XMcs_p. Currently re-running ngspice DC startup sim with corrected bias and sizing.
+**Current task:** Running ngspice with corrected Stage 2 PFET sizing (W=3µm) and fixed ibias direction — waiting for results
+**Issues:** No worker commits yet — all changes still local. Worker is methodical: parametric sweep → select → integrate → simulate.
+**Guidance:** N/A — excellent systematic approach with parametric sweeps
