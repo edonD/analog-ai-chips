@@ -72,7 +72,8 @@ XMcs_p  vout_gate pb_tail  bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4
 * ================================================================
 * Miller compensation: Cc + Rc from d2 to vout_gate
 * ================================================================
-Cc d2 comp_mid 30p
-Rc comp_mid vout_gate 25k
+* Miller comp minimized: 2pF + 5k (just enough for EA stability)
+Cc d2 comp_mid 2p
+Rc comp_mid vout_gate 5k
 
 .ends error_amp
