@@ -370,3 +370,13 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **New commits:** 6a6cabd (FIX-4 docs fix)
 - **Assessment:** Great progress. All 3 P1 fixes running. FIX-4 already committed. FIX-3 and FIX-5 still working.
 - **Next check:** 5 minutes
+
+### 2026-04-01 Check 5 — TASK A COMPLETE, Feeding TASK B
+- **Supervisor status:** IDLE (❯ prompt, "Cooked for 27m 11s")
+- **Task A results:** ALL P1 FIXES DONE
+  - FIX-3: mc_ea_en→ea_en, pass_off→gate pullup wired. Startup verified PVDD=4.984V
+  - FIX-4: All design.cir comments corrected across all blocks
+  - FIX-5: Cc=2pF→20pF, Rc=5kΩ→8kΩ. PM=80° @10mA, load transient 52.7mV
+- **New commits:** e1e5195 (FIX-5 compensation comment update)
+- **Action:** Fed TASK B (P2 fixes: FIX-6, FIX-7, FIX-8)
+- **Next check:** 5 minutes
