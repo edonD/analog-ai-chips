@@ -98,3 +98,18 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Root cause identified by supervisor:** XMbn0 reference too wide (w=20u). With m=4 mirrors, ratio is only 4x (4µA). Need to shrink XMbn0 to w=2u → ratio becomes 40x (40µA).
 **Decisions:** Killed worker1, spawned worker2 with exact fix instructions
 **Next:** Check worker2 in 5 minutes
+
+### 2026-04-01 12:50 UTC
+**Workers:** worker2 — COMPLETED Task 1, killed
+**Progress:** DC REGULATION ACHIEVED — PVDD = 5.000V at 1mA load
+**Fixes applied by worker2:**
+  1. ibias changed from voltage source (0.8V) to current source (1µA) — proper mirror biasing
+  2. Stage 1 diff pair moved from PVDD-powered to BVDD-powered — eliminates startup deadlock
+  3. Stage 2 changed from PFET CS to NFET CS + PFET load — better operating point match for d2≈1V
+  4. XMbn0 reference shrunk w=20u→w=2u — better mirror ratios with m=4
+  5. Current limiter XMclamp weakened (w=0.42u l=20u) — prevent false triggering
+  6. Pass device W=100u→W=50u m=2 — fit within PDK model bins
+  7. PDK sky130.lib.spice updated with 1.8V NFET/PFET models for all corners
+**Commit:** 243471e pushed to master
+**Decisions:** Spawning workers for Task 2 (startup) and Task 3 (load transient) in parallel
+**Next:** Check new workers in 5-10 minutes
