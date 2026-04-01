@@ -406,3 +406,12 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **Activity:** P3 code fixes done fast. Now spawning PVT campaign agent for full corner verification.
 - **Assessment:** Impressive speed — all 5 P3 fixes committed. PVT campaign + plots + README still pending.
 - **Next check:** 5 minutes
+
+### 2026-04-01 Check 9 — PVT + Plot Agents Running
+- **Supervisor status:** WORKING (2 parallel agents, Fluttering 10m)
+- **Agents:**
+  - PVT campaign: 18 tool uses, 42k tokens, testing single sim first
+  - Plot regeneration: 29 tool uses, 35k tokens, checking data formats
+- **No new commits** — expected for heavy simulation work
+- **Assessment:** Both agents actively working. PVT sims take time. Let them run.
+- **Next check:** 5 minutes
