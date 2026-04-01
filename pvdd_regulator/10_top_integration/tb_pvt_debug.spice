@@ -1,0 +1,62 @@
+* Debug PVT transient — check internal signals
+.title PVDD LDO PVT Debug
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+.include design.cir
+
+Vbvdd bvdd 0 PWL(0 0 1u 7)
+Vavbg avbg 0 PWL(0 0 1u 1.226)
+Iibias 0 ibias 1u
+Vsvdd svdd 0 2.2
+Ven en 0 2.2
+Ven_ret en_ret 0 0
+Rload pvdd 0 5000
+
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag pvdd_regulator
+
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+
+.ic V(pvdd)=0 V(bvdd)=0
+.tran 100u 50000u uic
+
+.control
+run
+echo "=== Time snapshots ==="
+meas tran pv1 FIND v(pvdd) AT=100u
+meas tran pv2 FIND v(pvdd) AT=1000u
+meas tran pv3 FIND v(pvdd) AT=5000u
+meas tran pv4 FIND v(pvdd) AT=10000u
+meas tran pv5 FIND v(pvdd) AT=20000u
+meas tran pv6 FIND v(pvdd) AT=50000u
+meas tran gate1 FIND v(xdut.gate) AT=1000u
+meas tran gate2 FIND v(xdut.gate) AT=50000u
+meas tran ea1 FIND v(xdut.ea_out) AT=1000u
+meas tran ea2 FIND v(xdut.ea_out) AT=50000u
+meas tran vfb1 FIND v(xdut.vfb) AT=1000u
+meas tran vfb2 FIND v(xdut.vfb) AT=50000u
+meas tran vref1 FIND v(xdut.vref_ss) AT=1000u
+meas tran vref2 FIND v(xdut.vref_ss) AT=50000u
+print pv1 pv2 pv3 pv4 pv5 pv6
+print gate1 gate2 ea1 ea2
+print vfb1 vfb2 vref1 vref2
+quit
+.endc
+
+.end
