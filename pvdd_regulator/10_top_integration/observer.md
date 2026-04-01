@@ -53,3 +53,11 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Current task:** Still trying to get ngspice DC startup simulation to complete with corrected Stage 2 sizing
 **Issues:** Simulation taking too long — 3 attempts, none completed. The m=50 multiplier on XMcs_n (w=20µ l=8µ × 50 = effective 1000µm width) may be causing simulation complexity. Also the 500ms transient with PWL ramp could be excessive.
 **Guidance:** Writing guidance.txt — simulation optimization needed
+
+
+### 2026-04-01 11:44 UTC
+**Status:** stuck
+**Progress:** ZERO progress since 11:13 (31 minutes ago). Worker has now launched 5 ngspice runs of tb_v7_dc_startup.spice — all either timed out or were backgrounded without capturing output. Currently on attempt #5 at 5m47s running. Total pondering time: 58 minutes. 3 background shells accumulated.
+**Current task:** Still trying to run the same ngspice simulation that keeps timing out
+**Issues:** CRITICAL — worker is in a loop: launch sim → timeout → launch again. Not changing approach. The m=50 multiplier and 500ms transient are likely causing extreme simulation time. Guidance.txt was written at 11:33 but worker hasn't read it (it's in a different file, worker may not check).
+**Guidance:** Already written to guidance.txt. Key advice: (1) Replace m=50 with single wide device, (2) Shorten transient to 100µs, (3) Add .options for convergence, (4) Try .DC sweep first instead of transient. Worker needs to break out of the retry loop.
