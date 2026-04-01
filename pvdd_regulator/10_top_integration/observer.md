@@ -360,3 +360,13 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **Activity:** Supervisor summarized P0 results (FIX-1, FIX-2 both done), now reading design.cir files for FIX-3/4/5
 - **Assessment:** Making good progress. FIX-2 committed. Now planning P1 work.
 - **Next check:** 5 minutes
+
+### 2026-04-01 Check 4 — P1 Agents Running in Parallel
+- **Supervisor status:** WORKING (3 parallel agents, Whirlpooling 24m)
+- **Agents:**
+  - FIX-3 (wire mode control): 17 tool uses, checking diff — in progress
+  - FIX-4 (documentation): 30 tool uses, DONE — committed 6a6cabd
+  - FIX-5 (Miller Cc increase): 17 tool uses, reading files — in progress
+- **New commits:** 6a6cabd (FIX-4 docs fix)
+- **Assessment:** Great progress. All 3 P1 fixes running. FIX-4 already committed. FIX-3 and FIX-5 still working.
+- **Next check:** 5 minutes
