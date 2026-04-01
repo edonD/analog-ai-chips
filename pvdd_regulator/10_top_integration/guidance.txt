@@ -1,0 +1,27 @@
+OBSERVER GUIDANCE — 2026-04-01 11:33 UTC
+=========================================
+
+ISSUE: ngspice simulations timing out repeatedly (3 attempts, 47+ minutes wasted)
+
+ROOT CAUSE LIKELY:
+1. XMcs_n has m=50 multiplier (w=20µ l=8µ × 50) — this creates 50 parallel instances
+   that ngspice must solve individually. Very expensive.
+2. Transient sim runs 0→500ms — that's very long for initial debugging.
+3. The 1µF external cap + feedback loop may cause convergence oscillation.
+
+RECOMMENDED FIXES:
+1. Replace m=50 with single wider device: w=1000e-6 l=8e-6 (same W/L ratio, 1 device)
+   Or better: w=100e-6 l=0.8e-6 m=1 (same gm, faster sim)
+2. Shorten transient sim to 100µs for initial debugging (enough to see BVDD ramp + settling)
+3. Add .options reltol=0.01 abstol=1e-10 vntol=1e-4 for faster convergence
+4. Add .options ITL1=300 ITL2=200 for more DC iterations
+5. Consider .tran 100n 100u UIC to skip DC operating point and use initial conditions
+
+ALTERNATIVE APPROACH:
+- Do a .DC sweep first (much faster) to verify the EA output vs PVDD relationship
+- Only run transient once DC operating point is confirmed correct
+
+CONTEXT (from redesign.md):
+- Target: PVDD = 5.0V from BVDD = 5.4-7.0V
+- Error amp should drive pass FET gate to regulate PVDD
+- Feedback divider: 806k/263k gives vfb = PVDD × 0.246 → vfb = 1.226V at PVDD=5.0V
