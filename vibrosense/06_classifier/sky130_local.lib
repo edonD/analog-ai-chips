@@ -1,7 +1,0 @@
-* Local SKY130 lib for 06_classifier - models from 01_ota/models directory
-* NMOS: W/L in meters, no scale
-
-.lib tt
-.include "C:/Users/DD/OneDrive/Programming/willAI/analog-ai-chips/vibrosense/01_ota/models/sky130_fd_pr__nfet_01v8__tt_standalone.spice"
-.include "C:/Users/DD/OneDrive/Programming/willAI/analog-ai-chips/vibrosense/01_ota/models/sky130_fd_pr__pfet_01v8__tt_standalone.spice"
-.endl tt

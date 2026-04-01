@@ -1,0 +1,143 @@
+* tb_task5_lstb.spice — Task 5: Loop Stability (Phase Margin)
+* Measure PM at 4 load conditions: 0mA, 1mA, 10mA, 50mA
+* Method: AC injection at feedback node (vfb), core loop only
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../09_startup/design.cir
+
+* Core regulation loop (no protection/UV/OV for clean AC)
+XM_pass gate bvdd pvdd pass_device
+XEA avbg vfb ea_out pvdd 0 ibias en error_amp
+XFB pvdd vfb_div 0 feedback_network
+XCOMP ea_out pvdd 0 compensation
+XSU bvdd pvdd gate 0 avbg startup_done ea_en ea_out startup
+
+* DC loop closure + AC injection at feedback node
+Rdc vfb_div vfb 100Meg
+Cinj ac_src vfb 1
+Vac ac_src 0 AC 1
+
+* Supplies
+Vbvdd bvdd 0 DC 7.0
+Vavbg avbg 0 DC 1.226
+Ibias ibias 0 DC 1u
+Ven en 0 DC 7.0
+
+* Load — parameterized
+.param rload_val = 500
+Rload pvdd 0 {rload_val}
+Cout pvdd 0 1u
+
+.nodeset v(pvdd)=5.0 v(ea_out)=2.5 v(gate)=5.6 v(vfb)=1.226 v(ea_en)=7.0
+
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+
+.control
+
+echo ""
+echo "============================================"
+echo "  Task 5: Loop Stability — Phase Margin"
+echo "============================================"
+
+* Feedback ratio
+let beta = 0.2452
+
+* Loop over 4 load conditions
+foreach rval 1e6 5000 500 100
+
+  alterparam rload_val = $rval
+  reset
+
+  op
+  echo ""
+  echo "--- Rload = $rval ohms ---"
+  echo "DC OP: pvdd=$&v(pvdd) vfb=$&v(vfb) ea_out=$&v(ea_out) gate=$&v(gate)"
+
+  ac dec 50 1 100meg
+
+  * Loop gain T(s) = A(s) * beta
+  * A(s) = v(pvdd) / v(ac_src) is the forward gain from injection to output
+  * Since Vac = 1V AC, v(pvdd) is the forward gain directly
+  let T_mag = abs(v(pvdd)) * beta
+  let T_db = 20 * log10(T_mag + 1e-30)
+  let T_ph = 180/PI * cph(v(pvdd)) + 180
+
+  * Unwrap phase to [-180, 180]
+  let npts = length(T_db)
+  let i = 0
+  dowhile i < npts
+    if T_ph[i] > 180
+      let T_ph[i] = T_ph[i] - 360
+    end
+    let i = i + 1
+  end
+
+  * Find UGB (0dB crossing) and phase margin
+  let ugb_hz = 0
+  let pm_deg = 0
+  let i = 1
+  dowhile i < npts
+    if ugb_hz = 0
+      if T_db[i-1] > 0
+        if T_db[i] <= 0
+          let ugb_hz = frequency[i]
+          let pm_deg = T_ph[i]
+        end
+      end
+    end
+    let i = i + 1
+  end
+
+  * Find gain margin (phase = -180 crossing)
+  let gm_db = 0
+  let gm_freq = 0
+  let i = 1
+  dowhile i < npts
+    if gm_freq = 0
+      if T_ph[i-1] > -180
+        if T_ph[i] <= -180
+          let gm_db = -T_db[i]
+          let gm_freq = frequency[i]
+        end
+      end
+    end
+    let i = i + 1
+  end
+
+  let dc_gain = T_db[0]
+  echo "DC gain:       $&dc_gain dB"
+  echo "UGB:           $&ugb_hz Hz"
+  echo "Phase margin:  $&pm_deg degrees"
+  echo "Gain margin:   $&gm_db dB at $&gm_freq Hz"
+
+  if pm_deg > 45
+    echo "RESULT: PASS (PM > 45 deg)"
+  else
+    echo "RESULT: FAIL (PM <= 45 deg)"
+  end
+
+  destroy all
+end
+
+echo ""
+echo "============================================"
+echo "  Task 5 COMPLETE"
+echo "============================================"
+
+quit
+.endc
+
+.end

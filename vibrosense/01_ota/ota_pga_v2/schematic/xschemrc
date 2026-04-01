@@ -1,7 +1,0 @@
-#### Local xschemrc for OTA schematic project
-set PDK_ROOT /home/ubuntu/pdk/volare/sky130/versions/6d4d11780c40b20ee63cc98e645307a9bf2b2ab8
-set PDK sky130A
-
-set XSCHEM_LIBRARY_PATH {}
-append XSCHEM_LIBRARY_PATH :/usr/share/xschem/xschem_library
-append XSCHEM_LIBRARY_PATH :${PDK_ROOT}/${PDK}/libs.tech/xschem

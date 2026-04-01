@@ -1,0 +1,55 @@
+* EA Stage 2 Sizing Sweep — Find PFET/NFET balance
+* Test different W_cs values for XMcs_p
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+* Inline stripped-down EA — parametric Stage 2 PFET width
+.subckt error_amp_test vref vfb vout_gate pvdd gnd ibias en bvdd
++ params: wcs=4e-6
+
+XMen   ibias_en en  ibias   gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6 m=1
+XMpu   vout_gate en bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6 m=1
+XMbn0  ibias_en ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=1
+XMbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=200
+XMbp0   pb_tail pb_tail  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
+XMtail tail_s pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
+XM1 d1  vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=80e-6 l=4e-6 m=2
+XM2 d2  vfb  tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=80e-6 l=4e-6 m=2
+XMn_l d1 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
+XMn_r d2 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
+XMcs_p  vout_gate d2  bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=wcs l=4e-6
+XMcs_n  vout_gate ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=50
+Cc d2 comp_mid 30p
+Rc comp_mid vout_gate 25k
+
+.ends error_amp_test
+
+* Test with W = 1, 2, 3, 4, 6, 8 um
+* Use W=3µ as the first test
+
+XEA vref vfb ea_out pvdd 0 ibias bvdd bvdd error_amp_test wcs=3e-6
+
+Vpvdd pvdd 0 5.0
+Vbvdd bvdd 0 7.0
+Vref vref 0 1.226
+Vfb vfb 0 1.226
+Ibias 0 ibias DC 1u
+Rload ea_out 0 100k
+
+.option reltol=1e-4 abstol=1e-12 vntol=1e-6
+.option itl1=500 itl2=500
+
+.op
+
+.control
+op
+print V(ea_out) V(XEA.ibias_en) V(XEA.d1) V(XEA.d2) V(XEA.pb_tail) V(XEA.tail_s)
+quit
+.endc
+.end

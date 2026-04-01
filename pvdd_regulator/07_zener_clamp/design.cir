@@ -33,7 +33,7 @@ Rpd vg gnd 500k
 * Reduced from 2000µm to 400µm to lower parasitic Cgs on vg
 * Still provides >50mA clamping at PVDD=6.5V
 * ================================================================
-XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=0.5e-6 m=4
+XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=4
 
 * ================================================================
 * FAST PARALLEL DIODE STACK: 7x L=0.5u W=10u NFET (body=GND)

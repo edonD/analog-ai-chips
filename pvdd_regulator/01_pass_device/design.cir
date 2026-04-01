@@ -9,15 +9,15 @@
 
 .subckt pass_device gate bvdd pvdd
 
-XM1  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM2  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM3  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM4  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM5  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM6  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM7  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM8  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM9  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
-XM10 pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=100e-6 l=0.5e-6
+XM1  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM2  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM3  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM4  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM5  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM6  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM7  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM8  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM9  pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XM10 pvdd gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
 
 .ends pass_device

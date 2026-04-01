@@ -1,4 +1,0 @@
-set XSCHEM_LIBRARY_PATH {}
-append XSCHEM_LIBRARY_PATH :/usr/share/xschem/xschem_library
-append XSCHEM_LIBRARY_PATH :/home/ubuntu/analog-ai-chips/vibrosense/04_envelope
-set XSCHEM_START_WINDOW {}

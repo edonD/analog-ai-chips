@@ -1,0 +1,43 @@
+* Standalone Error Amp Debug — Check bias and DC transfer
+* PVDD 5V LDO Regulator — SkyWater SKY130A
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+
+* Instantiate EA: vref vfb vout_gate pvdd gnd ibias en bvdd
+XEA vref vfb ea_out pvdd 0 ibias bvdd bvdd error_amp
+
+* Ideal supplies
+Vpvdd pvdd 0 5.0
+Vbvdd bvdd 0 7.0
+Vref vref 0 1.226
+Vfb vfb 0 1.226
+
+* 1µA bias current — flows INTO ibias (from external bandgap)
+Ibias 0 ibias DC 1u
+
+* Load resistor on output (represent Rgate + gate cap)
+Rload ea_out 0 100k
+
+.option reltol=1e-4 abstol=1e-12 vntol=1e-6
+.option itl1=500 itl2=500
+
+* DC operating point
+.op
+
+.control
+op
+print V(ea_out) V(ibias) V(XEA.ibias_en) V(XEA.d1) V(XEA.d2)
+print V(XEA.pb_tail) V(XEA.tail_s) V(XEA.vout_gate)
+print @XEA.XMbn0[id] @XEA.XMcs_n[id] @XEA.XMcs_p[id]
+print @XEA.XMtail[id] @XEA.XM1[id] @XEA.XM2[id]
+quit
+.endc
+.end
