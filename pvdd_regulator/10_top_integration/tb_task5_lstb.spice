@@ -1,6 +1,6 @@
 * tb_task5_lstb.spice — Task 5: Loop Stability (Phase Margin)
 * Measure PM at 4 load conditions: 0mA, 1mA, 10mA, 50mA
-* Method: AC injection at feedback node (vfb), core loop only
+* Method: AC injection at feedback node, core loop only
 
 .param mc_mm_switch = 0
 .param MC_MM_SWITCH = 0
@@ -19,8 +19,9 @@ c1 r1 sub {0.1e-15*w*l}
 .include ../09_startup/design.cir
 
 * Core regulation loop (no protection/UV/OV for clean AC)
+* error_amp ports: vref vfb vout_gate pvdd gnd ibias en bvdd
 XM_pass gate bvdd pvdd pass_device
-XEA avbg vfb ea_out pvdd 0 ibias en error_amp
+XEA avbg vfb ea_out pvdd 0 ibias ea_en bvdd error_amp
 XFB pvdd vfb_div 0 feedback_network
 XCOMP ea_out pvdd 0 compensation
 XSU bvdd pvdd gate 0 avbg startup_done ea_en ea_out startup
@@ -69,8 +70,6 @@ foreach rval 1e6 5000 500 100
   ac dec 50 1 100meg
 
   * Loop gain T(s) = A(s) * beta
-  * A(s) = v(pvdd) / v(ac_src) is the forward gain from injection to output
-  * Since Vac = 1V AC, v(pvdd) is the forward gain directly
   let T_mag = abs(v(pvdd)) * beta
   let T_db = 20 * log10(T_mag + 1e-30)
   let T_ph = 180/PI * cph(v(pvdd)) + 180
