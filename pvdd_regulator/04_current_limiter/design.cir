@@ -44,8 +44,8 @@ XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=5
 
 * === Clamp PMOS ===
-* W=20u L=1u — strong clamp, overwhelms gate drive through 10k Rgate
-XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
+* Weakened clamp — avoid false trigger at startup with NFET CS error amp
+XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=0.42e-6 l=20e-6
 
 * === Flag output ===
 XMfp ilim_flag det_n pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
