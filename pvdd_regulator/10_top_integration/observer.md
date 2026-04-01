@@ -242,3 +242,15 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Workers:** optimize — running, attempting to improve UGB from 158Hz
 **Status:** Optimization phase. Worker has plan to remove outer Cc and reduce Cout. Running slowly (rate-limited). Will continue in background.
 **Design complete — optimization is bonus work.**
+
+### 2026-04-01 20:00 UTC — OPTIMIZATION COMPLETE
+**Workers:** optimize — killed (rate-limited), changes committed by supervisor
+**Optimization results:**
+  - Removed outer Miller Cc (30pF) + Rz from Block 03 → UGB 158Hz → 2.4kHz
+  - Removed Block 03 Cout (70pF) → no effect (1µF dominates)
+  - Reduced inner EA Cc 30pF → 2pF, Rc 25kΩ → 5kΩ → UGB 3.3kHz, PM=105°
+  - DC regulation verified: PVDD=5.0005V (unchanged)
+  - **Total UGB improvement: 158Hz → 3.3kHz (20× better)**
+  - 10kHz target not achievable with 1µF cap — EA gm limits UGB
+**Final commit: 7574746**
+**SESSION COMPLETE — all tasks done, design verified, optimization applied.**
