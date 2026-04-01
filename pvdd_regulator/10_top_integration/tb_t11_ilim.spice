@@ -43,7 +43,7 @@ echo "=== T11 CURRENT LIMITER ==="
 let iout = v(pvdd)/0.1
 print iout
 print v(pvdd) v(xdut.gate) v(xdut.ea_out)
-print v(xdut.xilim.sense_n) v(xdut.xilim.det_n)
+print v(xdut.xilim.sense_out) v(xdut.xilim.det_n)
 print @m.xdut.xilim.xmclamp1.msky130_fd_pr__pfet_g5v0d10v5[id]
 echo "=== END ==="
 quit

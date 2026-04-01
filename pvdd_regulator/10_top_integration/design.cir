@@ -57,7 +57,7 @@ XCOMP ea_out pvdd gnd compensation
 * Block 04: Current limiter
 *   Senses pass device current via mirror, clamps gate
 * =======================================================
-XILIM gate bvdd pvdd gnd ilim_flag current_limiter
+XILIM gate bvdd pvdd gnd ilim_flag ibias current_limiter
 
 * =======================================================
 * Block 05: UV/OV comparators (run from svdd=2.2V)
@@ -68,7 +68,7 @@ XOV pvdd avbg ov_flag svdd gnd uvov_en ov_comparator
 * =======================================================
 * Block 07: Zener clamp (overvoltage protection)
 * =======================================================
-XZC pvdd gnd zener_clamp
+XZC pvdd gnd ibias zener_clamp
 
 * =======================================================
 * Block 08: Mode control (BVDD ladder → sequenced enables)
