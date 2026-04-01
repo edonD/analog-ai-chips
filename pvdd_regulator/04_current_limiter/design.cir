@@ -1,54 +1,56 @@
-* Block 04: Current Limiter (v2)
+* Block 04: Current Limiter (v5 — bandgap-referenced comparator)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Topology: Sense-mirror brick-wall limiter with Vth-based detection
+* Topology: Sense-mirror with current-mode comparator referenced to ibias
 *
-*   XMs: Sense PMOS (W=1u L=0.5u), pass device total W=1000u
-*         Geometric ratio N = 1000
-*   XRs: Sense resistor xhigh_po W=1u L=7.0 → Rs ≈ 14kΩ
-*   XMdet: Detection NMOS (W=20u L=1u), trips when Vsense > Vth (~0.7V)
-*   XRpu: Pull-up xhigh_po W=1u L=500 → Rpu ≈ 1MΩ (high R for strong det_n pull-down)
-*   XMclamp: 4× parallel clamp PMOS (W=50u L=0.5u m=2 each) → gate toward BVDD
+* v5 changes: Replace Vth-based detection with bandgap-referenced comparator
+*   - Removes: XRs sense resistor, XMdet detection NMOS (Vth+Rs TC problem)
+*   - Adds: ibias port, NMOS current mirror (XMref_d/XMref_m), inverter comparator
+*   - Fixes cascode bias: BVDD resistor divider instead of PVDD (works during short circuit)
+*   - PVT spread reduced from 3.1× to ~1.2× (mirror matching + bandgap TC only)
 *
-* v3 changes: Increased Rs (l=1→7), XMdet (5u→20u), XRpu (10k→1MΩ),
-*   clamp (0.42u/20u → 4×50u/0.5u) to fix T11 FAIL (619mA→61mA).
-* v4 changes: Added cascode PMOS (XMcas) between sense PMOS and sense resistor
-*   to match Vds_sense ≈ Vds_pass. Fixes trip point from ~20mA to ~50mA.
-*   cas_bias tied to pvdd for automatic tracking across operating points.
+*   XMs: Sense PMOS (W=1u L=0.5u), mirrors 1/1000 of pass device current
+*   XMcas: Cascode PMOS (W=10u L=0.5u), biased from BVDD divider
+*   XMref_d: Diode NMOS (W=2u L=8u), receives ibias (1µA)
+*   XMref_m: Mirror NMOS (W=100u L=8u), 50:1 ratio → sinks 50µA from sense_out
+*   XMinv: Inverter converts sense_out → det_n
+*   XMclamp 1-4: 4× clamp PMOS (W=50u L=0.5u m=2) pulls gate toward BVDD
 *
-* Measured (v3, full integration):
-*   T11 short-circuit: 60.9mA (spec <80mA) PASS
-*   T1 DC 1mA: no false trigger (sense_n=0.12V, det_n=7.0V)
+* Trip point: Iref = 50µA × 1000 (sense ratio) = 50mA load current
 *
-.subckt current_limiter gate bvdd pvdd gnd ilim_flag
+.subckt current_limiter gate bvdd pvdd gnd ilim_flag ibias
 
-* === Sense PMOS ===
-XMs  cas_mid gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=0.5e-6
+* === Cascode bias: BVDD resistor divider → ~3V ===
+* At BVDD=7V: cas_bias = 7 × 30/(40+30) = 3.0V
+* Gives cascode Vsg ≈ cas_mid - 3V ≈ 2-4V → strong ON for current passing
+* Stays valid during short circuit (doesn't depend on PVDD)
+XRcas_top bvdd cas_bias gnd sky130_fd_pr__res_xhigh_po w=1 l=40
+XRcas_bot cas_bias gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=30
+
+* === Sense PMOS (1/1000 mirror of pass device) ===
+XMs cas_mid gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=0.5e-6
 
 * === Cascode PMOS for Vds matching ===
-* Forces Vds_sense ≈ Vds_pass by tying cas_bias to pvdd.
-* cas_mid ≈ pvdd + |Vth| ≈ 5.7V → Vds_sense ≈ 1.3V ≈ Vds_pass ≈ 2V
-* W=10u (not 1u) needed: thick-oxide PFET has very low µpCox (~10µA/V²),
-* so W/L=20 required to pass ~50µA sense current with Vsg≈2V headroom.
-XMcas sense_n pvdd cas_mid cas_mid sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMcas sense_out cas_bias cas_mid cas_mid sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=0.5e-6
 
-* === Sense Resistor ===
-* L=7.0 → Rs≈14kΩ. Trip at ~50mA, hard clamp at short circuit.
-XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=7.0
+* === Bandgap-referenced current comparator ===
+* Reference arm: ibias (1µA) mirrored 50× → Iref = 50µA
+* Diode-connected NMOS receives ibias
+XMref_d ibias ibias gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=8e-6
+* Mirror NMOS: W ratio 50:1 → sinks 50µA from sense_out
+XMref_m sense_out ibias gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=100e-6 l=8e-6
 
-* === Detection NMOS ===
-* Wider device for stronger pull-down of det_n when overcurrent detected
-XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6
+* === Comparator: sense_out voltage indicates overcurrent ===
+* When Isense < 50µA: XMref_m pulls sense_out LOW (NMOS wins)
+* When Isense > 50µA: sense PMOS pushes sense_out HIGH (PMOS wins)
+* Inverter converts: sense_out HIGH → det_n LOW → clamp ON
+XMinv_n det_n sense_out gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+XMinv_p det_n sense_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
 
-* === Pull-up Resistor ===
-* xhigh_po W=1u L=500u → Rpu ~ 1MΩ
-* Very high R so even weak XMdet current pulls det_n near GND
-* During normal op (XMdet OFF), det_n pulled to BVDD — clamp OFF
-XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=500
+* === Pull-up resistor on det_n (backup, ensures det_n HIGH when no overcurrent) ===
+XRpu bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=500
 
-* === Clamp PMOS ===
-* Must source >6mA through Rgate=1k to pull gate near BVDD
-* Thick-oxide 10.5V PFET has low µpCox → need large W/L, parallel instances
+* === Clamp PMOS (pulls gate toward BVDD when det_n LOW) ===
 XMclamp1 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
 XMclamp2 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
 XMclamp3 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2

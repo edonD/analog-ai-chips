@@ -1,10 +1,10 @@
 * Block 04: Current Limiter — PVT standalone test (v5 bandgap-referenced)
 * DC sweep of gate voltage to find clamp current
-.title TB_ILIM_PVT
+.title TB_ILIM_FFm40
 
 .include "parasitic_res_po.spice"
-.lib "sky130.lib.spice" tt
-.temp 27
+.lib "sky130.lib.spice" ff
+.temp -40
 
 .include design.cir
 
@@ -40,7 +40,7 @@ Vpvdd pvdd 0 DC 5.0
 dc Vg 7 0 -0.05
 let il = i(Vpvdd)*1000
 let mx = vecmax(il)
-echo "ilim_tt_27C_mA: $&mx"
+echo "ilim_ff_m40C_mA: $&mx"
 quit
 .endc
 .end
