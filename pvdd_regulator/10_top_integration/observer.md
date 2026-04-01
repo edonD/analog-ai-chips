@@ -237,3 +237,8 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
   - 2 report-only specs OK
   - 1 spec not measured (mode transitions)
 **Design is functionally complete.** The PVDD LDO regulates from 5.4-10.5V BVDD to 5.0V at 0-50mA with excellent PSRR (-67dB), stability (PM>134°), and load transient response (37mV undershoot).
+
+### 2026-04-01 18:30 UTC
+**Workers:** optimize — running, attempting to improve UGB from 158Hz
+**Status:** Optimization phase. Worker has plan to remove outer Cc and reduce Cout. Running slowly (rate-limited). Will continue in background.
+**Design complete — optimization is bonus work.**
