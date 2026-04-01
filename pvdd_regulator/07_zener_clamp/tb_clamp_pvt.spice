@@ -1,0 +1,67 @@
+* Block 07: Zener Clamp — PVT verification (TT 27C)
+.title TB_CLAMP_PVT_TT27
+
+* Parasitic model for poly resistor (needed by xhigh_po)
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+
+.include "design.cir"
+
+* DUT
+XDUT pvdd 0 ibias zener_clamp
+
+* Supplies
+Vpvdd pvdd 0 DC 0
+Iibias 0 ibias 1u
+
+.option method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+
+* DC sweep PVDD from 0 to 8V
+.dc Vpvdd 0 8 0.01
+
+.control
+run
+echo "=== ZENER CLAMP PVT TEST - TT 27C ==="
+let ipvdd = -i(Vpvdd)
+
+* Find onset at 10uA
+meas dc onset_10u find v(pvdd) when ipvdd=10u rise=1
+echo "onset_10uA_V: $&onset_10u"
+
+* Find onset at 1mA
+meas dc onset_1m find v(pvdd) when ipvdd=1m rise=1
+echo "onset_1mA_V: $&onset_1m"
+
+* Find clamp voltage at 10mA
+meas dc v_10ma find v(pvdd) when ipvdd=10m rise=1
+echo "clamp_at_10mA_V: $&v_10ma"
+
+* Leakage at 5V
+let idx = 0
+let leak_5v = 0
+dowhile idx < length(ipvdd)
+  if v(pvdd)[idx] >= 4.998 & v(pvdd)[idx] <= 5.002
+    let leak_5v = ipvdd[idx]
+    let idx = length(ipvdd)
+  end
+  let idx = idx + 1
+end
+let leak_5v_nA = leak_5v * 1e9
+echo "leakage_at_5v_nA: $&leak_5v_nA"
+
+* PASS/FAIL check
+echo "--- PASS/FAIL ---"
+if onset_1m >= 5.5 & onset_1m <= 6.5
+  echo "TT27 1mA onset: PASS ($&onset_1m V)"
+else
+  echo "TT27 1mA onset: FAIL ($&onset_1m V, target 5.5-6.5V)"
+end
+
+wrdata clamp_tt27.dat v(pvdd) ipvdd
+quit
+.endc
+.end

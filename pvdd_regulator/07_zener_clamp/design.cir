@@ -1,37 +1,52 @@
-* Block 07: Zener Clamp — v17
+* Block 07: Zener Clamp — v18 (PVT Hardened)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v17: Removed feedforward caps — they interacted with the wide clamp NFET's
-*   Cgs to keep vg above Vth after startup, preventing regulation below 5.6V.
-*   Reduced clamp NFET to W=100u m=4 (400µm) for less parasitic Cgs.
-*   Fast diode stack retained for transient protection.
+* v18: PVT hardening via hybrid stack + PTAT compensation
+*   - Reduced precision stack from 5 to 4 devices (lower TC, less process spread)
+*   - Added series PDK resistor (Rstack) in stack path for process-stable offset
+*   - Added ibias port for PTAT current mirror (temperature compensation)
+*   - Replaced ideal Rpd=500k with PDK sky130_fd_pr__res_xhigh_po
+*   - PTAT mirror sinks temperature-dependent current from vg node
 *
-* TOPOLOGY: HYBRID CLAMP — 3N+2P mixed stack + fast diode stack
-*   PRECISION STACK (DC onset): N-P-N-P-N (5 devices)
-*   FAST STACK (transient): 7x NFET L=0.5u W=10u body=GND
-*   Clamp NMOS: W=100u m=4 (400µm total), L=0.5u, body=GND
-*   Rpd=500k (no feedforward caps)
+* TOPOLOGY: HYBRID CLAMP
+*   PRECISION STACK: N-P-N-P (4 devices, L=4µm) + series Rstack
+*   FAST STACK: 7x NFET L=0.5u W=10u body=GND
+*   Clamp NMOS: W=50u m=4 (200µm total), L=0.5u, body=GND
+*   Rpd: PDK xhigh_po ~500kΩ + PTAT compensation mirror
 *
-.subckt zener_clamp pvdd gnd
+.subckt zener_clamp pvdd gnd ibias
 
 * ================================================================
-* PRECISION STACK: N-P-N-P-N (top to bottom)
+* PRECISION STACK: N-P-N-P (top to bottom, 4 devices)
+* + Series resistor Rstack for process-stable voltage offset
+* Stack sets: Voffset ≈ sum(Vth_4devices) + Istack × Rstack
 * ================================================================
-XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
-XMd2 n3   n3   n4 n4 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6
-XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
-XMd4 n1   n1   n2 n2 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6
-XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
+XMd1 pvdd pvdd n3 n3 sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
+XMd2 n2   n2   n3 n3 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6
+XMd3 n2   n2   n1 n1 sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
+XMd4 n1   n1   ns ns sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6
+
+* Series stack resistor: process-stable voltage offset (replaces 5th FET)
+* xhigh_po: W=2µm, L=190µm → R ≈ 2000 × 190/2 ≈ 190kΩ
+* Resistor TC is more predictable than FET Vth across PVT
+XRstack ns vg gnd sky130_fd_pr__res_xhigh_po w=2 l=190
 
 * ================================================================
-* GATE PULLDOWN: 500 kOhm
+* GATE PULLDOWN: PDK xhigh_po resistor (~500kΩ)
 * ================================================================
-Rpd vg gnd 500k
+XRpd vg gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=500
 
 * ================================================================
-* CLAMP NMOS: W=100u m=4 => 400µm, L=0.5u, body=GND
-* Reduced from 2000µm to 400µm to lower parasitic Cgs on vg
-* Still provides >50mA clamping at PVDD=6.5V
+* PTAT COMPENSATION: Mirror ibias to sink current from vg
+* ibias = 1µA PTAT. Mirror ratio 2.5:1 → ~2.5µA at 27°C
+* At hot: Iptat higher → pulls vg down → onset rises (compensates Vth drop)
+* At cold: Iptat lower → less pull on vg → allows higher onset (tracks Vth rise)
+* ================================================================
+XMptat_d ibias ibias gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=8e-6
+XMptat_m vg    ibias gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=8e-6
+
+* ================================================================
+* CLAMP NMOS: W=50u m=4 => 200µm, L=0.5u, body=GND
 * ================================================================
 XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=4
 
