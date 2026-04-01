@@ -1,0 +1,17 @@
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: PVDD LDO PVT Corner sf
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  1.00000e-08 Reference value :  1.81933e-07 Reference value :  8.79121e-07 Reference value :  2.29594e-04 Reference value :  6.99594e-04 Reference value :  1.43959e-03
+No. of Data Rows : 295
+pvdd_final          =  4.323093e+00
+@@@ PVDD_RESULT @@@
+pvdd_final = 4.323093e+00
+@@@ END_RESULT @@@
+ngspice-42 done
