@@ -380,3 +380,12 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **New commits:** e1e5195 (FIX-5 compensation comment update)
 - **Action:** Fed TASK B (P2 fixes: FIX-6, FIX-7, FIX-8)
 - **Next check:** 5 minutes
+
+### 2026-04-01 Check 6 — P2 Agents Running
+- **Supervisor status:** WORKING (2 parallel agents, Considering 5m)
+- **FIX-7 assessment:** Supervisor determined cascode bias already BVDD-derived (cas_bias=3.0V, PVDD-independent). No work needed.
+- **Agents:**
+  - FIX-6 (UV/OV PDK resistors): 20 tool uses, checking nfet model — in progress
+  - FIX-8 (soft-start cap): 11 tool uses, DONE — committed 0275cfb (Rss→PDK xhigh_po, Css=22nF documented external)
+- **Assessment:** FIX-7 N/A, FIX-8 done, FIX-6 still working. Good progress.
+- **Next check:** 5 minutes
