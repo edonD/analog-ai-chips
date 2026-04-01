@@ -84,3 +84,17 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Worker 1 instructions:** Fix m=50 → single w=1000u device, use .op first (not .tran), 3-min timeout
 **Decisions:** Spawned worker1 with explicit escape rules and pre-written testbench template
 **Next:** Check worker1 in 10 minutes for progress
+
+### 2026-04-01 12:25 UTC
+**Workers:** worker2 — spawned (replaced worker1 which was killed)
+**Progress:** Worker1 made significant progress:
+  - Fixed PDK includes (added 1.8V models for UV/OV comparators)
+  - Fixed pass device W=100u→W=50u m=2 (model binning)
+  - Got .op simulation running fast (~seconds)
+  - Found PVDD=3.81V (too low) — correctly diagnosed insufficient Stage 2 current
+  - Tried replacing XMcs_n with resistor → no loop gain → PVDD=6.57V
+  - Tried weakening XMcs_p to match 4µA → still PVDD=3.81V
+  - Got stuck cycling between approaches
+**Root cause identified by supervisor:** XMbn0 reference too wide (w=20u). With m=4 mirrors, ratio is only 4x (4µA). Need to shrink XMbn0 to w=2u → ratio becomes 40x (40µA).
+**Decisions:** Killed worker1, spawned worker2 with exact fix instructions
+**Next:** Check worker2 in 5 minutes
