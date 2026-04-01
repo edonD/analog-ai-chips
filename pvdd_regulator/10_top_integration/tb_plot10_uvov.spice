@@ -1,0 +1,38 @@
+* Plot 10: UV/OV Thresholds — Flag outputs vs PVDD ramp
+* Standalone UV and OV comparators with PVDD ramp 0->7V
+.title Plot10 UV OV Thresholds
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+.include ../05_uv_ov_comparators/design.cir
+
+* Force PVDD with slow ramp 0->7V over 100ms
+Vpvdd pvdd 0 PWL(0 0 100m 7)
+
+* Reference and supply
+Vref vref 0 1.226
+Vsvdd svdd 0 2.2
+Ven en 0 2.2
+
+* UV comparator: pvdd vref uv_flag vdd_comp gnd en
+XUV pvdd vref uv_flag svdd 0 en uv_comparator
+
+* OV comparator: pvdd vref ov_flag vdd_comp gnd en
+XOV pvdd vref ov_flag svdd 0 en ov_comparator
+
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+
+.tran 10u 100m
+
+.control
+run
+wrdata uvov_data.txt v(pvdd) v(uv_flag) v(ov_flag)
+quit
+.endc
+.end
