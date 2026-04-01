@@ -322,3 +322,10 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 
 **README updated** with corrected current limit values and cascode description.
 **Status: 19/19 specs PASS. All plots regenerated with real data.**
+
+### 2026-04-01 22:00 UTC — Final Verification & Cleanup
+- Replaced stale plots/plot_current_limit.png (20:10, pre-fix) with plot7_current_limit.png (21:39, post-fix)
+- Updated run.log with all latest sim values (specs_pass 18→19, iout_limit 60.9→59, pm 105→125.9, psrr_10k 30.7→51.2, undershoot 36.5→29.5)
+- Ran evaluate.py: **19/19 PASS** confirmed
+- Committed cb17867, pushed to remote
+- **MISSION COMPLETE: Current limiter Vds mismatch fixed, all specs pass, all plots regenerated.**
