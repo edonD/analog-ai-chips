@@ -1,5 +1,9 @@
-* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v8)
+* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v9)
 * SkyWater SKY130A — All blocks wired
+*
+* v9 changes:
+*   - FIX-8: Rss→PDK xhigh_po (W=2µm L=100µm, 200µm², on-chip)
+*   - FIX-8: Css=22nF documented as EXTERNAL (22nF MIM ≈ 11mm², unrealizable on-chip)
 *
 * v8 changes:
 *   - Mode control mc_ea_en now drives ea_en (replaces hardwired startup ea_en)
@@ -35,10 +39,12 @@ XM_pass gate bvdd pvdd pass_device
 
 * =======================================================
 * Soft-start reference: RC filter on avbg → vref_ss
-*   Rss=100kΩ, Css=22nF → tau=2.2ms
-*   Ramps vref from 0 to 1.226V over ~5ms
+*   Rss=100kΩ (on-chip xhigh_po, W=2µm L=100µm, area=200µm²)
+*   Css=22nF (EXTERNAL — unrealizable on-chip: 22nF MIM ≈ 11mm²)
+*   tau = Rss × Css = 2.2ms, ramps vref from 0 to 1.226V over ~5tau ≈ 11ms
+*   Pin requirement: Css pad between vref_ss and gnd
 * =======================================================
-Rss avbg vref_ss 100k
+XRss avbg vref_ss gnd sky130_fd_pr__res_xhigh_po w=2 l=100
 Css vref_ss gnd 22n
 
 * =======================================================
