@@ -1,5 +1,12 @@
-* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v9)
+* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v10)
 * SkyWater SKY130A — All blocks wired
+*
+* v10 changes (P3 cleanup):
+*   - FIX-9: startup_done routed to top-level port
+*   - FIX-10: removed unused pvdd port from EA (EA is BVDD-powered)
+*   - FIX-11: added 2pF filter cap on vfb node
+*   - FIX-12: renamed "Zener Clamp" to "MOS Voltage Clamp"
+*   - FIX-13: Block 03 comp already consistent (empty placeholder)
 *
 * v9 changes:
 *   - FIX-8: Rss→PDK xhigh_po (W=2µm L=100µm, 200µm², on-chip)
@@ -27,10 +34,10 @@
 *   6. Feedback network divides PVDD → vfb ≈ 1.226V at regulation
 *   7. Compensation stabilizes the loop
 *   8. Current limiter (bandgap-referenced) clamps gate if Iload exceeds ~50mA (always active)
-*   9. Zener clamp protects PVDD against overvoltage transients
+*   9. MOS voltage clamp protects PVDD against overvoltage transients
 *  10. UV/OV comparators monitor PVDD, output flags in SVDD domain
 *
-.subckt pvdd_regulator bvdd pvdd gnd avbg ibias svdd en en_ret uv_flag ov_flag
+.subckt pvdd_regulator bvdd pvdd gnd avbg ibias svdd en en_ret uv_flag ov_flag startup_done
 
 * =======================================================
 * Block 01: Pass device (PMOS, source=bvdd, drain=pvdd)
@@ -50,15 +57,17 @@ Css vref_ss gnd 22n
 * =======================================================
 * Block 00: Error amplifier (BVDD-powered two-stage OTA)
 *   Output swings in BVDD domain → drives gate directly
-*   Port order: vref vfb vout_gate pvdd gnd ibias en bvdd
+*   Port order: vref vfb vout_gate gnd ibias en bvdd
 * =======================================================
-XEA vref_ss vfb ea_out pvdd gnd ibias ea_en bvdd error_amp
+XEA vref_ss vfb ea_out gnd ibias ea_en bvdd error_amp
 
 * =======================================================
 * Block 02: Feedback network (resistive divider)
 *   pvdd → vfb ≈ 1.226V at PVDD=5.0V
+*   Cfb: 2pF filter cap on vfb (FIX-11) — attenuates HF noise coupling
 * =======================================================
 XFB pvdd vfb gnd feedback_network
+Cfb vfb gnd 2p
 
 * =======================================================
 * Block 03: Compensation (placeholder — currently empty)
@@ -79,7 +88,7 @@ XUV pvdd avbg uv_flag svdd gnd uvov_en uv_comparator
 XOV pvdd avbg ov_flag svdd gnd uvov_en ov_comparator
 
 * =======================================================
-* Block 07: Zener clamp (overvoltage protection)
+* Block 07: MOS voltage clamp (overvoltage protection, FIX-12: renamed from "zener clamp")
 * =======================================================
 XZC pvdd gnd ibias zener_clamp
 

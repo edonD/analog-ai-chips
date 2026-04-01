@@ -29,7 +29,7 @@ Ven en 0 2.2
 Ven_ret en_ret 0 0
 Rload pvdd 0 500
 
-XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag pvdd_regulator
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_regulator
 
 .option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
 .nodeset V(pvdd)=5.0 V(xdut.gate)=5.5 V(xdut.vfb)=1.226 V(xdut.vref_ss)=1.226

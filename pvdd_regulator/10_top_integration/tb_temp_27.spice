@@ -33,7 +33,7 @@ Ven_ret en_ret 0 0
 Rload pvdd 0 5000
 
 * DUT
-XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag pvdd_regulator
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_regulator
 
 .option temp=27
 .option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4

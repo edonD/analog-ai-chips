@@ -18,9 +18,10 @@
 *
 *   Miller comp (Cc+Rc) from d2 to vout_gate (across Stage 2)
 *
-* Ports: vref vfb vout_gate pvdd gnd ibias en bvdd
+* Ports: vref vfb vout_gate gnd ibias en bvdd
+* NOTE: pvdd port removed (FIX-10) — EA is entirely BVDD-powered, pvdd was unused
 *
-.subckt error_amp vref vfb vout_gate pvdd gnd ibias en bvdd
+.subckt error_amp vref vfb vout_gate gnd ibias en bvdd
 
 * ================================================================
 * Enable: XMpu pulls gate to BVDD when disabled (pass device OFF)

@@ -1,4 +1,4 @@
-* Block 07: Zener Clamp — v18 (PVT Hardened)
+* Block 07: MOS Voltage Clamp — v19 (PVT Hardened, renamed from "Zener Clamp" per FIX-12)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * v18: PVT hardening via hybrid stack + PTAT compensation
