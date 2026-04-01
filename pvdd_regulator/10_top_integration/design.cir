@@ -1,22 +1,29 @@
-* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v7)
+* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v8)
 * SkyWater SKY130A — All blocks wired
 *
+* v8 changes:
+*   - Mode control mc_ea_en now drives ea_en (replaces hardwired startup ea_en)
+*   - pass_off → inverter + PFET gate pullup (gate→BVDD during POR)
+*   - ilim_en available but current limiter always active (safer for protection)
+*
 * v7 changes:
-*   - Error amp Stage 2 now BVDD-powered with cascode PFET → PSRR fix
+*   - Error amp Stage 2 now BVDD-powered → PSRR improved
 *   - No CG level shifter needed (ea_out in BVDD domain → direct gate drive)
 *   - Soft-start (Rss=100k, Css=22n, tau=2.2ms) → startup overshoot fix
 *   - 1µF external cap → load transient fix
 *
 * Signal flow:
 *   1. BVDD ramps, soft-start ramps vref_ss over tau=2.2ms
-*   2. Error amp compares vref_ss with vfb, output ea_out in BVDD domain
-*   3. ea_out drives pass device gate directly through Rgate=1kΩ
-*   4. Pass device (PMOS) regulates PVDD from BVDD
-*   5. Feedback network divides PVDD → vfb ≈ 1.226V at regulation
-*   6. Compensation stabilizes the loop
-*   7. Current limiter clamps gate if Iload exceeds ~70mA
-*   8. Zener clamp protects PVDD against overvoltage transients
-*   9. Mode control sequences power-up states from BVDD ladder
+*   2. Mode control sequences enables from BVDD ladder:
+*      - pass_off HIGH (BVDD < 2.5V) → gate pulled to BVDD, pass OFF
+*      - mc_ea_en HIGH (BVDD > ~4.2V) → error amp enabled
+*   3. Error amp compares vref_ss with vfb, output ea_out in BVDD domain
+*   4. ea_out drives pass device gate directly through Rgate=1kΩ
+*   5. Pass device (PMOS) regulates PVDD from BVDD
+*   6. Feedback network divides PVDD → vfb ≈ 1.226V at regulation
+*   7. Compensation stabilizes the loop
+*   8. Current limiter (bandgap-referenced) clamps gate if Iload exceeds ~50mA (always active)
+*   9. Zener clamp protects PVDD against overvoltage transients
 *  10. UV/OV comparators monitor PVDD, output flags in SVDD domain
 *
 .subckt pvdd_regulator bvdd pvdd gnd avbg ibias svdd en en_ret uv_flag ov_flag
@@ -35,7 +42,7 @@ Rss avbg vref_ss 100k
 Css vref_ss gnd 22n
 
 * =======================================================
-* Block 00: Error amplifier (BVDD-powered cascode output stage)
+* Block 00: Error amplifier (BVDD-powered two-stage OTA)
 *   Output swings in BVDD domain → drives gate directly
 *   Port order: vref vfb vout_gate pvdd gnd ibias en bvdd
 * =======================================================
@@ -48,8 +55,8 @@ XEA vref_ss vfb ea_out pvdd gnd ibias ea_en bvdd error_amp
 XFB pvdd vfb gnd feedback_network
 
 * =======================================================
-* Block 03: Compensation (Miller Cc + Rz + Cout)
-*   Outer Miller loop: ea_out → Cc → Rz → pvdd
+* Block 03: Compensation (placeholder — currently empty)
+*   All external comp removed; inner EA Cc=20pF/Rc=8k + Cout_ext=1uF
 * =======================================================
 XCOMP ea_out pvdd gnd compensation
 
@@ -78,9 +85,30 @@ XMC bvdd pvdd svdd gnd avbg en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pa
 * =======================================================
 * Block 09: Startup circuit (direct gate drive, no CG)
 *   ea_out (BVDD domain) → Rgate=1kΩ → gate
-*   ea_en always HIGH
+*   ea_en now driven by mode control (mc_ea_en), not startup
 * =======================================================
-XSU bvdd pvdd gate gnd avbg startup_done ea_en ea_out startup
+XSU bvdd pvdd gate gnd avbg startup_done su_ea_en ea_out startup
+
+* =======================================================
+* Mode control → ea_en wiring
+*   mc_ea_en goes HIGH when BVDD > ~4.2V (comp2+comp3 logic)
+*   Replaces hardwired startup ea_en
+* =======================================================
+Ren_mc mc_ea_en ea_en 100
+
+* =======================================================
+* POR gate pullup: pass_off HIGH → gate pulled to BVDD
+*   During POR (BVDD < 2.5V), pass_off=HIGH → gate=BVDD → pass OFF
+*   Once BVDD rises, pass_off=LOW → gate controlled by EA normally
+*   Inverter powered from BVDD (always available)
+* =======================================================
+XMpo_invp pass_off_b pass_off bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
+XMpo_invn pass_off_b pass_off gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
+XMgate_pu gate pass_off_b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=1e-6
+
+* NOTE: ilim_en is output by mode control but not connected.
+* Current limiter is always active — safer for protection.
+* Future: gate ilim with ilim_en if power savings needed.
 
 * =======================================================
 * Enable gating: level-shift external en (SVDD) → BVDD domain

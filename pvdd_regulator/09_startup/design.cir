@@ -8,7 +8,8 @@
 *
 * This startup block provides:
 *   - Rgate (1kΩ) series resistance for gate drive isolation
-*   - ea_en: always HIGH (tied to bvdd)
+*   - ea_en: internally pulled HIGH (tied to bvdd via Ren=100R)
+*     Top-level overrides via mc_ea_en → ea_en (FIX-3 applied in Block 10 v8)
 *   - startup_done detector (HIGH when PVDD > ~4V)
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out

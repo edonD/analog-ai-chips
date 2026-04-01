@@ -1,21 +1,19 @@
-* Block 00: Error Amplifier — BVDD-Output Two-Stage Cascode OTA (v7)
+* Block 00: Error Amplifier — BVDD-Output Two-Stage OTA (v7)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * ARCHITECTURE:
-*   Stage 1: PMOS diff pair (PVDD-powered) + NMOS mirror load
+*   Stage 1: PMOS diff pair (BVDD-powered) + NMOS mirror load
 *     M1(+)=vref on d1, M2(-)=vfb on d2
 *     d1=diode, d2=output (standard inverting output)
 *
-*   Stage 2: PFET CS + cascode PFET (BVDD-powered) + NFET current source
-*     PFET CS: gate=d2, source=bvdd → output swings in BVDD domain
-*     Cascode PFET: shields CS from BVDD variations → high PSRR
-*     NFET current source: 50µA, mirrors from ibias
+*   Stage 2: NFET CS amplifier (gate=d2) + PFET current source load (mirrors ~46µA from pb_tail)
+*     Output swings in 0.5V to ~6.4V range — covers gate range for regulation
 *     Output: vout_gate drives pass device gate DIRECTLY (no level shifter)
 *
 *   Polarity check:
 *     vfb > vref → I_M2 decreases, I_M1 increases
 *     → mirror sinks more at d2 than M2 supplies → d2 FALLS
-*     → PFET CS: Vsg = bvdd - d2 INCREASES → conducts MORE → vout_gate RISES
+*     → NFET CS: Vgs increases → conducts MORE → vout_gate RISES
 *     → gate rises → Vsg_pass = bvdd - gate DECREASES → less current → PVDD drops ✓
 *
 *   Miller comp (Cc+Rc) from d2 to vout_gate (across Stage 2)
@@ -52,28 +50,19 @@ XMn_l d1 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
 XMn_r d2 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
 
 * ================================================================
-* Stage 2: PFET CS + cascode (BVDD-powered) + NFET current source
-*
-*   XMcs_p: CS PFET, gate=d2, source=bvdd
-*   XMcas_p: Cascode PFET, gate=cas_bias, shields CS from BVDD
-*   XMcs_n: NFET current source, 50µA
-*
-*   Cascode bias: cas_bias = 0.8 × BVDD (resistive divider)
-*     At BVDD=7.0V: cas_bias=5.6V, Vsg_cas=1.4V (well above Vth)
-*     At BVDD=5.4V: cas_bias=4.32V, Vsg_cas=1.08V (above Vth) ✓
-* ================================================================
 * Stage 2: NFET CS amplifier + PFET current source load (BVDD-powered)
 * XMcs_n: NFET gain device, gate=d2, amplifies Stage 1 output
 * XMcs_p: PFET load, mirrors ~46µA from pb_tail bias chain
 * Output swings 0.5V to ~6.4V — covers gate range for regulation
+* ================================================================
 XMcs_n  vout_gate d2       gnd     gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=2e-6
 XMcs_p  vout_gate pb_tail  bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
 
 * ================================================================
 * Miller compensation: Cc + Rc from d2 to vout_gate
 * ================================================================
-* Miller comp minimized: 2pF + 5k (just enough for EA stability)
-Cc d2 comp_mid 2p
-Rc comp_mid vout_gate 5k
+* Miller comp: 20pF + 8kΩ (FIX-5: was 2pF+5k, increase for proper UGB/PM)
+Cc d2 comp_mid 20p
+Rc comp_mid vout_gate 8k
 
 .ends error_amp

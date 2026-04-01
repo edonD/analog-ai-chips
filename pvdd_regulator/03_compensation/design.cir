@@ -1,18 +1,19 @@
 * Block 03: Compensation Network
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* Topology: Miller Cc + Rz from vout_gate to pvdd + output Cout
-*   Cc: 50 pF MIM cap (Miller pole-splitting)
-*   Rz: 4.5 kΩ xhigh poly (LHP zero at ~707 kHz)
-*   Cout: 50 pF MIM cap (output decoupling, improves PM)
+* Status: EMPTY — all external compensation removed
+* Actual compensation is:
+*   - Inner EA Miller: Cc=20pF + Rc=8k (in Block 00, updated by FIX-5)
+*   - External bypass: Cout_ext=1uF (in Block 10)
+*   - System UGB ~ 1.9kHz, PM ~ 125-161 deg (over-compensated but stable)
 *
-* Total area: ~50k µm² (within budget)
+* This subcircuit is kept as a placeholder.
 *
 .subckt compensation vout_gate pvdd gnd
 
-* Miller comp REMOVED — inner EA Cc/Rc (30pF/25k) handles pole-splitting
+* Miller comp REMOVED — inner EA Cc/Rc (20pF/8k) handles pole-splitting
 * Outer Cc+Rz was redundant, killing bandwidth (UGB=170Hz with it)
 
-* Output Cout REMOVED — 1µF external cap dominates; 70pF added load on EA for no benefit
+* Output Cout REMOVED — 1uF external cap dominates; 70pF added load on EA for no benefit
 
 .ends compensation

@@ -2,8 +2,8 @@
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * Device: sky130_fd_pr__pfet_g5v0d10v5 (HV 5V PMOS)
-*   W = 100µm per instance, L = 0.5µm, 10 parallel instances
-*   Total W = 1.0 mm
+*   W = 50µm per finger, m=2 (100µm effective per instance), L = 0.5µm
+*   10 parallel instances → Total W = 1.0 mm
 *
 * Source = bvdd, Drain = pvdd, Gate = gate, Bulk = bvdd
 
