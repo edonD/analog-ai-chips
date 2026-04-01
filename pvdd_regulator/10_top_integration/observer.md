@@ -399,3 +399,10 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **P0-P2 COMPLETE.** Supervisor reports ready for P3.
 - **Action:** Fed TASK C (P3 cleanup: FIX-9 through FIX-13 + full PVT verification + plots + README)
 - **Next check:** 5 minutes
+
+### 2026-04-01 Check 8 — P3 Fixes Done, PVT Campaign Starting
+- **Supervisor status:** WORKING (Fluttering 5m, spawning PVT agent)
+- **New commits:** ca6ba92 (P3 cleanup FIX-9 through FIX-13 — all in one commit!)
+- **Activity:** P3 code fixes done fast. Now spawning PVT campaign agent for full corner verification.
+- **Assessment:** Impressive speed — all 5 P3 fixes committed. PVT campaign + plots + README still pending.
+- **Next check:** 5 minutes
