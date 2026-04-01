@@ -1,36 +1,54 @@
-* Block 00: Error Amplifier — Two-Stage Miller OTA
+* Block 00: Error Amplifier — BVDD-Output Two-Stage Cascode OTA (v7)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* ARCHITECTURE (v6 — v25b base + cascode NMOS for PSRR):
-*   Stage 1: PMOS diff pair + NMOS mirror load (PVDD domain)
-*   Stage 2: NMOS CS + cascode NMOS + PMOS active load (PVDD domain)
-*     The cascode on the NMOS CS shields d2 from vout_gate swing
-*     This increases Stage 2 gain → more loop gain → better PSRR
-*   Miller comp (Cc+Rc) from d2 to vout_gate
+* ARCHITECTURE:
+*   Stage 1: PMOS diff pair (PVDD-powered) + NMOS mirror load
+*     M1(+)=vref on d1, M2(-)=vfb on d2
+*     d1=diode, d2=output (standard inverting output)
 *
-* ibias: 1µA INTO ibias pin, sunk to GND internally.
+*   Stage 2: PFET CS + cascode PFET (BVDD-powered) + NFET current source
+*     PFET CS: gate=d2, source=bvdd → output swings in BVDD domain
+*     Cascode PFET: shields CS from BVDD variations → high PSRR
+*     NFET current source: 50µA, mirrors from ibias
+*     Output: vout_gate drives pass device gate DIRECTLY (no level shifter)
+*
+*   Polarity check:
+*     vfb > vref → I_M2 decreases, I_M1 increases
+*     → mirror sinks more at d2 than M2 supplies → d2 FALLS
+*     → PFET CS: Vsg = bvdd - d2 INCREASES → conducts MORE → vout_gate RISES
+*     → gate rises → Vsg_pass = bvdd - gate DECREASES → less current → PVDD drops ✓
+*
+*   Miller comp (Cc+Rc) from d2 to vout_gate (across Stage 2)
+*
+* Ports: vref vfb vout_gate pvdd gnd ibias en bvdd
 *
 .subckt error_amp vref vfb vout_gate pvdd gnd ibias en bvdd
 
 * ================================================================
-* Enable
+* Enable: XMpu pulls gate to BVDD when disabled (pass device OFF)
 * ================================================================
 XMen   ibias_en en  ibias   gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6 m=1
-XMpu   vout_gate en pvdd    pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6 m=1
+XMpu   vout_gate en bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6 m=1
 
 * ================================================================
-* Bias: NMOS reference (1µA)
+* Bias: NMOS reference (1µA from ibias)
 * ================================================================
 XMbn0  ibias_en ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=1
 
 * ================================================================
-* Bias: PMOS tail (200µA)
+* Bias: PMOS tail from PVDD (200µA)
 * ================================================================
 XMbn_pb pb_tail ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=200
 XMbp0   pb_tail pb_tail  pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
 
 * ================================================================
-* Stage 1: PMOS diff pair + NMOS current mirror load
+* Bias: NFET current source for Stage 2 (~50µA)
+* Mirrors ibias_en (1µA) × 50
+* ================================================================
+XMbn_cs pb_cs ibias_en gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=50
+
+* ================================================================
+* Stage 1: PMOS diff pair + NMOS current mirror load (PVDD domain)
 * ================================================================
 XMtail tail_s pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
 XM1 d1  vref tail_s pvdd sky130_fd_pr__pfet_g5v0d10v5 w=80e-6 l=4e-6 m=2
@@ -39,11 +57,23 @@ XMn_l d1 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
 XMn_r d2 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
 
 * ================================================================
-* Stage 2: NMOS CS + PMOS active load (PVDD domain)
-*   CS gate=d2, adds gain and level-shifts to drive gate
+* Stage 2: PFET CS + cascode (BVDD-powered) + NFET current source
+*
+*   XMcs_p: CS PFET, gate=d2, source=bvdd
+*   XMcas_p: Cascode PFET, gate=cas_bias, shields CS from BVDD
+*   XMcs_n: NFET current source, 50µA
+*
+*   Cascode bias: cas_bias = 0.8 × BVDD (resistive divider)
+*     At BVDD=7.0V: cas_bias=5.6V, Vsg_cas=1.4V (well above Vth)
+*     At BVDD=5.4V: cas_bias=4.32V, Vsg_cas=1.08V (above Vth) ✓
 * ================================================================
-XMcs vout_gate d2  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=1e-6 m=1
-XMp_ld vout_gate pb_tail pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=8
+XMcs_p  cas_mid  d2       bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=2e-6
+XMcas_p vout_gate cas_bias cas_mid cas_mid sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=2e-6
+XMcs_n  vout_gate pb_cs    gnd     gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6
+
+* Cascode bias divider: cas_bias = BVDD × 600k/(150k+600k) = 0.8 × BVDD
+Rcas_top bvdd cas_bias 150k
+Rcas_bot cas_bias gnd 600k
 
 * ================================================================
 * Miller compensation: Cc + Rc from d2 to vout_gate

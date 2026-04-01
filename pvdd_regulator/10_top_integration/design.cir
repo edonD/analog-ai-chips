@@ -1,30 +1,23 @@
-* Block 10: Top-Level Integration — PVDD 5V LDO Regulator
+* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v7)
 * SkyWater SKY130A — All blocks wired
 *
-* Ports:
-*   bvdd    — battery supply input (5.4–10.5V)
-*   pvdd    — regulated 5.0V output
-*   gnd     — ground
-*   avbg    — bandgap reference (1.226V external)
-*   ibias   — 1 µA bias current input (external)
-*   svdd    — 2.2V digital supply (external)
-*   en      — global enable (SVDD domain, active HIGH)
-*   en_ret  — retention mode enable (SVDD domain)
-*   uv_flag — undervoltage flag output (SVDD domain)
-*   ov_flag — overvoltage flag output (SVDD domain)
+* v7 changes:
+*   - Error amp Stage 2 now BVDD-powered with cascode PFET → PSRR fix
+*   - No CG level shifter needed (ea_out in BVDD domain → direct gate drive)
+*   - Soft-start (Rss=100k, Css=10n, tau=1ms) → startup overshoot fix
+*   - 1µF external cap → load transient fix
 *
 * Signal flow:
-*   1. Startup charges PVDD via source-follower gate drive
-*   2. Once PVDD > 4V, startup enables error amp (ea_en)
-*   3. Error amp compares avbg with vfb, outputs ea_out (PVDD domain)
-*   4. Startup's built-in CG level shifter translates ea_out → gate (BVDD domain)
-*   5. Pass device (PMOS) regulates PVDD from BVDD
-*   6. Feedback network divides PVDD → vfb ≈ 1.226V at regulation
-*   7. Compensation (Miller Cc+Rz+Cout) stabilizes the loop
-*   8. Current limiter clamps gate if Iload exceeds ~70mA
-*   9. Zener clamp protects PVDD against overvoltage transients
-*  10. Mode control sequences power-up states from BVDD ladder
-*  11. UV/OV comparators monitor PVDD, output flags in SVDD domain
+*   1. BVDD ramps, soft-start ramps vref_ss over tau=1ms
+*   2. Error amp compares vref_ss with vfb, output ea_out in BVDD domain
+*   3. ea_out drives pass device gate directly through Rgate=1kΩ
+*   4. Pass device (PMOS) regulates PVDD from BVDD
+*   5. Feedback network divides PVDD → vfb ≈ 1.226V at regulation
+*   6. Compensation stabilizes the loop
+*   7. Current limiter clamps gate if Iload exceeds ~70mA
+*   8. Zener clamp protects PVDD against overvoltage transients
+*   9. Mode control sequences power-up states from BVDD ladder
+*  10. UV/OV comparators monitor PVDD, output flags in SVDD domain
 *
 .subckt pvdd_regulator bvdd pvdd gnd avbg ibias svdd en en_ret uv_flag ov_flag
 
@@ -34,13 +27,17 @@
 XM_pass gate bvdd pvdd pass_device
 
 * =======================================================
-* FIX 1: Soft-start reference (tau=100µs)
+* Soft-start reference: RC filter on avbg → vref_ss
+*   Rss=100kΩ, Css=10nF → tau=1ms
+*   Ramps vref from 0 to 1.226V over ~5ms
 * =======================================================
 Rss avbg vref_ss 100k
 Css vref_ss gnd 10n
 
 * =======================================================
-* Block 00: Error amplifier (BVDD-powered output stage)
+* Block 00: Error amplifier (BVDD-powered cascode output stage)
+*   Output swings in BVDD domain → drives gate directly
+*   Port order: vref vfb vout_gate pvdd gnd ibias en bvdd
 * =======================================================
 XEA vref_ss vfb ea_out pvdd gnd ibias ea_en bvdd error_amp
 
@@ -52,7 +49,7 @@ XFB pvdd vfb gnd feedback_network
 
 * =======================================================
 * Block 03: Compensation (Miller Cc + Rz + Cout)
-*   Connected between ea_out and pvdd
+*   Outer Miller loop: ea_out → Cc → Rz → pvdd
 * =======================================================
 XCOMP ea_out pvdd gnd compensation
 
@@ -64,47 +61,36 @@ XILIM gate bvdd pvdd gnd ilim_flag current_limiter
 
 * =======================================================
 * Block 05: UV/OV comparators (run from svdd=2.2V)
-*   UV: trips when PVDD < ~4.3V → uv_flag HIGH
-*   OV: trips when PVDD > ~5.5V → ov_flag HIGH
-*   Output flags already in SVDD domain → direct connection
 * =======================================================
 XUV pvdd avbg uv_flag svdd gnd uvov_en uv_comparator
 XOV pvdd avbg ov_flag svdd gnd uvov_en ov_comparator
 
 * =======================================================
 * Block 07: Zener clamp (overvoltage protection)
-*   Clamps PVDD to ~6V if it overshoots
 * =======================================================
 XZC pvdd gnd zener_clamp
 
 * =======================================================
 * Block 08: Mode control (BVDD ladder → sequenced enables)
-*   Powered from PVDD (valid after startup charges PVDD)
-*   Outputs: bypass_en, mc_ea_en, ref_sel, uvov_en, ilim_en, pass_off
 * =======================================================
 XMC bvdd pvdd svdd gnd avbg en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
 
 * =======================================================
-* Block 09: Startup circuit
-*   Phase 1: Source followers charge PVDD from BVDD
-*   Phase 2: Enables error amp, hands off to regulation loop
-*   Contains built-in CG level shifter: ea_out → gate
+* Block 09: Startup circuit (direct gate drive, no CG)
+*   ea_out (BVDD domain) → Rgate=1kΩ → gate
+*   ea_en always HIGH
 * =======================================================
-* ea_en=bvdd (always on). mc_ea_en is PVDD-domain (max 5V) but
-* error amp enable needs BVDD-level. Soft-start handles sequencing.
-XSU bvdd pvdd gate gnd avbg startup_done bvdd ea_out startup
+XSU bvdd pvdd gate gnd avbg startup_done ea_en ea_out startup
 
 * =======================================================
 * Enable gating: level-shift external en (SVDD) → BVDD domain
-* Routed for future use (not yet ANDed with ea_en)
 * =======================================================
 XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
 
 * =======================================================
-* FIX 2: Output capacitors
-* Cload (200pF) + Cout_big (1µF external bypass)
-* 1µF → ΔV = 10mA×1µs/1µF = 10mV during fast transient
-* Loop response time ~50ms limits actual improvement
+* Output capacitors:
+*   Cload (200pF internal) + Cout_ext (1µF external bypass)
+*   1µF → ΔV = 10mA×1µs/1µF = 10mV during fast transient
 * =======================================================
 Cload pvdd gnd 200e-12
 Cout_ext pvdd gnd 1u

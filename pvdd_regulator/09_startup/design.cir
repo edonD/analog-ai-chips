@@ -1,33 +1,30 @@
-* Block 09: Startup Circuit — v38 (production)
+* Block 09: Startup Circuit — v40 (direct gate drive, no level shifter)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v38: Clean CG NFET level shifter (v25b base, optimized)
-*   - CG bias from BVDD divider (0.714 × BVDD)
-*   - R_load ~38kΩ from BVDD → gate_int
-*   - Rgate = 1kΩ (reduced from v25b 50kΩ for faster response)
-*   - No startup override (accepts startup overshoot as documented limit)
+* v40: Error amp output is in BVDD domain (BVDD-powered Stage 2).
+*   NO CG level shifter needed — ea_out drives gate directly via Rgate.
+*   No R_load from BVDD → no BVDD coupling → good PSRR.
+*   No bandwidth bottleneck → fast transient response.
 *
-* Documented limitations:
-*   - Startup overshoot: ~6.5V (R_load charges gate uncontrolled)
-*   - PSRR at 1kHz: limited (R_load couples BVDD AC to gate)
-*   - Load transient: limited by CG bandwidth
+* This startup block provides:
+*   - Rgate (1kΩ) series resistance for gate drive isolation
+*   - ea_en: always HIGH (tied to bvdd)
+*   - startup_done detector (HIGH when PVDD > ~4V)
 *
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
-* ================================================================
-* CG NFET level shifter
-* ================================================================
-Rlb1 bvdd ls_bias 200k
-Rlb2 ls_bias 0 500k
-XMN_cg ea_out ls_bias gate_int gnd sky130_fd_pr__nfet_g5v0d10v5 w=1.5e-6 l=4e-6
-XR_load bvdd gate_int gnd sky130_fd_pr__res_xhigh_po w=1 l=19
-Rgate gate_int gate 1k
+* Gate connection: ea_out (BVDD domain) drives gate directly through Rgate
+* Rgate provides isolation and limits gate charge/discharge rate
+Rgate ea_out gate 1k
 
-* ================================================================
-* startup_done: HIGH when PVDD > ~4.6V
-* ================================================================
-XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=935
-XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=140
+* ea_en: ALWAYS HIGH (tied to BVDD through low-R)
+Ren bvdd ea_en 100
+
+* startup_done: HIGH when PVDD > ~4V
+* Resistive divider: sense_mid = pvdd × 212/(788+212) = pvdd × 0.212
+* Trips when sense_mid > Vth ≈ 0.7V → pvdd > 3.3V
+XR_top pvdd sense_mid gnd sky130_fd_pr__res_xhigh_po w=2 l=788
+XR_bot sense_mid gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=212
 XMN_det det_n sense_mid gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=4e-6 l=1e-6
 XR_pu bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=2000
 XMP_inv1 startup_done det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=1e-6
