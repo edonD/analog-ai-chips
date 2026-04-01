@@ -20,11 +20,10 @@ Rgate ea_out gate 1k
 * ea_en: ALWAYS HIGH (tied to BVDD through low-R)
 Ren bvdd ea_en 100
 
-* Active startup gate pulldown: det_n is HIGH when PVDD < 3.3V
-* XMsu_pd pulls gate to GND during startup → pass device ON → PVDD charges
-* Once PVDD > 3.3V: det_n goes LOW → XMsu_pd OFF → EA takes control
-* No DC current at regulation (XMsu_pd is OFF)
-XMsu_pd gate det_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
+* Active startup gate pulldown: DISABLED
+* XMsu_pd caused PVDD overshoot during fast BVDD ramp (7.56V peak)
+* EA + soft-start handle startup correctly without it
+* XMsu_pd gate det_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=1e-6
 
 * startup_done: HIGH when PVDD > ~4V
 * Resistive divider: sense_mid = pvdd × 212/(788+212) = pvdd × 0.212

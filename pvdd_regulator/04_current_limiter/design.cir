@@ -29,10 +29,8 @@
 XMs  sense_n gate bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=1e-6 l=0.5e-6
 
 * === Sense Resistor ===
-* Reduced sense resistor and narrowed sense PMOS to fix Vds mismatch.
-* W=1u instead of 2u halves sense current; L=1.0 reduces Rs to ~1.9k.
-* Combined: trip current roughly doubles.
-XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=1.0
+* L=3.0 → Rs≈6kΩ. At 70mA: Isense=140µA, Vsense=140µ×6k=0.84V > Vth → trips.
+XRs  sense_n gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=3.0
 
 * === Detection NMOS ===
 * No source degeneration — direct connection to ground
@@ -44,8 +42,9 @@ XMdet det_n sense_n gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=5e-6 l=1e-6
 XRpu  bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=5
 
 * === Clamp PMOS ===
-* Weakened clamp — avoid false trigger at startup with NFET CS error amp
-XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=0.42e-6 l=20e-6
+* Must source >6mA through Rgate=1k to pull gate near BVDD
+* Thick-oxide 10.5V PFET has low µpCox → need large W/L
+XMclamp gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=500e-6 l=0.5e-6 m=4
 
 * === Flag output ===
 XMfp ilim_flag det_n pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
