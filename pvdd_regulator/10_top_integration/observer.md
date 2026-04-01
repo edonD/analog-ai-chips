@@ -353,3 +353,10 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **Git state:** Last commit 6a5b193 (observer session 2 commit)
 - **Assessment:** Supervisor is thinking after P0 agents (FIX-1, FIX-2) completed. Task A queued and Enter pressed. Waiting for supervisor to pick up Task A.
 - **Next check:** 5 minutes
+
+### 2026-04-01 Check 3 — Supervisor Working on Task A
+- **Supervisor status:** WORKING (Whirlpooling 19m, reading block files)
+- **New commits:** 50f22f1 (FIX-2 zener clamp PTAT + PDK Rpd), 273f56c (tb_top_smoke update)
+- **Activity:** Supervisor summarized P0 results (FIX-1, FIX-2 both done), now reading design.cir files for FIX-3/4/5
+- **Assessment:** Making good progress. FIX-2 committed. Now planning P1 work.
+- **Next check:** 5 minutes
