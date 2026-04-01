@@ -69,3 +69,18 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Current task:** Same as 11:13 — trying to run tb_v7_dc_startup.spice
 **Issues:** Worker is not reading guidance.txt. Not changing approach. Not modifying simulation parameters. Just retrying the same failing command. The m=50 multiplier + 500ms transient + 1µF cap is too computationally expensive for ngspice to solve within timeout.
 **Guidance:** URGENT — worker needs external intervention. The simulation needs fundamental changes: shorter transient, simpler device models, or switch to DC sweep first. Guidance.txt already has detailed recommendations but worker is not reading it.
+
+---
+
+## SUPERVISOR MODE — New Session
+
+### 2026-04-01 12:05 UTC
+**Supervisor:** Active. Killed old stuck worker. Starting fresh with systematic approach.
+**Workers:** worker1 — spawned for Task 1 (DC regulation)
+**Analysis of previous failure:** Worker was stuck because:
+  1. m=50 on XMcs_n (50 parallel MOSFET instances) made simulation impossibly slow
+  2. Worker kept retrying same 500ms .tran instead of switching to .op
+  3. Never read guidance.txt with optimization advice
+**Worker 1 instructions:** Fix m=50 → single w=1000u device, use .op first (not .tran), 3-min timeout
+**Decisions:** Spawned worker1 with explicit escape rules and pre-written testbench template
+**Next:** Check worker1 in 10 minutes for progress
