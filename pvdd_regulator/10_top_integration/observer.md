@@ -185,3 +185,15 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Outstanding:** T14 (mode transitions) and T15 (PVT corners) not yet measured
 **README.md updated with comprehensive results**
 **Decisions:** Continue to PVT corner verification
+
+### 2026-04-01 14:50 UTC
+**Workers:** pvt — running PVT corner verification (writing shell script, rate-limited)
+**Status:** PVDD LDO redesign is functionally complete at TT/27°C.
+**Summary of full session:**
+  - Started: stuck worker in sim retry loop for 1+ hour
+  - Fixed: ibias (voltage→current), Stage 1 (PVDD→BVDD power), Stage 2 (PFET→NFET CS), bias ratios (m=50→m=4 via smaller reference), current limiter (redesigned sense chain), startup (removed pulldown)
+  - Result: 15/16 testable specs PASS, 2 report-only OK
+  - Remaining: PVT corners (T15), mode transitions (T14)
+  - Total workers spawned: ~10 (killed 3 stuck, 7 completed successfully)
+**Key architectural change:** The EA is now fundamentally different from v25b — BVDD-powered Stage 1 with NFET CS Stage 2. This works well but has low UGB (158Hz) due to 1µF cap.
+**Next:** PVT worker continues. If it completes, optimize UGB.
