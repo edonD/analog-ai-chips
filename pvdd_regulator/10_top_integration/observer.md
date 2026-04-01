@@ -329,3 +329,10 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - Ran evaluate.py: **19/19 PASS** confirmed
 - Committed cb17867, pushed to remote
 - **MISSION COMPLETE: Current limiter Vds mismatch fixed, all specs pass, all plots regenerated.**
+
+### 2026-04-01 22:15 UTC — Startup Overshoot Optimization
+**Problem:** Startup overshoot 5.25V had only 5% margin to 5.5V spec (tightest margin).
+**Fix:** Increased Css from 10nF to 22nF (tau=1ms → 2.2ms) in design.cir.
+**Result:** Startup peak reduced from 5.25V to 5.00V — zero overshoot, monotonic ramp.
+**Regressions:** Load transient undershoot slightly worse (29.5→31.5mV, still well within 150mV spec). All other specs unchanged.
+**evaluate.py: 19/19 PASS confirmed.**

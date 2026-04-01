@@ -20,8 +20,8 @@ BVDD (5.4-10.5V)
   |     Output: ea_out -> drives gate through Rgate=1k (Block 09)
   |     Internal Miller: Cc=30pF + Rc=25k from d2 to ea_out
   |
-  +-- Soft-Start: Rss=100k, Css=10nF (tau=1ms)
-  |     Ramps vref from 0 to 1.226V over ~5ms
+  +-- Soft-Start: Rss=100k, Css=22nF (tau=2.2ms)
+  |     Ramps vref from 0 to 1.226V over ~10ms
   |
   +-- Feedback (Block 02): R_TOP=364k + R_BOT=118k (xhigh_po)
   |     vfb = pvdd x 0.2452 -> 1.226V at 5.0V
@@ -67,7 +67,7 @@ All measurements: SkyWater SKY130A PDK, TT corner, 27C, ngspice-42.
 | 2 | DC Regulation (0-50mA) | 5.000 - 5.001 V | +/-3.5% | **PASS** |
 | 3 | Line Regulation | 0.92 mV/V | < 5 mV/V | **PASS** |
 | 4 | Load Regulation | 0.008 mV/mA | < 2 mV/mA | **PASS** |
-| 5 | Load Transient Undershoot (1-10mA) | 27.0 mV | < 150 mV | **PASS** |
+| 5 | Load Transient Undershoot (1-10mA) | 31.5 mV | < 150 mV | **PASS** |
 | 6 | Load Transient Overshoot (10-1mA) | 17.0 mV | < 150 mV | **PASS** |
 | 7 | Phase Margin (all loads) | 125.9 - 161.5 deg | > 45 deg | **PASS** |
 | 8 | DC Loop Gain | 86 dB | > 40 dB | **PASS** |
@@ -75,13 +75,13 @@ All measurements: SkyWater SKY130A PDK, TT corner, 27C, ngspice-42.
 | 10 | PSRR @ DC | -67.5 dB | < -40 dB | **PASS** |
 | 11 | PSRR @ 1 kHz | -64.9 dB | < -20 dB | **PASS** |
 | 12 | PSRR @ 10 kHz | -51.2 dB | < -20 dB | **PASS** |
-| 13 | Startup Peak (1 V/us ramp) | 5.25 V | < 5.5 V | **PASS** |
+| 13 | Startup Peak (1 V/us ramp) | 5.00 V | < 5.5 V | **PASS** |
 | 14 | Startup Peak (10 V/us ramp) | 2.61 V | < 5.5 V | **PASS** |
 | 15 | Dropout (BVDD=5.4V, 50mA) | 4.9999 V | +/-3.5% | **PASS** |
 | 16 | Current Limit Trip | ~59 mA (clamp) | < 80 mA | **PASS** |
 | 17 | UV Threshold | 4.34 V | 4.0 - 4.6 V | **PASS** |
 | 18 | OV Threshold | 5.49 V | 5.3 - 5.7 V | **PASS** |
-| 19 | Quiescent Current | 269 uA | < 300 uA | **PASS** |
+| 19 | Quiescent Current | 267 uA | < 300 uA | **PASS** |
 | 20 | Temperature Coeff | 0.5 ppm/C | report | **OK** |
 | 21 | Retention Mode (BVDD=3.5V) | 3.493 V (99.8%) | report | **OK** |
 | 22 | Power Consumption | 1.88 mW | report | **OK** |
@@ -102,7 +102,7 @@ PVDD vs load current sweep from 0 to 50mA. Regulation holds flat at 5.000V from 
 
 ### 2. Startup Transient
 
-BVDD ramps 0 to 7V in 10us. Soft-start RC (tau=1ms) ramps `vref_ss` smoothly. PVDD tracks the reference with no overshoot, settling to 5.0V in ~7ms. Gate voltage stabilizes at ~6V (Vsg ~ 1V for the pass PFET).
+BVDD ramps 0 to 7V in 10us. Soft-start RC (tau=2.2ms) ramps `vref_ss` smoothly. PVDD tracks the reference monotonically with zero overshoot, settling to 5.0V in ~10ms. Gate voltage stabilizes at ~6V (Vsg ~ 1V for the pass PFET).
 
 ![Startup Transient](plot_startup.png)
 
@@ -162,7 +162,7 @@ UV and OV flag outputs vs a forced PVDD ramp from 0 to 7V. The UV flag de-assert
 The key architectural decision: power the error amplifier's differential pair and output stage from BVDD (battery supply) rather than PVDD (regulated output). This eliminates the startup deadlock where a low PVDD starves the amplifier that is supposed to raise PVDD. The tradeoff is slightly worse PSRR due to supply coupling, but the loop gain (-67dB at DC) more than compensates.
 
 ### RC Soft-Start
-A simple 100k/10nF RC filter on the bandgap reference creates a 1ms time constant ramp. This prevents the pass device from turning on too hard during startup, eliminating the 6.54V overshoot that plagued the original design. The approach is robust across all PVT corners.
+A simple 100k/22nF RC filter on the bandgap reference creates a 2.2ms time constant ramp. This prevents the pass device from turning on too hard during startup, eliminating the 6.54V overshoot that plagued the original design. The approach is robust across all PVT corners.
 
 ### External Bypass Capacitor
 The 1uF external capacitor is essential for load transient performance. Without it, ΔV = 10mA/Cload(200pF) would be catastrophic. With 1uF: ΔV = 10mA × 1us / 1uF = 10mV. This is a deliberate tradeoff — the large cap creates a very low dominant pole (reducing bandwidth to ~2kHz) but provides excellent stability margins (PM > 125 deg) and tiny transient excursions.
@@ -242,7 +242,7 @@ The v25b baseline had three critical failures:
 
 | Failure | v25b | v7 Redesign | Root Cause Fix |
 |---------|------|-------------|----------------|
-| Startup overshoot | 6.54V | 5.25V (PASS) | Soft-start RC + BVDD-powered EA |
+| Startup overshoot | 6.54V | 5.00V (PASS) | Soft-start RC (tau=2.2ms) + BVDD-powered EA |
 | PSRR @ 1kHz | -18dB | -64.9dB (PASS) | BVDD-powered Stage 2 with loop gain |
 | Load transient | 3.5V undershoot | 27mV (PASS) | 1uF external bypass cap |
 

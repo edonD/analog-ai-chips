@@ -4,11 +4,11 @@
 * v7 changes:
 *   - Error amp Stage 2 now BVDD-powered with cascode PFET → PSRR fix
 *   - No CG level shifter needed (ea_out in BVDD domain → direct gate drive)
-*   - Soft-start (Rss=100k, Css=10n, tau=1ms) → startup overshoot fix
+*   - Soft-start (Rss=100k, Css=22n, tau=2.2ms) → startup overshoot fix
 *   - 1µF external cap → load transient fix
 *
 * Signal flow:
-*   1. BVDD ramps, soft-start ramps vref_ss over tau=1ms
+*   1. BVDD ramps, soft-start ramps vref_ss over tau=2.2ms
 *   2. Error amp compares vref_ss with vfb, output ea_out in BVDD domain
 *   3. ea_out drives pass device gate directly through Rgate=1kΩ
 *   4. Pass device (PMOS) regulates PVDD from BVDD
@@ -28,11 +28,11 @@ XM_pass gate bvdd pvdd pass_device
 
 * =======================================================
 * Soft-start reference: RC filter on avbg → vref_ss
-*   Rss=100kΩ, Css=10nF → tau=1ms
+*   Rss=100kΩ, Css=22nF → tau=2.2ms
 *   Ramps vref from 0 to 1.226V over ~5ms
 * =======================================================
 Rss avbg vref_ss 100k
-Css vref_ss gnd 10n
+Css vref_ss gnd 22n
 
 * =======================================================
 * Block 00: Error amplifier (BVDD-powered cascode output stage)
