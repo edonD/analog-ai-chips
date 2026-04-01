@@ -291,3 +291,34 @@ PVDD = 4.967V at T=150°C via transient. PASS.
   - Load transient: 37mV undershoot, 33mV overshoot
   - Current limit: 61mA
   - Iq: 269µA
+
+---
+
+### 2026-04-01 21:30 UTC — Current Limiter Vds Fix Session
+
+**Mission:** Fix Block 04 current limiter — trips at ~20mA instead of ~50mA due to Vds mismatch between sense PMOS and pass device (channel-length modulation with L=0.5um, lambda~0.3V^-1).
+
+**Fix applied:** Added cascode PMOS (XMcas) to sense path in 04_current_limiter/design.cir, gate tied to pvdd for automatic Vds tracking.
+
+**Iteration 1 (W=1u):** Trip at 277mA — cascode too narrow. Thick-oxide g5v0d10v5 PFET has very low uPcox (~10uA/V^2), so W/L=2 can only pass ~27uA, bottlenecking the sense current.
+
+**Iteration 2 (W=10u):** Trip at ~59mA. Short-circuit 63mA (<80mA spec). No false trip at light loads. Brick-wall characteristic (5V→0V in 4mA).
+
+**Commit d2e0374:** Block 04 fix with full verification.
+
+**All 10 plots regenerated** (no regressions):
+| Plot | Key Result |
+|------|-----------|
+| 1 DC Regulation | 5.000V flat 0-50mA |
+| 2 Startup | Clean, no overshoot |
+| 3 Load Transient | 29.5mV undershoot |
+| 4 PSRR | -67.5dB DC |
+| 5 Bode | PM=125.9deg, UGB=1.9kHz |
+| 6 Line Regulation | 0.92 mV/V |
+| 7 Current Limit | Trip 59mA, SC 63mA |
+| 8 PVT Corners | All 5 → 5.0005V |
+| 9 Temperature | TC=0.5 ppm/C |
+| 10 UV/OV | 4.34V / 5.49V |
+
+**README updated** with corrected current limit values and cascode description.
+**Status: 19/19 specs PASS. All plots regenerated with real data.**

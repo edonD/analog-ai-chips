@@ -30,8 +30,8 @@ BVDD (5.4-10.5V)
   |
   +-- Output Caps: Cload=200pF (on-chip) + Cout_ext=1uF (external)
   |
-  +-- Current Limiter (Block 04): Sense mirror + clamp PFET
-  |     Trips at ~60mA (redesigned sense chain)
+  +-- Current Limiter (Block 04): Sense mirror + cascode + clamp PFET
+  |     Trips at ~59mA (cascode Vds-matched sense path)
   |
   +-- UV/OV Comparators (Block 05): 1.8V-domain
   |     UV trip: 4.34V, OV trip: 5.49V
@@ -50,7 +50,7 @@ BVDD (5.4-10.5V)
 4. Pass device (PMOS) regulates PVDD from BVDD
 5. Resistor divider feeds back `vfb = 0.2452 x PVDD` to EA
 6. Miller compensation (Cc + Rz) stabilizes the loop
-7. Current limiter clamps gate if load exceeds ~60mA
+7. Current limiter clamps gate if load exceeds ~59mA
 8. Zener clamp protects against overvoltage transients
 9. Mode control sequences power-up states from BVDD ladder
 10. UV/OV comparators monitor PVDD and output flags in SVDD domain
@@ -64,8 +64,8 @@ All measurements: SkyWater SKY130A PDK, TT corner, 27C, ngspice-42.
 | # | Specification | Measured | Limit | Result |
 |---|---------------|----------|-------|--------|
 | 1 | Output Voltage (PVDD) | 5.000 V | 4.825 - 5.175 V | **PASS** |
-| 2 | DC Regulation (0-30mA) | 5.000 - 5.001 V | +/-3.5% | **PASS** |
-| 3 | Line Regulation | 0.83 mV/V | < 5 mV/V | **PASS** |
+| 2 | DC Regulation (0-50mA) | 5.000 - 5.001 V | +/-3.5% | **PASS** |
+| 3 | Line Regulation | 0.92 mV/V | < 5 mV/V | **PASS** |
 | 4 | Load Regulation | 0.008 mV/mA | < 2 mV/mA | **PASS** |
 | 5 | Load Transient Undershoot (1-10mA) | 27.0 mV | < 150 mV | **PASS** |
 | 6 | Load Transient Overshoot (10-1mA) | 17.0 mV | < 150 mV | **PASS** |
@@ -78,7 +78,7 @@ All measurements: SkyWater SKY130A PDK, TT corner, 27C, ngspice-42.
 | 13 | Startup Peak (1 V/us ramp) | 5.25 V | < 5.5 V | **PASS** |
 | 14 | Startup Peak (10 V/us ramp) | 2.61 V | < 5.5 V | **PASS** |
 | 15 | Dropout (BVDD=5.4V, 50mA) | 4.9999 V | +/-3.5% | **PASS** |
-| 16 | Current Limit Trip | ~20 mA (clamp) | < 80 mA | **PASS** |
+| 16 | Current Limit Trip | ~59 mA (clamp) | < 80 mA | **PASS** |
 | 17 | UV Threshold | 4.34 V | 4.0 - 4.6 V | **PASS** |
 | 18 | OV Threshold | 5.49 V | 5.3 - 5.7 V | **PASS** |
 | 19 | Quiescent Current | 269 uA | < 300 uA | **PASS** |
@@ -96,7 +96,7 @@ All plots generated from ngspice simulation data with SkyWater SKY130A models.
 
 ### 1. DC Regulation
 
-PVDD vs load current sweep from 0 to 50mA. Regulation holds flat at 5.000V from 0-30mA. The current limiter engages above ~35mA causing controlled dropout.
+PVDD vs load current sweep from 0 to 50mA. Regulation holds flat at 5.000V from 0-50mA. The current limiter engages at ~59mA with a sharp brick-wall clamp characteristic.
 
 ![DC Regulation](plot_dc_regulation.png)
 
@@ -132,7 +132,7 @@ PVDD vs BVDD swept from 5.4V to 10.5V at 10mA load. PVDD varies by only 4mV acro
 
 ### 7. Current Limit Characteristic
 
-PVDD vs forced load current from 0 to 100mA. The current limiter engages at ~20mA with the .dc sweep bias conditions, pulling PVDD down in a controlled foldback. In transient operation with proper startup, regulation holds to higher currents.
+PVDD vs load current from 0 to 100mA (transient-based sweep). The current limiter engages at ~59mA with a sharp brick-wall clamp — PVDD collapses from 5V to 0V within 4mA of the trip point. Short-circuit current ~63mA (spec <80mA). The cascode PMOS in the sense path matches Vds between sense and pass devices, ensuring accurate mirror ratio.
 
 ![Current Limit](plots/plot_current_limit.png)
 
@@ -180,7 +180,7 @@ The error amplifier uses a 1uA external reference current mirrored through a 40x
 | 01 | Pass Device | 10x PFET W=50u/L=0.5u m=2, Rds_on ~ 5 ohm |
 | 02 | Feedback Network | 364k/118k divider, ratio 0.2452, target 1.226V |
 | 03 | Compensation | Miller Cc=30pF, Rz=5k, Cout=70pF |
-| 04 | Current Limiter | Rs=14k sense, Mdet W=20u, clamp 4x PFET |
+| 04 | Current Limiter | Rs=14k sense, cascode Vds match, Mdet W=20u, clamp 4x PFET |
 | 05 | UV/OV Comparators | 1.8V domain, UV=4.34V, OV=5.49V |
 | 06 | Level Shifter | Cross-coupled PMOS, SVDD-to-BVDD |
 | 07 | Zener Clamp | 5-device stack + 7-diode fast clamp |
@@ -253,7 +253,7 @@ The v25b baseline had three critical failures:
 3. **EA Biasing**: Shrunk XMbn0 from w=20u to w=2u (40x mirror ratio)
 4. **Soft-start**: Added Rss=100k + Css=10nF (tau=1ms)
 5. **Output cap**: Added Cout_ext=1uF external bypass
-6. **Current limiter**: Redesigned sense chain (Rs 2k->14k, Mdet 5u->20u)
+6. **Current limiter**: Redesigned sense chain (Rs 2k->14k, Mdet 5u->20u, cascode PMOS for Vds matching)
 7. **Startup circuit**: Removed XMsu_pd gate pulldown
 8. **Pass device**: Changed W=100u to W=50u m=2
 9. **PDK library**: Updated with 1.8V models for all corners
