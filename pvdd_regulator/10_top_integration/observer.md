@@ -197,3 +197,18 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
   - Total workers spawned: ~10 (killed 3 stuck, 7 completed successfully)
 **Key architectural change:** The EA is now fundamentally different from v25b — BVDD-powered Stage 1 with NFET CS Stage 2. This works well but has low UGB (158Hz) due to 1µF cap.
 **Next:** PVT worker continues. If it completes, optimize UGB.
+
+### 2026-04-01 15:45 UTC
+**Workers:** pvt — found PVT corner failures, investigating
+**Progress:** PVT corner results reveal design issue:
+  | Corner | PVDD | Status |
+  |--------|------|--------|
+  | TT/27C | 5.000V | PASS |
+  | SS/27C | 6.483V | FAIL (no regulation) |
+  | FF/27C | 6.543V | FAIL (no regulation) |
+  | SF/27C | 6.771V | FAIL (no regulation) |
+  | FS/27C | TBD | ... |
+**Root cause (likely):** EA bias point shifts at non-TT corners. With XMbn0 w=2u l=8u, the 1µA reference through very small device means large Vgs, and mirror ratios become highly sensitive to process variation. At SS/FF corners, the Stage 2 NFET CS may not have enough gm to regulate.
+**This is a real design challenge** — the EA architecture needs corner-robust biasing.
+**Decisions:** PVT worker continues investigating. May need to respawn with specific fix instructions (e.g., increase XMbn0 W for more robust biasing, or add degeneration).
+**Next:** Check PVT worker again in 10 minutes
