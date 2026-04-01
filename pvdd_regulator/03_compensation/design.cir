@@ -5,7 +5,7 @@
 * Actual compensation is:
 *   - Inner EA Miller: Cc=20pF + Rc=8k (in Block 00, updated by FIX-5)
 *   - External bypass: Cout_ext=1uF (in Block 10)
-*   - System UGB ~ 1.9kHz, PM ~ 125-161 deg (over-compensated but stable)
+*   - System UGB ~ 1-2.4kHz, PM ~ 80-160 deg (stable, 1µF cap dominates)
 *
 * This subcircuit is kept as a placeholder.
 *
