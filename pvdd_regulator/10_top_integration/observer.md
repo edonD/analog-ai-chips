@@ -45,3 +45,11 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 **Current task:** Still waiting for ngspice DC startup simulation results with W=3µm Stage 2 and corrected ibias direction
 **Issues:** Simulation running long — possibly due to transient analysis with fine timestep over 500ms simulation period. Not stuck per se, just slow simulation. If this times out again, worker may need to reduce simulation time or use larger timestep.
 **Guidance:** N/A — simulation in progress, but if next check shows same state, may need to intervene
+
+
+### 2026-04-01 11:33 UTC
+**Status:** stuck (potential)
+**Progress:** No real progress since 11:13. Worker has attempted 3 ngspice runs of tb_v7_dc_startup.spice — first timed out at 5m, second backgrounded at 10m (no output captured), third currently running 5m14s. Worker has been "Pondering" for 47 minutes total. The simulation appears to be taking extremely long, likely due to convergence issues or very fine timestep in transient analysis.
+**Current task:** Still trying to get ngspice DC startup simulation to complete with corrected Stage 2 sizing
+**Issues:** Simulation taking too long — 3 attempts, none completed. The m=50 multiplier on XMcs_n (w=20µ l=8µ × 50 = effective 1000µm width) may be causing simulation complexity. Also the 500ms transient with PWL ramp could be excessive.
+**Guidance:** Writing guidance.txt — simulation optimization needed
