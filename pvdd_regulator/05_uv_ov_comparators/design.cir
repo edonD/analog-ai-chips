@@ -7,6 +7,9 @@
 *   NOR gate output: flag = NOR(out_n, en_bar) for enable gating
 *   Hysteresis via feedback resistor to divider midpoint
 *
+* Resistors: PDK xhigh_po (Rsh~2000 ohm/sq, TC1~-1.47e-3/C)
+*   Divider R_top/R_bot are same type → ratio is 1st-order TC-insensitive
+*
 * Pin order for sky130 MOSFETs: D G S B
 *
 * ============================================================
@@ -27,17 +30,15 @@
 *
 .subckt uv_comparator pvdd vref uv_flag vdd_comp gnd en
 
-* --- Resistive divider ---
-R_top pvdd mid_uv 500k
-R_bot mid_uv gnd 199.4k
+* --- Resistive divider (PDK xhigh_po, W=2u for matching) ---
+XR_top pvdd mid_uv gnd sky130_fd_pr__res_xhigh_po w=2 l=500
+XR_bot mid_uv gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=199.4
 
-* --- Hysteresis feedback (out_n to mid) ---
-* 8M gave only 19mV hyst; need 50-150mV → use 2.5M
-R_hyst out_n mid_uv 2.5Meg
+* --- Hysteresis feedback (out_n to mid, W=1u for area) ---
+XR_hyst out_n mid_uv gnd sky130_fd_pr__res_xhigh_po w=1 l=1250
 
-* --- Bias current source (~1uA) ---
-* NMOS diode + resistor from vdd_comp
-R_bias vdd_comp bias_n 800k
+* --- Bias current source (~1uA, PDK xhigh_po) ---
+XR_bias vdd_comp bias_n gnd sky130_fd_pr__res_xhigh_po w=2 l=800
 XMbias bias_n bias_n gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=4u
 
 * --- Tail current source (mirrors bias) ---
@@ -83,16 +84,16 @@ XMnor_n2 uv_flag en_bar gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=0.15u
 *
 .subckt ov_comparator pvdd vref ov_flag vdd_comp gnd en
 
-* --- Resistive divider ---
+* --- Resistive divider (PDK xhigh_po, W=2u for matching) ---
 * Rbot increased from 143.4k to 146k to compensate hysteresis shift
-R_top pvdd mid_ov 500k
-R_bot mid_ov gnd 146k
+XR_top pvdd mid_ov gnd sky130_fd_pr__res_xhigh_po w=2 l=500
+XR_bot mid_ov gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=146
 
-* --- Hysteresis feedback (ov_flag to mid) ---
-R_hyst ov_flag mid_ov 8Meg
+* --- Hysteresis feedback (ov_flag to mid, W=1u for area) ---
+XR_hyst ov_flag mid_ov gnd sky130_fd_pr__res_xhigh_po w=1 l=4000
 
-* --- Bias current source (~1uA) ---
-R_bias vdd_comp bias_n 800k
+* --- Bias current source (~1uA, PDK xhigh_po) ---
+XR_bias vdd_comp bias_n gnd sky130_fd_pr__res_xhigh_po w=2 l=800
 XMbias bias_n bias_n gnd gnd sky130_fd_pr__nfet_01v8 W=1u L=4u
 
 * --- Tail current source ---

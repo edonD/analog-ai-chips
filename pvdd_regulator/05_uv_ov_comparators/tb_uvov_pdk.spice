@@ -1,0 +1,99 @@
+* Block 05: UV/OV — PDK resistor verification (TT 27C)
+.title TB_UVOV_PDK
+
+* Parasitic model required by xhigh_po
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends
+
+* Global params for models
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+
+* Resistor params
+.param sky130_fd_pr__res_xhigh_po__var_mult = 0
+.param sky130_fd_pr__res_high_po__var_mult = 0
+.param sky130_fd_pr__res_high_po__var = 0
+
+* 01v8 MOSFET slope params (all 0 for nominal)
+.param sky130_fd_pr__nfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__nfet_01v8__voff_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__nfet_01v8__nfactor_slope = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__ku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvsat_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wlod_diff = 0
+
+* 01v8 model files
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
+
+* xhigh_po resistor model
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__res_xhigh_po.model.spice"
+
+.include "design.cir"
+
+.option reltol=1e-4 abstol=1e-12 gmin=1e-12
+.temp 27
+
+* --- Supplies ---
+Vsvdd svdd 0 DC 2.2
+Vavbg avbg 0 DC 1.226
+Ven en 0 DC 2.2
+
+* --- PVDD triangle: 0->7V (0-100u) then 7->0V (100-200u) ---
+Vpvdd pvdd 0 PWL(0 0 100u 7.0 200u 0)
+
+* --- UV comparator ---
+XUV pvdd avbg uv_flag svdd 0 en uv_comparator
+
+* --- OV comparator ---
+XOV pvdd avbg ov_flag svdd 0 en ov_comparator
+
+* --- Small output loads ---
+Cuv uv_flag 0 1p
+Cov ov_flag 0 1p
+
+.tran 0.1u 200u
+
+.control
+run
+echo "=== UV/OV PDK RESISTOR TRIP POINT TEST (TT 27C) ==="
+
+* UV flag = HIGH when PVDD < trip, LOW when PVDD > trip
+meas tran uv_deassert find v(pvdd) when v(uv_flag) = 1.1 fall=1
+meas tran uv_assert find v(pvdd) when v(uv_flag) = 1.1 rise=last
+
+* OV flag = HIGH when PVDD > trip
+meas tran ov_assert find v(pvdd) when v(ov_flag) = 1.1 rise=1
+meas tran ov_deassert find v(pvdd) when v(ov_flag) = 1.1 fall=last
+
+echo ""
+echo "UV de-assert (rising PVDD):"
+print uv_deassert
+echo "UV assert (falling PVDD):"
+print uv_assert
+echo "OV assert (rising PVDD):"
+print ov_assert
+echo "OV de-assert (falling PVDD):"
+print ov_deassert
+
+wrdata uvov_trips.dat v(uv_flag) v(ov_flag) v(pvdd)
+quit
+.endc
+.end
