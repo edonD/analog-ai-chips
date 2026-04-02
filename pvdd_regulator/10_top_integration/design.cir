@@ -161,6 +161,7 @@ XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
 Cload pvdd gnd 200e-12
 Cout_ext pvdd gnd 1u
 * FIX-22: Gate snubber damps EA-vs-current-limiter oscillation during startup
-Cgate_snub gate bvdd 1n
+* Reduced from 1nF to 100pF — 1nF was too slow (22µs gate slew), caused 324mV undershoot
+Cgate_snub gate bvdd 100p
 
 .ends pvdd_regulator
