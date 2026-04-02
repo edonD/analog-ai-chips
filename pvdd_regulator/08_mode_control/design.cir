@@ -1,4 +1,4 @@
-* Block 08: Mode Control — v14 (ea_en bypass for startup robustness)
+* Block 08: Mode Control — v15 (FIX-19: pass_off polarity inversion fix)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * v14 changes from v13:
@@ -72,8 +72,8 @@ XMinv3n comp3b comp3 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
 XMinv4p comp4b comp4 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
 XMinv4n comp4b comp4 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
 
-XMpo_bufp pass_off comp1b pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
-XMpo_bufn pass_off comp1b gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
+XMpo_bufp pass_off comp1 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
+XMpo_bufn pass_off comp1 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
 
 XMby_n1a by_s1     comp1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
 XMby_n1b bypass_enb comp2b by_s1 by_s1 sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
