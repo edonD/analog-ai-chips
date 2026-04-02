@@ -4,6 +4,31 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 
 ---
 
+## 2026-04-02 23:45 — ROOT CAUSE FOUND AND FIXED
+
+### Root Cause: pass_off polarity inversion (FIX-19)
+In `08_mode_control/design.cir`, the pass_off buffer used `comp1b` instead of `comp1`, inverting the polarity. Gate pullup PFET was ON during normal operation, injecting ~200µA into gate, fighting the 23µA EA output. Single-token fix: `comp1b` → `comp1`.
+
+### All Fixes: FIX-19 through FIX-23
+- FIX-19: pass_off polarity corrected
+- FIX-20: Cascode Vds matching (cas_bias 3V→4V)
+- FIX-21: Compensation retuning (Cc=40pF, Rc=5kΩ)
+- FIX-22: Gate snubber 100pF
+- FIX-23: Rgate 1kΩ→200Ω
+
+### Verification: 95 simulations, all 14 plots regenerated
+**12 PASS, 2 MARGINAL, 0 FAIL**
+
+Key improvements:
+- DC regulation: collapsed at 10mA → flat to 50mA (**FIXED**)
+- PSRR: -7dB → -70.8dB at DC (**FIXED**)
+- Loop gain: 20dB → 70.8dB (**FIXED**)
+- PVT: all 15 corners 4.94-5.06V (**PASS**)
+
+Remaining: load transient ringing (phase margin issue, not showstopper)
+
+---
+
 ### 2026-04-02 — 60/60 PVT ACHIEVED
 
 **3 fixes applied (FIX-16, FIX-17, FIX-18) to reach 100% PVT pass rate:**

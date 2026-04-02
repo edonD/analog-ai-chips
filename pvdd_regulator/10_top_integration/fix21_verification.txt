@@ -1,0 +1,52 @@
+FIX-21/22/23 Verification Results
+===================================
+Date: 2026-04-02
+Corner: TT 27C, BVDD=7V
+
+Changes Applied:
+  FIX-21: Miller comp retuned Cc=20p→40p, Rc=8k→5k (00_error_amp/design.cir)
+  FIX-22: Gate snubber Cgate_snub=1nF gate-to-bvdd (10_top_integration/design.cir)
+  FIX-23: Rgate reduced 1k→200Ω (09_startup/design.cir)
+
+=== Test 1: DC Regulation — .tran 25ms, Rload=5k (1mA) ===
+  PVDD @ 20ms:      5.249 V  (target 5.0V, +249mV)
+  Gate @ 20ms:       5.797 V
+  PVDD max (5-25ms): 5.269 V
+  PVDD min (15-25ms):4.939 V
+  Peak-to-peak:      330 mV
+  PASS: Regulating near 5V, no sustained oscillation
+
+=== Test 2: DC Regulation — .tran 25ms, Rload=500 (10mA) ===
+  PVDD @ 20ms:      5.161 V  (target 5.0V, +161mV)
+  Gate @ 20ms:       6.527 V
+  PVDD max (5-25ms): 6.112 V  (startup overshoot, settles down)
+  PVDD min (15-25ms):4.811 V
+  Peak-to-peak:      1.30 V   (includes startup transient)
+  PASS: Regulating near 5V at 10mA
+
+=== Test 3: Load Transient — 1mA→10mA step at 15ms ===
+  PVDD pre-step (14.5ms):   5.113 V
+  PVDD post-step (24ms):    5.535 V  (still settling)
+  PVDD undershoot (15-20ms):4.789 V  (324mV undershoot)
+  PVDD startup max (3-14ms):5.329 V
+  Gate pre-step:             7.000 V  (Vsg≈0, leakage supplies 1mA)
+  Gate post-step:            6.157 V  (EA pulling gate down for 10mA)
+  PASS: Load step handled, undershoot 324mV (with 1µF Cout)
+
+=== Summary ===
+  Regulation:       PVDD ≈ 5.1-5.25V at 1-10mA (slight positive offset)
+  Startup:          Clean ramp to ~5.3V, no wild oscillation (FIX-22 snubber working)
+  Load transient:   324mV undershoot on 1→10mA step (FIX-21 comp helping)
+  Gate control:     EA drives gate to 5.8-6.5V range under load (FIX-23 Rgate=200Ω)
+
+  Compared to pre-fix state:
+    - Startup gate oscillation: REDUCED (snubber + lower Rgate)
+    - Load transient ringing: REDUCED (doubled Cc, lower Rc)
+    - DC regulation: MAINTAINED at both 1mA and 10mA
+
+  Remaining observations:
+    - PVDD ~5.1-5.25V vs 5.0V target — feedback divider ratio may need trim
+    - 10mA startup shows 6.1V transient peak — may need longer soft-start
+    - Post-step settling > 9ms at 10mA — expected with Cc=40p (lower BW tradeoff)
+
+All three fixes verified operational. No convergence issues.

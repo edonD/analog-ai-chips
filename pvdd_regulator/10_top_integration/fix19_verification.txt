@@ -1,0 +1,38 @@
+FIX-19 / FIX-20 Verification Results
+=====================================
+Date: 2026-04-02
+Simulator: ngspice-42, .op analysis
+Process: tt, Temp: 27C, BVDD=7V, AVBG=1.226V
+
+FIX-19: pass_off buffer driven by comp1 (was comp1b — polarity inverted)
+FIX-20: cascode divider swapped (cas_bias=4.0V, was 3.0V)
+
+--- 1mA Load (Rload=5000) ---
+  PVDD       = 5.0011 V   (target: 5.000V, error: +0.022%)
+  vref_ss    = 1.2260 V
+  vfb        = 1.2263 V
+  ea_out     = 5.9600 V
+  gate       = 5.9600 V
+  ea_en      = 7.0000 V   (ON — correct)
+  RESULT: PASS
+
+--- 10mA Load (Rload=500) ---
+  PVDD       = 5.0010 V   (target: 5.000V, error: +0.020%)
+  vref_ss    = 1.2260 V
+  vfb        = 1.2263 V
+  ea_out     = 5.6595 V   (gate driven harder for higher load — correct)
+  gate       = 5.6595 V
+  pass_off   = 1.41e-6 V  (LOW — correct, EA controls gate)
+  pass_off_b = 7.0000 V   (HIGH — gate pullup PFET OFF — correct)
+  ea_en      = 7.0000 V   (ON — correct)
+  RESULT: PASS
+
+Key observations:
+  - pass_off is near 0V (LOW) at BVDD=7V → FIX-19 confirmed working
+    (Before fix: pass_off was HIGH, pulling gate to BVDD, fighting EA)
+  - Gate voltage drops from 5.96V (1mA) to 5.66V (10mA) as EA drives
+    harder for higher load current — regulation loop functioning correctly
+  - PVDD regulation within 0.02% of target at both 1mA and 10mA
+  - Load regulation: |5.0011 - 5.0010| / 5.0 = 0.002% (excellent)
+
+VERDICT: FIX-19 and FIX-20 VERIFIED — both loads regulate to 5.00V
