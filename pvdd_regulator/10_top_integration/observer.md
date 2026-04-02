@@ -429,3 +429,9 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **No new commits** — PVT agent collecting results before committing.
 - **Assessment:** PVT agent is alive and working through test cases. Let it run.
 - **Next check:** 5 minutes
+
+### 2026-04-02 Check 12 — PVT Agent Writing Fix Scripts
+- **Supervisor status:** WORKING (Fluttering 26m, PVT agent 32 tool uses)
+- **PVT agent:** Writing run_pvt_b_fix.sh — fixing PVT test issues as found
+- **Assessment:** Steady progress (18→26→32 tool uses). Agent is methodically running PVT sims.
+- **Next check:** 5 minutes
