@@ -1,0 +1,7 @@
+# PSRR at 1 kHz vs Load Current — Post FIX-19/FIX-20
+# TT 27C, BVDD=7V DC+AC=1V
+# Load_mA  PSRR_at_1kHz_dB
+0     -51.31
+1     -51.50
+10    -51.44
+50    -51.07

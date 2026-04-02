@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.ticker import LogLocator
 
 # ============================================================
 # Plot 1: PSRR (plot_psrr.png)
@@ -19,17 +18,26 @@ ax.axhline(-40, color='gray', linestyle='--', linewidth=0.8)
 ax.axhline(-20, color='gray', linestyle='--', linewidth=0.8)
 ax.text(2, -39, 'Spec: -40 dB', fontsize=8, color='gray', va='bottom')
 ax.text(2, -19, '-20 dB', fontsize=8, color='gray', va='bottom')
+
+# Annotate key points
+for fpt in [100, 1000, 10000]:
+    idx = np.argmin(np.abs(freq - fpt))
+    ax.plot(freq[idx], psrr[idx], 'ro', markersize=4)
+    label = f'{fpt/1e3:.0f}kHz' if fpt >= 1000 else f'{fpt}Hz'
+    ax.annotate(f'{psrr[idx]:.1f} dB\n@ {label}', xy=(freq[idx], psrr[idx]),
+                xytext=(freq[idx]*2, psrr[idx]+4), fontsize=8, color='red')
+
 ax.set_xlabel('Frequency (Hz)', fontsize=11)
 ax.set_ylabel('PSRR (dB)', fontsize=11)
-ax.set_title('Power Supply Rejection Ratio \u2014 TT 27\u00b0C, 10 mA load', fontsize=12, fontweight='bold')
+ax.set_title('Power Supply Rejection Ratio — TT 27°C, 10 mA load', fontsize=12, fontweight='bold')
 ax.set_xlim(1, 10e6)
-ax.set_ylim(-70, 10)
+ax.set_ylim(-80, 10)
 ax.grid(True, which='both', alpha=0.3)
 ax.legend(loc='upper right')
 fig.tight_layout()
 fig.savefig('plot_psrr.png', dpi=150)
 plt.close(fig)
-print('Saved plot_psrr.png')
+print(f'Saved plot_psrr.png — DC PSRR = {psrr[0]:.1f} dB, @1kHz = {psrr[np.argmin(np.abs(freq-1000))]:.1f} dB')
 
 # ============================================================
 # Plot 2: Bode Plot (plot_bode.png)
@@ -37,91 +45,90 @@ print('Saved plot_psrr.png')
 data = np.loadtxt('bode_data.txt')
 freq = data[:, 0]
 gain_db = data[:, 1]
-# Phase is in col 3 (col 2 is freq repeated)
 phase_raw = data[:, 3]
+
+# Truncate at 30kHz where PSRR-derived loop gain becomes unreliable
+# (feedthrough assumption breaks down at HF due to output caps)
+valid = freq <= 30000
+freq_v = freq[valid]
+gain_v = gain_db[valid]
+phase_v = phase_raw[valid]
 # Wrap phase to [-180, 180]
-phase = phase_raw.copy()
-phase = np.mod(phase + 180, 360) - 180
+phase_v = np.mod(phase_v + 180, 360) - 180
 
 fig, ax1 = plt.subplots(figsize=(8, 5))
 ax2 = ax1.twinx()
 
 # Gain
-ax1.semilogx(freq, gain_db, 'b-', linewidth=1.5, label='Gain')
+ax1.semilogx(freq_v, gain_v, 'b-', linewidth=1.5, label='Loop Gain')
 ax1.set_xlabel('Frequency (Hz)', fontsize=11)
-ax1.set_ylabel('Gain (dB)', fontsize=11, color='b')
+ax1.set_ylabel('Loop Gain (dB)', fontsize=11, color='b')
 ax1.tick_params(axis='y', labelcolor='b')
-ax1.set_xlim(1, 10e6)
-ax1.set_ylim(-60, 40)
+ax1.set_xlim(1, 1e5)
+ax1.set_ylim(-10, 80)
 ax1.axhline(0, color='b', linestyle=':', linewidth=0.5)
 ax1.grid(True, which='both', alpha=0.3)
 
 # Phase
-ax2.semilogx(freq, phase, 'r--', linewidth=1.5, label='Phase')
+ax2.semilogx(freq_v, phase_v, 'r--', linewidth=1.5, label='Phase')
 ax2.set_ylabel('Phase (degrees)', fontsize=11, color='r')
 ax2.tick_params(axis='y', labelcolor='r')
-ax2.set_ylim(-180, 180)
+ax2.set_ylim(-180, 90)
 
-# Find UGB (0dB crossing)
-ugb_idx = None
-for i in range(len(gain_db) - 1):
-    if gain_db[i] >= 0 and gain_db[i+1] < 0:
-        # Interpolate
-        f1, f2 = freq[i], freq[i+1]
-        g1, g2 = gain_db[i], gain_db[i+1]
-        ugb_freq = f1 * (f2/f1) ** (-g1 / (g2 - g1))
-        pm_val = np.interp(np.log10(ugb_freq), np.log10(freq), phase)
-        pm = 180 + pm_val  # phase margin = 180 + phase (phase is negative at UGB)
-        ugb_idx = i
-        break
+# Annotate DC gain
+ax1.annotate(f'DC gain = {gain_v[0]:.1f} dB', xy=(freq_v[0], gain_v[0]),
+             xytext=(3, gain_v[0] - 5), fontsize=9, color='blue',
+             arrowprops=dict(arrowstyle='->', color='blue', lw=0.8))
 
-if ugb_idx is not None:
-    ax1.axvline(ugb_freq, color='green', linestyle='-.', linewidth=1, alpha=0.7)
-    ax1.annotate(f'UGB = {ugb_freq:.0f} Hz', xy=(ugb_freq, 0),
-                 xytext=(ugb_freq*3, 10), fontsize=9, color='green',
-                 arrowprops=dict(arrowstyle='->', color='green', lw=0.8))
-    ax1.annotate(f'PM = {pm:.1f}\u00b0', xy=(ugb_freq, pm_val),
-                 xytext=(ugb_freq*5, pm_val - 20), fontsize=9, color='red',
-                 arrowprops=dict(arrowstyle='->', color='red', lw=0.8))
-    print(f'UGB = {ugb_freq:.0f} Hz, Phase Margin = {pm:.1f} deg')
-else:
-    print('WARNING: No 0dB crossing found in gain data')
-    # Still annotate DC gain
-    ax1.annotate(f'DC gain = {gain_db[0]:.1f} dB', xy=(freq[0], gain_db[0]),
-                 xytext=(10, gain_db[0] - 5), fontsize=9, color='blue')
+# Estimate UGB by extrapolation from -20 dB/dec rolloff
+# Use data between 1kHz and 10kHz for slope
+i1k = np.argmin(np.abs(freq_v - 1000))
+i10k = np.argmin(np.abs(freq_v - 10000))
+slope = (gain_v[i10k] - gain_v[i1k]) / (np.log10(freq_v[i10k]) - np.log10(freq_v[i1k]))
+ugb_est = 10**(np.log10(freq_v[i10k]) - gain_v[i10k] / slope)
+ax1.annotate(f'UGB (est.) ~ {ugb_est/1e3:.0f} kHz\n(extrapolated)',
+             xy=(freq_v[-1], gain_v[-1]),
+             xytext=(freq_v[-1]/5, 15), fontsize=8, color='green')
+print(f'Estimated UGB ~ {ugb_est:.0f} Hz ({ugb_est/1e3:.1f} kHz), slope = {slope:.1f} dB/dec')
 
 # Combined legend
 lines1, labels1 = ax1.get_legend_handles_labels()
 lines2, labels2 = ax2.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='lower left')
+ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper right')
 
-ax1.set_title('Loop Gain Bode Plot \u2014 TT 27\u00b0C, 10 mA load', fontsize=12, fontweight='bold')
+ax1.set_title('Loop Gain (from PSRR) — TT 27°C, 10 mA load', fontsize=12, fontweight='bold')
 fig.tight_layout()
 fig.savefig('plot_bode.png', dpi=150)
 plt.close(fig)
-print('Saved plot_bode.png')
+print(f'Saved plot_bode.png — DC gain = {gain_v[0]:.1f} dB')
 
 # ============================================================
 # Plot 3: PSRR vs Load (plot_psrr_vs_load.png)
 # ============================================================
+# Read actual PSRR @ 1kHz from simulation data files
 loads = [0, 1, 10, 50]
-psrr_vals = [-5.42, -48.47, -6.30, -46.89]
+files = ['psrr_0ma.txt', 'psrr_1ma.txt', 'psrr_data.txt', 'psrr_50ma.txt']
+psrr_vals = []
+for f in files:
+    d = np.loadtxt(f)
+    idx = np.argmin(np.abs(d[:, 0] - 1000))
+    psrr_vals.append(d[idx, 1])
 
 fig, ax = plt.subplots(figsize=(7, 5))
 colors = []
 for v in psrr_vals:
-    # Darker = more negative = better
     norm = min(1.0, max(0.0, (-v) / 60.0))
     colors.append(plt.cm.Blues(0.3 + 0.7 * norm))
 
 bars = ax.bar([str(l) for l in loads], psrr_vals, color=colors, edgecolor='navy', linewidth=0.8)
 ax.set_xlabel('Load Current (mA)', fontsize=11)
 ax.set_ylabel('PSRR at 1 kHz (dB)', fontsize=11)
-ax.set_title('PSRR at 1 kHz vs Load Current', fontsize=12, fontweight='bold')
+ax.set_title('PSRR at 1 kHz vs Load Current — TT 27°C', fontsize=12, fontweight='bold')
 ax.set_ylim(-70, 0)
+ax.axhline(-40, color='green', linestyle='--', linewidth=0.8, label='Spec: -40 dB')
 ax.grid(True, axis='y', alpha=0.3)
+ax.legend(loc='upper right')
 
-# Add value labels on bars
 for bar, val in zip(bars, psrr_vals):
     ax.text(bar.get_x() + bar.get_width()/2, val - 2, f'{val:.1f} dB',
             ha='center', va='top', fontsize=9, fontweight='bold', color='white')
@@ -129,4 +136,4 @@ for bar, val in zip(bars, psrr_vals):
 fig.tight_layout()
 fig.savefig('plot_psrr_vs_load.png', dpi=150)
 plt.close(fig)
-print('Saved plot_psrr_vs_load.png')
+print(f'Saved plot_psrr_vs_load.png — PSRR: {", ".join(f"{v:.1f}" for v in psrr_vals)} dB')
