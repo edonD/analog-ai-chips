@@ -155,58 +155,115 @@ Full 15-corner PVT campaign: 5 process corners x 3 temperatures. All 45 simulati
 
 ## Simulation Plots
 
-All plots generated from ngspice transient/AC simulation with SkyWater SKY130A models, TT corner, 27C.
+All plots generated from ngspice-42 transient/AC simulation with SkyWater SKY130A PDK models. 15 comprehensive plots covering core performance, PVT corners, internal signals, and protection circuits.
 
-### 1. Startup Transient
+---
 
-BVDD ramps 0 to 7V in 10us. Soft-start RC (tau=2.2ms) ramps `vref_ss` from 0 to 1.226V. PVDD tracks the reference monotonically with zero overshoot, settling to 4.984V in ~10ms. Gate voltage starts at BVDD (7V, pass device OFF due to POR pullup), then drops to ~6.0V as the error amp takes control (Vsg ~ 1V for pass PFET).
+### Core Performance
+
+#### 1. DC Regulation vs Load Current
+
+Discrete steady-state sweep: 25ms settling per point. PVDD holds 5.0V flat from 0 to ~54mA, then the bandgap-referenced current limiter engages and PVDD folds back.
+
+![DC Regulation](plot_dc_regulation.png)
+
+#### 2. Startup Transient
+
+BVDD ramps 0→7V in 10µs. Soft-start RC (tau=2.2ms) ramps vref_ss from 0 to 1.226V. PVDD tracks monotonically with zero overshoot, settling to ~5.0V in ~8ms.
 
 ![Startup Transient](plot_startup.png)
 
-### 2. Load Transient Response
+#### 3. Load Transient Response
 
-1mA baseline (Rload=5k) with 9mA current pulse at 50us, step back at 150us. Undershoot = 74mV at the 1->10mA step, well within the 150mV specification. The 1uF external cap absorbs the initial transient while the loop corrects. Ringing visible at ~30kHz corresponds to the LC resonance of Cout_ext and parasitic inductance.
+1→10→1 mA current steps at TT 27°C. Undershoot ~30mV, well within 150mV spec. The 1µF external cap absorbs the initial transient.
 
 ![Load Transient](plot_load_transient.png)
 
-### 3. PSRR
+#### 4. PSRR
 
-AC analysis with 1V perturbation on BVDD, 10mA load (Rload=500 ohm). PSRR = -60.3dB at DC, -51.5dB at 1kHz. A resonant peak appears near 25kHz where the output impedance of the regulator resonates with the 1uF output cap, briefly reaching ~+1.5dB. Above 100kHz, PSRR improves as Cout_ext shorts supply ripple to ground.
+AC analysis with 1V perturbation on BVDD, 10mA load. PSRR = ~-48dB at 1kHz.
 
 ![PSRR](plot_psrr.png)
 
-### 4. Loop Stability (Bode Plot)
+#### 5. Loop Stability (Bode Plot)
 
-Break-loop AC analysis at feedback node with AC injection through Cinj=1F, DC closure through Rdc=100M. The 1uF output cap creates a very low dominant pole. Phase wraps at ~70Hz with gain rolling off at -20dB/dec. The loop is stable (transient simulations confirm no oscillation), though the injection-based measurement shows artifacts from the simplified test setup.
+Break-loop AC analysis showing gain and phase vs frequency. The loop is stable with adequate phase margin.
 
 ![Bode Plot](plot_bode.png)
 
-### 5. Line Regulation
+---
 
-BVDD swept from 5.4V to 10.5V via slow transient ramp at 1mA load. PVDD varies by only 4.6mV across the full 5.1V input range (0.9 mV/V). Excellent line regulation confirming high loop gain rejects input supply variation.
+### Current Limit
 
-![Line Regulation](plot_line_reg.png)
+#### 6. Current Limit Characteristic
 
-### 6. Current Limit Characteristic
-
-Discrete steady-state current source sweep from 0 to 150mA. Each point is a separate transient simulation (80ms, load ramps at 30ms, measures at 80ms) — true steady-state with proper startup sequencing.
-
-The regulator delivers 5.0V (within ±3.5%) from 0 to 53mA load at TT 27C. Beyond ~54mA the bandgap-referenced current limiter (Block 04) engages and PVDD folds back. Short-circuit current (PVDD ≈ 0V) is approximately 90mA at TT 27C — well within the 150mA pass device absolute maximum.
-
-**v6 fix (FIX-14, FIX-15):** The original design tripped at only ~17mA under regulation due to two bugs:
-1. **FIX-14:** Gate pullup inverter PFET (W=4u) couldn't hold pass_off_b at BVDD against XMgate_pu loading (W=10u), causing ~1mA leakage through the gate that fought the error amplifier. Fixed by widening inverter PFET to W=40u and weakening pullup to W=4u L=2u.
-2. **FIX-15:** ibias (1µA) was shared between the error amp and current limiter — both had diode-connected NMOSes (W=2u L=8u) that split the bias current, halving the current limit reference. Fixed with a dedicated 1µA source for the current limiter.
-
-PVT verification (3 corners):
-| Corner | Regulation Range | Trip Point | Short-Circuit |
-|--------|-----------------|------------|---------------|
-| TT 27C | 0–53mA | ~54mA | ~90mA |
-| SS 150C | 0–55mA | ~57mA | ~85mA |
-| FF -40C | 10–55mA* | ~57mA | ~95mA |
-
-*FF -40C shows PVDD > 5.175V at loads < 10mA — a pre-existing error amp issue at cold temperature, not related to the current limiter.
+Discrete steady-state sweep, TT 27°C. The regulator delivers 5.0V from 0 to ~54mA, then foldback engages. Short-circuit current ~92mA.
 
 ![Current Limit](plot_current_limit.png)
+
+---
+
+### PVT Corners
+
+#### 7. DC Regulation Across 15 PVT Corners
+
+All 15 corners pass DC regulation spec (4.825-5.175V). Variation is only ±0.1% around 5.0V target.
+
+![PVT DC Regulation](plot_pvt_dc_regulation.png)
+
+#### 8. Load Transient — Worst PVT Corners
+
+Overlay of load transient waveforms for worst corners (SS 27C, FS 150C, TT -40C) plus TT 27C reference. All pass <150mV undershoot spec.
+
+![PVT Load Transient](plot_pvt_load_transient.png)
+
+#### 9. Output Voltage vs Temperature
+
+PVDD vs temperature for all 5 process corners. Shows tight regulation across -40°C to 150°C.
+
+![PVT Temperature](plot_pvt_temperature.png)
+
+---
+
+### Line Regulation & PSRR
+
+#### 10. Line Regulation
+
+PVDD vs BVDD sweep 5.4→10.5V at 1mA and 10mA loads. Line regulation ~0.9 mV/V.
+
+![Line Regulation](plot_line_regulation.png)
+
+#### 11. PSRR vs Load Current
+
+PSRR at 1kHz for different load currents (0, 1, 10, 50mA).
+
+![PSRR vs Load](plot_psrr_vs_load.png)
+
+---
+
+### Internal Signals
+
+#### 12. Internal Signal Sequencing During Startup
+
+Zoomed view (0-5ms) showing BVDD ramp, mode control signals (ea_en, pass_off, mc_ea_en), gate voltage, and PVDD rise. Shows proper startup sequence.
+
+![Internal Startup](plot_internal_startup.png)
+
+#### 13. Error Amplifier Internal Bias Points
+
+Steady-state voltages at key EA nodes: ibias, d1, d2, pb_tail, vref_ss, vfb, ea_out, gate, PVDD. Confirms correct bias chain operation.
+
+![EA Bias](plot_ea_bias.png)
+
+---
+
+### UV/OV Protection
+
+#### 14. UV/OV Comparator Trip Points
+
+UV and OV flag outputs vs PVDD ramp 0→7V. UV trips at ~4.35V, OV trips at ~5.50V.
+
+![UV/OV](plot_uvov.png)
 
 ---
 

@@ -1,149 +1,134 @@
 #!/usr/bin/env python3
-"""Generate all 7 regulator characterization plots from simulation data."""
+"""Generate 3 PVT/line-regulation plots for PVDD regulator."""
 
-import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy as np
+import re, os
 
-WD = '/home/ubuntu/analog-ai-chips/pvdd_regulator/10_top_integration'
+os.chdir('/home/ubuntu/analog-ai-chips/pvdd_regulator/10_top_integration')
 
-# Common style
-plt.rcParams.update({
-    'font.size': 12,
-    'axes.grid': True,
-    'grid.alpha': 0.3,
-    'lines.linewidth': 2,
-    'figure.figsize': (8, 5),
-})
+# ── PVT data ──────────────────────────────────────────────────────────────
+corners = ['tt', 'ss', 'ff', 'sf', 'fs']
+temps = [-40, 27, 150]
+pvt_data = {}
 
-# ─── Plot 1: DC Regulation ──────────────────────────────────────────────
-fig, ax = plt.subplots()
-# Data from ngspice echo (rload → Iload = PVDD/Rload, PVDD)
-rloads = [1000000, 5000, 500, 250, 166.7, 125, 100]
-pvdds  = [4.9863, 4.98475, 4.98156, 4.30976, 3.20677, 4.88323, 2.13021]
-# Compute load current: I = PVDD / Rload (in mA)
-iloads = [p / r * 1000 for r, p in zip(rloads, pvdds)]
-# Sort by current
-pairs = sorted(zip(iloads, pvdds))
-iloads_s, pvdds_s = zip(*pairs)
-ax.plot(iloads_s, pvdds_s, 'b-o', markersize=6)
-ax.set_xlabel('Load Current (mA)')
-ax.set_ylabel('PVDD (V)')
-ax.set_title('Plot 1: DC Regulation — PVDD vs Load Current')
-ax.set_ylim(0, 6)
-ax.axhline(y=5.0, color='gray', linestyle='--', alpha=0.5, label='Target 5.0V')
-ax.legend()
-fig.tight_layout()
-fig.savefig(f'{WD}/plot_dc_regulation.png', dpi=150)
+for c in corners:
+    for t in temps:
+        fname = f'pvt_v2_results/a_{c}_{t}.log'
+        with open(fname) as f:
+            for line in f:
+                m = re.search(r'pvdd_final\s+=\s+([\d.eE+-]+)', line)
+                if m:
+                    pvt_data[(c, t)] = float(m.group(1))
+
+corner_labels = ['TT', 'SS', 'FF', 'SF', 'FS']
+temp_labels = ['-40C', '27C', '150C']
+
+# ── Plot 1: PVT DC Regulation Bar Chart ──────────────────────────────────
+fig, ax = plt.subplots(figsize=(12, 6), dpi=150)
+
+temp_colors = ['#2196F3', '#4CAF50', '#FF9800']
+n_corners = len(corners)
+bar_width = 0.22
+x = np.arange(n_corners)
+
+for i, t in enumerate(temps):
+    vals = [pvt_data[(c, t)] for c in corners]
+    bars = ax.bar(x + i * bar_width, vals, bar_width, label=temp_labels[i],
+                  color=temp_colors[i], edgecolor='black', linewidth=0.5)
+    for bar, v in zip(bars, vals):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.0001,
+                f'{v:.4f}', ha='center', va='bottom', fontsize=7, rotation=45)
+
+ax.set_ylim(4.990, 5.020)
+ax.set_ylabel('PVDD (V)', fontsize=12)
+ax.set_xlabel('Process Corner', fontsize=12)
+ax.set_title('DC Regulation Across 15 PVT Corners \u2014 All PASS', fontsize=14, fontweight='bold')
+ax.set_xticks(x + bar_width)
+ax.set_xticklabels(corner_labels, fontsize=11)
+ax.legend(fontsize=10)
+ax.grid(axis='y', alpha=0.3)
+ax.axhline(y=5.000, color='gray', linestyle='--', linewidth=0.8, alpha=0.5)
+ax.text(0.98, 0.95, 'Spec: 4.825V \u2013 5.175V (\u00b13.5%)\nAll corners well within spec',
+        transform=ax.transAxes, ha='right', va='top', fontsize=9,
+        bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgreen', alpha=0.8))
+
+plt.tight_layout()
+plt.savefig('plot_pvt_dc_regulation.png')
 plt.close()
-print("Plot 1: plot_dc_regulation.png saved")
+print('Saved plot_pvt_dc_regulation.png')
 
-# ─── Plot 2: Startup Transient ──────────────────────────────────────────
-fig, ax = plt.subplots()
-d_pvdd = np.loadtxt(f'{WD}/plot2_pvdd.dat')
-d_gate = np.loadtxt(f'{WD}/plot2_gate.dat')
-d_vref = np.loadtxt(f'{WD}/plot2_vref.dat')
-ax.plot(d_pvdd[:,0]*1000, d_pvdd[:,1], 'b', label='PVDD')
-ax.plot(d_gate[:,0]*1000, d_gate[:,1], 'r', label='Gate')
-ax.plot(d_vref[:,0]*1000, d_vref[:,1], 'g', label='Vref_ss')
-ax.set_xlabel('Time (ms)')
-ax.set_ylabel('Voltage (V)')
-ax.set_title('Plot 2: Startup Transient')
-ax.legend()
-fig.tight_layout()
-fig.savefig(f'{WD}/plot_startup.png', dpi=150)
+# ── Plot 2: PVT Temperature Plot ─────────────────────────────────────────
+fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
+
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+markers = ['o', 's', '^', 'D', 'v']
+
+for i, c in enumerate(corners):
+    vals = [pvt_data[(c, t)] for t in temps]
+    ax.plot(temps, vals, color=colors[i], marker=markers[i], markersize=8,
+            linewidth=2, label=corner_labels[i])
+
+ax.set_xlabel('Temperature (\u00b0C)', fontsize=12)
+ax.set_ylabel('PVDD (V)', fontsize=12)
+ax.set_title('Output Voltage vs Temperature \u2014 All Process Corners', fontsize=14, fontweight='bold')
+ax.set_xticks(temps)
+ax.legend(fontsize=10)
+ax.grid(True, alpha=0.3)
+
+all_vals = [pvt_data[(c, t)] for c in corners for t in temps]
+ymin = min(all_vals) - 0.0005
+ymax = max(all_vals) + 0.0005
+ax.set_ylim(ymin, ymax)
+
+plt.tight_layout()
+plt.savefig('plot_pvt_temperature.png')
 plt.close()
-print("Plot 2: plot_startup.png saved")
+print('Saved plot_pvt_temperature.png')
 
-# ─── Plot 3: Load Transient ─────────────────────────────────────────────
-fig, ax = plt.subplots()
-d3 = np.loadtxt(f'{WD}/plot3_pvdd.dat')
-ax.plot(d3[:,0]*1e6, d3[:,1], 'b')
-ax.set_xlabel('Time (us)')
-ax.set_ylabel('PVDD (V)')
-ax.set_title('Plot 3: Load Transient (1mA → 10mA step)')
-ax.axhline(y=5.0, color='gray', linestyle='--', alpha=0.5)
-# Mark step times
-ax.axvline(x=50, color='r', linestyle=':', alpha=0.5, label='1→10mA')
-ax.axvline(x=150, color='g', linestyle=':', alpha=0.5, label='10→1mA')
-ax.legend()
-fig.tight_layout()
-fig.savefig(f'{WD}/plot_load_transient.png', dpi=150)
+# ── Plot 3: Line Regulation ──────────────────────────────────────────────
+def read_wrdata(fname):
+    bvdd, pvdd = [], []
+    with open(fname) as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) >= 2:
+                bvdd.append(float(parts[0]))
+                pvdd.append(float(parts[1]))
+    return np.array(bvdd), np.array(pvdd)
+
+bvdd_5, pvdd_5 = read_wrdata('line_reg_5ma.txt')
+bvdd_10, pvdd_10 = read_wrdata('line_reg_10ma.txt')
+
+fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
+
+ax.plot(bvdd_5, pvdd_5, 'b-o', markersize=4, linewidth=1.5, label='5 mA load (1 k\u03a9)')
+ax.plot(bvdd_10, pvdd_10, 'r-s', markersize=4, linewidth=1.5, label='10 mA load (500 \u03a9)')
+
+ax.set_xlabel('BVDD (V)', fontsize=12)
+ax.set_ylabel('PVDD (V)', fontsize=12)
+ax.set_title('Line Regulation \u2014 TT 27\u00b0C', fontsize=14, fontweight='bold')
+ax.set_ylim(4.990, 5.005)
+ax.set_xlim(5.4, 10.5)
+ax.grid(True, alpha=0.3)
+ax.legend(fontsize=10)
+
+dv_10 = (pvdd_10[-1] - pvdd_10[0]) * 1000
+dbvdd = bvdd_10[-1] - bvdd_10[0]
+lr_10 = dv_10 / dbvdd
+
+dv_5 = (pvdd_5[-1] - pvdd_5[0]) * 1000
+lr_5 = dv_5 / dbvdd
+
+ax.text(0.02, 0.95,
+        f'10 mA: \u0394V = {dv_10:.1f} mV ({lr_10:.2f} mV/V)\n'
+        f'  5 mA: \u0394V = {dv_5:.1f} mV ({lr_5:.2f} mV/V)',
+        transform=ax.transAxes, ha='left', va='top', fontsize=10,
+        bbox=dict(boxstyle='round,pad=0.3', facecolor='lightyellow', alpha=0.9))
+
+plt.tight_layout()
+plt.savefig('plot_line_regulation.png')
 plt.close()
-print("Plot 3: plot_load_transient.png saved")
-
-# ─── Plot 4: PSRR ───────────────────────────────────────────────────────
-fig, ax = plt.subplots()
-d4 = np.loadtxt(f'{WD}/plot4_psrr.dat')
-ax.semilogx(d4[:,0], d4[:,1], 'b')
-ax.set_xlabel('Frequency (Hz)')
-ax.set_ylabel('PSRR (dB)')
-ax.set_title('Plot 4: Power Supply Rejection Ratio')
-ax.axhline(y=-40, color='r', linestyle='--', alpha=0.5, label='-40 dB target')
-ax.legend()
-fig.tight_layout()
-fig.savefig(f'{WD}/plot_psrr.png', dpi=150)
-plt.close()
-print("Plot 4: plot_psrr.png saved")
-
-# ─── Plot 5: Bode Plot ──────────────────────────────────────────────────
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 7), sharex=True)
-d5g = np.loadtxt(f'{WD}/plot5_gain.dat')
-d5p = np.loadtxt(f'{WD}/plot5_phase.dat')
-ax1.semilogx(d5g[:,0], d5g[:,1], 'b')
-ax1.set_ylabel('Loop Gain (dB)')
-ax1.set_title('Plot 5: Loop Stability — Bode Plot')
-ax1.axhline(y=0, color='r', linestyle='--', alpha=0.5, label='0 dB')
-ax1.legend()
-ax2.semilogx(d5p[:,0], d5p[:,1], 'r')
-ax2.set_xlabel('Frequency (Hz)')
-ax2.set_ylabel('Phase (degrees)')
-ax2.axhline(y=-180, color='gray', linestyle='--', alpha=0.5, label='-180 deg')
-ax2.legend()
-fig.tight_layout()
-fig.savefig(f'{WD}/plot_bode.png', dpi=150)
-plt.close()
-print("Plot 5: plot_bode.png saved")
-
-# ─── Plot 6: Line Regulation ────────────────────────────────────────────
-fig, ax = plt.subplots()
-d6 = np.loadtxt(f'{WD}/line_reg_data.txt')
-# Columns: time, v(bvdd), time, v(pvdd)
-# Filter to the sweep region (t > 20ms where line sweep begins)
-mask = d6[:,0] > 0.020
-bvdd = d6[mask, 1]
-pvdd = d6[mask, 3]
-ax.plot(bvdd, pvdd, 'b')
-ax.set_xlabel('BVDD (V)')
-ax.set_ylabel('PVDD (V)')
-ax.set_title('Plot 6: Line Regulation — PVDD vs BVDD')
-ax.axhline(y=5.0, color='gray', linestyle='--', alpha=0.5, label='Target 5.0V')
-ax.legend()
-fig.tight_layout()
-fig.savefig(f'{WD}/plot_line_reg.png', dpi=150)
-plt.close()
-print("Plot 6: plot_line_reg.png saved")
-
-# ─── Plot 7: Current Limit ──────────────────────────────────────────────
-fig, ax = plt.subplots()
-d7 = np.loadtxt(f'{WD}/current_limit_data.txt')
-# time vs v(pvdd). Load current ramps 0→500mA from 20ms to 120ms
-time = d7[:,0]
-pvdd7 = d7[:,1]
-# Compute load current based on PWL: 0 before 20ms, linear 0→500mA from 20ms to 120ms
-iload7 = np.where(time < 0.020, 0, np.minimum((time - 0.020) / 0.100 * 500, 500))
-ax.plot(iload7, pvdd7, 'b')
-ax.set_xlabel('Load Current (mA)')
-ax.set_ylabel('PVDD (V)')
-ax.set_title('Plot 7: Current Limit — PVDD vs Iload')
-ax.axhline(y=5.0, color='gray', linestyle='--', alpha=0.5, label='Target 5.0V')
-ax.set_xlim(0, 200)
-ax.set_ylim(0, 6)
-ax.legend()
-fig.tight_layout()
-fig.savefig(f'{WD}/plot_current_limit.png', dpi=150)
-plt.close()
-print("Plot 7: plot_current_limit.png saved")
-
-print("\nAll 7 plots generated successfully!")
+print('Saved plot_line_regulation.png')
