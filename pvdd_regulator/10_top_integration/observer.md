@@ -514,3 +514,22 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - README rewritten with accurate post-fix performance
 - design_summary.md: comprehensive architecture document with lessons learned
 - Production readiness: TT specs ✅, PVT 88%, MC/ESD/Layout still needed
+
+---
+
+## Phase 2: Push to 60/60 PVT (New Campaign)
+
+### 2026-04-02 Check 21 — New 60/60 Campaign Started
+
+**Supervisor status:** Working on 4-phase plan to reach 60/60 PVT:
+- Phase 0: Iq Quick Wins (QW-1 + QW-2) — **COMMITTED 5173903**
+- Phase 1: Fix TT -40C failures (mode control BVDD power) — IN PROGRESS
+- Phase 2: Fix load transient at SS 27C and FS 150C (compensation)
+- Phase 3: Full PVT re-verification (60/60)
+
+**Phase 0 Verification (5173903):**
+- QW-1: Current limiter cascode divider R increased 10x (l=40→400, l=30→300). Same 3V bias ratio, ~5µA vs ~50µA. ✅ Sound.
+- QW-2: EA Stage 2 load m=4→m=1 (XMcs_p). Reduces ~46µA to ~12µA. Tail m=4 preserved for gm. ✅ Sound, minor gain reduction acceptable.
+- Key diagnostic: mode control is PVDD-powered — outputs at PVDD swing cause crowbar in BVDD-powered POR inverter. This explains high Iq and TT -40C failures.
+
+**Assessment:** Good start. Phase 0 changes are conservative and correct. Phase 1 (BVDD-powering mode control) is the critical fix — it should resolve both Iq and startup deadlock issues.
