@@ -435,3 +435,9 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **PVT agent:** Writing run_pvt_b_fix.sh — fixing PVT test issues as found
 - **Assessment:** Steady progress (18→26→32 tool uses). Agent is methodically running PVT sims.
 - **Next check:** 5 minutes
+
+### 2026-04-02 Check 13 — PVT Agent Iterating
+- **Supervisor status:** WORKING (Fluttering 31m, PVT agent 38 tool uses)
+- **PVT agent:** Writing run_pvt_b3.sh — running batch 3 of PVT tests
+- **Assessment:** Steady progress (18→26→32→38). Agent iterating through PVT batches methodically.
+- **Next check:** 5 minutes
