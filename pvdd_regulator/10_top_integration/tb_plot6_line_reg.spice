@@ -46,7 +46,9 @@ XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_reg
 
 .control
 run
-wrdata line_reg_data.txt v(bvdd) v(pvdd)
+set filetype = ascii
+wrdata plot6_pvdd.dat v(bvdd) v(pvdd)
+echo "Plot 6 data saved"
 quit
 .endc
 .end

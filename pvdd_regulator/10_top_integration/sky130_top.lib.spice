@@ -41,6 +41,28 @@ c1 r1 sub {0.1e-15*w*l}
 .param sky130_fd_pr__res_high_po__var_mult = 0
 .param sky130_fd_pr__res_high_po__var = 0
 
+* LV NFET/PFET 01v8 slope/diff params (all 0 for nominal)
+.param sky130_fd_pr__nfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__nfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__wlod_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__ku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvsat_diff = 0
+
 * HV NFET g5v0d10v5 slope/diff (all 0 for nominal)
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
@@ -80,7 +102,7 @@ c1 r1 sub {0.1e-15*w*l}
 .include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_g5v0d10v5__tt.corner.spice"
 
 * --- LV device models (for UV/OV comparators) ---
-.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.corner.spice"
 .include "/home/ubuntu/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
 
 * --- MIM cap model ---
@@ -111,6 +133,27 @@ c1 r1 sub {0.1e-15*w*l}
 .param sky130_fd_pr__res_xhigh_po__var_mult = 0.025
 .param sky130_fd_pr__res_high_po__var_mult = 0
 .param sky130_fd_pr__res_high_po__var = 0
+
+.param sky130_fd_pr__nfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__nfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__wlod_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__ku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvsat_diff = 0
 
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
@@ -173,6 +216,27 @@ c1 r1 sub {0.1e-15*w*l}
 .param sky130_fd_pr__res_high_po__var_mult = 0
 .param sky130_fd_pr__res_high_po__var = 0
 
+
+.param sky130_fd_pr__nfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__nfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__wlod_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__ku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvsat_diff = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0
@@ -234,6 +298,27 @@ c1 r1 sub {0.1e-15*w*l}
 .param sky130_fd_pr__res_high_po__var_mult = 0
 .param sky130_fd_pr__res_high_po__var = 0
 
+
+.param sky130_fd_pr__nfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__nfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__wlod_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__ku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvsat_diff = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0
@@ -295,6 +380,27 @@ c1 r1 sub {0.1e-15*w*l}
 .param sky130_fd_pr__res_high_po__var_mult = 0
 .param sky130_fd_pr__res_high_po__var = 0
 
+
+.param sky130_fd_pr__nfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__nfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__nfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope = 0
+.param sky130_fd_pr__pfet_01v8__toxe_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope = 0
+.param sky130_fd_pr__pfet_01v8__vth0_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope = 0
+.param sky130_fd_pr__pfet_01v8__voff_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope = 0
+.param sky130_fd_pr__pfet_01v8__nfactor_slope1 = 0
+.param sky130_fd_pr__pfet_01v8__wlod_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wkvth0_diff = 0
+.param sky130_fd_pr__pfet_01v8__ku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__lku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__wku0_diff = 0
+.param sky130_fd_pr__pfet_01v8__kvsat_diff = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope1 = 0
 .param sky130_fd_pr__nfet_g5v0d10v5__toxe_slope2 = 0

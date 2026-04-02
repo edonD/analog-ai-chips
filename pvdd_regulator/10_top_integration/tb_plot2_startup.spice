@@ -1,5 +1,5 @@
-* Plot 2: Startup Transient — PVDD, gate, vref_ss vs time
-.title PVDD Startup Transient
+* Plot 2 v2: Startup Transient
+.title PVDD Startup Transient v2
 
 .param mc_mm_switch = 0
 .param MC_MM_SWITCH = 0
@@ -8,6 +8,7 @@ c0 r0 sub {0.1e-15*w*l}
 c1 r1 sub {0.1e-15*w*l}
 .ends sky130_fd_pr__model__parasitic__res_po
 .lib "../sky130.lib.spice" tt
+.temp 27
 
 .include ../00_error_amp/design.cir
 .include ../01_pass_device/design.cir
@@ -21,18 +22,15 @@ c1 r1 sub {0.1e-15*w*l}
 .include ../09_startup/design.cir
 .include design.cir
 
-* Supplies — BVDD ramps 0→7V in 10µs
-Vbvdd bvdd 0 PWL(0 0 10u 7 20m 7)
+Vbvdd bvdd 0 PWL(0 0 10u 7 100m 7)
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
 Vavbg avbg 0 1.226
 Iibias 0 ibias 1u
 Vsvdd svdd 0 2.2
-Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
 Ven_ret en_ret 0 0
 
-* Load: 1mA at regulation
 Rload pvdd 0 5000
 
-* DUT
 XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_regulator
 
 .option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
@@ -45,7 +43,9 @@ set filetype = ascii
 wrdata plot2_pvdd.dat v(pvdd)
 wrdata plot2_gate.dat v(xdut.gate)
 wrdata plot2_vref.dat v(xdut.vref_ss)
-echo "Plot 2 data saved"
+echo "Plot 2 v2 data saved"
+let pvdd_final = v(pvdd)[length(v(pvdd))-1]
+print pvdd_final
 quit
 .endc
 .end
