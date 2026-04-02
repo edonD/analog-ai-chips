@@ -456,3 +456,9 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **Agent:** 30+ tool uses, updating library refs and regenerating
 - **Assessment:** Good catch on library mismatch. This will produce consistent results across all tests.
 - **Next check:** 5 minutes
+
+### 2026-04-02 Check 16 — Plot Sims Running
+- **Supervisor status:** WORKING (Fluttering 47m, fix+README agent 55+ tool uses)
+- **Agent activity:** Running ngspice sims: tb_plot4_psrr, tb_plot6_line_reg, tb_plot7_current_limit
+- **Assessment:** Heavy simulation work in progress. Agent regenerating all plots with correct library.
+- **Next check:** 5 minutes
