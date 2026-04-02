@@ -441,3 +441,11 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **PVT agent:** Writing run_pvt_b3.sh — running batch 3 of PVT tests
 - **Assessment:** Steady progress (18→26→32→38). Agent iterating through PVT batches methodically.
 - **Next check:** 5 minutes
+
+### 2026-04-02 Check 14 — Both Agents Done, README Writing
+- **Supervisor status:** WORKING (Fluttering 37m, reviewing results + writing README)
+- **PVT campaign:** DONE, 45 tool uses. Committed de581ae — 53/60 specs PASS (88% across 15 corners)
+- **Plot agent:** Already done (311283d)
+- **Activity:** Supervisor reviewing PVT results and plot data, preparing README rewrite
+- **Assessment:** Almost there. Task C nearing completion. README is the final deliverable.
+- **Next check:** 5 minutes
