@@ -4,6 +4,20 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 
 ---
 
+### 2026-04-02 — 60/60 PVT ACHIEVED
+
+**3 fixes applied (FIX-16, FIX-17, FIX-18) to reach 100% PVT pass rate:**
+
+1. FIX-16: Current limiter cascode divider R 10x higher → saves ~45µA Iq
+2. FIX-17: EA Stage 2 load m=4→m=2 → saves ~23µA Iq
+3. FIX-18: ea_en BVDD pullup (always on) → fixes startup deadlock at cold corners
+
+**Result: 60/60 PVT PASS (was 53/60)**
+
+Key insight: BVDD-powering mode control (expert suggestion) breaks ratiometric comparators. Instead, bypassing mc_ea_en with a BVDD pullup on ea_en was the correct fix.
+
+---
+
 ## Log Entries
 
 
