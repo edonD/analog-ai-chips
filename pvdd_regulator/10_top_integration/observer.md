@@ -462,3 +462,9 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **Agent activity:** Running ngspice sims: tb_plot4_psrr, tb_plot6_line_reg, tb_plot7_current_limit
 - **Assessment:** Heavy simulation work in progress. Agent regenerating all plots with correct library.
 - **Next check:** 5 minutes
+
+### 2026-04-02 Check 17 — Agent Verifying Plots
+- **Supervisor status:** WORKING (Fluttering 52m, agent 75+ tool uses)
+- **Agent activity:** Reading generated PNG plots to verify them visually. Sims appear complete.
+- **Assessment:** Agent is thorough — regenerated plots and now verifying. README write next.
+- **Next check:** 5 minutes
