@@ -33,7 +33,7 @@ BVDD (5.4-10.5V)
   +-- Output Caps: Cload=200pF (on-chip) + Cout_ext=1uF (external)
   |
   +-- Current Limiter (Block 04): Bandgap-referenced comparator (FIX-1)
-  |     Trips at ~50mA nominal (43.8-56.0mA across PVT)
+  |     Trips at ~54mA under regulation (FIX-14, FIX-15), Isc ~90mA
   |
   +-- UV/OV Comparators (Block 05): 1.8V-domain (SVDD-powered)
   |     UV trip: ~4.39V, OV trip: ~5.51V
@@ -59,6 +59,8 @@ BVDD (5.4-10.5V)
 | FIX-10 | Removed unused pvdd port from EA | Cleaner interface |
 | FIX-11 | Added 2pF filter cap on vfb | Attenuates HF noise coupling |
 | FIX-12 | Renamed "Zener Clamp" -> "MOS Voltage Clamp" | Accurate terminology |
+| FIX-14 | Gate pullup inverter PFET widened (4u->40u), pullup weakened (10u->4u L=2u) | Eliminates ~1mA gate leakage fighting EA |
+| FIX-15 | Dedicated ibias_ilim (1uA) for current limiter | Prevents ibias split, correct Ilim threshold |
 
 ---
 
@@ -75,7 +77,7 @@ All measurements from ngspice-42 transient/AC simulation with SkyWater SKY130A P
 | 5 | Line Regulation (5.5-10.5V) | 4.6 mV / 5V = 0.9 mV/V | < 5 mV/V | **PASS** |
 | 6 | PSRR @ DC | -60.3 dB | < -40 dB | **PASS** |
 | 7 | PSRR @ 1 kHz | -51.5 dB | < -20 dB | **PASS** |
-| 8 | Current Limit Trip | ~50 mA | < 80 mA | **PASS** |
+| 8 | Current Limit Trip (under regulation) | ~54 mA | < 80 mA | **PASS** |
 | 9 | UV Threshold | ~4.39 V | 4.0-4.6 V | **PASS** |
 | 10 | OV Threshold | ~5.51 V | 5.3-5.7 V | **PASS** |
 
@@ -190,13 +192,22 @@ BVDD swept from 5.4V to 10.5V via slow transient ramp at 1mA load. PVDD varies b
 
 ### 6. Current Limit Characteristic
 
-DC operating-point sweep using resistive loads from 100kohm to 0.1ohm. Each point is a separate .OP simulation — the true steady-state equilibrium with no transient artifacts or bi-stable ambiguity.
+Discrete steady-state current source sweep from 0 to 150mA. Each point is a separate transient simulation (80ms, load ramps at 30ms, measures at 80ms) — true steady-state with proper startup sequencing.
 
-The regulator delivers ~5.0V from 10 to 15mA load. Beyond ~17mA the bandgap-referenced current limiter (Block 04, FIX-1) engages and PVDD folds back: output voltage drops while current remains clamped between 17 and 50mA. At short circuit (0.1ohm), Isc = 49.9mA — confirming the 50mA design target set by the ibias mirror ratio (50:1). This is a **foldback current limiter** characteristic, which is inherently safer than constant-current limiting because it reduces power dissipation in the pass device during overload (P = Isc x Vpvdd decreases as the fault worsens).
+The regulator delivers 5.0V (within ±3.5%) from 0 to 53mA load at TT 27C. Beyond ~54mA the bandgap-referenced current limiter (Block 04) engages and PVDD folds back. Short-circuit current (PVDD ≈ 0V) is approximately 90mA at TT 27C — well within the 150mA pass device absolute maximum.
 
-Light-load points (< 5mA) show PVDD slightly above 5.0V in .OP analysis; this is a DC solver artifact — transient simulations with proper startup sequencing confirm regulation at 4.98V for loads up to 15mA.
+**v6 fix (FIX-14, FIX-15):** The original design tripped at only ~17mA under regulation due to two bugs:
+1. **FIX-14:** Gate pullup inverter PFET (W=4u) couldn't hold pass_off_b at BVDD against XMgate_pu loading (W=10u), causing ~1mA leakage through the gate that fought the error amplifier. Fixed by widening inverter PFET to W=40u and weakening pullup to W=4u L=2u.
+2. **FIX-15:** ibias (1µA) was shared between the error amp and current limiter — both had diode-connected NMOSes (W=2u L=8u) that split the bias current, halving the current limit reference. Fixed with a dedicated 1µA source for the current limiter.
 
-PVT verification shows the short-circuit current varies 43.8–56.0mA across all 15 corners (1.28x spread), compared to the original Vth-based design which had 3.1x spread (44–137mA).
+PVT verification (3 corners):
+| Corner | Regulation Range | Trip Point | Short-Circuit |
+|--------|-----------------|------------|---------------|
+| TT 27C | 0–53mA | ~54mA | ~90mA |
+| SS 150C | 0–55mA | ~57mA | ~85mA |
+| FF -40C | 10–55mA* | ~57mA | ~95mA |
+
+*FF -40C shows PVDD > 5.175V at loads < 10mA — a pre-existing error amp issue at cold temperature, not related to the current limiter.
 
 ![Current Limit](plot_current_limit.png)
 

@@ -1,5 +1,13 @@
-* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v10)
+* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v11)
 * SkyWater SKY130A — All blocks wired
+*
+* v11 changes (current limit fix):
+*   - FIX-14: Gate pullup inverter PFET widened (4u→40u) so it holds
+*     pass_off_b at BVDD; XMgate_pu weakened (W=10u L=1u → W=4u L=2u).
+*     Previous sizing let ~1mA leak through gate pullup, fighting error amp.
+*   - FIX-15: Dedicated ibias_ilim (1µA) for current limiter. Previously
+*     shared with error amp — both diodes split 1µA, halving limit threshold.
+*   Together: current limit trip moves from ~17mA to ~53mA under regulation.
 *
 * v10 changes (P3 cleanup):
 *   - FIX-9: startup_done routed to top-level port
@@ -78,8 +86,11 @@ XCOMP ea_out pvdd gnd compensation
 * =======================================================
 * Block 04: Current limiter
 *   Senses pass device current via mirror, clamps gate
+*   v11: Dedicated ibias_ilim (1µA) — previously shared with error amp,
+*     causing each to get 0.5µA and halving the current limit threshold.
 * =======================================================
-XILIM gate bvdd pvdd gnd ilim_flag ibias current_limiter
+Iibias_ilim 0 ibias_ilim 1u
+XILIM gate bvdd pvdd gnd ilim_flag ibias_ilim current_limiter
 
 * =======================================================
 * Block 05: UV/OV comparators (run from svdd=2.2V)
@@ -116,10 +127,14 @@ Ren_mc mc_ea_en ea_en 100
 *   During POR (BVDD < 2.5V), pass_off=HIGH → gate=BVDD → pass OFF
 *   Once BVDD rises, pass_off=LOW → gate controlled by EA normally
 *   Inverter powered from BVDD (always available)
+*   v11: Widen inverter PFET (4u→40u) so it can hold pass_off_b at BVDD
+*     against XMgate_pu loading. Weaken XMgate_pu (W=10u L=1u → W=4u L=2u)
+*     to reduce its current demand. Previous sizing let XMgate_pu steal ~1mA
+*     from the gate, fighting the error amp and limiting regulation to ~40mA.
 * =======================================================
-XMpo_invp pass_off_b pass_off bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
+XMpo_invp pass_off_b pass_off bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=2e-6
 XMpo_invn pass_off_b pass_off gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
-XMgate_pu gate pass_off_b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=10e-6 l=1e-6
+XMgate_pu gate pass_off_b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
 
 * NOTE: ilim_en is output by mode control but not connected.
 * Current limiter is always active — safer for protection.

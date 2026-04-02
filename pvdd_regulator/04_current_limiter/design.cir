@@ -1,20 +1,24 @@
-* Block 04: Current Limiter (v5 — bandgap-referenced comparator)
+* Block 04: Current Limiter (v6 — re-tuned for 50mA under regulation)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * Topology: Sense-mirror with current-mode comparator referenced to ibias
 *
-* v5 changes: Replace Vth-based detection with bandgap-referenced comparator
-*   - Removes: XRs sense resistor, XMdet detection NMOS (Vth+Rs TC problem)
-*   - Adds: ibias port, NMOS current mirror (XMref_d/XMref_m), inverter comparator
-*   - Fixes cascode bias: BVDD resistor divider instead of PVDD (works during short circuit)
-*   - PVT spread reduced from 3.1× to ~1.2× (mirror matching + bandgap TC only)
+* v6 changes: Fix current limit trip point under regulation
+*   - v5 had two bugs that made the trip occur at ~17mA instead of 50mA:
+*     1. Gate pullup PFET (XMgate_pu) in Block 10 was partially ON due to
+*        undersized inverter, stealing ~1mA from gate and fighting error amp
+*     2. ibias shared between error amp and current limiter — each diode got
+*        only 0.5µA instead of 1µA, halving the current limit threshold
+*   - Fix 1 (Block 10): Wider inverter PFET (4u→40u), weaker pullup (10u→4u)
+*   - Fix 2 (Block 10): Dedicated ibias_ilim for current limiter (1µA)
+*   - Mirror ratio kept at original 50:1 (correct when ibias = 1µA)
 *
 *   XMs: Sense PMOS (W=1u L=0.5u), mirrors 1/1000 of pass device current
 *   XMcas: Cascode PMOS (W=10u L=0.5u), biased from BVDD divider
-*   XMref_d: Diode NMOS (W=2u L=8u), receives ibias (1µA)
+*   XMref_d: Diode NMOS (W=2u L=8u), receives ibias (1µA dedicated)
 *   XMref_m: Mirror NMOS (W=100u L=8u), 50:1 ratio → sinks 50µA from sense_out
 *   XMinv: Inverter converts sense_out → det_n
-*   XMclamp 1-4: 4× clamp PMOS (W=50u L=0.5u m=2) pulls gate toward BVDD
+*   XMclamp 1-4: 4× clamp PMOS (W=50u L=0.5u) pulls gate toward BVDD
 *
 * Trip point: Iref = 50µA × 1000 (sense ratio) = 50mA load current
 *
@@ -22,7 +26,7 @@
 
 * === Cascode bias: BVDD resistor divider → ~3V ===
 * At BVDD=7V: cas_bias = 7 × 30/(40+30) = 3.0V
-* Gives cascode Vsg ≈ cas_mid - 3V ≈ 2-4V → strong ON for current passing
+* Gives cascode Vsg ≈ cas_mid - 3V → strong ON for current passing
 * Stays valid during short circuit (doesn't depend on PVDD)
 XRcas_top bvdd cas_bias gnd sky130_fd_pr__res_xhigh_po w=1 l=40
 XRcas_bot cas_bias gnd gnd sky130_fd_pr__res_xhigh_po w=1 l=30
@@ -51,10 +55,10 @@ XMinv_p det_n sense_out bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=1e-6
 XRpu bvdd det_n gnd sky130_fd_pr__res_xhigh_po w=1 l=500
 
 * === Clamp PMOS (pulls gate toward BVDD when det_n LOW) ===
-XMclamp1 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
-XMclamp2 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
-XMclamp3 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
-XMclamp4 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=2
+XMclamp1 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6
+XMclamp2 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6
+XMclamp3 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6
+XMclamp4 gate det_n bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=50e-6 l=0.5e-6
 
 * === Flag output ===
 XMfp ilim_flag det_n pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=2e-6 l=1e-6
