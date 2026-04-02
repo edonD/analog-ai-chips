@@ -53,11 +53,12 @@ XMn_r d2 d1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=8e-6 m=2
 * ================================================================
 * Stage 2: NFET CS amplifier + PFET current source load (BVDD-powered)
 * XMcs_n: NFET gain device, gate=d2, amplifies Stage 1 output
-* XMcs_p: PFET load, mirrors ~46µA from pb_tail bias chain
+* XMcs_p: PFET load, mirrors ~12µA from pb_tail bias chain (m=1, was m=4)
+*   Reduced from m=4 to m=1 to save ~34µA Iq. Tail stays m=4 for gm.
 * Output swings 0.5V to ~6.4V — covers gate range for regulation
 * ================================================================
 XMcs_n  vout_gate d2       gnd     gnd  sky130_fd_pr__nfet_g5v0d10v5 w=20e-6 l=2e-6
-XMcs_p  vout_gate pb_tail  bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=4
+XMcs_p  vout_gate pb_tail  bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6 m=1
 
 * ================================================================
 * Miller compensation: Cc + Rc from d2 to vout_gate
