@@ -1,0 +1,227 @@
+==============================================================================
+  ERROR AMPLIFIER GAIN ANALYSIS — opinion_ea.txt
+  Design: ../00_error_amp/design.cir (Two-Stage OTA, SKY130 5V)
+  Date: 2026-04-02
+==============================================================================
+
+CIRCUIT SUMMARY
+---------------
+Stage 1: PMOS diff pair (W=80u L=4u m=2) + NMOS mirror load (W=20u L=8u m=2)
+Stage 2: NFET CS (W=20u L=2u m=1) + PFET load (W=20u L=4u m=2)
+Miller comp: Cc=20pF, Rc=8k (across Stage 2, d2 to vout_gate)
+Ibias = 1uA external reference
+
+==============================================================================
+(0) BIAS CURRENT VERIFICATION
+==============================================================================
+
+  XMen (enable switch): passes ibias (1uA) to ibias_en node when en=HIGH
+  XMbn0: W=2u  L=8u m=1, diode-connected NMOS, carries 1uA  --> sets Vgs ref
+  XMbn_pb: W=20u L=8u m=4, mirrors ibias_en
+
+  Mirror ratio = (W_pb * m_pb) / (W_bn0 * m_bn0)
+               = (20u * 4) / (2u * 1)
+               = 80u / 2u = 40
+
+  So XMbn_pb sinks 40uA into pb_tail node.
+
+  XMbp0: W=20u L=4u m=4, diode-connected PMOS, carries 40uA --> sets PMOS Vsg
+
+  XMtail: W=20u L=4u m=4, mirrors XMbp0 (same W, L, m)
+  --> Tail current = 40uA.  Each diff pair side gets ~20uA.  CORRECT.
+
+  XMcs_p: W=20u L=4u m=2, mirrors XMbp0 (same W,L but m=2 vs m=4)
+  --> Stage 2 bias = 40uA * (2/4) = 20uA.  CORRECT.
+
+==============================================================================
+(1) STAGE 1 GAIN: gm_diff x Rout_stage1
+==============================================================================
+
+  Diff pair: sky130 pfet_g5v0d10v5, W_eff=160u (80u*m=2), L=4u
+  Id per side = 20uA
+
+  For SKY130 5V thick-oxide PMOS, upCox ~ 10-15 uA/V^2 (low mobility, thick gate oxide)
+  Using upCox = 12 uA/V^2:
+
+    gm_diff = sqrt(2 * upCox * (W/L) * Id)
+            = sqrt(2 * 12e-6 * (160u/4u) * 20e-6)
+            = sqrt(2 * 12e-6 * 40 * 20e-6)
+            = sqrt(19.2e-9)
+            ~ 139 uA/V
+
+  Output resistance at node d2:
+    rds_pmos (diff pair, L=4u): lambda_p ~ 0.03/V
+      ro_p = 1/(lambda_p * Id) = 1/(0.03 * 20e-6) = 1.67 MOhm
+
+    rds_nmos (mirror, L=8u): lambda_n ~ 0.015/V (long channel, excellent ro)
+      ro_n = 1/(lambda_n * Id) = 1/(0.015 * 20e-6) = 3.33 MOhm
+
+    Rout_stage1 = ro_p || ro_n = (1.67M * 3.33M) / (1.67M + 3.33M) = 1.11 MOhm
+
+  --> Av1 = gm_diff * Rout1 = 139e-6 * 1.11e6 ~ 154 V/V ~ 44 dB
+
+==============================================================================
+(2) STAGE 2 GAIN: gm_cs x Rout_stage2
+==============================================================================
+
+  CS NFET: sky130 nfet_g5v0d10v5, W=20u, L=2u, Id=20uA
+  For SKY130 5V thick-oxide NMOS, unCox ~ 35-50 uA/V^2
+  Using unCox = 40 uA/V^2:
+
+    gm_cs = sqrt(2 * unCox * (W/L) * Id)
+          = sqrt(2 * 40e-6 * (20u/2u) * 20e-6)
+          = sqrt(2 * 40e-6 * 10 * 20e-6)
+          = sqrt(16e-9)
+          = 126 uA/V
+
+  Output resistance at vout_gate:
+    rds_nmos (CS, L=2u): lambda_n ~ 0.07/V (short channel, moderate ro)
+      ro_n = 1/(0.07 * 20e-6) = 714 kOhm
+
+    rds_pmos (load, L=4u, m=2): lambda_p ~ 0.03/V
+      ro_p = 1/(0.03 * 20e-6) = 1.67 MOhm
+
+    Rout_stage2 = ro_n || ro_p = (714k * 1.67M) / (714k + 1.67M) = 500 kOhm
+
+  --> Av2 = gm_cs * Rout2 = 126e-6 * 500e3 ~ 63 V/V ~ 36 dB
+
+==============================================================================
+  EXPECTED TOTAL DC GAIN = Av1 * Av2 = 154 * 63 ~ 9700 V/V ~ 80 dB
+==============================================================================
+
+==============================================================================
+(3) WHY IS THE MEASURED DC GAIN ONLY 20 dB?
+==============================================================================
+
+  20 dB = 10 V/V.  Expected is ~80 dB.  That is a 60 dB discrepancy.
+
+  ROOT CAUSE (most likely): The "DC gain" was read from the Bode plot at a
+  frequency well above the dominant pole — NOT at true DC.
+
+  Here is why:
+
+  The 20pF Miller cap, multiplied by the Stage 2 gain, creates an enormous
+  effective capacitance at node d2 (the high-impedance node):
+
+    C_miller_eff = Cc * (1 + Av2) = 20pF * (1 + 63) ~ 1.28 nF
+
+  Combined with the ~1.1 MOhm output resistance of Stage 1, the dominant
+  pole frequency is:
+
+    fp1 = 1 / (2*pi * Rout1 * C_miller_eff)
+        = 1 / (2*pi * 1.11e6 * 1.28e-9)
+        ~ 112 Hz
+
+  This is an EXTREMELY low dominant pole (~112 Hz).
+
+  Above this pole, gain rolls off at -20 dB/decade:
+
+    At     1 kHz:  gain ~ 80 - 20*log10(1k/112)   ~ 80 - 19 = 61 dB
+    At    10 kHz:  gain ~ 80 - 20*log10(10k/112)   ~ 80 - 39 = 41 dB
+    At   100 kHz:  gain ~ 80 - 20*log10(100k/112)  ~ 80 - 59 = 21 dB  <-- BINGO
+    At     1 MHz:  gain ~ 80 - 20*log10(1M/112)    ~ 80 - 79 =  1 dB (near UGB)
+
+  If the Bode plot's lowest displayed frequency was ~100 kHz, or if the
+  "DC gain" was eyeballed from a plot that starts around 100 kHz, you would
+  read ~20 dB.  This perfectly matches the observation.
+
+  The unity-gain bandwidth (UGB) is:
+    UGB = gm_diff / (2*pi * Cc) = 139e-6 / (2*pi * 20e-12) ~ 1.1 MHz
+
+  So the full gain profile is: 80 dB flat from DC to ~112 Hz, then -20dB/dec
+  roll-off to UGB at ~1.1 MHz.
+
+  SECONDARY POSSIBLE CAUSES (less likely but worth checking):
+
+  a) Transistor NOT in saturation: If vout_gate sits near mid-rail, the CS
+     NFET (L=2u) may have insufficient Vds and slip into triode, collapsing
+     Stage 2 gain.  Check the .OP operating point: Vds > Vgs-Vth for XMcs_n.
+
+  b) Pass device gate capacitance loading: If the Bode testbench includes
+     the pass device (huge PFET), its gate cap (potentially hundreds of pF)
+     adds a heavy load at vout_gate, reducing Rout_stage2 at frequency and
+     further compressing apparent gain.
+
+  c) Feedback network in measurement: If the Bode plot was taken in
+     closed-loop (with feedback divider), 20 dB could be the closed-loop
+     gain, not the open-loop gain.  Verify the testbench breaks the loop.
+
+==============================================================================
+(4) IS THE 20pF MILLER CAP TOO LARGE / SHUNTING GAIN?
+==============================================================================
+
+  At DC: NO.  A capacitor is an open circuit at DC, so Cc=20pF does not
+  shunt DC gain at all.  The full ~80 dB is present at true DC.
+
+  At frequency: YES, 20pF is VERY aggressive for these bias currents.
+
+  The problem is that 20pF creates an absurdly low dominant pole (~112 Hz)
+  which means gain starts rolling off almost immediately.  For a regulator
+  loop that needs gain at frequencies where load transients matter (kHz to
+  hundreds of kHz), most of the gain is already gone.
+
+  Comparison with original design: The comment says "FIX-5: was 2pF+5k,
+  increase for proper UGB/PM."  Going from 2pF to 20pF is a 10x increase.
+  The original 2pF would have put the dominant pole at ~1.1 kHz and UGB at
+  ~11 MHz (likely unstable with parasitic poles, hence the increase).  But
+  20pF may have overshot.
+
+  RECOMMENDATION: Consider Cc = 5-8 pF as a compromise:
+    - Cc=6pF: fp1 ~ 370 Hz, UGB ~ 3.7 MHz (check phase margin with Rc)
+    - Cc=8pF: fp1 ~ 280 Hz, UGB ~ 2.8 MHz
+    Still stable with appropriate Rc, but preserves much more gain at
+    frequencies relevant to load regulation (10 kHz - 100 kHz).
+
+  However: if the pass device gate cap is large (>100pF), the 20pF may be
+  necessary to keep the non-dominant pole (at vout_gate) well above UGB.
+  The Rc=8k zero at 1/(2*pi*Rc*Cc) = 1 MHz helps with phase margin.
+
+==============================================================================
+(5) BIAS CURRENT VERIFICATION (detailed)
+==============================================================================
+
+  The user asked: "XMbn_pb has m=4 with 1uA ibias, so tail should be
+  80x = 80uA?"  NO.  Here is the correct calculation:
+
+  Reference: XMbn0, W=2u, L=8u, m=1   -->  (W*m)/L = 2*1/8 = 0.25 u
+  Mirror:    XMbn_pb, W=20u, L=8u, m=4 -->  (W*m)/L = 20*4/8 = 10 u
+
+  Mirror ratio = 10 / 0.25 = 40.  With Iref=1uA:  I_pb = 40 uA.
+
+  (The "80x" mistake would come from (W_pb * m_pb) / W_bn0 = (20*4)/2 = 40,
+  or if someone thought m=4 means 4 parallel copies each carrying 20x...
+  it's still 40x total, not 80x.)
+
+  XMbp0 (diode, m=4) carries 40uA, sets PMOS bias voltage.
+  XMtail (m=4, same as XMbp0) mirrors 40uA.  --> TAIL = 40uA.  CORRECT.
+  XMcs_p (m=2, half of XMbp0) mirrors 20uA.   --> STAGE 2 = 20uA.  CORRECT.
+
+  Total quiescent current:
+    Ibias chain:   1 uA (XMbn0)
+    pb_tail bias: 40 uA (XMbn_pb + XMbp0)
+    Diff pair:    40 uA (XMtail)
+    Stage 2:      20 uA (XMcs_p + XMcs_n)
+    ---------------------------------
+    Total Iq:    ~101 uA (from BVDD supply, excluding pass device)
+
+==============================================================================
+SUMMARY / VERDICT
+==============================================================================
+
+  The EA design is fundamentally sound.  Calculated DC gain is ~80 dB, which
+  is adequate for an LDO error amplifier.  Bias currents are correct at
+  40uA tail and 20uA Stage 2.
+
+  The "20 dB DC gain" observation is almost certainly a MEASUREMENT ARTIFACT:
+  the Bode plot was read at ~100 kHz where the gain has already rolled off
+  by 60 dB from the true DC value, due to the very low dominant pole (~112 Hz)
+  created by the massive 20pF Miller cap.
+
+  Action items:
+  1. Re-run the Bode plot starting from 1 Hz (or 0.1 Hz) to see the true
+     DC gain plateau at ~80 dB
+  2. Consider reducing Cc to 6-8 pF if more gain-bandwidth is needed
+  3. Verify all transistors are in saturation via .OP analysis
+  4. Check that the testbench measures open-loop, not closed-loop gain
+
+==============================================================================

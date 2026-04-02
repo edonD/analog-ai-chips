@@ -1,0 +1,285 @@
+PSRR Analysis — PVDD 5V LDO Regulator (SKY130A)
+=================================================
+Date: 2026-04-02
+Data: plot_psrr.png (10mA load), plot_psrr_vs_load.png (bar chart)
+       psrr_data.txt, psrr_noload.txt, psrr_1ma.txt, psrr_50ma.txt
+
+SUMMARY OF FINDINGS
+--------------------
+The measured PSRR is catastrophically bad at certain loads and good at
+others. The README claim of -60dB DC PSRR is wrong — that number appears
+to come from reading the HIGH-FREQUENCY end of the plot (~10MHz), where
+the output capacitor provides the rejection, not the loop.
+
+Measured PSRR at 1 kHz vs load:
+  0 mA  (Rload=100k):  -5.4 dB   (54% feedthrough — terrible)
+  1 mA  (Rload=5k):   -48.5 dB   (0.4% feedthrough — acceptable)
+  10 mA (Rload=500):   -6.3 dB   (48% feedthrough — terrible)
+  50 mA (Rload=100):  -46.9 dB   (0.5% feedthrough — acceptable)
+
+DC values are similar: -5.4, -55.3, -6.3, -53.1 dB respectively.
+
+
+(1) IS THE -7 dB REAL OR A MEASUREMENT ERROR?
+----------------------------------------------
+The -6.3 dB at DC/1kHz for the 10mA case is REAL. It was confirmed by
+two independent measurement methods in ngspice:
+  - FIND vdb(pvdd) AT=1000 in tb_psrr_10ma.spice
+  - db(v(pvdd)/v(bvdd)) wrdata in tb_plot_psrr.spice
+Both use AC analysis with Vbvdd DC=7V AC=1V, identical circuit netlists,
+and the same load (Rload=500 ohm). The data agrees to within 0.03 dB.
+
+The psrr_data.txt file contains 351 frequency points from 1Hz to 10MHz,
+showing -6.27 dB flat from 1Hz through ~1kHz, then a -20dB/decade roll-
+off reaching -64.5 dB at 10MHz. This profile is internally consistent
+and physically explainable (see section 3 below).
+
+There is no measurement error. The PSRR is genuinely -6 dB at DC.
+
+The -60 dB DC claim in the README is a misread. The -60 dB value only
+appears at ~7MHz, where it comes entirely from the 1uF output cap
+filtering, not from loop rejection.
+
+
+(2) WHY IS PSRR LOAD-DEPENDENT IN A NON-MONOTONIC WAY?
+-------------------------------------------------------
+This is the most alarming finding. The bimodal pattern — bad at 0mA and
+10mA, good at 1mA and 50mA — does not follow any simple monotonic trend
+(e.g., "worse at lighter load" or "worse at heavier load").
+
+Possible explanations, in order of likelihood:
+
+(A) EA OPERATING POINT CLIPPING / GAIN COLLAPSE
+
+The pass device (PMOS, W=1mm, L=0.5um) requires these gate voltages:
+  0 mA:  gate ~ 6.3V  (Vsg ~ 0.7V, barely above Vth, deep subthreshold)
+  1 mA:  gate ~ 6.1V  (Vsg ~ 0.9V, moderate saturation)
+  10 mA: gate ~ 5.8V  (Vsg ~ 1.2V, solid saturation)
+  50 mA: gate ~ 5.3V  (Vsg ~ 1.7V, strong inversion)
+
+The EA second stage is an NFET common-source (XMcs_n, W=20u L=2u) with
+a PFET current-source load (XMcs_p, W=20u L=4u m=2) biased from pb_tail.
+Output range is stated as 0.5V to ~6.4V.
+
+At 0mA: The EA must hold ea_out ~ 6.3V, very near its upper output rail
+(~6.4V). At this point XMcs_n is likely near cutoff and XMcs_p is close
+to its compliance limit. Small-signal gain collapses → loop gain ≈ 0.
+
+At 10mA: ea_out ~ 5.8V. This is still in the upper portion of the output
+swing. The PFET load (Vsd = BVDD - ea_out = 1.2V) might be pushed toward
+triode if pb_tail bias sets Vsg_load close to this value, collapsing the
+stage 2 output impedance and gain.
+
+At 1mA: ea_out ~ 6.1V. Paradoxically this might be a sweet spot where
+stage 2 has moderate gain — but this explanation is strained.
+
+At 50mA: ea_out ~ 5.3V. Solidly in the middle of the swing range, good
+Stage 2 gain. This explains the good -53 dB PSRR.
+
+The problem: this doesn't fully explain why 1mA (-48 dB) is so much
+better than 10mA (-6 dB) given that their gate voltages differ by only
+0.3V. Something sharply nonlinear happens between 1mA and 10mA.
+
+(B) CURRENT LIMITER INTERFERENCE
+
+The current limiter (Block 04) senses pass device current via a mirror
+and clamps the gate. Though the nominal trip point is ~50mA, the current
+sense mirror has its own operating-point-dependent gain. At 10mA, the
+mirror might be partially active, loading the gate node and degrading
+the loop gain. At 1mA it's fully off; at 50mA the EA drives the gate
+low enough that the limiter's loading is in a different regime.
+
+The current limiter connects directly to the gate node and to BVDD:
+  XILIM gate bvdd pvdd gnd ilim_flag ibias_ilim current_limiter
+Any AC signal on BVDD modulates the limiter's mirror and reference,
+injecting additional noise into the gate node — a PSRR degradation path
+the EA loop cannot correct for.
+
+(C) MODE CONTROL AND STARTUP CIRCUIT PATHS
+
+Several auxiliary blocks connect to BVDD and to critical signal nodes:
+  - Mode control (XMC): BVDD ladder → generates pass_off, ea_en, etc.
+  - Startup (XSU): connects to gate, ea_out, BVDD
+  - Gate pullup: XMgate_pu (PFET, W=4u L=2u from BVDD to gate, gated
+    by pass_off_b from an inverter powered by BVDD)
+
+If pass_off_b is not fully at BVDD at the DC operating point (e.g., if
+the inverter's trip point leaves XMgate_pu slightly on), this PFET
+creates a direct BVDD-to-gate AC path that bypasses the EA entirely.
+This would give PSRR ≈ 0 dB regardless of load.
+
+The dependence on load could come from the mode control PVDD-ladder
+outputs changing state between operating points.
+
+(D) SIMULATION CONVERGENCE / OPERATING POINT BISTABILITY
+
+For a regulator with multiple feedback paths (EA, current limiter, mode
+control, startup), the DC operating point solver may converge to
+different solutions depending on the load. Two of the four loads may
+have converged to a non-regulating state. This can be checked by
+examining the DC operating point (node voltages) from each simulation.
+
+RECOMMENDATION: Run .op and print key node voltages (gate, ea_out,
+d2, pb_tail, pass_off, pass_off_b, vfb, pvdd) for all four load
+conditions. This will immediately reveal whether the regulator is
+actually in the correct operating state for each case.
+
+
+(3) IS THE BVDD-POWERED EA THE DOMINANT PSRR PATH?
+---------------------------------------------------
+YES. This is the primary architectural PSRR limitation.
+
+The error amplifier (00_error_amp/design.cir) is powered entirely from
+BVDD. Every current source, the diff pair tail, and the Stage 2 load
+all reference BVDD:
+
+  - Tail current mirror: XMbp0 and XMtail source from BVDD
+  - Stage 1 diff pair: M1, M2 source from tail_s (referenced to BVDD)
+  - Stage 2 PFET load: XMcs_p sources from BVDD, gate = pb_tail
+
+When BVDD changes by dV_bvdd, three things happen simultaneously:
+
+Path 1 — Direct pass-device feedthrough:
+  BVDD is the source of the pass PMOS. If the gate is held fixed,
+  Vsg increases by dV_bvdd, increasing Id and raising PVDD.
+  Magnitude: gm_pass * dV_bvdd * (Rload || rds) ≈ large.
+
+Path 2 — EA supply-induced gate movement:
+  All EA currents are BVDD-referenced. When BVDD rises, the EA's
+  internal bias currents increase, the diff pair common-mode shifts,
+  and the output voltage (ea_out) shifts. If ea_out rises by EXACTLY
+  dV_bvdd, then Vsg_pass is unchanged and Path 1 is cancelled. If
+  ea_out rises by less or more than dV_bvdd, the residual appears
+  as PSRR degradation.
+
+  For a simple BVDD-referenced current mirror driving a CS stage,
+  ea_out tends to rise by dV_bvdd * (1 - some_error). The "some_error"
+  is the EA's finite PSRR. For a two-stage OTA with simple mirrors,
+  this error can easily be 10-30%, leading to 10-30% of dV_bvdd
+  appearing as Vsg error → significant PSRR degradation.
+
+Path 3 — Feedback loop correction:
+  The loop senses the PVDD error via vfb and corrects the gate.
+  Effectiveness: PSRR improves by (1 + T) where T = loop gain.
+  At DC, T should be 40-50 dB for this EA. But if T is only 10-15 dB
+  (due to gain collapse as discussed in section 2A), the correction
+  is inadequate.
+
+The BVDD-powered EA creates a fundamental conflict: the supply whose
+noise you're trying to reject is the same supply powering the amplifier
+that does the rejecting. This is the textbook reason why high-PSRR LDOs
+use a separate clean supply (e.g., pre-regulated or bandgap-derived) for
+the error amplifier, or at minimum use cascode structures with careful
+common-mode design to achieve high internal PSRR.
+
+The frequency-domain shape confirms this: the PSRR plot shows -6 dB
+flat from DC to ~1 kHz (set by the loop's inability to reject), then
+improves at -20 dB/decade from ~3 kHz onward. This -20 dB/dec slope is
+the 1uF output cap acting as a voltage divider with the pass device rds:
+  PSRR(f) ≈ 1/(2*pi*f*Cout*rds_pass) for f >> 1/(2*pi*Cout*rds)
+At 10 mA: rds ~ 250 ohm, f_cap ~ 1/(2*pi*1uF*250) ~ 637 Hz.
+This matches the ~1 kHz knee seen in the plot.
+
+At frequencies above the capacitor knee, the cap provides rejection
+regardless of loop gain. This is why the high-frequency PSRR looks
+acceptable — it's all the output cap, not the loop.
+
+
+(4) CIRCUIT CHANGES TO IMPROVE PSRR
+------------------------------------
+In order of impact and feasibility:
+
+FIX-A: ADD A PRE-REGULATOR OR CLEAN SUPPLY FOR THE EA [HIGH IMPACT]
+
+  The single most effective change. Options:
+  1. A simple NMOS source-follower from BVDD with RC filtering to
+     create a quiet "AVDD_EA" supply. E.g., Rfilt=1k + Cfilt=100nF
+     gives a pole at 1.6 kHz, improving EA supply rejection by 20 dB
+     per decade above that.
+  2. Use the bandgap (avbg=1.226V) to generate a clean 3.3V supply
+     via a simple regulator, and redesign the EA to run from 3.3V.
+     This decouples the EA from BVDD entirely.
+  3. At minimum: add an RC filter on the BVDD line feeding the EA
+     tail current mirror. This quiets the bias currents even if the
+     EA rails still see BVDD.
+
+  Expected improvement: 20-40 dB at DC depending on approach.
+
+FIX-B: CASCODE THE EA CURRENT SOURCES [MEDIUM IMPACT]
+
+  The current bias mirrors (XMbp0, XMtail, XMcs_p) are all single-
+  transistor mirrors from BVDD. Their output current modulates with
+  Vds, which changes when BVDD changes. Adding cascode transistors
+  increases the mirror output impedance by ~gm*ro, reducing supply-
+  induced current variations by 20-30 dB.
+
+  Specifically:
+  - Cascode XMtail (PFET tail from BVDD)
+  - Cascode XMcs_p (Stage 2 PFET load from BVDD)
+  - Both share the same pb_tail bias, so a single cascode bias
+    voltage (generated from pb_tail) serves both.
+
+  Headroom cost: ~0.3-0.5V per cascode. With BVDD=7V and ea_out
+  ranging to 6.4V, there is sufficient headroom.
+
+  Expected improvement: 15-25 dB at DC.
+
+FIX-C: INCREASE EA DC GAIN / FIX OUTPUT SWING ISSUE [MEDIUM IMPACT]
+
+  If the bimodal PSRR is caused by the EA hitting its output range
+  limit at certain loads (section 2A), then:
+  1. Increase the Stage 2 output swing by using a regulated cascode
+     or folded output stage.
+  2. Add a third gain stage (e.g., a simple common-source) to boost
+     loop gain, with appropriate compensation adjustment.
+  3. Resize the pass device (reduce W) so that less Vsg is needed for
+     a given current — this brings the gate operating point away from
+     the EA's rail.
+
+  A 1mm-wide pass device for a 50mA max-current LDO is generous.
+  W=500um (L=0.5u) would double Vov at each current, pulling the gate
+  ~0.2V lower and giving the EA more headroom.
+
+FIX-D: DECOUPLE AUXILIARY BLOCKS FROM GATE NODE [LOW-MEDIUM IMPACT]
+
+  The current limiter, startup circuit, and gate pullup all connect to
+  the gate node and are BVDD-referenced. Each is a potential PSRR leak:
+  - Add an RC filter (Rgate_iso + Cgate_decouple) between the EA output
+    and the gate, isolating auxiliary block loading from the EA's output.
+    (Rgate=1k already exists in the startup path, but it doesn't filter
+    BVDD-coupled noise from the current limiter or gate pullup.)
+  - Ensure pass_off_b is solidly at BVDD during normal operation so
+    XMgate_pu is fully off (no leakage path from BVDD to gate).
+  - Add a series resistor in the current limiter's gate connection to
+    prevent it from loading the gate at non-trip operating points.
+
+FIX-E: EXTERNAL PSRR FIX — LARGER OUTPUT CAP [SIMPLE, PARTIAL]
+
+  The 1uF output cap already provides -20 dB/dec rejection above ~1 kHz.
+  Increasing to 10uF pushes the knee down to ~100 Hz, giving adequate
+  PSRR (-40 dB) at 1 kHz without any circuit changes.
+
+  This does NOT fix DC PSRR and does NOT address the bimodal load issue.
+  It is a band-aid, not a fix. But it's free if the application can
+  tolerate a larger external cap.
+
+
+PRIORITY RECOMMENDATION
+-----------------------
+1. FIRST: Debug the bimodal load dependence. Run .op for all four loads,
+   print node voltages, and determine whether the regulator is in the
+   correct operating state for each case. This may reveal the root cause
+   is simpler than the analysis above suggests (e.g., convergence to
+   wrong operating point, or mode control asserting pass_off at certain
+   loads).
+
+2. THEN: Implement FIX-A (RC-filtered EA supply) + FIX-B (cascode mirrors).
+   Together these should bring DC PSRR from -6 dB to better than -40 dB.
+
+3. FIX-C (pass device resizing or EA swing improvement) addresses the
+   bimodal issue architecturally if the debug in step 1 confirms it's
+   an EA swing problem.
+
+The current PSRR performance is not acceptable for any application.
+A -6 dB PSRR means half the supply noise appears at the output — this
+regulator is essentially transparent to supply ripple at DC through 1 kHz.

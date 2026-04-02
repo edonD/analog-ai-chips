@@ -1,0 +1,163 @@
+CRITICAL BUG REPORT — PVDD 5V LDO Regulator
+=============================================
+Date: 2026-04-02
+Analyst: Claude (circuit review)
+
+VERDICT: pass_off polarity is INVERTED in Block 08 mode_control.
+         The gate pullup PFET fights the error amp during normal operation,
+         destroying loop gain, PSRR, load regulation, and stability.
+
+=========================================================================
+THE BUG
+=========================================================================
+
+In Block 08 (mode_control), the pass_off output buffer is an INVERTER
+driven from comp1b:
+
+  XMpo_bufp pass_off comp1b pvdd pvdd  (PFET, W=4u L=2u)
+  XMpo_bufn pass_off comp1b gnd  gnd   (NFET, W=2u L=2u)
+
+This gives: pass_off = NOT(comp1b) = NOT(NOT(comp1)) = comp1.
+
+Tracing the logic:
+  BVDD > 2.5V (normal operation):
+    tap1 > trip  -->  comp1 = HIGH  -->  comp1b = LOW
+    pass_off = NOT(comp1b) = NOT(LOW) = HIGH    <-- WRONG!
+
+  BVDD < 2.5V (POR / startup):
+    tap1 < trip  -->  comp1 = LOW  -->  comp1b = HIGH
+    pass_off = NOT(comp1b) = NOT(HIGH) = LOW    <-- WRONG!
+
+DESIRED behavior (per top-level design.cir comments):
+  pass_off = HIGH when BVDD < 2.5V  (pull gate to BVDD, pass OFF during POR)
+  pass_off = LOW  when BVDD > 2.5V  (release gate, let EA regulate)
+
+ACTUAL behavior is exactly opposite. The extra inverter buffer flips polarity.
+
+=========================================================================
+HOW THIS DESTROYS THE REGULATOR
+=========================================================================
+
+During normal operation (BVDD = 7V, PVDD = 5V), pass_off = HIGH (PVDD level = 5V).
+
+This feeds the BVDD-domain inverter in Block 10:
+
+  XMpo_invp pass_off_b pass_off bvdd bvdd  (PFET W=40u L=2u)
+  XMpo_invn pass_off_b pass_off gnd  gnd   (NFET W=2u  L=2u)
+
+The input is pass_off = 5V (PVDD-level from mode_control).
+The inverter supply is BVDD = 7V.
+
+Inverter switching threshold ~ 5.0V (due to 20:1 PFET/NFET ratio).
+With input AT the threshold, BOTH transistors are ON simultaneously.
+Output pass_off_b lands at a MID-RAIL voltage (~3-4V), NOT at BVDD.
+
+Gate pullup PFET:
+  XMgate_pu gate pass_off_b bvdd bvdd  (PFET W=4u L=2u)
+
+With pass_off_b ~ 3.5V and BVDD = 7V:
+  Vsg = 7 - 3.5 = 3.5V  >>  |Vtp| ~ 0.7V  -->  STRONGLY ON
+
+XMgate_pu conducts ~50-200 uA from BVDD into the gate node continuously.
+
+This current:
+  1. Flows backward through Rgate (1k) into the EA output
+  2. FIGHTS the EA Stage 2 (which only sources ~20 uA quiescent)
+  3. Appears as a low-impedance shunt load on the EA output
+
+Evidence from bias data:
+  ea_out = 5.756V, gate = 5.960V  -->  gate is 204mV ABOVE ea_out
+  Current through Rgate = 204mV / 1k = 204 uA flowing INTO ea_out
+  This 204 uA is the gate pullup current overwhelming the EA.
+
+=========================================================================
+THIS SINGLE BUG EXPLAINS ALL FIVE SYMPTOMS
+=========================================================================
+
+(1) DC regulation fails above 10mA, collapses to 2.1V at 22mA:
+    The EA must pull the gate LOW to deliver more current. But XMgate_pu
+    pushes gate HIGH with ~200 uA. The EA Stage 2 (20 uA bias) cannot
+    win the tug-of-war. Above ~10mA the gate can't go low enough,
+    PVDD drops, and once it drops, the PVDD-powered mode_control
+    degrades further (cascading failure).
+
+    Non-monotonic recovery at 40mA: as PVDD collapses, mode_control
+    (PVDD-powered) loses its supply, pass_off output degrades toward 0V,
+    the pullup partially releases, and the EA partially recovers control.
+
+(2) PSRR is -7dB, not -60dB:
+    The gate pullup creates a direct BVDD-to-gate path through the
+    partially-ON XMgate_pu. Any BVDD ripple couples straight to the
+    gate and through the pass device to PVDD. PSRR = (Rds_on_pass) /
+    (Rds_on_pass + Rds_on_pullup) ~ -7dB.
+
+(3) Loop gain is only 20dB (should be 60-80dB):
+    The shunt current from XMgate_pu (~200 uA) collapses the effective
+    output impedance of the EA. Gain = gm x Rout, but Rout is now
+    dominated by Rgate (1k) in series with the pullup's low Rds,
+    instead of the EA's intrinsic MegaOhm output impedance.
+    20dB is consistent with the EA driving into a ~1k load.
+
+(4) Gate oscillates during startup:
+    During startup, pass_off = HIGH (inverted, should be LOW).
+    The pullup PFET fights the EA output continuously. The EA tries to
+    pull gate low to charge the output cap, the pullup pushes it back,
+    creating limit-cycle oscillation at ~hundreds of Hz. The oscillation
+    damps out only when soft-start (tau=2.2ms) completes and the loop
+    reaches a quasi-stable compromise.
+
+(5) FS 150C corner is unstable:
+    At fast corner + 150C: lower Vtp --> XMgate_pu conducts even MORE
+    at the same Vsg. The pullup current increases, further degrading
+    phase margin. The system crosses from "marginally stable" to
+    "oscillating."
+
+=========================================================================
+THE FIX
+=========================================================================
+
+File: ../08_mode_control/design.cir, lines 75-76
+
+CURRENT (BROKEN):
+  XMpo_bufp pass_off comp1b pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
+  XMpo_bufn pass_off comp1b gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
+
+FIX (change comp1b --> comp1 as the buffer input):
+  XMpo_bufp pass_off comp1 pvdd pvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
+  XMpo_bufn pass_off comp1 gnd  gnd  sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
+
+This makes: pass_off = NOT(comp1)
+  BVDD < 2.5V: comp1=LOW  --> pass_off=HIGH  --> pullup ON (POR protection) CORRECT
+  BVDD > 2.5V: comp1=HIGH --> pass_off=LOW   --> pullup OFF (EA controls)  CORRECT
+
+One-token change: "comp1b" --> "comp1" in two lines.
+
+=========================================================================
+EXPECTED RESULTS AFTER FIX
+=========================================================================
+
+With pass_off = LOW during normal operation:
+  - pass_off_b = BVDD (inverter output HIGH)
+  - XMgate_pu: Vsg = 0V --> fully OFF, zero current into gate
+  - EA output drives gate with full open-loop gain (60-80dB expected)
+  - DC regulation holds to 50mA+ (pass device has 1mm width)
+  - PSRR improves to -50 to -60dB (no BVDD-to-gate feedthrough)
+  - Loop gain rises to 60-80dB
+  - Gate oscillation during startup eliminated
+  - FS 150C corner stabilized (pullup no longer degrades phase margin)
+
+=========================================================================
+WHY THIS BUG SURVIVED
+=========================================================================
+
+1. Light-load testing masked it: At 1mA, the EA has enough margin to
+   fight the 200uA pullup and still regulate (just barely). PVT sweeps
+   were done at 1mA, showing 4.993-4.998V -- looks perfect.
+
+2. The v11 fix (FIX-14: wider inverter, weaker pullup) was treating the
+   SYMPTOM, not the cause. Making the pullup weaker reduces the fighting
+   current, but doesn't fix the polarity. The pullup is still partially
+   ON when it should be fully OFF.
+
+3. The "60/60 PVT PASS" was achieved at light load where the bug has
+   minimal impact. Heavy-load and AC tests reveal the truth.

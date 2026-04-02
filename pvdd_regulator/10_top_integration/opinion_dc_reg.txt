@@ -1,0 +1,297 @@
+DC Regulation Collapse Analysis — PVDD LDO Regulator
+=====================================================
+Date: 2026-04-02
+Circuit: pvdd_regulator v11, SkyWater SKY130A
+Symptom: PVDD holds 5.0V from 0-10mA, collapses to 2.1V at 22mA,
+         then RECOVERS to 4.85V at 40mA (non-monotonic)
+
+=====================================================================
+EXECUTIVE SUMMARY
+=====================================================================
+
+The collapse is caused by the current limiter falsely triggering at
+~10mA due to three compounding errors, combined with a catastrophic
+impedance mismatch between the limiter clamp (200um PFET) and the
+error amplifier's gate drive path (23uA through 1k Rgate). The
+non-monotonic recovery at 40mA is caused by a Vds-dependent shift
+in the sense mirror ratio that eventually de-trips the limiter as
+PVDD collapses, allowing the EA to re-assert control.
+
+=====================================================================
+(1) WHY DOES THE EA LOSE REGULATION ABOVE 10mA?
+=====================================================================
+
+The EA itself is NOT the weak link. Its two-stage OTA can swing
+ea_out from ~0.5V to ~6.4V, easily covering the gate voltage range
+needed for 0-50mA (gate ~5.6V at 10mA, ~4.7V at 50mA). The EA has
+full gain and headroom — it is being OVERRIDDEN by the current
+limiter clamp.
+
+Three compounding errors cause the current limiter to falsely trip:
+
+ERROR A — Sense mirror Vds mismatch (fundamental design flaw):
+
+  The sense PMOS (XMs: W=1u L=0.5u) and the pass device (total
+  W=1000u L=0.5u) share the same gate, but operate at DIFFERENT
+  drain-source voltages:
+
+    Vds_pass  = BVDD - PVDD = 7V - 5V = 2.0V  (at regulation)
+    Vds_sense = BVDD - cas_mid ≈ 7V - 3.7V = 3.3V  (set by cascode)
+
+  The cascode (XMcas) was meant to help, but it actually FIXES the
+  sense Vds at ~3.3V regardless of PVDD. The pass device Vds is 2V
+  at regulation. With L=0.5um (short channel), channel length
+  modulation is severe:
+
+    Isense/Ipass = (Wsense/Wpass) x (1 + lambda*Vds_sense) / (1 + lambda*Vds_pass)
+
+  The sense device has HIGHER Vds than the pass device at regulation,
+  so it conducts proportionally MORE current than the 1:1000 ratio
+  predicts. The sense current OVERESTIMATES the pass current.
+
+  For sky130 HV PMOS at L=0.5um, lambda can be 0.15-0.3 /V. At
+  lambda=0.2:
+    ratio_error = (1 + 0.2*3.3) / (1 + 0.2*2.0) = 1.66/1.40 = 1.186
+
+  This is a ~19% overestimate. At 10mA load, sense = 11.9uA vs
+  expected 10uA. Alone, this doesn't trip the 50uA reference.
+
+  But there is also a narrow-width effect: XMs at W=1um vs pass
+  device fingers at W=50um. In sky130, narrow HV PMOS devices can
+  have |Vth| reduced by 30-80mV due to STI stress (inverse narrow
+  width effect). Combined with DIBL at L=0.5um with 3.3V Vds, the
+  sense device carries significantly more current than the geometric
+  ratio predicts. In SPICE with proper compact models, these effects
+  compound to push the effective trip point well below 50mA.
+
+ERROR B — ibias sharing (addressed by FIX-15 in v11):
+
+  Before v11, the error amp and current limiter shared a single 1uA
+  ibias source. Both had diode-connected NMOS on the same ibias
+  node, splitting the current ~0.5uA each. The limiter's reference
+  mirror (50:1) then sank only 25uA instead of 50uA:
+
+    Trip_before = 25uA x 1000 = 25mA  (halved from design intent)
+
+  v11 fix: Dedicated Iibias_ilim (1uA) for the current limiter.
+  This restores the reference to 50uA and the nominal trip to 50mA.
+
+ERROR C — Gate pullup leakage (addressed by FIX-14 in v11):
+
+  Before v11, XMgate_pu (W=10u L=1u) was not fully off during
+  regulation because the inverter PFET (W=4u) couldn't hold
+  pass_off_b cleanly at BVDD under load. XMgate_pu partially
+  conducted ~1mA from BVDD into the gate node. This current had to
+  be sunk by the EA through Rgate=1k, creating a ~1V offset on
+  ea_out and reducing the EA's effective output range for gate drive.
+
+  v11 fix: Inverter PFET widened to 40u (holds pass_off_b firmly at
+  BVDD) and XMgate_pu weakened to W=4u L=2u (lower on-current even
+  if partially activated).
+
+COMBINED EFFECT (pre-v11):
+  Error A shifts effective trip from 50mA to ~40-43mA (Vds mismatch).
+  Error B halves the reference: trip from ~43mA to ~21mA.
+  Error C steals 1mA from gate, reducing EA headroom, effectively
+  lowering the trip to ~17mA when the EA can't overcome both the
+  gate pullup current and the clamp.
+
+THE CATASTROPHIC AMPLIFIER: Once any of these errors causes even
+  PARTIAL clamp activation, the game is over. The current limiter
+  clamp is 4x W=50u L=0.5u PFET (200um total) pulling gate toward
+  BVDD (7V). The EA Stage 2 can only source/sink ~23uA — and it
+  drives through Rgate=1k. At gate=5V with ea_out=0V, the EA
+  provides 5mA through Rgate, but the 200um clamp at Vsg=2V can
+  source >10mA. The clamp wins decisively. This is an impedance
+  mismatch of >100:1 between attacker (clamp) and defender (EA).
+
+  The Rgate=1k is the critical weak point. It was designed for gate
+  charge isolation and slew limiting, but it creates a 1k barrier
+  between the EA and the gate, while the clamp connects DIRECTLY to
+  the gate node with no series resistance.
+
+=====================================================================
+(2) WHY DOES THE OUTPUT RECOVER AT 40mA?
+=====================================================================
+
+The non-monotonic recovery is the signature of a Vds-dependent sense
+mirror operating in a multi-stable DC circuit. Here is the mechanism:
+
+As the limiter clamp activates and PVDD collapses, the pass device
+Vds INCREASES (Vds_pass = BVDD - PVDD):
+
+  Load    PVDD    Vds_pass   Vds_sense   CLM ratio factor
+  10mA    5.0V    2.0V       3.3V        sense OVER by ~19%
+  17mA    4.3V    2.7V       3.3V        sense OVER by ~10%
+  20mA    3.2V    3.8V       3.3V        sense UNDER by ~5%
+  22mA    2.1V    4.9V       3.3V        sense UNDER by ~15%
+  40mA    4.85V   2.15V      3.3V        sense OVER by ~17%
+
+As PVDD drops, the pass device Vds approaches and then EXCEEDS the
+sense device Vds. The CLM ratio shifts from over-sensing to
+under-sensing. This means as PVDD collapses:
+
+  - The sense current drops relative to actual load current
+  - At some point, sense current falls below the 50uA reference
+  - The limiter de-asserts (sense_out goes LOW, det_n goes HIGH)
+  - The clamp PFETs turn OFF
+  - The EA regains gate control
+  - PVDD snaps back up toward 5V
+
+At 40mA, the DC operating point is one where the EA has control
+and the limiter is NOT tripped. The sense current at 40mA with
+PVDD=4.85V is:
+  Isense = 40mA/1000 x (1+λ*3.3)/(1+λ*2.15) ≈ 40uA x 1.17 = 46.8uA
+
+This is just BELOW the 50uA reference — the limiter stays off.
+
+The 10-30mA range represents a "dead zone" where the circuit
+oscillates between two metastable states (EA-regulated vs
+limiter-latched), and the DC sweep converges to the latched state.
+Above ~35mA, only the EA-regulated state is stable.
+
+=====================================================================
+(3) IS THE CURRENT LIMITER INTERFERING IN THE 10-25mA RANGE?
+=====================================================================
+
+YES, DECISIVELY. The current limiter is the sole cause of the
+regulation collapse. Without it, the EA has more than enough gain
+and output range to regulate PVDD at 5.0V from 0 to 50mA+.
+
+The interference mechanism:
+  1. Sense mirror overestimates load current (Vds mismatch + narrow W)
+  2. Sense current exceeds 50uA reference prematurely (~10-15mA)
+  3. sense_out goes HIGH, det_n goes LOW
+  4. 200um of clamp PFET activates, pulling gate toward BVDD
+  5. EA fights through 1k Rgate but is overwhelmed (~23uA vs >10mA)
+  6. Gate rises, pass device current drops, PVDD collapses
+  7. System latches in a degraded equilibrium
+
+The fundamental problem: the current limiter clamp has NO
+proportional control. It is a bang-bang comparator with massive
+output stage. Once it trips, it does not gracefully limit current —
+it SLAMS the gate to BVDD through 200um of PFET. The EA has no
+chance of fighting back through 1k Rgate.
+
+=====================================================================
+(4) SPECIFIC CIRCUIT CHANGES TO FIX THIS
+=====================================================================
+
+The fix requires addressing both the false trip AND the impedance
+mismatch. Here are the changes in priority order:
+
+FIX-A: MATCH THE SENSE MIRROR Vds TO THE PASS DEVICE (critical)
+------------------------------------------------------------------------
+  The root cause is the sense PMOS operating at Vds=3.3V while the
+  pass device operates at Vds=2.0V. The cascode makes this WORSE,
+  not better — it pins the sense Vds at ~3.3V regardless of PVDD.
+
+  Option 1 (recommended): Remove the cascode. Add a regulated
+  cascode or replica-biased cascode that tracks PVDD:
+    cas_bias = PVDD + |Vtp| + small_margin
+  This forces cas_mid ≈ PVDD, so Vds_sense = BVDD - PVDD = Vds_pass.
+  Perfect tracking eliminates the CLM error entirely.
+
+  Option 2: Increase sense device length from L=0.5u to L=2u or L=4u.
+  Longer L dramatically reduces CLM (lambda ∝ 1/L). Also increase
+  pass device L to match, but this hurts Ron — undesirable.
+  Alternatively, keep pass at L=0.5u but make sense at L=4u and
+  adjust W to maintain the 1:1000 ratio at nominal operating point.
+  The absolute accuracy degrades but the Vds SENSITIVITY disappears.
+
+  Option 3: Add a replica of the pass device Vds to bias the sense
+  cascode. Use a small PFET with gate=gate, source=BVDD, drain
+  connected to a diode that clamps at PVDD. This creates a
+  cas_bias = BVDD - Vds_pass_replica, tracking the actual operating
+  point.
+
+FIX-B: REDUCE Rgate OR ADD EA-SIDE GATE DRIVE BUFFER (critical)
+------------------------------------------------------------------------
+  Rgate=1k gives the EA only 23uA / 1k = 23mV of "authority" over
+  the gate against any direct load. The clamp bypasses Rgate entirely.
+
+  Option 1 (recommended): Reduce Rgate from 1k to 50-100 ohm.
+  This gives the EA 10-20x more current into the gate node. At
+  Rgate=100R, the EA can push 23uA x (ea_range/100) ≈ 50mA peak
+  gate current. The clamp still has more drive, but the equilibrium
+  shifts toward the EA.
+
+  Option 2: Add a class-AB output buffer between ea_out and gate
+  (emitter/source follower pair). This gives the EA low output
+  impedance and high current drive directly at the gate node,
+  independent of Rgate.
+
+  Option 3: Move Rgate to AFTER the clamp connection point. Place
+  a 100R between the EA buffer output and gate, with the clamp
+  connected on the EA side of Rgate. This forces the clamp to fight
+  the EA directly rather than bypassing the resistance.
+
+FIX-C: ADD SERIES RESISTANCE TO THE CLAMP (moderate priority)
+------------------------------------------------------------------------
+  The 4x 50u clamp PFETs connect directly to the gate node with
+  zero series resistance. Add 1k-5k series resistance between each
+  clamp PFET drain and the gate node:
+
+    XMclamp1 gate_clamp det_n bvdd bvdd pfet ... w=50u ...
+    Rclamp1 gate_clamp gate 2k
+
+  This limits the clamp's maximum current to (BVDD - gate) / 2k
+  ≈ 1mA, which the EA (with reduced Rgate) can fight. The current
+  limit still functions — it just does so gracefully rather than
+  slamming the gate.
+
+FIX-D: ADD HYSTERESIS TO THE CURRENT COMPARATOR (moderate priority)
+------------------------------------------------------------------------
+  The current limiter comparator (sense_out → det_n → clamp) has
+  no hysteresis. It can oscillate at the trip boundary, causing the
+  clamp to chatter. Add positive feedback to the sense_out node:
+
+  When det_n goes LOW (clamp ON), feed back a small current (~5uA)
+  into sense_out to hold it HIGH. This creates a window where the
+  limiter trips at 50mA but does not release until load drops to
+  ~45mA. Prevents the oscillation/latch behavior seen in the 10-30mA
+  dead zone.
+
+FIX-E: WIDEN THE SENSE DEVICE (low priority, helps accuracy)
+------------------------------------------------------------------------
+  XMs at W=1u suffers from narrow-width Vth shift relative to the
+  W=50u pass device fingers. Increase XMs to W=5u or W=10u and
+  adjust the mirror ratio accordingly (reduce total pass device count
+  or add sense device multiplicity). This improves Vth matching
+  between sense and pass devices.
+
+=====================================================================
+RECOMMENDED MINIMUM FIX SET
+=====================================================================
+
+Apply FIX-A (Option 1: PVDD-tracking cascode) + FIX-B (Option 1:
+Rgate 1k→100R) + FIX-C (2k series R on clamp drains).
+
+These three changes:
+  - Eliminate the sense mirror Vds error (root cause of false trip)
+  - Give the EA 10x more gate drive authority
+  - Limit the clamp's brute-force current to manageable levels
+  - Preserve the current limiter's protection function at 50mA
+
+Expected result: Clean regulation from 0-50mA, graceful current
+limiting above 50mA with controlled PVDD foldback rather than
+catastrophic collapse.
+
+=====================================================================
+VERIFICATION PLAN
+=====================================================================
+
+1. DC sweep: Iload 0 to 60mA, plot PVDD. Should be flat 5.0V from
+   0 to ~48mA, then fold back gracefully.
+2. Monitor sense_out, det_n, gate, ea_out during sweep — confirm
+   limiter stays de-asserted below 48mA.
+3. Transient: step load 1mA→50mA→1mA, verify no latch-up or
+   oscillation during recovery.
+4. PVT corners: repeat DC sweep at SS/-40C, FF/150C, FS/150C —
+   sense mirror tracks correctly across corners.
+5. Short circuit: Rload=0, verify clamp activates and limits Ipass
+   to ~50-60mA with PVDD near 0V (protection function preserved).
+
+=====================================================================
+END OF ANALYSIS
+=====================================================================

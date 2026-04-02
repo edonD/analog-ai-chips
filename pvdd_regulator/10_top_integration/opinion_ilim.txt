@@ -1,0 +1,156 @@
+================================================================================
+  CURRENT LIMIT CHARACTERISTIC — CORNER ANALYSIS
+  PVDD 5V LDO (v6 fix), plot_current_limit.png
+  2026-04-02
+================================================================================
+
+OBSERVATIONS FROM PLOT
+  TT 27°C  — regulates at 5.00V, starts drooping ~40mA, folds by ~55mA
+  SS 150°C — regulates at 5.00V, holds flat until ~55mA, then sharp foldback
+  FF -40°C — regulates at ~5.7V (0–5mA), settles to 5.0V by ~15mA, folds ~55mA
+
+Three anomalies flagged:
+  (1) FF-40 output is 5.7V at light load — violates +3.5% spec (5.175V max)
+  (2) TT27 droops earlier than other corners (~40mA vs ~55mA)
+  (3) Question on whether the "bandgap-referenced" comparator is correct
+
+--------------------------------------------------------------------------------
+(1) WHY DOES FF-40C SHOW 5.7V AT LIGHT LOAD?
+--------------------------------------------------------------------------------
+
+Root cause: MINIMUM LOAD VIOLATION — the EA cannot turn off the pass PMOS.
+
+At FF corner, -40°C, the pass PMOS has:
+  - Lower |Vtp| (fast process → threshold reduced by ~100–200mV)
+  - Higher mobility (cold temperature → µp increases ~30–40%)
+
+Both effects mean the pass device conducts MORE current for any given Vgs.
+The error amplifier drives the gate as high as it can (toward BVDD ≈ 7V) to
+turn off the PMOS, but its maximum output is ~6.4V (limited by the PFET
+current-source load in Stage 2, see 00_error_amp/design.cir). That leaves:
+
+  Vgs_min = ea_out_max - BVDD = 6.4 - 7.0 = -0.6V
+
+At FF-40, -0.6V of Vgs is enough to pass several mA through the large pass
+device. With only ~10µA of load (the feedback divider), this excess current
+charges the output capacitor and PVDD rises until leakage/parasitic paths
+absorb the surplus — in this case to 5.7V.
+
+As load current increases toward 15–20mA, the load sinks the excess and the
+EA regains authority, pulling PVDD back to 5.0V.
+
+This is a classic LDO minimum-load problem. The fix options are:
+  (a) Add a permanent bleed resistor on PVDD: e.g., 500Ω → 10mA minimum load
+      — Costs 50mW quiescent power, defeats low-Iq goal
+  (b) Increase EA output swing to within ~100mV of BVDD (current-mirror load
+      redesign, or add a rail-to-rail output stage)
+  (c) Add a small NMOS bleeder that activates when PVDD > 5.2V (local OVP)
+  (d) Accept the spec violation if the real system always draws >15mA
+
+Severity: HIGH — the output is 14% above nominal. Downstream logic rated for
+5V ±5% would see 5.7V. Could stress thin-oxide gates in 5V-tolerant I/O.
+
+--------------------------------------------------------------------------------
+(2) WHY DOES TT27 DROP EARLIER THAN SS150 AND FF-40?
+--------------------------------------------------------------------------------
+
+The TT27 curve begins drooping below 5.0V at ~40mA, while SS150 and FF-40
+hold flat until ~55mA. This is NOT the current limiter tripping early — the
+current limiter is designed for 50mA and the comparator threshold is the same
+at all corners. Instead, this is an EA LOOP REGULATION issue.
+
+Evidence: the TT27 droop is gradual (40–55mA), not a sharp fold. A comparator
+trip would produce an abrupt transition like SS150 and FF-40 show.
+
+What is happening at TT27:
+  - The pass PMOS at TT27 has nominal Vtp (~-0.9V) and nominal mobility.
+    To deliver 40–50mA, it needs substantial Vgs overdrive.
+  - The EA output must swing low to provide this gate drive. At ~40mA, the
+    EA Stage 2 NMOS (XMcs_n, W=20u L=2u) approaches its saturation limit.
+  - The EA open-loop gain drops as the output transistor enters triode,
+    reducing loop gain. With lower loop gain, load regulation degrades:
+      ΔVout ≈ ΔIload × Rout_pass / (1 + T)
+    As T (loop gain) drops, PVDD sags.
+
+Why SS150 and FF-40 don't show this:
+  - SS 150°C: PMOS |Vtp| is higher AND mobility is lower, BUT the NMOS in
+    the EA also shifts. The net effect is that the EA has more margin before
+    hitting its output swing limit, because the pass device needs more current
+    at higher Vgs — the operating point is different.
+  - FF -40°C: PMOS |Vtp| is lower, mobility is higher → the pass device needs
+    LESS Vgs to deliver 50mA. The EA output stays comfortably in its linear
+    range, so loop gain is maintained and regulation is flat until the current
+    comparator trips sharply at ~55mA.
+
+In short: at TT27, the EA runs out of output swing headroom before the current
+comparator formally engages, creating a "soft" current limit. At FF-40, the
+pass device is so efficient that the EA never stresses, so the only limiting
+mechanism is the comparator (sharp fold).
+
+Fix: Increase EA Stage 2 drive capability. Options:
+  - Increase XMcs_n width (20u → 40u) for more gm and output swing
+  - Increase tail current (more Iq budget)
+  - Add a gain-boosting cascode in Stage 2
+
+--------------------------------------------------------------------------------
+(3) IS THE BANDGAP-REFERENCED COMPARATOR WORKING CORRECTLY?
+--------------------------------------------------------------------------------
+
+Short answer: IT WORKS, BUT THE NAME IS MISLEADING AND THE ACCURACY IS MODEST.
+
+The current limiter comparator (04_current_limiter/design.cir) operates as:
+
+  Isense = Iload / 1000       (sense PMOS mirror ratio)
+  Iref   = ibias × 50         (NMOS mirror: W=100u/W=2u, L=8u both)
+  Trip when Isense > Iref  →  Iload > ibias × 50 × 1000 = 50mA
+
+The term "bandgap-referenced" is used because ibias is ultimately derived from
+the chip's bandgap reference. However, several error sources exist:
+
+  (a) SENSE MIRROR ACCURACY: XMs (W=1u L=0.5u) is 1/1000 of the pass device.
+      But L=0.5u is near minimum length — channel-length modulation (λ) and
+      Vds mismatch between the sense FET and pass device degrade the ratio.
+      The cascode (XMcas) helps match Vds, but at different load currents the
+      pass device Vds varies while the cascode bias is fixed from a resistor
+      divider. Expect ±10–20% sense ratio error across corners.
+
+  (b) NMOS MIRROR ACCURACY: L=8µm is good for matching (long channel), but
+      the 50:1 ratio (2µm vs 100µm width) means systematic offset from edge
+      effects, especially at extreme process corners. At FF-40 and SS150, the
+      effective ratio could be 52:1 or 48:1.
+
+  (c) ibias ACCURACY: If the 1µA bias has its own PVT variation (±10%), the
+      trip point shifts proportionally. This is the dominant error source.
+
+  (d) COMPARATOR SHARPNESS: The "comparator" is just the sense_out node
+      voltage — when Isense exceeds Iref, sense_out rises, and an inverter
+      converts this to a digital signal. There is no regenerative latch or
+      hysteresis. The transition is gradual (~5–10mA of load current between
+      "starting to fold" and "fully limited"), which makes the trip point
+      definition ambiguous.
+
+The plot shows trip points of ~50mA (TT27) and ~55mA (SS150, FF-40). That
+is a +10% spread across PVT. For a current limiter, this is ACCEPTABLE —
+most designs spec ±20–30% tolerance on current limit. The comparator is
+functioning as designed.
+
+However, the FF-40 and SS150 trip points being HIGHER than nominal (55mA vs
+50mA) means the worst-case current before limiting is 55mA, not 50mA. If the
+pass device SOA or bond wire fusing current is tight, this needs to be
+accounted for.
+
+--------------------------------------------------------------------------------
+SUMMARY OF FINDINGS
+--------------------------------------------------------------------------------
+
+  Issue                    Severity   Status
+  ───────────────────────  ────────   ─────────────────────────────────────
+  FF-40 light-load 5.7V   HIGH       EA cannot turn off pass FET (min load)
+  TT27 early droop         MEDIUM     EA output swing limit, not ilim fault
+  Comparator accuracy      LOW        ±10% PVT spread is acceptable
+
+  Priority fix: FF-40 light-load overvoltage. The 5.7V output is a real
+  reliability concern. Either add a bleeder/OVP clamp or redesign the EA
+  output stage for rail-to-rail swing.
+
+================================================================================

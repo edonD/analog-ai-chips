@@ -1,0 +1,351 @@
+PVDD LDO — Startup Gate Oscillation Analysis
+=============================================
+Date: 2026-04-02
+Files examined: plot_startup.png, plot_internal_startup.png,
+  10_top_integration/design.cir, 00_error_amp/design.cir,
+  09_startup/design.cir, 01_pass_device/design.cir,
+  04_current_limiter/design.cir, 08_mode_control/design.cir,
+  03_compensation/design.cir, bode_data.txt
+
+========================================================================
+OBSERVATION SUMMARY
+========================================================================
+
+From plot_startup.png:
+  - GATE (red) oscillates violently between ~5.8V and 7.0V (BVDD) from
+    t=0 to t≈7ms
+  - PVDD (blue) rises monotonically from 0V to ~5V over ~10ms
+  - VREF_SS (green, dashed) ramps smoothly with tau=2.2ms
+  - Oscillation amplitude decreases slowly as PVDD approaches regulation
+  - Oscillation stops abruptly at ~7ms when PVDD ≈ 4.7V
+
+From plot_internal_startup.png:
+  - PASS_OFF drops LOW at ~0.1ms (BVDD > 2.5V quickly)
+  - MC_EA_EN rises at ~0.4ms (but is unused — ea_en hardwired via BVDD pullup)
+  - BVDD (dashed) is steady at 7V
+  - Gate oscillation clearly visible with ~12-15 cycles per millisecond
+
+From bode_data.txt (at regulation):
+  - DC gain: ~20 dB
+  - UGB: ~30 kHz (0dB crossing near 31.6 kHz)
+  - Phase at UGB: ~247° → Phase margin ≈ 67°
+  - Loop is stable at regulation — this is NOT a small-signal instability
+
+========================================================================
+QUESTION 1: Is this the EA output fighting the BVDD pullup (Ren_ea 100Ω)?
+========================================================================
+
+NO. Ren_ea (100Ω) is NOT the cause.
+
+Ren_ea connects BVDD to ea_en (the error amp enable pin). Inside the EA:
+  - XMpu (PFET, gate=en) pulls vout_gate to BVDD when en is LOW (disabled)
+  - Since ea_en is held at BVDD by Ren_ea, Vsg of XMpu = 0 → XMpu is OFF
+
+The 100Ω resistor only carries whatever leakage current the ea_en node
+draws (sub-µA gate leakage). It does NOT interact with the EA output
+signal path. The ea_en is purely an enable/disable control, and at HIGH
+it simply keeps the EA active. There is no mechanism by which Ren_ea
+creates a pullup on the gate node.
+
+However, there IS a pullup fighting the EA — see root cause below.
+
+========================================================================
+QUESTION 2: Is the 1k Rgate creating problems?
+========================================================================
+
+YES — Rgate (1kΩ) is a critical aggravating factor, though not root cause.
+
+Rgate sits between ea_out and gate (in Block 09 startup circuit, line 19).
+The current limiter clamp PFETs connect DIRECTLY to the gate node
+(Block 04, lines 58-61: 4× PFET W=50µm L=0.5µm = 200µm total width).
+
+This creates a severe asymmetry:
+  - EA drives gate through 1kΩ series resistance → limited slew current
+  - Clamp PFETs pull gate to BVDD with near-zero output impedance
+
+When the current limiter fires, the clamp PFETs easily overpower the EA
+output through the 1kΩ isolation resistor. The EA can only deliver:
+
+    I_gate = (ea_out − gate) / Rgate = (0V − 7V) / 1kΩ = −7 mA max
+
+The 4× clamp PFETs (200µm total, L=0.5µm) in saturation can source
+tens of mA. The clamp always wins the tug-of-war.
+
+Rgate was intended for "isolation and limiting gate charge/discharge rate"
+(per Block 09 comments). In practice, it isolates the EA from its own
+output — the EA cannot maintain gate control when ANY other driver
+contends at the gate node.
+
+========================================================================
+QUESTION 3: What is the oscillation frequency and corresponding resonance?
+========================================================================
+
+OSCILLATION FREQUENCY: ~12–15 kHz (estimated from plot, ~70-100 cycles
+in 0–7ms window)
+
+This is NOT a linear resonance. It is a NONLINEAR LIMIT CYCLE caused by
+the current limiter and error amplifier fighting over the gate node.
+The frequency is set by the total loop propagation delay of the
+current-limiter feedback path, not by any LC/RC resonance.
+
+The limit-cycle loop delay consists of:
+  1. EA drives gate LOW through Rgate (1kΩ × Cgg_pass ≈ 1kΩ × ~5pF ≈ 5ns)
+     — fast, but EA output slew-limited by Stage 2 bias current (~23µA)
+  2. Pass device turns on, current into Cout begins ramping
+     — Cout=1µF, so I=C×dV/dt; at ~100mA inrush, dV/dt = 100V/s
+  3. Current limiter sense mirror (W=1µm) + cascode settles
+     — mirror NMOS (W=100µm L=8µm) has large Cgs, slow settling
+  4. Comparator inverter (XMinv) switches
+  5. Clamp PFETs activate, yank gate to BVDD (fast, ~ns)
+  6. Pass device turns off, current drops
+  7. Sense mirror current decays, mirror settles to new state
+  8. Comparator releases, clamp PFETs turn off
+  9. EA begins pulling gate back down through Rgate (slow)
+  10. Repeat from step 1
+
+The dominant delay contributions are:
+  - Steps 3,7: Current mirror settling (large L=8µm NMOS, ~5-10µs)
+  - Steps 1,9: EA recovery through Rgate (EA slew into 1kΩ load)
+  - Steps 2,6: Cout charging/discharging (1µF is slow)
+
+Total half-period ≈ 30-40µs → f ≈ 12-17 kHz. Consistent with observation.
+
+The small-signal UGB at regulation is ~30 kHz and phase margin is ~67°.
+The loop is perfectly stable in small-signal terms. This oscillation is
+a large-signal startup transient phenomenon, invisible in AC analysis.
+
+========================================================================
+ROOT CAUSE DIAGNOSIS
+========================================================================
+
+The root cause is a STARTUP INRUSH LIMIT CYCLE between the error
+amplifier and the current limiter. The mechanism:
+
+1. During startup, PVDD ≈ 0V. The feedback voltage vfb ≈ 0V.
+   The soft-start reference vref_ss is ramping (even a few mV > 0).
+
+2. The EA has high DC gain (~20dB open-loop, but at DC with integrating
+   behavior the gain is much higher). Any positive (vref_ss − vfb)
+   saturates the EA output LOW (near ground).
+
+3. With ea_out ≈ 0V and Rgate = 1kΩ, the gate is pulled to ~0V + IR drop.
+   Vsg_pass = BVDD − gate ≈ 7V → pass device fully ON in triode.
+
+4. The 1mm-wide pass PMOS (10× W=50µm L=0.5µm m=2) in triode with
+   Vds = BVDD − PVDD delivers HUNDREDS of milliamps into the 1µF Cout.
+   This massively exceeds the 50mA current limit threshold.
+
+5. The current limiter detects overcurrent:
+   - Sense PMOS mirrors Ipass/1000 → sense current >> 50µA threshold
+   - Comparator trips → det_n goes LOW
+   - 4× clamp PFETs (200µm) yank gate to BVDD
+
+6. Gate at BVDD → Vsg = 0 → pass device OFF → current drops to zero.
+
+7. Current limiter releases (det_n goes HIGH, clamp OFF).
+
+8. EA immediately drives gate LOW again (vfb still << vref_ss).
+
+9. Cycle repeats at ~12-15 kHz.
+
+The key insight: the soft-start reference (Rss × Css, tau=2.2ms) does
+NOT provide soft-start of the CURRENT. It soft-starts the voltage
+TARGET. But the EA has enough gain that even the tiniest positive error
+(vref_ss − vfb) saturates the output, commanding full pass-device
+current. The actual output voltage rise rate is limited by the current
+limiter, not by the soft-start reference — and the current limiter does
+this through violent oscillation rather than clean limiting.
+
+The oscillation decays and stops at ~7ms because:
+  - As PVDD rises toward 5V, vfb approaches vref_ss
+  - The EA error signal shrinks, EA comes out of saturation
+  - The EA no longer drives gate to the rail
+  - The loop transitions from bang-bang limit cycle to linear regulation
+  - Current demand drops below 50mA → current limiter disengages
+
+========================================================================
+QUESTION 4: How to fix the gate oscillation
+========================================================================
+
+FIX OPTION A — Gate Snubber Capacitor (Simplest, Lowest Risk)
+--------------------------------------------------------------
+Add a capacitor directly on the gate node:
+
+    Cgate_snub gate gnd 100p    (or gate bvdd 100p)
+
+Effect: Slows the gate slew rate, converting the bang-bang oscillation
+into a smooth ramp. With 100pF and the clamp PFETs sourcing ~10mA:
+    dV/dt = I/C = 10mA/100pF = 100V/µs → still fast for startup
+    But combined with Rgate=1kΩ: τ = 1kΩ × 100pF = 100ns
+
+This may not be enough. A larger value (1-10nF) would smooth more
+aggressively but would also slow load transient response. Trade-off:
+  100pF: Minimal smoothing, may not kill oscillation
+  1nF:   τ = 1µs through Rgate, should damp limit cycle
+  10nF:  τ = 10µs, definitely kills oscillation but load transient
+         response degrades (gate cannot slew faster than ~1V/10µs)
+
+Recommended: 1nF as starting point. Verify load transient still meets
+spec (10mA step, ΔVout < 100mV).
+
+
+FIX OPTION B — Disable Current Limiter During Startup (Clean Fix)
+------------------------------------------------------------------
+The mode control already outputs ilim_en (from COMP4, TH4=5.6V BVDD).
+Currently unused — per design.cir line 142:
+  "NOTE: ilim_en is output by mode control but not connected."
+
+Add an enable input to the current limiter. Gate the clamp PFETs with
+ilim_en so they only activate after BVDD > 5.6V and PVDD is up:
+
+In current_limiter.cir, gate the clamp PFETs:
+  - Add ilim_en port
+  - AND det_n with ilim_en_b (inverted ilim_en)
+  - Or simply: gate the clamp PFET gates with a series NFET controlled
+    by ilim_en_b
+
+Risk: During the startup window (0 to ~5ms), there is NO overcurrent
+protection. If a short circuit occurs during startup, the pass device
+could be damaged. This is the standard trade-off for startup sequencing.
+
+Mitigation: Keep a higher (coarse) current limit always active using a
+simple resistor-sensed clamp (e.g., 200mA), and only enable the
+precision 50mA limiter via ilim_en.
+
+
+FIX OPTION C — Reduce Rgate (Moderate Improvement)
+----------------------------------------------------
+Replace Rgate = 1kΩ with 100Ω or 50Ω.
+
+This lets the EA maintain gate control against the clamp PFETs.
+With Rgate=100Ω, EA can deliver:
+    I = 7V / 100Ω = 70mA into the gate node
+
+This is comparable to what the clamp PFETs deliver, so the EA and clamp
+reach a steady-state compromise rather than oscillating. The gate would
+settle to an intermediate voltage where the pass device current equals
+exactly the current limit threshold.
+
+Risk: Lower Rgate means the gate node is more tightly coupled to ea_out.
+Any noise or ringing on ea_out propagates to the gate. The original
+purpose of Rgate was isolation — removing it couples the EA more tightly
+to the large Cgs of the pass device, potentially affecting EA stability
+(adding a large capacitive load to Stage 2).
+
+EA Stage 2 bias current is ~23µA. Driving Cgs_pass (~5pF) through 100Ω:
+    f_pole = 1/(2π × 100 × 5p) = 318 MHz — no AC concern at all.
+
+But the clamp PFETs connecting directly to gate still create a
+disturbance. This fix reduces oscillation amplitude but may not
+eliminate it entirely.
+
+
+FIX OPTION D — Soft-Start Current Ramp (Most Robust, Most Complex)
+-------------------------------------------------------------------
+Replace the current limit reference with a ramping reference:
+
+Instead of a fixed 1µA ibias_ilim, use a filtered version:
+    Iibias_ilim 0 ibias_ilim_raw 1u
+    Rss_ilim ibias_ilim_raw ibias_ilim 100k    (or xhigh_po)
+    Css_ilim ibias_ilim gnd 10n
+
+This ramps ibias_ilim from 0 to 1µA with tau = 100k × 10n = 1ms.
+The current limit threshold ramps from 0mA to 50mA over ~5ms.
+
+Effect: During early startup, the current limit is very low (near 0),
+so the pass device can only trickle current into Cout. PVDD rises
+slowly and smoothly. As ibias_ilim ramps up, the current limit
+threshold increases, and by the time PVDD nears regulation, the full
+50mA limit is available.
+
+This is the most robust approach because:
+  - Current is always limited (no protection gap like Option B)
+  - No oscillation (limit tracks available current smoothly)
+  - PVDD rise is monotonic and predictable
+
+Downside: Adds components and increases startup time. With tau=1ms,
+startup current limit reaches 50mA at ~5ms. PVDD charging at an average
+of ~25mA into 1µF: ΔV = I×t/C = 25mA×5ms/1µF = 125V — obviously the
+cap charges to 5V well within this time.
+
+
+FIX OPTION E — Combined: Rgate Reduction + Gate Capacitor (Recommended)
+------------------------------------------------------------------------
+Reduce Rgate from 1kΩ to 200Ω AND add Cgate_snub = 500pF on the gate:
+
+    Rgate ea_out gate 200        (was 1k)
+    Cgate_snub gate bvdd 500p    (new)
+
+Rationale:
+  - 200Ω Rgate: EA can deliver 35mA to contest the clamp, preventing
+    full bang-bang. Still provides some isolation.
+  - 500pF on gate: τ_gate = 200Ω × 500pF = 100ns through Rgate.
+    Clamp sees 500pF → slew limited to ~10mA/500pF = 20V/µs.
+    Gate transitions become ~100ns-scale, well within any limit cycle
+    period, effectively converting oscillation to a DC operating point.
+
+AC impact check at regulation:
+  - Gate pole with 200Ω + 500pF: f = 1/(2π×200×500p) = 1.6 MHz
+  - UGB is 30 kHz → this pole is 50× above UGB, negligible impact
+  - Phase margin unchanged at ~67°
+
+Load transient check:
+  - For a 10mA load step, EA must slew gate by ~200mV
+  - Slew time ≈ 200mV × 500pF / 23µA_EA ≈ 4.3µs → acceptable
+
+This is the recommended fix: minimal component addition, no protection
+gap, no startup time penalty, and negligible AC impact.
+
+========================================================================
+SUMMARY TABLE
+========================================================================
+
+Fix     | Kills    | Protection | AC      | Startup | Complexity
+        | Oscill?  | Gap?       | Impact? | Slower? |
+--------|----------|------------|---------|---------|----------
+A 1nF   | Likely   | No         | Minor   | No      | Trivial
+B ilim  | Yes      | YES        | None    | No      | Moderate
+C 100Ω  | Partial  | No         | None    | No      | Trivial
+D ramp  | Yes      | No         | None    | Yes     | High
+E combo | Yes      | No         | Negligible | No   | Low
+
+RECOMMENDATION: Option E (Rgate=200Ω + Cgate=500pF) as primary fix.
+Verify with transient simulation across PVT corners. If oscillation
+persists at worst case (FF 150°C where gm is highest), increase
+Cgate to 1nF.
+
+If a protection gap is acceptable during startup, Option B (ilim_en
+gating) is the cleanest architectural solution and should be implemented
+alongside Option E for defense in depth.
+
+========================================================================
+WHY THE SOFT-START REFERENCE DOESN'T PREVENT THIS
+========================================================================
+
+A common misconception: "The soft-start (tau=2.2ms) should prevent
+inrush by ramping the reference slowly."
+
+This is wrong for high-gain amplifiers. The EA has ~20dB DC gain (and
+higher at very low frequencies due to the 1µF output cap creating an
+integrator pole). Even when vref_ss is only 10mV and vfb is 0mV:
+
+    EA output ≈ A_dc × (vref_ss − vfb) = 10 × 10mV = 100mV error signal
+
+But in practice the EA gain at DC is much higher (two-stage OTA), and
+the output saturates to the negative rail (near GND) for ANY positive
+input error. The soft-start ramp cannot prevent output saturation
+because the amplifier is operating in open-loop (PVDD << target, so
+the loop isn't closed yet — vfb is nowhere near vref_ss).
+
+The soft-start determines WHEN the loop closes (when vfb finally catches
+up to vref_ss), not HOW MUCH current flows during the ramp. During the
+entire ramp, the EA is railed and the pass device is fully ON.
+
+To actually limit startup current, you need either:
+  - A current-domain soft-start (Option D above)
+  - Current limiter that doesn't oscillate (Options A, C, E)
+  - No current limiter during startup (Option B)
+
+========================================================================
+END OF ANALYSIS
+========================================================================

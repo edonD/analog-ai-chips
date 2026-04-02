@@ -1,0 +1,276 @@
+================================================================================
+ ANALYSIS: Current Limiter Design vs. Observed DC Regulation Behavior
+ PVDD 5V LDO — SkyWater SKY130A
+ Date: 2026-04-02
+================================================================================
+
+PROBLEM STATEMENT
+-----------------
+The current limiter is designed for a 50mA trip point (1/1000 sense ratio ×
+50µA mirror reference = 50mA). However, the DC load-regulation data
+(ilim_rload_data.txt) shows regulation collapsing at 10–17mA with wildly
+erratic PVDD values across the load range. The ilim_final_data.txt shows
+improved but still imperfect behavior with anomalies at 250Ω (12mA, PVDD
+dropping to 2.98V) and a spike at 1kΩ (PVDD = 6.23V).
+
+
+(1) IS THE SENSE RATIO ACTUALLY 1000:1?
+========================================
+
+Pass device (01_pass_device/design.cir):
+  10 × (W=50µm, L=0.5µm, m=2) = 10 × 100µm = 1000µm total W, L=0.5µm
+
+Sense PMOS XMs (04_current_limiter/design.cir, line 35):
+  W=1µm, L=0.5µm, m=1 (single instance)
+
+Geometric ratio: 1000/1 = 1000:1.  ✓ Correct by layout.
+
+BUT — the ratio is only accurate if Vds matches. Under regulation:
+  Pass device:  Vds = PVDD − BVDD = 5.0 − 7.0 = −2.0V  (|Vds| = 2.0V)
+  Sense PMOS:   Vds = cas_mid − BVDD
+
+The cascode fixes cas_mid ≈ Vcas_bias + |Vgs_cas|. With cas_bias ≈ 3.0V
+(BVDD × 300/700) and |Vth| ≈ 0.7–0.9V for HV PMOS, |Vgs_cas| in
+saturation ≈ |Vth| + overdrive ≈ 0.9–1.1V.
+
+  cas_mid ≈ 3.0 + 1.0 = ~4.0V
+  |Vds_sense| = 7.0 − 4.0 = 3.0V
+
+So the sense PMOS sees |Vds| ≈ 3.0V vs the pass device's 2.0V. With
+L = 0.5µm (short channel), channel-length modulation (λ) is significant.
+For SKY130 HV PMOS at L=0.5µm, λ ≈ 0.1–0.2 V⁻¹.
+
+  Ratio error = (1 + λ·3.0) / (1 + λ·2.0)
+
+  With λ = 0.15:  ratio = 1.45/1.30 = 1.115  → 11.5% excess sense current
+
+This means the effective trip point drops from 50mA to ~44mA. Significant
+but NOT enough to explain the 10–17mA failure.
+
+Verdict: The 1000:1 geometric ratio is correct. Vds mismatch causes ~10–15%
+error (trip at ~43–45mA instead of 50mA). Not the primary problem.
+
+
+(2) IS THE CASCODE BIASED CORRECTLY?
+=====================================
+
+Cascode bias comes from a BVDD resistor divider (lines 31–32):
+  XRcas_top: xhigh_po, L=400 → R_top
+  XRcas_bot: xhigh_po, L=300 → R_bot
+  cas_bias = BVDD × R_bot/(R_top + R_bot) = 7.0 × 300/700 = 3.0V
+
+For the cascode PMOS (XMcas, W=10µm, L=0.5µm):
+  Source = cas_mid ≈ 4.0V (see above)
+  Gate = cas_bias = 3.0V
+  Vsg = 4.0 − 3.0 = 1.0V  →  well above |Vth| ≈ 0.8V  →  ON in saturation ✓
+
+  Drain = sense_out (pulled by NMOS mirror or sense current)
+  Vsd = cas_mid − sense_out
+
+When sense_out is pulled LOW (below trip, NMOS wins):
+  Vsd_cas could be large (4V − ~0V = 4V), but the cascode is in saturation
+  and current is set by XMs. This is fine.
+
+When sense_out is HIGH (above trip, sense current wins):
+  sense_out rises, Vsd_cas drops, but cascode stays in saturation as long as
+  Vsd > Vsg − |Vth| ≈ 0.2V. Should be fine.
+
+One concern: The cascode W=10µm is 10× the sense device W=1µm. This is
+intentionally large to minimize voltage drop, but it also means the cascode
+can pass substantially more current than the sense device provides. This is
+OK — the sense device is the bottleneck.
+
+However, the cascode bias at 3.0V does NOT match the pass device drain
+voltage (PVDD = 5.0V). The purpose of the cascode is to force Vds_sense ≈
+Vds_pass for accurate mirroring. For that, cas_bias should be set so that
+cas_mid ≈ PVDD. This means:
+
+  Ideal cas_bias = PVDD − |Vgs_cas| ≈ 5.0 − 1.0 = 4.0V
+
+But the divider gives 3.0V, forcing cas_mid to ~4.0V instead of ~5.0V.
+The Vds mismatch is:
+  |Vds_sense| = BVDD − cas_mid = 7 − 4 = 3.0V  (should be 2.0V like pass)
+
+Verdict: The cascode is ON and functional, but its bias point is WRONG for
+Vds matching. It should be biased to put cas_mid ≈ 5V (matching PVDD), not
+4V. The divider ratio should be ~430/700 ≈ 4.3V instead of 3.0V. This is
+a design deficiency but causes only ~10–15% trip point error, not the
+observed 3–5× error.
+
+
+(3) DOES THE CURRENT LIMITER INTERFERE WITH REGULATION BELOW TRIP?
+===================================================================
+
+Below the trip point, the sense current (Ipass/1000) is less than the mirror
+reference (50µA). The NMOS mirror (XMref_m) wins and pulls sense_out LOW.
+The inverter drives det_n HIGH (≈ BVDD). The clamp PFETs see Vsg ≈ 0V and
+should be fully OFF.
+
+The sense PMOS XMs shares the gate node with the pass device. It draws:
+  At Iload = 10mA:  Isense = 10µA
+  At Iload = 50mA:  Isense = 50µA
+
+This current comes from BVDD (source of XMs), not from the gate node.
+The gate sees only XMs's Cgs (negligible compared to pass device Cgs).
+
+BUT — examining the data in ilim_rload_data.txt reveals a critical clue:
+
+  Rload=333Ω: PVDD=4.98V, Iload=14.9mA  ← regulation OK
+  Rload=250Ω: PVDD=4.31V, Iload=17.2mA  ← regulation LOST
+  Rload=200Ω: PVDD=3.68V, Iload=18.4mA  ← collapsed
+  Rload=167Ω: PVDD=1.11V, Iload=6.6mA   ← catastrophic
+  Rload=143Ω: PVDD=4.97V, Iload=34.7mA  ← RECOVERED!?
+  Rload=125Ω: PVDD=2.55V, Iload=20.3mA  ← collapsed again
+
+This is NOT the behavior of a clean current limit trip. This is
+OSCILLATION or BISTABILITY — the circuit is flipping between two operating
+points. The current limiter appears to be fighting the error amplifier in
+a feedback conflict, creating a region of instability from ~15mA to ~35mA.
+
+Root cause hypothesis: When the sense current approaches 50µA, sense_out
+transitions from LOW to HIGH. This is a high-gain transition through the
+comparator (NMOS mirror + inverter). The clamp PFETs begin to pull the gate
+toward BVDD. But the error amp is simultaneously trying to pull the gate
+LOW (to increase PVDD). This creates positive feedback:
+
+  1. Clamp partially engages → gate rises → pass device current drops
+  2. PVDD drops → error amp pulls gate lower → pass current increases
+  3. Sense current rises → clamp engages harder → goto 1
+
+The issue is that the current limiter and error amp share the gate node
+with NO isolation or soft handoff. The comparator (inverter) has very
+high gain, so the transition is abrupt. Combined with the loop delay
+through the error amp, this creates a classic latch-up/oscillation.
+
+The ilim_final_data.txt (which appears to be from a later version) shows
+improved but not perfect behavior — the 250Ω anomaly (PVDD=2.98V) and
+1kΩ spike (PVDD=6.23V) suggest residual instability.
+
+Verdict: YES — the current limiter interferes with regulation well below
+the intended 50mA trip point. The mechanism is feedback instability between
+the current limiter (fast, high-gain clamp) and the error amplifier (slow,
+high-gain loop). The erratic data proves bistability/oscillation.
+
+
+(4) COULD THE CLAMP PFETs (4×50µ) BE PARTIALLY CONDUCTING?
+============================================================
+
+The clamp PFETs (XMclamp1–4, each W=50µm L=0.5µm, total 200µm):
+  Gate = det_n
+  Source = BVDD (7V)
+  Drain = gate node
+
+When det_n = BVDD (no overcurrent), Vsg = 0V → OFF.
+When det_n = 0V (overcurrent), Vsg = BVDD ≈ 7V → hard ON.
+
+The concern is the transition region. The inverter (XMinv) is:
+  NFET: W=10µm, L=1µm
+  PFET: W=20µm, L=1µm
+
+With BVDD=7V supply, the inverter threshold is approximately:
+  Vth_inv ≈ BVDD × √(βn/βp) / (1 + √(βn/βp))
+
+  βn = µn·(W/L)n = µn·10,  βp = µp·(W/L)p = µp·20
+  With µn/µp ≈ 2.5:  βn/βp ≈ (2.5×10)/20 = 1.25
+  Vth_inv ≈ 7 × 1.12/(1+1.12) ≈ 3.7V
+
+So when sense_out crosses ~3.7V, det_n swings. The inverter gain is high
+(both devices in saturation near the threshold), so det_n transitions
+sharply. The clamp PFETs should not be partially ON in steady state.
+
+HOWEVER — during the oscillation/bistability described in (3), sense_out
+may hover near the inverter threshold. In this metastable region, det_n
+could sit at an intermediate voltage (say 3–5V), putting the clamp PFETs
+in a PARTIALLY ON state:
+
+  Vsg_clamp = BVDD − det_n = 7 − 4 = 3V  (with |Vth| ≈ 0.8V → ON)
+
+With 4 × W=50µm L=0.5µm in saturation:
+  Each clamp PFET can sink several mA at Vsg=3V. Four in parallel =
+  potentially 5–20mA of current pulling the gate toward BVDD.
+
+This is devastating. The error amp output current is limited (a few
+hundred µA at best from the OTA). The clamp PFETs at partial conduction
+overwhelm the error amp, pulling the gate up, reducing PVDD, which feeds
+back into more sense current confusion.
+
+Verdict: YES — the clamp PFETs are almost certainly partially conducting
+during the instability region. Their enormous W/L (200µm total vs error
+amp's ~µA drive) means even slight partial conduction destroys regulation.
+This is the AMPLIFICATION MECHANISM that turns a small sense-current
+perturbation into full regulation collapse.
+
+
+================================================================================
+SYNTHESIS: WHY REGULATION FAILS AT 10–17mA INSTEAD OF 50mA
+================================================================================
+
+The 50mA trip point calculation (1000:1 sense × 50µA reference) is
+approximately correct for steady-state DC. The problem is NOT the trip
+point itself — it's that the current limiter creates instability WELL
+BELOW the trip point. The chain of causation:
+
+1. CASCODE Vds MISMATCH (Section 2): The sense device sees |Vds|=3.0V vs
+   the pass device's 2.0V. Due to channel-length modulation at L=0.5µm,
+   the sense current is ~10–15% higher than Ipass/1000. This shifts the
+   effective trip to ~43mA — still well above 17mA.
+
+2. FEEDBACK INSTABILITY (Section 3): As load current increases, sense_out
+   rises gradually toward the inverter threshold. At some point (~15mA
+   in the erratic data), the sense current + NMOS mirror current creates
+   a metastable balance. The high-gain comparator (inverter) amplifies
+   noise, and the clamp PFETs begin toggling. The error amp cannot
+   respond fast enough (compensation limits bandwidth), creating a
+   sustained oscillation between "clamp engaged" and "error amp
+   regulating."
+
+3. CLAMP PFET OVERWHELMING ERROR AMP (Section 4): The 4×50µm clamp
+   PFETs have orders of magnitude more drive capability than the error
+   amp. Even partial conduction (Vsg = 2–3V) injects milliamps into
+   the gate node, while the error amp can only source/sink ~100–500µA.
+   The clamp wins every fight.
+
+4. v6/v11 FIXES ADDRESSED SECONDARY ISSUES: The ibias sharing (halving
+   the reference to 25µA → 25mA trip) and the gate pullup leakage were
+   real bugs. Fixing them (dedicated ibias_ilim, wider inverter) moved
+   the nominal trip from ~17mA to ~53mA in the improved data
+   (ilim_final_data.txt). But the erratic data (ilim_rload_data.txt)
+   shows the UNDERLYING instability problem persists.
+
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+1. ADD HYSTERESIS TO THE COMPARATOR
+   The sense_out → det_n inverter has no hysteresis. Add Schmitt-trigger
+   action (positive feedback PFET from det_n to sense_out, W~1–2µm) to
+   create a clean snap transition with ~5–10% hysteresis band. This
+   prevents the metastable hover that causes partial clamp conduction.
+
+2. ADD SERIES RESISTANCE TO CLAMP PATH
+   Insert 10–50kΩ between det_n and the clamp PFET gates. This creates
+   an RC filter (with clamp gate capacitance) that slows the clamp
+   response, giving the error amp time to respond and preventing
+   oscillation. Alternatively, reduce clamp PFET W/L (200µm total is
+   massive overkill — 20µm total would suffice for gate clamping).
+
+3. FIX CASCODE BIAS FOR Vds MATCHING
+   Change the resistor divider to produce ~4.0–4.3V instead of 3.0V.
+   This puts cas_mid ≈ 5.0V, matching Vds_pass for accurate 1000:1
+   mirroring. Change ratio to: L_top=300, L_bot=400 (swap values) for
+   cas_bias = 7 × 400/700 = 4.0V.
+
+4. REDUCE CLAMP STRENGTH
+   4 × 50µm = 200µm total clamp is absurd. The gate node needs at most
+   a few mA to pull up. Reduce to 2 × 5µm = 10µm total. This makes
+   partial conduction during transitions much less damaging.
+
+5. DECOUPLE CLAMP FROM GATE WITH SOFT HANDOFF
+   Rather than hard-clamping the gate, use the current limiter to reduce
+   the error amp reference (soft current foldback). This avoids the
+   two-actuator fight on the gate node entirely.
+
+================================================================================
+END OF ANALYSIS
+================================================================================

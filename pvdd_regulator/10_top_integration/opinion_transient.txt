@@ -1,0 +1,330 @@
+==============================================================================
+ LOAD TRANSIENT ANALYSIS — PVDD 5V LDO REGULATOR (v11)
+ SkyWater SKY130A — TT 27C and PVT Corners
+ Date: 2026-04-02
+==============================================================================
+
+OBSERVED BEHAVIOR (from plot_load_transient.png, plot_pvt_load_transient.png):
+  TT 27C:  Baseline 4.92V (80mV below 5.0V target)
+           Undershoot 38mV on 1→10mA step, overshoot 43mV on 10→1mA step
+           Damped ringing after BOTH edges (~15-20 cycles to settle)
+  FS 150C: Continuous oscillation, ~200mVpp, never settles
+  SS 27C:  Baseline ~4.93V, moderate ringing, eventually settles
+  TT -40C: Baseline ~4.90V, worst undershoot (105mV at FS150), ringing present
+
+==============================================================================
+(1) WHY IS THE BASELINE AT 4.92V, NOT 5.0V?  (80mV DC OFFSET)
+==============================================================================
+
+The 80mV error (1.6% of target) has three contributing mechanisms:
+
+A. FINITE DC LOOP GAIN (dominant cause, ~50-60mV contribution)
+
+   The Bode data shows low-frequency loop gain of only ~20 dB (≈10x). This is
+   extremely low for an LDO — typical designs achieve 60-80 dB DC loop gain.
+
+   With loop gain T, the output is:
+     Vout = Vtarget × T/(1+T)
+
+   At T=10: Vout = 5.0 × 10/11 = 4.545V — a 455mV error if gain were truly
+   only 10x at DC. The actual error is only 80mV, suggesting the true DC gain
+   is somewhat higher than the Bode measurement indicates (the measurement may
+   have been taken at a non-optimal bias point or load condition). Estimating
+   from the 80mV error:
+
+     4.92 = 5.0 × T/(1+T) → T ≈ 61.5 → ~36 dB
+
+   This is still low. The root cause: the two-stage OTA has moderate gain.
+   Stage 1 (diff pair + mirror): Av1 ≈ gm1 × (ro_n || ro_p) ≈ 25-35 dB
+   Stage 2 (NFET CS + PFET load): Av2 ≈ gm_cs × (ro_n || ro_p) ≈ 15-25 dB
+   But the Miller compensation Cc=20pF across Stage 2 creates a capacitive
+   divider that reduces the effective DC gain at the output — the compensation
+   cap provides a low-impedance path that bleeds signal current at frequencies
+   above the dominant pole. The pass device gm/gds adds 10-15 dB.
+
+   Net loop gain ≈ 35-45 dB, explaining the 80mV-class DC error.
+
+B. ERROR AMPLIFIER SYSTEMATIC INPUT OFFSET (~10-20mV referred to output)
+
+   The PMOS diff pair (M1/M2: W=80µm L=4µm m=2) with NMOS mirror load
+   (W=20µm L=8µm m=2) has a systematic offset because:
+
+   - The mirror load has a diode-connected side (d1) and a mirror side (d2).
+     The drain voltage of d1 (diode, ~Vgs above GND) differs from d2 (set by
+     Stage 2 input). This Vds mismatch across the mirror creates a systematic
+     current error through channel-length modulation (lambda effect).
+   - With L=8µm in the mirror, lambda is small (~0.01/V) but nonzero.
+     The Vds difference × lambda × Id creates 1-2% current mismatch → a few
+     mV of referred input offset → 10-20mV at the output (divided by beta).
+
+C. FEEDBACK RESISTOR RATIO ERROR (minor, ~5-10mV contribution)
+
+   R_TOP=364kOhm (l=536), R_BOT=118kOhm (l=174.3), both xhigh_po w=3µm.
+   Beta = R_BOT/(R_TOP+R_BOT) = 118/482 = 0.2448
+   Target Vout = 1.226/0.2448 = 5.008V (only 8mV above 5.0V nominal)
+
+   The xhigh_po resistors have ~2kOhm/sq sheet resistance with process
+   variation of ±15-20%. However, since both use the same material and are
+   presumably laid out adjacently, the RATIO tracks well (first-order
+   cancellation). Residual mismatch from random variation (Pelgrom) at
+   this geometry contributes ~0.1-0.3% ratio error → 5-15mV output error.
+
+SUMMARY: The 80mV offset is dominated by insufficient DC loop gain (~36 dB
+vs. the 60+ dB needed for <10mV accuracy). The OTA needs a gain-boosting
+modification or a third gain stage.
+
+==============================================================================
+(2) WHAT IS CAUSING THE RINGING?
+==============================================================================
+
+The TT 27C plot shows clear damped oscillatory ringing at both load step edges.
+From the plot, the ringing period is ~50-70µs → frequency ~15-20 kHz. This is
+the characteristic signature of a LIGHTLY DAMPED COMPLEX POLE PAIR in the
+closed-loop transfer function — i.e., insufficient phase margin.
+
+Root cause — inadequate pole-zero separation in the compensation:
+
+The loop has these poles and zeros:
+
+  p1 (dominant): Set by Cout_ext × Rout_pass
+     Rout_pass ≈ 1/(gm_pass × loop_gain_before_pass) or equivalently the
+     closed-loop output impedance. With 1µF Cout, this is at very low freq.
+
+  p2 (EA internal): At the d2 node (Stage 1 output / Stage 2 input).
+     Without Miller compensation: p2 ≈ gm_mirror / (Cd2_parasitic)
+     With Miller: p2 is split — pushed to higher frequency by Miller effect,
+     but the effective location depends on Cc, Rc, and the parasitic caps.
+
+  p3 (output of EA / gate node): The gate node sees Cgs of the pass device
+     (1mm total width → Cgs ≈ 5-15pF) plus wiring. With Rgate_path (the
+     Rc=8k in the Miller network is in the signal path!), this creates:
+     p3 ≈ 1/(2π × Rgate_eff × Cgate) ≈ 1/(2π × 8kΩ × 10pF) ≈ 2 MHz
+
+  z1 (Miller Rc zero): z1 = 1/(2π × Rc × Cc) = 1/(2π × 8k × 20p) ≈ 1 MHz
+     This is a LEFT-half-plane zero (Rc > 1/gm_cs_n) meant to cancel p2.
+
+  p_load: The 200pF internal Cload creates a secondary pole with ESR of
+     the output network. At ~1/(2π × Rout × 200p).
+
+THE PROBLEM: The zero z1 at ~1 MHz is supposed to cancel p2 and provide
+phase boost at the unity-gain crossover. But with UGB at only ~1-2.4 kHz
+(from the Bode data), the zero is placed ~3 decades above UGB — it provides
+NO phase boost where it's needed. Meanwhile, the gain rolls off through
+p2 and p3 before the zero can help, and the phase accumulates to near -180°
+(or worse) at the UGB, giving marginal phase margin (~30-40°, consistent
+with the observed ringing and Q-factor of ~2-3).
+
+Additionally, the 1µF external cap (Cout_ext) and 200pF internal cap (Cload)
+create a pole-splitting effect at the output. The large Cout dominates, but
+the 200pF in parallel creates a minor resonance with the bondwire/trace
+inductance (if any).
+
+The ringing is WORSE on the 10→1mA unload step (43mV overshoot vs 38mV
+undershoot) because:
+  - At light load (1mA), pass device gm drops → output impedance rises
+  - Loop gain changes → effective phase margin is even worse at light load
+  - The pass device enters a less linear operating region
+
+==============================================================================
+(3) WHY IS FS 150C UNSTABLE? (CONTINUOUS 200mVpp OSCILLATION)
+==============================================================================
+
+FS 150C is the worst stability corner. The oscillation is NOT transient
+ringing — it is SUSTAINED, meaning the loop has NEGATIVE phase margin at
+this corner. The system is genuinely unstable.
+
+Three effects conspire at FS 150C:
+
+A. FAST NMOS → HIGHER GAIN, WIDER BANDWIDTH
+
+   "Fast NMOS" means lower Vth, higher mobility → higher gm for the same
+   bias current. This affects:
+   - Mirror load (NMOS, W=20µm L=8µm m=2): higher gm → higher Stage 1 gain
+   - CS amplifier (NMOS, W=20µm L=2µm): higher gm → higher Stage 2 gain
+   - The total loop gain increases by 3-6 dB at FS vs TT
+
+   Higher loop gain means the UGB shifts to higher frequency, where there
+   is LESS phase margin. If TT has ~35° PM, adding 3-6 dB of gain shifts
+   UGB into the region where accumulated phase lag exceeds -180°.
+
+B. SLOW PMOS → PASS DEVICE OUTPUT POLE SHIFTS DOWN
+
+   "Slow PMOS" at 150C means the pass device has lower gm (higher Vth,
+   lower mobility at high temp partially offset by Vth reduction — but net
+   effect is reduced drive capability). This:
+   - Reduces the pass device transconductance → the output pole
+     p_out = gm_pass/(2π × Cout) shifts to lower frequency
+   - The lower-frequency output pole adds more phase lag at the (now higher)
+     UGB → phase margin erodes further
+
+   Similarly, the PMOS tail current source and diff pair have lower gm,
+   but since Stage 1 is PMOS-loaded-with-NMOS-mirror, the NMOS mirror
+   dominance means Stage 1 gain INCREASES at FS.
+
+C. 150C TEMPERATURE EFFECTS
+
+   At 150°C:
+   - All junction capacitances increase (wider depletion regions at high T
+     for some junctions, but generally Cj changes are modest)
+   - Subthreshold slope degrades → gm/Id ratio drops for the same operating
+     point, but absolute gm changes depend on the bias current tracking
+   - The bias chain (pb_tail mirrors) tracks temperature, but the NMOS/PMOS
+     gain ratio shifts because they have different temperature coefficients
+   - The 1µA ibias from the bandgap shifts slightly with temperature
+
+   Net effect at 150C: the non-dominant poles shift to lower frequencies
+   while the gain stays high (fast NMOS) → UGB overshoots the phase margin
+   boundary.
+
+QUANTITATIVE ESTIMATE:
+   If TT 27C has PM ≈ 35° (consistent with the ringing Q ≈ 2-3), then:
+   - FS adds ~3-6 dB gain → UGB doubles → phase drops ~15-20° (one octave
+     of additional phase accumulation from the non-dominant poles)
+   - 150C shifts poles down → additional 10-15° phase loss
+   - Total: PM ≈ 35° - 25° = ~10° (barely stable) to -5° (unstable)
+
+   At -5° to -10° PM, the loop oscillates. The 200mVpp amplitude is limited
+   by slew rate of the EA and nonlinear compression of the gain stages.
+
+==============================================================================
+(4) COMPENSATION CHANGES TO FIX STABILITY
+==============================================================================
+
+The fundamental problem: the Miller compensation (Cc=20pF, Rc=8kΩ) was tuned
+for typical corner with marginal phase margin (~35°). There is no margin left
+for PVT variation. Target: >55° phase margin at ALL corners.
+
+RECOMMENDED CHANGES (in priority order):
+
+--- FIX A: INCREASE Cc TO 40-50pF (most impactful, low risk) ---
+
+   Current: Cc = 20pF, UGB ≈ 1-2.4 kHz
+   Proposed: Cc = 40pF
+
+   Effect: UGB drops by ~2× (to ~0.5-1.2 kHz). This moves the crossover
+   to a frequency with more phase margin. The bandwidth penalty is modest
+   since the LDO was already slow (1-2 kHz UGB with 1µF Cout is typical).
+
+   The transient response will be slightly slower (settling time increases
+   by ~2×), but the undershoot/overshoot will be better damped because the
+   higher phase margin eliminates the resonant peaking.
+
+   Trade-off: Cc=40pF in sky130 = ~0.04mm² (MIM cap) — easily realizable.
+   Going beyond 50pF has diminishing returns and costs area.
+
+--- FIX B: REDUCE Rc TO 3-5kΩ (tune the LHP zero) ---
+
+   Current: Rc = 8kΩ → z1 = 1/(2π × 8k × 20p) = 1 MHz (with 20pF Cc)
+   With Cc=40pF: z1 = 1/(2π × 8k × 40p) = 500 kHz — still far above UGB
+
+   Proposed: Rc = 4kΩ with Cc=40pF → z1 = 1/(2π × 4k × 40p) = 1 MHz
+
+   Actually, the zero location with larger Cc is already better. But Rc
+   also sets the RHP zero cancellation condition. The key constraint:
+     Rc > 1/gm_cs_n (to keep the zero in LHP)
+   With gm_cs_n ≈ 0.5-1 mA/V → 1/gm ≈ 1-2 kΩ. So Rc = 4kΩ is safe.
+
+   More importantly: Rc is in the signal path from EA output to the gate.
+   Reducing Rc from 8kΩ to 4kΩ speeds up the gate drive → improves large-
+   signal transient recovery. The 8kΩ Rc with 10pF Cgs creates a 12.5 MHz
+   pole, but during large-signal events the slew rate through this RC is
+   limited: dV/dt = Ibias/Cc. With I_stage2 ≈ 23µA and Cc=40pF:
+     Slew rate = 23µA/40pF = 0.575 V/µs
+   This is adequate for the 1-2 kHz bandwidth.
+
+--- FIX C: ADD FEEDFORWARD CAPACITOR ACROSS R_TOP (new, high impact) ---
+
+   Add Cff across R_TOP (364kΩ) in the feedback divider:
+
+   Cff = R_BOT × Cout / R_TOP × (desired_zero_freq_ratio)
+
+   For a zero at ~5-10 kHz (one decade above UGB):
+     Cff ≈ 1/(2π × R_TOP × fz) = 1/(2π × 364k × 10kHz) ≈ 44pF
+
+   Proposed: Cff = 47pF across R_TOP
+
+   This creates a zero in the feedback path:
+     z_ff = 1/(2π × R_TOP × Cff) = 1/(2π × 364k × 47p) ≈ 9.3 kHz
+
+   The feedforward zero boosts phase at frequencies above ~9 kHz, providing
+   10-20° additional phase margin at the UGB. This is the classic "Type III"
+   compensation technique for LDOs and is very effective.
+
+   At high frequency, the feedback factor β approaches R_BOT/(R_BOT) = 1
+   (Cff shorts R_TOP), which increases the feedback factor and pulls the
+   UGB up slightly — compensated by the larger Cc.
+
+   IMPORTANT: Cff also creates a pole at:
+     p_ff = 1/(2π × (R_TOP || R_BOT) × Cff) = 1/(2π × 89k × 47p) ≈ 38 kHz
+   This is well above UGB and should not cause problems.
+
+   Trade-off: 47pF MIM cap = ~0.05mm² — easily realizable on-chip.
+
+--- FIX D: ADD OUTPUT ESR (optional, belt-and-suspenders) ---
+
+   Add a small series resistance with Cout_ext to create an output zero:
+
+   Resr = 0.5-1Ω in series with 1µF Cout_ext
+   z_esr = 1/(2π × Resr × Cout) = 1/(2π × 1Ω × 1µF) = 159 kHz
+
+   This is a high-frequency zero that helps if there are additional parasitic
+   poles near the UGB. For a 1-2 kHz UGB, the ESR zero at 159 kHz may not
+   help much, but it provides insurance against board-level parasitics.
+
+   Note: Real ceramic capacitors already have 10-50mΩ ESR, so this may be
+   naturally present. If using a tantalum or electrolytic Cout, the ESR is
+   inherently higher (0.1-1Ω) and provides this zero for free.
+
+   Trade-off: Intentional ESR increases output ripple at switching
+   frequencies (if any). For a linear LDO with no switching noise, this is
+   not a concern.
+
+--- FIX E: REDUCE STAGE 2 GAIN AT FAST CORNER (optional, harder) ---
+
+   The Stage 2 CS amp (XMcs_n: W=20µm L=2µm) has high gm at fast corner.
+   Options to tame it:
+   - Increase L from 2µm to 4µm: reduces gm by ~30%, adds area
+   - Add source degeneration: Rs = 1-2kΩ in XMcs_n source → gm_eff =
+     gm/(1 + gm×Rs). This linearizes the gain and makes it less PVT-
+     sensitive.
+
+   This is the most robust fix for corner-to-corner variation but requires
+   re-biasing the Stage 2 operating point.
+
+==============================================================================
+RECOMMENDED IMPLEMENTATION PLAN
+==============================================================================
+
+Phase 1 (immediate — fixes FS 150C oscillation):
+  1. Increase Cc from 20pF to 40pF in error_amp (00_error_amp/design.cir)
+  2. Reduce Rc from 8kΩ to 4kΩ (same file)
+  3. Re-run AC stability (Bode) at all 4 PVT corners
+  4. Target: PM > 50° at all corners, UGB > 500 Hz
+
+Phase 2 (if Phase 1 insufficient — add feedforward):
+  5. Add Cff = 47pF across R_TOP in top-level (10_top_integration/design.cir)
+     Between pvdd and vfb nodes (in parallel with XFB + Cfb)
+  6. Re-verify Bode at all corners
+
+Phase 3 (if ringing persists — degenerate Stage 2):
+  7. Add Rs = 1kΩ source degeneration in XMcs_n
+  8. May need to adjust bias (increase pb_tail mirror ratio) to compensate
+     for lost gain at SS corner
+
+EXPECTED RESULTS AFTER PHASE 1:
+  - DC baseline: still ~4.92V (DC gain unchanged by compensation)
+  - Undershoot: ~45-50mV (slightly worse due to lower bandwidth)
+  - Overshoot: ~35-40mV
+  - Ringing: eliminated or reduced to 1-2 cycles
+  - FS 150C: stable, damped transient (no oscillation)
+  - Settling time: ~1-2ms (up from ~0.5ms, acceptable trade-off)
+
+TO FIX THE 80mV DC OFFSET (separate effort):
+  - Add gain: cascode the NMOS mirror load (d1/d2) to increase Stage 1
+    gain by 15-20 dB. This raises DC loop gain to >50 dB → DC error < 5mV.
+  - Or: trim the feedback resistor ratio to compensate (but this is a
+    band-aid, not a fix — the offset will vary with temperature/process).
+
+==============================================================================
+END OF ANALYSIS
+==============================================================================

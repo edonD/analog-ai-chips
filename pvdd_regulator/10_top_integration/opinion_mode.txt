@@ -1,0 +1,279 @@
+Opinion: Mode Control / EA Enable / Gate Pullup Interactions
+============================================================
+Files analyzed:
+  10_top_integration/design.cir  (v11, top-level)
+  08_mode_control/design.cir     (v14, mode control)
+  00_error_amp/design.cir        (v7, error amp)
+  09_startup/design.cir          (v40, startup)
+  01_pass_device/design.cir      (pass device)
+
+======================================================================
+Q1: XMpu (EA enable pullup PFET) — gate leakage / subthreshold?
+======================================================================
+
+Circuit path:
+  Ren_ea: bvdd --[100R]-- ea_en
+  XMpu:   drain=vout_gate, gate=ea_en, source=bvdd, bulk=bvdd
+          PFET sky130_fd_pr__pfet_g5v0d10v5 w=4u l=2u
+
+With ea_en pulled to BVDD through 100 ohms and no DC current flowing
+(ea_en connects only to the gate of XMpu and the gate of XMen, both
+high-impedance), ea_en = BVDD exactly.  Therefore Vsg = 0.
+
+Gate leakage:  The g5v0d10v5 device has thick gate oxide (10.5V rated).
+Gate leakage at Vgs=0 is in the fA range.  Completely negligible.
+
+Subthreshold conduction:  At Vsg=0 for a PFET, we are well below
+threshold (|Vtp| ~ 0.6-0.8V for this device).  Subthreshold current
+at Vsg=0 for W=4u L=2u is on the order of 1-10 pA.  This is >100dB
+below the EA output stage currents (~23-46 uA).  No impact on gate
+voltage or regulation.
+
+Transient concern:  During fast BVDD slewing, the 100R + parasitic
+capacitance on ea_en could create a brief lag (ea_en trails BVDD),
+producing momentary Vsg > 0.  But: RC time constant is ~100R * ~50fF
+(gate cap) = 5 ps.  Even for BVDD slew of 1V/us, the lag is sub-mV.
+No practical concern.
+
+VERDICT: XMpu is solidly OFF during normal operation.  No gate leakage
+or subthreshold issue.  Non-concern.
+
+======================================================================
+Q2: Mode control PVDD-powered but PVDD=0 during startup
+======================================================================
+
+This is a REAL architectural issue, partially mitigated by design.
+
+The mode_control subckt uses PVDD as supply for ALL logic:
+  - All comparator inverters: source/bulk = pvdd
+  - All output logic gates: source/bulk = pvdd
+  - Resistor ladder: powered from BVDD (OK), but comparator thresholds
+    are PVDD-referenced
+
+When PVDD = 0V:
+  - All PFET loads are dead (no VDD)
+  - All internal nodes float near 0V
+  - ALL outputs = 0V (or undefined near ground)
+
+Specifically, pass_off behavior during startup:
+
+  pass_off = buffer(comp1b) = buffer(NOT(comp1))
+  comp1 = double-inverter of tap1 (= tap1, digitally)
+
+  When PVDD=0: comp1=0, comp1b=0 (PVDD-powered inverter), pass_off=0
+
+  pass_off = 0 (LOW) during startup.
+
+  Top-level inverter: pass_off=0 → pass_off_b = BVDD (PFET on)
+  XMgate_pu: gate=pass_off_b=BVDD, Vsg=0 → OFF
+
+  So during the critical startup phase, the gate pullup is INACTIVE.
+  The pass device gate is NOT pulled to BVDD.  The gate floats, controlled
+  only by the EA (which is enabled via BVDD pullup).
+
+The design comment says "pass_off HIGH (BVDD < 2.5V) → gate pulled to
+BVDD, pass OFF" — but this CANNOT work when PVDD=0 because the mode
+control is dead.
+
+Why it still works (by accident/design):
+  1. EA is always ON (ea_en = BVDD via Ren_ea) — the v14 fix
+  2. Soft-start RC (tau=2.2ms) ramps vref_ss from 0 slowly
+  3. At t=0: vref_ss=0, vfb=0, EA output → ea_out ≈ BVDD (gate high)
+     → pass device OFF (Vsg=0)
+  4. As vref_ss ramps, EA gradually pulls gate down → PVDD rises gently
+  5. Once PVDD is up, mode control comes alive
+
+So the soft-start effectively replaces pass_off for startup sequencing.
+But this means pass_off is ONLY useful for brownout protection (BVDD
+drops while PVDD still exists), NOT for initial power-on.
+
+Potential failure mode:  If BVDD ramps very fast (step input), the EA
+may see vref_ss > vfb transiently (Css charges through Rss=100k, but
+EA responds faster than RC filter).  Without pass_off holding the gate,
+there's no protection against the EA slamming the gate low and causing
+an inrush current spike.  The soft-start mitigates but doesn't prevent
+the first ~1us of uncontrolled gate drive.
+
+VERDICT: pass_off does NOT work during initial startup.  The design
+survives due to soft-start, but the "POR gate pullup" comment in the
+design file is misleading — it describes behavior that cannot occur.
+Document this limitation.  For safety, consider adding a BVDD-powered
+POR detector (e.g., BVDD threshold detector using BVDD as supply)
+that directly holds the gate high during early startup.
+
+======================================================================
+Q3: Gate oscillation from pass_off inverter fighting the EA?
+======================================================================
+
+This is the most subtle and potentially dangerous issue.
+
+During normal operation (BVDD=7V, PVDD=5V, regulation active):
+  pass_off = comp1 (PVDD-domain) ≈ 5V (PVDD rail)
+
+Top-level inverter (BVDD-powered, input = PVDD-domain signal):
+  XMpo_invp: PFET, gate=pass_off=5V, source=bvdd=7V
+             Vsg = 7 - 5 = 2V  >>  |Vtp| ~ 0.7V  →  ON
+  XMpo_invn: NFET, gate=pass_off=5V, source=gnd=0V
+             Vgs = 5V  >>  Vtn ~ 0.7V  →  ON
+
+  BOTH TRANSISTORS ARE ON.  This is a static crowbar condition.
+
+The PFET (W=40u) is 20x wider than the NFET (W=2u), so it wins the
+tug-of-war.  pass_off_b is pulled close to BVDD but NOT at BVDD.
+Estimated: pass_off_b ≈ BVDD - 100 to 300 mV depending on corner.
+
+Crowbar current estimate:
+  NFET W=2u L=2u at Vgs=5V, Vds≈0.2V (near linear): ~ 10-50 uA
+  This is wasted static power, but more importantly...
+
+Impact on XMgate_pu:
+  XMgate_pu: PFET w=4u l=2u, gate=pass_off_b, source=bvdd
+  Vsg = bvdd - pass_off_b ≈ 100-300 mV
+
+  If Vsg < |Vtp| - 100mV ≈ 500mV: safely in subthreshold, <1nA
+  If Vsg approaches |Vtp| (e.g., at SS corner, hot): partial conduction
+
+  At SS process, 150C:  |Vtp| drops, NFET gets relatively stronger,
+  pass_off_b drops further.  XMgate_pu could see Vsg = 300-400 mV,
+  putting it in weak inversion with Ids ~ 10-100 nA.  This is still
+  negligible vs EA drive current (~46 uA through Rgate=1k).
+
+Can this cause oscillation?
+  Unlikely through DC leakage alone.  But consider:
+
+  1. pass_off is a PVDD-domain signal.  Any PVDD ripple (from load
+     transient, PSRR limitation) modulates pass_off, which modulates
+     the crowbar ratio, which modulates pass_off_b, which modulates
+     XMgate_pu conductance, which modulates gate voltage, which
+     modulates PVDD.  This is a parasitic feedback loop.
+
+  2. The loop gain is very small (pass_off_b changes by < 1mV per
+     10mV PVDD change, and XMgate_pu is deep in subthreshold), so
+     this is unlikely to cause oscillation on its own.
+
+  3. However, it adds a high-impedance, weakly-nonlinear load on the
+     gate node that could interact with the EA compensation at high
+     frequency.  The Cc/Rc Miller compensation was designed without
+     accounting for this parasitic path.
+
+Root cause:  The inverter is a BVDD-powered gate receiving a PVDD-domain
+input.  When PVDD < BVDD (always true: 5V < 7V), the inverter operates
+in a crowbar region.  This is a level-domain mismatch bug.
+
+Fix options:
+  a. Level-shift pass_off from PVDD to BVDD domain before the inverter
+  b. Power mode control from BVDD (rejected in v14 — breaks trip ratios)
+  c. Add a BVDD-domain pull-up on pass_off (e.g., PFET with gate=gnd,
+     source=bvdd, drain=pass_off) so it reaches BVDD when high — but
+     this fights the mode control output
+  d. Best: replace the inverter with a proper level-up shifter
+     (cross-coupled PFET latch), eliminating the crowbar entirely
+
+VERDICT: The inverter has a steady-state crowbar during normal operation
+due to PVDD/BVDD domain mismatch.  Current is ~10-50 uA (wasted power).
+XMgate_pu is PROBABLY off at typical corners but could conduct weakly at
+worst-case.  Oscillation from this path alone is unlikely but the
+parasitic feedback loop exists.  If unexplained gate oscillation is
+observed, this is a prime suspect.  Recommend replacing the inverter
+with a proper level shifter.
+
+======================================================================
+Q4: Is XMgate_pu (w=4u l=2u PFET) truly OFF during normal operation?
+======================================================================
+
+Summary of the path:
+  mode_control (PVDD-powered) → pass_off (PVDD domain, ~5V when high)
+  → BVDD-powered inverter → pass_off_b (≈ BVDD - delta)
+  → XMgate_pu gate
+
+Quantitative analysis by corner:
+
+  TT 27C (typical):
+    pass_off = 5.0V, BVDD = 7.0V
+    |Vtp| ≈ 0.70V for g5v0d10v5
+    PFET (40u) pulls pass_off_b to ~6.85V (estimate)
+    Vsg of XMgate_pu = 7.0 - 6.85 = 0.15V
+    Deep subthreshold: Ids < 1 nA
+    → OFF.  No concern.
+
+  FF 150C (fast-fast, hot):
+    |Vtp| drops to ~0.55V
+    NFET stronger at hot (higher mobility less important at L=2u,
+    but Vtn drops too)
+    pass_off_b ≈ 6.7V (estimate, NFET pulls harder)
+    Vsg = 7.0 - 6.7 = 0.3V
+    Still below |Vtp| = 0.55V, but closer.
+    Subthreshold: Ids ~ 1-10 nA
+    → Effectively OFF.  Marginal but OK.
+
+  SS -40C (slow-slow, cold):
+    |Vtp| ≈ 0.85V
+    PFET much weaker at cold, NFET also weaker
+    Both weakened, ratio may shift
+    pass_off_b ≈ 6.8V (estimate)
+    Vsg = 0.2V, |Vtp| = 0.85V
+    Very deep subthreshold: Ids < 0.1 nA
+    → Solidly OFF.
+
+  Worst realistic case (FF process, 150C, BVDD=6.0V min, PVDD=5.0V):
+    BVDD-PVDD gap = only 1.0V
+    pass_off = 5.0V, inverter supply = 6.0V
+    PFET Vsg_inv = 6.0 - 5.0 = 1.0V (weaker pull-up than at 7V)
+    NFET Vgs_inv = 5.0V (unchanged, strong)
+    pass_off_b drops further, maybe ~5.5-5.7V
+    Vsg of XMgate_pu = 6.0 - 5.5 = 0.5V
+    |Vtp| at FF 150C ≈ 0.55V
+    THIS IS DANGEROUSLY CLOSE TO THRESHOLD.
+    Ids could be 0.1-1 uA — enough to matter.
+
+    With Ids ~ 1 uA pulling gate toward BVDD:
+    EA must overcome this.  EA output drives through Rgate=1k.
+    1 uA × 1k = 1 mV error.  Small, but:
+    - Adds a nonlinear load that varies with PVDD
+    - At higher currents (if pass_off_b droops more), could reach
+      10 uA → 10 mV offset at gate → regulation error
+    - Creates a noise injection path from PVDD to gate
+
+VERDICT: XMgate_pu is OFF at typical conditions and most corners.
+At the worst case (FF/hot, low BVDD-PVDD headroom), it approaches
+threshold and could weakly conduct.  The v11 sizing (reduced from
+W=10u to W=4u, increased L from 1u to 2u) significantly helped —
+the old sizing (10u/1u) had 5x the W/L and would have been much
+worse.  But the root cause (PVDD/BVDD domain mismatch at the
+inverter) remains.
+
+======================================================================
+OVERALL ASSESSMENT
+======================================================================
+
+The design has THREE interconnected issues, all stemming from the
+mode_control block being PVDD-powered while the gate pullup logic
+is BVDD-powered:
+
+1. STARTUP DEAD ZONE:  pass_off cannot function when PVDD=0.
+   The design survives via soft-start, but the POR protection
+   described in comments doesn't actually exist at power-on.
+   Severity: LOW (mitigated by soft-start, but misleading docs).
+
+2. DOMAIN-CROSSING CROWBAR:  The pass_off inverter (BVDD supply)
+   receives a PVDD-domain input, causing permanent shoot-through
+   of ~10-50 uA during normal operation.  Wastes power, creates
+   a noisy intermediate voltage on pass_off_b.
+   Severity: MEDIUM (wasted Iq, potential noise source).
+
+3. XMgate_pu PARTIAL CONDUCTION:  At worst-case corners (FF/hot,
+   low BVDD), XMgate_pu approaches threshold due to the crowbar
+   pulling pass_off_b below BVDD.  Could inject 0.1-1 uA into
+   the gate node, creating a parasitic PVDD→gate feedback path.
+   Severity: LOW-MEDIUM (small current, but unexplained gate
+   anomalies should check this first).
+
+The v11 fixes (widening inverter PFET to 40u, weakening XMgate_pu
+to 4u/2u) were the right direction but treat symptoms, not root cause.
+
+RECOMMENDED FIX:  Replace the single BVDD-powered inverter with a
+proper cross-coupled level shifter that cleanly translates pass_off
+from PVDD domain to BVDD domain with no crowbar current.  This
+eliminates issues 2 and 3 simultaneously.  For issue 1, add a simple
+BVDD-domain POR circuit (BVDD threshold detector) that holds pass_off_b
+LOW (gate HIGH) until BVDD is established, independent of PVDD.
