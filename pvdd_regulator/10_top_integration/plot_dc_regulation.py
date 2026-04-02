@@ -5,9 +5,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Data from ngspice simulation (Rload -> PVDD)
+# Data from fresh ngspice simulation — post FIX-19 through FIX-23
 rload_vals = [1000000, 5000, 500, 250, 166.7, 125, 100]
-pvdd_vals  = [5.000610, 5.000539, 5.000415, 5.000340, 5.000232, 4.341034, 3.677591]
+pvdd_vals  = [5.0011, 5.00107, 5.001, 5.00096, 5.00093, 5.00091, 5.00089]
 
 # Compute load currents: I = V/R (in mA)
 iload_ma = [v / r * 1000 for v, r in zip(pvdd_vals, rload_vals)]
@@ -24,8 +24,8 @@ ax.axhline(y=5.0, color='gray', linestyle=':', linewidth=0.8, alpha=0.5, label='
 ax.set_xlabel('Load Current (mA)', fontsize=11)
 ax.set_ylabel('PVDD (V)', fontsize=11)
 ax.set_title('DC Regulation: PVDD vs Load Current', fontsize=12, fontweight='bold')
-ax.set_xlim(-1, 52)
-ax.set_ylim(3.5, 5.4)
+ax.set_xlim(-1, 65)
+ax.set_ylim(4.7, 5.3)
 ax.legend(fontsize=9, loc='lower left')
 
 ax.tick_params(axis='both', which='major', labelsize=10)
