@@ -468,3 +468,13 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **Agent activity:** Reading generated PNG plots to verify them visually. Sims appear complete.
 - **Assessment:** Agent is thorough — regenerated plots and now verifying. README write next.
 - **Next check:** 5 minutes
+
+### 2026-04-02 Check 18 — TASK C COMPLETE, Feeding TASK D
+- **Supervisor status:** IDLE (❯ prompt, "Baked for 57m 8s")
+- **Task C results:** ALL DONE
+  - FIX-9 through FIX-13: Committed ca6ba92
+  - PVT campaign: 53/60 specs PASS (88%) across 15 corners. Committed de581ae.
+  - All 7 plots regenerated with correct library. README rewritten. Committed 54004ed.
+  - Remaining failures documented: TT/-40°C (5.73V), SS/27°C + FS/150°C under 10mA load
+- **Action:** Fed TASK D (final polish: read opinions.md, fix remaining issues, write design_summary.md)
+- **Next check:** 5 minutes
