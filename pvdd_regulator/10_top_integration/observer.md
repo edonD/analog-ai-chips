@@ -565,3 +565,27 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 **Final state:** 60/60 PVT PASS (100%).
 **Expert validation appended to expert_report.md.** Revised score: 6.35/10 → 7.0/10.
 All 3 fixes (FIX-16, FIX-17, FIX-18) verified technically sound.
+
+### 2026-04-02 Check 25 — Supervisor DONE
+
+**Supervisor status:** IDLE. "All done. Mission complete: 60/60 PVT PASS (100%)"
+
+**Final commits:**
+- `7fdea82` — Current limit foldback plot (discrete steady-state, 3 corners)
+- `a718612` — Current limit plot (ilim_plot.png) and generation scripts
+
+**Campaign complete.** Supervisor has stopped. All fixes committed and pushed.
+
+---
+
+## FINAL SUMMARY — 60/60 Campaign Complete
+
+| Phase | Description | Commits | Status |
+|-------|-------------|---------|--------|
+| Phase 0 | Iq Quick Wins (QW-1 + QW-2) | 5173903 | ✅ DONE |
+| Phase 1 | ea_en BVDD pullup (startup deadlock fix) | 6d0eaf2 | ✅ DONE |
+| Phase 2 | Stage 2 m=1→m=2 (SS -40C fix) | 57e4689 | ✅ DONE |
+| Phase 3 | Full PVT verification + docs + plots | cb3f9a0, 7fdea82, a718612 | ✅ DONE |
+
+**Result: 60/60 PVT PASS (100%)** — up from 53/60 (88%)
+**Expert score: 7.0/10** — up from 6.35/10
