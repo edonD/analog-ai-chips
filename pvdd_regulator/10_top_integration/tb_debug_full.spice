@@ -34,7 +34,7 @@ XILIM gate bvdd pvdd 0 ilim_flag current_limiter
 XUV pvdd avbg uv_flag svdd 0 uvov_en uv_comparator
 XOV pvdd avbg ov_flag svdd 0 uvov_en ov_comparator
 XZC pvdd 0 zener_clamp
-XMC bvdd pvdd svdd 0 avbg en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
+XMC bvdd pvdd svdd 0 en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
 XSU bvdd pvdd gate 0 avbg startup_done ea_en ea_out startup
 XLS_EN en en_bvdd bvdd svdd 0 level_shifter_up
 Cint pvdd 0 200e-12

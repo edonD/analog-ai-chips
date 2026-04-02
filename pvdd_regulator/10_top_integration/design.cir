@@ -95,7 +95,7 @@ XZC pvdd gnd ibias zener_clamp
 * =======================================================
 * Block 08: Mode control (BVDD ladder → sequenced enables)
 * =======================================================
-XMC bvdd pvdd svdd gnd avbg en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
+XMC bvdd pvdd svdd gnd en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
 
 * =======================================================
 * Block 09: Startup circuit (direct gate drive, no CG)

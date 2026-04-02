@@ -11,7 +11,8 @@
 *
 * All FETs at L=2µm (from v12), ladder ratios for zero-lag thresholds.
 *
-.subckt mode_control bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off
+* NOTE: vref port removed (was declared but unused internally)
+.subckt mode_control bvdd pvdd svdd gnd en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off
 
 * =============================================
 * RESISTOR LADDER (~400kΩ, Iq ~17.5µA at 7V)
