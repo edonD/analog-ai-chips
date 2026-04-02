@@ -116,11 +116,14 @@ XMC bvdd pvdd svdd gnd en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_of
 XSU bvdd pvdd gate gnd avbg startup_done su_ea_en ea_out startup
 
 * =======================================================
-* Mode control → ea_en wiring
-*   mc_ea_en goes HIGH when BVDD > ~4.2V (comp2+comp3 logic)
-*   Replaces hardwired startup ea_en
+* EA enable: always ON via BVDD pullup (startup robustness fix)
+*   v14: Reverted from mc_ea_en to BVDD pullup.
+*   At startup PVDD=0V → mode control dead → mc_ea_en=0 → deadlock.
+*   Fix: ea_en always HIGH from BVDD. Soft-start (tau=2.2ms) provides
+*   safe sequencing — PVDD rises gently even with EA always on.
+*   mc_ea_en is left floating (mode control output unused for ea_en).
 * =======================================================
-Ren_mc mc_ea_en ea_en 100
+Ren_ea bvdd ea_en 100
 
 * =======================================================
 * POR gate pullup: pass_off HIGH → gate pulled to BVDD

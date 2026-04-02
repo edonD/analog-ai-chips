@@ -1,15 +1,16 @@
-* Block 08: Mode Control — v13 (Schmitt trigger hysteresis)
+* Block 08: Mode Control — v14 (ea_en bypass for startup robustness)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
-* v13 changes from v12:
-*   - Replaced PFET-to-tap hysteresis (caused ladder cross-talk) with
-*     Schmitt trigger feedback NFETs on each comparator's first-stage output.
-*   - When comp=HIGH, feedback NFET pulls c_inv toward GND → raises the
-*     effective falling trip point → creates hysteresis without injecting
-*     current into the ladder.
-*   - No cross-talk between comparators, no Iq impact.
+* v14 changes from v13:
+*   - Mode control stays PVDD-powered (BVDD would break comparator trip ratios)
+*   - Startup deadlock fix moved to top-level: ea_en driven by BVDD pullup
+*     instead of mc_ea_en, so EA is always enabled regardless of PVDD state
+*   - Soft-start (tau=2.2ms) provides safe sequencing in place of mc_ea_en
 *
-* All FETs at L=2µm (from v12), ladder ratios for zero-lag thresholds.
+* v13 changes from v12:
+*   - Schmitt trigger hysteresis on comparators (no ladder cross-talk)
+*
+* All FETs at L=2µm, ladder ratios for zero-lag thresholds.
 *
 * NOTE: vref port removed (was declared but unused internally)
 .subckt mode_control bvdd pvdd svdd gnd en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off
