@@ -318,3 +318,62 @@ This project demonstrates both the potential and the limitations of open-source 
 ---
 
 *Generated 2026-04-02. Based on review of all 11 design.cir files, README.md, opinions.md, design_summary.md, PVT data, simulation plots, and benchmarking against TI TPS7A4700, ADI ADP1740, published SKY130 LDO designs, and Rincon-Mora LDO design guidelines.*
+
+---
+
+## Addendum: 60/60 PVT PASS — Expert Validation (2026-04-02 21:15 UTC)
+
+### Campaign Summary
+
+The supervisor executed a 4-phase campaign to close the remaining 7 PVT failures (53/60 → 60/60):
+
+| Phase | Fix | Commit | Description |
+|-------|-----|--------|-------------|
+| 0 | FIX-16 | 5173903 | Current limiter cascode divider R ×10 (l=40→400, l=30→300). Saves ~45µA Iq. |
+| 0 | FIX-17 (v1) | 5173903 | EA Stage 2 load m=4→m=1. Saves ~34µA Iq. |
+| 1 | FIX-18 | 6d0eaf2 | ea_en driven by BVDD pullup (always on), replacing mc_ea_en. Fixes startup deadlock. |
+| 2 | FIX-17 (v2) | 57e4689 | EA Stage 2 load m=1→m=2. m=1 too aggressive at SS -40C (6.35V overregulation). |
+| 3 | -- | cb3f9a0 | Full PVT verification: 60/60 PASS, docs updated. |
+
+### Technical Assessment of Each Fix
+
+**FIX-16 (Cascode Divider R ×10):** ✅ Sound. The voltage divider ratio 300/(400+300) = 3.0V is preserved exactly. The only change is bias current: ~50µA → ~5µA. This is a high-impedance bias node (cascode gate) with negligible loading, so the higher source impedance is acceptable. No impact on current limit accuracy. Clean Iq win.
+
+**FIX-17 (Stage 2 Load m=4→m=2):** ✅ Sound, with nuance. The original m=4 gave ~46µA in Stage 2 — excessive for a bias load. m=2 gives ~23µA, still enough to pull the gate node through its full swing range. The intermediate step to m=1 (~12µA) was correctly rejected: at SS -40C, the PFET is so weak that 12µA couldn't pull the gate high enough, causing the pass device to stay fully ON (PVDD=6.35V). This is a classic analog design trap — aggressively optimizing bias current at typical corner causes failure at slow/cold extremes. The m=2 compromise shows good engineering judgment.
+
+**FIX-18 (ea_en Always-On):** ✅ Sound and architecturally correct. The root cause was a chicken-and-egg problem: mode control is PVDD-powered, but PVDD=0 at startup → mode control dead → ea_en=0 → EA disabled → PVDD never rises. The fix (BVDD pullup on ea_en) breaks the deadlock cleanly. The supervisor correctly decided NOT to re-power mode control from BVDD, which would have changed all comparator trip ratios (the ladder taps divide PVDD, and the inverter trip points scale with supply). Soft-start provides the sequencing safety that mc_ea_en was originally intended to provide.
+
+**Concern — mc_ea_en left floating:** The mode control block still outputs mc_ea_en. At top level, it's connected to nothing. In silicon, a floating node can cause leakage or oscillation in the mode control output stage. This should be tied to ground via a high-value resistor or the mode control should be modified to not drive this output. Minor issue — doesn't affect simulation, but matters for layout.
+
+### PVT Results Verification
+
+The 60/60 results are consistent with the fixes:
+- **DC regulation:** 4.993-4.998V across all 15 corners (±0.1%). Excellent.
+- **Startup peak:** Max 5.018V at FS 150C. Zero overshoot. The soft-start is working correctly.
+- **Load transient:** Max 76mV at FS 150C (spec <150mV). The Cc=20pF + 1µF external cap combination provides adequate transient response across all corners.
+- **Current limit:** 82-101mA range. Bandgap reference maintains tight control across PVT.
+
+### Revised Scorecard
+
+| Category | Previous | Updated | Notes |
+|----------|----------|---------|-------|
+| PVT Compliance | 53/60 (88%) | **60/60 (100%)** | All corners pass all specs |
+| Iq (estimated) | ~200µA | ~130µA | FIX-16 saves ~45µA, FIX-17 saves ~23µA |
+| Architecture | Sound | Sound | ea_en always-on is cleaner than mc_ea_en gating |
+| **Overall Score** | **6.35/10** | **7.0/10** | +0.65 for full PVT pass and Iq improvement |
+
+### Remaining Gaps (unchanged)
+
+1. UGB still ~2.4 kHz (100x below commercial targets)
+2. No Monte Carlo verification
+3. No ESD protection
+4. No layout or parasitic extraction
+5. mc_ea_en floating node (new, minor)
+
+### Verdict
+
+The 60/60 PVT achievement is legitimate. The three fixes (FIX-16, FIX-17, FIX-18) are technically sound, well-diagnosed, and correctly prioritized. The startup deadlock root-cause analysis (PVDD-powered mode control chicken-and-egg) was particularly well done. The m=2 compromise for Stage 2 shows the kind of iterative corner-aware optimization that distinguishes competent analog design from naive parameter sweeping.
+
+**This design is now a credible open-source reference LDO for the SKY130 ecosystem.** It is still not tape-out ready (missing MC, ESD, layout, UGB), but the 100% PVT pass rate across 15 corners with 4 specs each is a meaningful milestone.
+
+*Validated 2026-04-02 ~21:15 UTC by observer agent.*

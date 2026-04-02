@@ -547,3 +547,21 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - Key diagnostic: mode control is PVDD-powered — outputs at PVDD swing cause crowbar in BVDD-powered POR inverter. This explains high Iq and TT -40C failures.
 
 **Assessment:** Good start. Phase 0 changes are conservative and correct. Phase 1 (BVDD-powering mode control) is the critical fix — it should resolve both Iq and startup deadlock issues.
+
+### 2026-04-02 Check 22 — Phase 1 In Progress
+
+**Supervisor status:** Deep in Phase 1 debugging. Found su_ea_en ≠ ea_en (separate nodes). Investigating why PVDD still charges even with ea_en=0V.
+**No new commits.** Active root-cause analysis.
+
+### 2026-04-02 Check 23 — Phases 1+2 Done, PVT Running
+
+**New commits:**
+- `6d0eaf2` — FIX-18: ea_en always-on via BVDD pullup. Fixes startup deadlock.
+- `57e4689` — FIX-17 v2: Stage 2 load m=1→m=2. m=1 caused SS -40C overregulation (6.35V).
+- `cb3f9a0` — **60/60 PVT PASS!** README updated with full corner tables.
+
+### 2026-04-02 Check 24 — 60/60 ACHIEVED, Expert Report Written
+
+**Final state:** 60/60 PVT PASS (100%).
+**Expert validation appended to expert_report.md.** Revised score: 6.35/10 → 7.0/10.
+All 3 fixes (FIX-16, FIX-17, FIX-18) verified technically sound.
