@@ -1,4 +1,4 @@
-* Block 09: Startup Circuit — v40 (direct gate drive, no level shifter)
+* Block 09: Startup Circuit — v41 (direct gate drive, no level shifter)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * v40: Error amp output is in BVDD domain (BVDD-powered Stage 2).
@@ -15,8 +15,8 @@
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
 * Gate connection: ea_out (BVDD domain) drives gate directly through Rgate
-* Rgate provides isolation and limits gate charge/discharge rate
-Rgate ea_out gate 1k
+* FIX-23: Rgate reduced 1k→200Ω for better EA gate drive authority
+Rgate ea_out gate 200
 
 * ea_en: ALWAYS HIGH (tied to BVDD through low-R)
 Ren bvdd ea_en 100

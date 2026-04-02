@@ -1,4 +1,4 @@
-* Block 00: Error Amplifier — BVDD-Output Two-Stage OTA (v7)
+* Block 00: Error Amplifier — BVDD-Output Two-Stage OTA (v8)
 * PVDD 5V LDO Regulator — SkyWater SKY130A
 *
 * ARCHITECTURE:
@@ -65,8 +65,8 @@ XMcs_p  vout_gate pb_tail  bvdd    bvdd sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4
 * ================================================================
 * Miller compensation: Cc + Rc from d2 to vout_gate
 * ================================================================
-* Miller comp: 20pF + 8kΩ (FIX-5: was 2pF+5k, increase for proper UGB/PM)
-Cc d2 comp_mid 20p
-Rc comp_mid vout_gate 8k
+* Miller comp: 40pF + 5kΩ (FIX-21: was 20pF+8k, retuned after FIX-19 restored 71dB loop gain)
+Cc d2 comp_mid 40p
+Rc comp_mid vout_gate 5k
 
 .ends error_amp

@@ -1,5 +1,10 @@
-* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v11)
+* Block 10: Top-Level Integration — PVDD 5V LDO Regulator (v12)
 * SkyWater SKY130A — All blocks wired
+*
+* v12 changes (compensation retuning after FIX-19):
+*   - FIX-21: Miller comp retuned Cc=20p→40p, Rc=8k→5k (damp load transient ringing)
+*   - FIX-22: Gate snubber Cgate_snub=1nF gate-to-bvdd (damp startup oscillation)
+*   - FIX-23: Rgate reduced 1k→200Ω (better EA gate drive authority)
 *
 * v11 changes (current limit fix):
 *   - FIX-14: Gate pullup inverter PFET widened (4u→40u) so it holds
@@ -79,7 +84,7 @@ Cfb vfb gnd 2p
 
 * =======================================================
 * Block 03: Compensation (placeholder — currently empty)
-*   All external comp removed; inner EA Cc=20pF/Rc=8k + Cout_ext=1uF
+*   All external comp removed; inner EA Cc=40pF/Rc=5k (FIX-21) + Cout_ext=1uF
 * =======================================================
 XCOMP ea_out pvdd gnd compensation
 
@@ -110,7 +115,7 @@ XMC bvdd pvdd svdd gnd en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_of
 
 * =======================================================
 * Block 09: Startup circuit (direct gate drive, no CG)
-*   ea_out (BVDD domain) → Rgate=1kΩ → gate
+*   ea_out (BVDD domain) → Rgate=200Ω → gate (FIX-23)
 *   ea_en now driven by mode control (mc_ea_en), not startup
 * =======================================================
 XSU bvdd pvdd gate gnd avbg startup_done su_ea_en ea_out startup
@@ -155,5 +160,7 @@ XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
 * =======================================================
 Cload pvdd gnd 200e-12
 Cout_ext pvdd gnd 1u
+* FIX-22: Gate snubber damps EA-vs-current-limiter oscillation during startup
+Cgate_snub gate bvdd 1n
 
 .ends pvdd_regulator
