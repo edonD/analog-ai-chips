@@ -449,3 +449,10 @@ PVDD = 4.967V at T=150°C via transient. PASS.
 - **Activity:** Supervisor reviewing PVT results and plot data, preparing README rewrite
 - **Assessment:** Almost there. Task C nearing completion. README is the final deliverable.
 - **Next check:** 5 minutes
+
+### 2026-04-02 Check 15 — Fixing Plot Library + README
+- **Supervisor status:** WORKING (Fluttering 42m, fix agent running)
+- **Issue found:** Plot testbenches used old sky130.lib.spice, PVT used correct sky130_top.lib.spice. Supervisor fixing plots to use correct library then rewriting README.
+- **Agent:** 30+ tool uses, updating library refs and regenerating
+- **Assessment:** Good catch on library mismatch. This will produce consistent results across all tests.
+- **Next check:** 5 minutes
