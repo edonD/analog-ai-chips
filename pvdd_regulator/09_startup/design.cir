@@ -15,8 +15,9 @@
 .subckt startup bvdd pvdd gate gnd vref startup_done ea_en ea_out
 
 * Gate connection: ea_out (BVDD domain) drives gate directly through Rgate
-* FIX-23: Rgate reduced 1k→200Ω for better EA gate drive authority
-Rgate ea_out gate 200
+* FIX-27: Rgate restored to 1kΩ — damps startup gate oscillation;
+*   EA slew rate (0.575 V/µs from Cc=40pF) is the bottleneck, not Rgate
+Rgate ea_out gate 1k
 
 * ea_en: ALWAYS HIGH (tied to BVDD through low-R)
 Ren bvdd ea_en 100

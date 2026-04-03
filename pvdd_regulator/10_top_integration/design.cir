@@ -3,8 +3,8 @@
 *
 * v12 changes (compensation retuning after FIX-19):
 *   - FIX-21: Miller comp retuned Cc=20p→40p, Rc=8k→5k (damp load transient ringing)
-*   - FIX-22: Gate snubber Cgate_snub=1nF gate-to-bvdd (damp startup oscillation)
-*   - FIX-23: Rgate reduced 1k→200Ω (better EA gate drive authority)
+*   - FIX-22: Gate snubber — REMOVED by FIX-26
+*   - FIX-23: Rgate 1k→200Ω — REVERTED to 1k by FIX-27
 *
 * v11 changes (current limit fix):
 *   - FIX-14: Gate pullup inverter PFET widened (4u→40u) so it holds
@@ -77,10 +77,11 @@ XEA vref_ss vfb ea_out gnd ibias ea_en bvdd error_amp
 * =======================================================
 * Block 02: Feedback network (resistive divider)
 *   pvdd → vfb ≈ 1.226V at PVDD=5.0V
-*   Cfb: 2pF filter cap on vfb (FIX-11) — attenuates HF noise coupling
+*   Cfb: REMOVED by FIX-24 (was 2pF, FIX-11) — created 219kHz pole, ate 33° PM
 * =======================================================
 XFB pvdd vfb gnd feedback_network
-Cfb vfb gnd 2p
+* FIX-25: Feedforward cap across R_TOP — zero at 20kHz boosts PM by ~49 degrees
+Cff pvdd vfb 22p
 
 * =======================================================
 * Block 03: Compensation (placeholder — currently empty)
@@ -115,7 +116,7 @@ XMC bvdd pvdd svdd gnd en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_of
 
 * =======================================================
 * Block 09: Startup circuit (direct gate drive, no CG)
-*   ea_out (BVDD domain) → Rgate=200Ω → gate (FIX-23)
+*   ea_out (BVDD domain) → Rgate=1kΩ → gate (FIX-27: reverted from 200Ω)
 *   ea_en now driven by mode control (mc_ea_en), not startup
 * =======================================================
 XSU bvdd pvdd gate gnd avbg startup_done su_ea_en ea_out startup
@@ -160,8 +161,6 @@ XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
 * =======================================================
 Cload pvdd gnd 200e-12
 Cout_ext pvdd gnd 1u
-* FIX-22: Gate snubber damps EA-vs-current-limiter oscillation during startup
-* Reduced from 1nF to 100pF — 1nF was too slow (22µs gate slew), caused 324mV undershoot
-Cgate_snub gate bvdd 100p
+* FIX-26: Gate snubber REMOVED — analysis showed only 1° PM impact, not worth complexity
 
 .ends pvdd_regulator
