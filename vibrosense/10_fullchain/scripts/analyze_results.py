@@ -52,17 +52,22 @@ def parse_ngspice_raw(filename):
                 var_names.append(parts[1].strip())
                 var_types.append(parts[2].strip())
 
-    if n_vars == 0 or n_points == 0:
-        raise ValueError(f"Could not parse header: n_vars={n_vars}, n_points={n_points}")
+    if n_vars == 0:
+        raise ValueError(f"Could not parse header: n_vars={n_vars}")
 
     # Parse binary data (double precision, column-major)
     bytes_per_point = n_vars * 8  # 8 bytes per double
     if is_complex:
         bytes_per_point = n_vars * 16
 
+    # If n_points is 0 (ngspice writes 0 during streaming), infer from data size
+    if n_points == 0:
+        n_points = len(binary_data) // bytes_per_point
+
     data = {}
     if not is_complex:
-        all_data = np.frombuffer(binary_data[:n_points * bytes_per_point],
+        usable = n_points * bytes_per_point
+        all_data = np.frombuffer(binary_data[:usable],
                                  dtype=np.float64)
         all_data = all_data.reshape(n_points, n_vars)
         for i, name in enumerate(var_names):
