@@ -1,0 +1,157 @@
+================================================================================
+CONSULT-2: PVDD vs BVDD Supply for Mode Control Comparators
+Block 08 (mode_control) — 08_mode_control/design.cir v15
+================================================================================
+
+ISSUE RAISED
+------------
+During startup, PVDD ramps 0->5V. The mode control comparators are
+PVDD-powered, so their outputs toggle spuriously as their own supply
+comes up. Should we power them from BVDD instead, since BVDD is the
+"always-on" battery rail (5.4-10.5V)?
+
+CIRCUIT SUMMARY
+---------------
+Resistor ladder: connected BVDD-to-GND (total ~191 sheet-units)
+  tap1 = 0.806 * BVDD    (Rbot+R34+R23+R12 = 154 of 191)
+  tap2 = 0.482 * BVDD    (Rbot+R34+R23 = 92 of 191)
+  tap3 = 0.450 * BVDD    (Rbot+R34 = 86 of 191)
+  tap4 = 0.361 * BVDD    (Rbot = 69 of 191)
+
+Comparators: 2-stage CMOS inverters, currently powered from PVDD (5V).
+  First stage: PFET w=2u/l=2u, NFET w=2u/l=2u  (equal sizing)
+  Second stage: PFET w=4u/l=2u, NFET w=2u/l=2u  (2:1 P/N)
+  + Schmitt hysteresis feedback NFETs
+
+All devices: sky130_fd_pr__pfet_g5v0d10v5 / nfet_g5v0d10v5
+  -> thick oxide, rated to 10.5V VDS/VGS. No overstress concern at BVDD.
+
+CURRENT OPERATION (PVDD-POWERED)
+--------------------------------
+CMOS inverter trip point Vtrip ~ k * VDD, where k depends on Vtn, |Vtp|,
+and the NFET/PFET mobility ratio. For equal-sized g5v0d10v5 devices:
+  Vtn ~ 0.7V, |Vtp| ~ 0.7V, un/up ~ 2.5
+  => k ~ 0.42  (trip biased below VDD/2 because NFET is stronger)
+
+With PVDD = 5V FIXED:
+  Vtrip ~ 0.42 * 5V = 2.09V  (fixed, independent of BVDD)
+
+Comparator trips when tap_voltage crosses Vtrip = 2.09V:
+  COMP1: BVDD_trip = 2.09 / 0.806 = 2.6V   (design target: TH1=2.5V) OK
+  COMP2: BVDD_trip = 2.09 / 0.482 = 4.3V   (design target: TH2=4.2V) OK
+  COMP3: BVDD_trip = 2.09 / 0.450 = 4.6V   (design target: TH3=4.5V) OK
+  COMP4: BVDD_trip = 2.09 / 0.361 = 5.8V   (design target: TH4=5.6V) OK
+
+Key property: the inverter supply (PVDD) is FIXED, so the trip point is
+a fixed voltage. As BVDD ramps, each tap sweeps through the fixed trip
+point at a well-defined BVDD voltage. This is what makes the thresholds
+work.
+
+WHAT HAPPENS IF WE POWER FROM BVDD INSTEAD
+-------------------------------------------
+If the comparator inverters are powered from BVDD:
+  Vtrip = k * BVDD  (trip point now TRACKS BVDD)
+
+The comparator trips when:
+  tap_voltage = Vtrip
+  ratio * BVDD = k * BVDD
+  ratio = k                    <--- BVDD cancels out!
+
+THIS IS THE FATAL PROBLEM. The trip condition becomes:
+
+  "Does the ladder ratio equal the inverter's intrinsic switching ratio?"
+
+This is a fixed ratio comparison, independent of BVDD. The comparators
+no longer detect specific BVDD voltages — they are stuck in one state:
+
+  COMP1: ratio=0.806 >> k=0.42  -> tap ALWAYS above trip -> ALWAYS HIGH
+  COMP2: ratio=0.482 >  k=0.42  -> tap ALWAYS above trip -> ALWAYS HIGH
+  COMP3: ratio=0.450 >  k=0.42  -> tap above trip        -> ALWAYS HIGH
+  COMP4: ratio=0.361 <  k=0.42  -> tap ALWAYS below trip  -> ALWAYS LOW
+
+Result: ALL four comparators are STUCK from the moment BVDD exceeds
+~1.5V (Vtn+|Vtp|). Mode control outputs become static. No sequenced
+startup. No controlled shutdown.
+
+The small correction from subthreshold behavior near BVDD ~ 1.4V does
+not help — the crossings happen at impractically low voltages where
+the inverters barely function, and there is no separation between
+thresholds.
+
+NUANCE: NON-IDEAL EFFECTS
+--------------------------
+In practice Vtrip is not perfectly proportional to VDD because of the
+fixed Vtn/Vtp offset:
+
+  Vtrip(VDD) = (Vtn + sqrt(Bp/Bn) * (VDD - |Vtp|)) / (1 + sqrt(Bp/Bn))
+
+At low VDD (near Vtn+|Vtp| ~ 1.4V), Vtrip/VDD -> 0.5.
+At high VDD (10.5V), Vtrip/VDD -> k ~ 0.42.
+
+So k drifts slightly with VDD. This means there COULD be crossings,
+but they would occur at:
+  - Very low BVDD (1.5-2V) where the inverter gain is poor
+  - All four thresholds would collapse into a ~0.5V window
+  - No meaningful sequencing possible
+
+ADDITIONAL PROBLEM: HYSTERESIS SCALING
+--------------------------------------
+The Schmitt hysteresis NFETs (XMhf1-4) are carefully sized per tap
+to give specific delta-Vtrip values (72-161mV) at PVDD=5V. If powered
+from BVDD:
+  - At BVDD=5.4V: hysteresis slightly larger than designed
+  - At BVDD=10.5V: hysteresis roughly doubles (delta scales with VDD)
+  - Hysteresis would vary with battery voltage — defeats the purpose
+    of precision thresholds
+
+ADDITIONAL PROBLEM: LOGIC GATE LEVELS
+--------------------------------------
+The downstream logic (inverters, AND/OR gates on lines 66-113) is also
+PVDD-powered. If comparators output BVDD-level signals (0 to 10.5V)
+into PVDD-powered logic (VDD=5V), the PFET gates see VGS up to -5.5V
+beyond supply. While g5v0d10v5 can handle this voltage-wise, the logic
+levels would be mismatched and current would flow through the PFET
+body diode when input > PVDD + 0.6V.
+
+If we also move the logic to BVDD, then ALL output signals (pass_off,
+bypass_en, ea_en, ref_sel, uvov_en, ilim_en) swing to BVDD. These
+drive blocks powered by PVDD or SVDD — creating level-shifting
+problems everywhere downstream.
+
+VERDICT
+-------
+DO NOT power mode control from BVDD.
+
+The v14 design notes already document this decision:
+  "Mode control stays PVDD-powered (BVDD would break comparator trip
+   ratios)"
+
+The ratiometric cancellation is fundamental — it's not fixable by
+resizing the ladder or the inverters. As long as the same voltage
+feeds both the ladder and the comparator supply, the absolute BVDD
+thresholds disappear.
+
+CORRECT FIX FOR STARTUP GLITCHING (already implemented)
+-------------------------------------------------------
+The startup problem was solved differently in v14:
+  1. ea_en is driven by a BVDD pullup at top level (not by mc_ea_en)
+     so the error amplifier is always enabled regardless of PVDD state
+  2. Soft-start (tau=2.2ms) in the error amplifier provides safe
+     sequencing — PVDD ramps smoothly rather than snapping on
+  3. The mode control comparator outputs are meaningless until PVDD
+     reaches ~4V, but by then the outputs are in their correct states
+
+This is the right architecture: use BVDD for the "must work before
+PVDD exists" enable, and let mode_control be authoritative only after
+PVDD is stable.
+
+RECOMMENDATION
+--------------
+No change needed. Current PVDD-powered architecture is correct.
+If startup glitch immunity needs further hardening, consider:
+  - Adding a PVDD_GOOD qualifier (PVDD > 4V) gating mode_control
+    outputs at top level
+  - Or: latch mode_control outputs at top level, only updating
+    when PVDD is within regulation
+
+================================================================================

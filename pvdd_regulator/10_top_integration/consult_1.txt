@@ -1,0 +1,179 @@
+CONSULT_1: Gate Snubber Pole Analysis — Detailed
+==================================================
+Date: 2026-04-03
+Circuit: PVDD 5V LDO, SkyWater SKY130A
+
+1. COMPONENT VALUES (from design.cir)
+======================================
+  Rgate       = 200 Ω          (09_startup/design.cir:19, FIX-23)
+  Cgate_snub  = 100 pF         (10_top_integration/design.cir:165, FIX-22)
+  Pass device = 10× pfet_g5v0d10v5, W=50µm L=0.5µm m=2 each
+                Total effective width = 10 × 50µm × 2 = 1.0 mm
+  Cgate_snub is connected gate-to-BVDD (NOT gate-to-GND)
+
+2. PASS DEVICE GATE CAPACITANCE ESTIMATE
+==========================================
+Device: sky130_fd_pr__pfet_g5v0d10v5 (5V thick-oxide PFET)
+
+Gate oxide: ~10 nm (thick oxide, 5V device)
+  → Cox ≈ ε₀·εr / tox = 8.854e-12 × 3.9 / 10e-9 = 3.45 fF/µm²
+
+Per-finger intrinsic gate cap (W=50µm, L=0.5µm):
+  Cgg_intrinsic = Cox × W × L = 3.45 fF/µm² × 50 µm × 0.5 µm = 86.3 fF
+
+But actual Cgg includes overlap and fringe capacitance:
+  Cov (overlap) ≈ 0.2–0.4 fF/µm × W (both sides)
+    = ~0.3 fF/µm × 50µm × 2 (source + drain overlap) = 30 fF
+  Cfringe ≈ smaller contribution, ~10-20 fF per finger for thick-oxide
+
+  Per-finger total: Cgg ≈ 86 + 30 + 15 ≈ 131 fF  (rough estimate)
+  With m=2: Cgg_instance ≈ 262 fF
+
+10 instances total:
+  Cgs_pass_total ≈ 10 × 262 fF ≈ 2.6 pF
+
+However, operating-point dependent:
+  - In saturation: Cgs ≈ (2/3)×Cox×W×L + Cov = (2/3)×86 + 30 ≈ 87 fF/finger
+    → 10 × 2 × 87 = 1.74 pF
+  - In linear (dropout): Cgs ≈ (1/2)×Cox×W×L + Cov ≈ 73 fF/finger
+    → 10 × 2 × 73 = 1.46 pF
+  - Cgd similar magnitude, adds to total gate load
+
+Best estimate for total intrinsic gate cap (Cgs + Cgd + Cgb):
+  Cgate_intrinsic ≈ 2–5 pF depending on operating region
+
+Note: SKY130 thick-oxide devices may have higher specific capacitance
+than the simple parallel-plate estimate. The PDK model includes
+detailed capacitance modeling. A more accurate number would come from
+an .op analysis extracting cgg from the MOSFET operating point.
+
+3. TOTAL GATE NODE CAPACITANCE
+===============================
+  Ctotal_gate = Cgate_intrinsic + Cgate_snub + Cparasitics
+              ≈ 3 pF + 100 pF + ~0.5 pF (wiring)
+              ≈ 103.5 pF
+
+The snubber DOMINATES: 100 pF >> 3 pF intrinsic.
+The pass device capacitance is essentially irrelevant to the pole location.
+
+4. POLE CALCULATION
+====================
+The gate node pole is set by Rgate and Ctotal_gate:
+
+  fp_gate = 1 / (2π × Rgate × Ctotal_gate)
+          = 1 / (2π × 200 × 103.5e-12)
+          = 1 / (130.1e-9)
+          = 7.69 MHz
+
+With snubber only (ignoring intrinsic):
+  fp_snub = 1 / (2π × 200 × 100e-12)
+          = 1 / (125.7e-9)
+          = 7.96 MHz
+
+Difference: 7.96 → 7.69 MHz (only 3.4% shift from intrinsic cap).
+The intrinsic Cgs is negligible compared to the 100pF snubber.
+
+5. DOES Cgate_snub BEING TO BVDD MATTER?
+==========================================
+Cgate_snub is connected from gate to BVDD (source of pass PMOS).
+
+For SMALL-SIGNAL AC analysis:
+  - BVDD is the supply rail = AC ground (assuming ideal supply or
+    with bypass capacitance making it low impedance at frequencies
+    of interest)
+  - Therefore gate-to-BVDD is equivalent to gate-to-GND for
+    small-signal purposes
+  - The 100pF appears as a grounded capacitor on the gate node
+
+  → For loop gain / stability analysis: NO, it doesn't matter.
+     BVDD ≈ AC ground, so the pole is the same.
+
+HOWEVER, there are important SECOND-ORDER effects:
+
+(a) BVDD IS NOT A PERFECT AC GROUND:
+  - BVDD has finite source impedance (battery/supply Zout + PCB trace)
+  - If Zs_bvdd is not negligible, then Cgate_snub creates a
+    feedthrough path from BVDD noise to the gate
+  - This DEGRADES PSRR at frequencies above the gate pole
+  - At f > 7.7 MHz, the snubber shorts gate to BVDD (AC),
+    meaning gate follows BVDD ripple → pass device doesn't reject it
+  - This is a PSRR concern, not a stability concern
+
+(b) MILLER EFFECT (Cgd amplification):
+  - Cgate_snub is gate-to-source (for PMOS where source=BVDD)
+  - Unlike Cgd (gate-to-drain), Cgs does NOT get Miller-multiplied
+  - So Cgate_snub acts as a simple grounded cap, no Miller concern
+
+(c) LARGE-SIGNAL (transient) behavior:
+  - During load transients, BVDD may sag slightly (ESR × Iload)
+  - Cgate_snub couples this sag to the gate: ΔVgate = Csnub/(Csnub+Cother) × ΔVBVDD
+  - With Csnub >> Cother: ΔVgate ≈ ΔVBVDD (gate tracks supply sag)
+  - This is actually HELPFUL: if BVDD drops, gate drops too,
+    turning PMOS harder ON to maintain PVDD. Acts like a feed-forward.
+
+(d) STARTUP:
+  - During startup, BVDD ramps from 0 to 5.5V
+  - Cgate_snub must be charged through Rgate from EA output
+  - Charging time constant: τ = 200Ω × 100pF = 20 ns (very fast)
+  - Not a concern. (The old 1nF was τ = 200Ω × 1nF = 200 ns,
+    still fast, but the problem was the EA couldn't source enough
+    current through 200Ω to charge 1nF against the pass device
+    threshold, causing 22µs gate slew)
+
+6. IMPACT ON LOOP STABILITY
+=============================
+Loop crossover frequency (from bode analysis): ~300 kHz–1 MHz typical
+Gate pole at 7.7 MHz: well above crossover → adds ~5° phase lag at UGF
+
+  Phase contribution at 1 MHz: -arctan(1M/7.7M) = -7.4°
+  Phase contribution at 300 kHz: -arctan(300k/7.7M) = -2.2°
+
+This is a BENIGN pole. The snubber costs at most ~7° of phase margin.
+
+The snubber's primary PURPOSE is transient damping (slowing gate
+transitions to prevent ringing in the EA-vs-current-limiter fight),
+and 7.7 MHz is high enough to not compromise stability while still
+providing useful damping at the gate node.
+
+7. COMPARISON TABLE
+====================
+Config                  | Rgate  | Cgate  | fp_gate  | Phase@1MHz
+------------------------|--------|--------|----------|----------
+Original (v8)           | 1kΩ    | ~3pF   | 53 MHz   | -1.1°
+FIX-22 (1nF snubber)    | 1kΩ    | 1.003nF| 159 kHz  | -81°  ← DISASTER
+FIX-22+23 (1nF, 200Ω)  | 200Ω   | 1.003nF| 795 kHz  | -51°  ← still bad
+Current (100pF, 200Ω)   | 200Ω   | 103pF  | 7.7 MHz  | -7.4° ← good
+
+The 1nF snubber with 1kΩ Rgate (159 kHz pole) was catastrophic —
+the gate pole was BELOW the loop crossover, killing phase margin.
+This explains the 324mV undershoot. Reducing to 100pF moved the
+pole safely above the loop bandwidth.
+
+8. RECOMMENDATION FOR EXTRACTING EXACT Cgs
+============================================
+To get the precise intrinsic gate capacitance from SKY130 models,
+run an .op simulation and extract:
+
+  .op
+  .print op @XM_pass.XM1.m0[cgs]
+  .print op @XM_pass.XM1.m0[cgd]
+  .print op @XM_pass.XM1.m0[cgb]
+
+Or run an AC simulation measuring gate impedance:
+  - Apply AC voltage source at gate
+  - Measure AC current into gate
+  - Cgate = Im(Igate) / (2π × f × Vgate)
+
+This would give the exact model value rather than our hand estimate.
+However, since 100pF >> Cgs_intrinsic, the exact value barely matters
+for the pole calculation (3% effect).
+
+9. SUMMARY
+===========
+- Gate pole: 7.7 MHz (dominated by 100pF snubber, NOT pass device Cgs)
+- Pass device Cgs ≈ 2–5 pF (estimate for 1mm g5v0d10v5)
+- Csnub to BVDD vs GND: no difference for small-signal stability
+  (BVDD = AC ground). Minor PSRR effect at very high frequency.
+- Phase margin cost: ~7° at 1 MHz crossover — acceptable
+- The 100pF value is well-chosen: provides damping without
+  compromising loop bandwidth (unlike the original 1nF)

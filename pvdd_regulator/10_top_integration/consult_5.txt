@@ -1,0 +1,38 @@
+CONSULT-5: Gate Snubber Removal + Rgate=1k Analysis
+====================================================
+Date: 2026-04-03
+
+Question: If we remove the 100pF gate snubber AND increase Rgate back to 1k ohm,
+what happens to the EA slew rate at the gate node?
+
+Analysis:
+---------
+
+EA Stage 2 bias current:
+  pb_tail mirror: m=2 vs tail m=4 → I_bias ≈ 23uA
+
+OTA slew rate = I_bias / Cc = 23e-6 / 40e-12 = 0.575 V/us
+  This is the slew rate at ea_out (vout_gate) node inside the EA.
+
+Through Rgate=1k, the gate node sees this slewed voltage filtered by Rgate*Cgate.
+
+Without the snubber:
+  Cgate ≈ Cgs_pass ≈ 2-5 pF
+  tau = 1000 * 5e-12 = 5 ns
+
+This is MUCH faster than the OTA slew period, so Rgate=1k does NOT limit
+the slew rate — the EA itself is the bottleneck.
+
+Load transient estimate:
+  For a 10mA load step, the gate needs to move ~200mV.
+  Time = 200mV / 0.575 V/us = 348 ns
+  During this time, Cout (1uF) provides current:
+  dV = 10mA * 348ns / 1uF = 3.5 mV undershoot from slew alone.
+
+Conclusion:
+-----------
+Removing the 100pF snubber and restoring Rgate=1k is safe from a slew-rate
+perspective. The dominant slew limitation is the EA OTA (0.575 V/us), not the
+RC filter at the gate. The gate RC time constant (5ns) is negligible compared
+to the EA slew time (~348ns for a typical load step). Expected undershoot
+from slew limiting alone is only ~3.5mV — well within spec.

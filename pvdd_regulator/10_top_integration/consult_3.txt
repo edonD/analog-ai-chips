@@ -1,0 +1,321 @@
+CONSULT-3: Conditional Stability Analysis — Load-Dependent Phase Margin
+=======================================================================
+Date: 2026-04-03
+
+EXECUTIVE SUMMARY
+-----------------
+The sustained ~200mV pk-pk oscillation on the load transient plot is NOT
+damped ringing — it is a limit-cycle oscillation indicating the loop has
+zero or negative phase margin at the operating point. The root cause is
+that the output pole (set by Rload || rds_pass and Cout) moves with load
+current. At light load the output pole merges with the dominant pole,
+creating ~180 degrees of phase shift well below UGB and destroying PM.
+The loop is CONDITIONALLY STABLE: adequate (barely) at one load, unstable
+at another.
+
+=======================================================================
+(1) EVIDENCE FROM THE PLOTS
+=======================================================================
+
+Load Transient (plot_load_transient.png):
+  - 1→10→1 mA step, TT 27C
+  - ~30+ cycles of sustained oscillation, 4.85V to 5.05V (~200mV pk-pk)
+  - Oscillation frequency ~20 kHz (estimated from plot: ~30 cycles in 1.5ms)
+  - NOT decaying — amplitude is constant throughout the entire window
+  - This is a limit cycle, not transient ringing
+
+Bode Plot (plot_bode.png):
+  - Measured via PSRR injection method, TT 27C, 10 mA load (Rload=500 ohm)
+  - DC loop gain = 70.8 dB
+  - UGB ~ 142 kHz (extrapolated)
+  - Phase at UGB ~ -150 degrees → PM ~ 30 degrees
+  - Phase drops monotonically — no recovery above -180 before UGB
+
+Key observation: 30 degrees PM gives damped ringing (Q ~ 2), but NOT
+sustained oscillation. The sustained oscillation means PM is worse at a
+DIFFERENT operating point — specifically at lighter load, where the loop
+spends most of its time during the 1mA baseline portions of the test.
+
+=======================================================================
+(2) WHY PM VARIES WITH LOAD CURRENT — POLE MOVEMENT ANALYSIS
+=======================================================================
+
+The open-loop transfer function has these critical poles:
+
+  p1 (dominant, Miller): set by EA Stage 1 output impedance and Miller-
+    enhanced Cc=40pF. Location: ~1-5 Hz. Roughly load-independent.
+
+  p_out (output): 1 / (2*pi * (Rload || rds_pass) * Cout_total)
+    This pole MOVES with load current.
+    Cout_total = 1uF + 200pF ≈ 1uF
+
+  p2 (non-dominant, Miller-pushed): gm_cs * Cc / (Cd2 * Cgate)
+    Roughly load-independent, ~500 kHz-1 MHz range.
+
+  z1 (compensation zero): 1 / (2*pi * Rc * Cc) = 1/(2*pi*5k*40p) = 796 kHz
+
+Output pole vs load:
+  ┌──────────┬──────────┬────────────────┬────────────────────────────┐
+  │ Iload    │ Rload    │ p_out          │ Comment                    │
+  ├──────────┼──────────┼────────────────┼────────────────────────────┤
+  │ 0 mA     │ open     │ ~0.1-1 Hz      │ rds_pass only, very high R │
+  │ 1 mA     │ 5000 Ω   │ 32 Hz          │ MERGES WITH p1             │
+  │ 5 mA     │ 1000 Ω   │ 159 Hz         │ Close to p1                │
+  │ 10 mA    │ 500 Ω    │ 318 Hz         │ Bode plot condition        │
+  │ 50 mA    │ 100 Ω    │ 1.59 kHz       │ Well separated from p1     │
+  └──────────┴──────────┴────────────────┴────────────────────────────┘
+
+At light load (1 mA): p_out ≈ 32 Hz is within a decade of p1 (~few Hz).
+These two poles together contribute -180 degrees of phase shift by ~300 Hz.
+The UGB is still in the kHz-to-tens-of-kHz range, so by UGB the phase has
+already passed -180 degrees → PM is NEGATIVE.
+
+At 10 mA: p_out ≈ 318 Hz, giving more separation from p1. Phase accumulates
+more slowly. PM ≈ 30 degrees — marginal but positive.
+
+At 50 mA: p_out ≈ 1.6 kHz, good separation. PM is best at heavy load,
+probably 45-55 degrees.
+
+=======================================================================
+(3) QUANTITATIVE PM ESTIMATES VS LOAD
+=======================================================================
+
+Using the two-pole approximation (p1 + p_out dominate before UGB):
+
+Phase at UGB ≈ -arctan(f_ugb/p1) - arctan(f_ugb/p_out) - arctan(f_ugb/p2) + arctan(f_ugb/z1)
+
+The gain also changes with load because pass device gm varies:
+  gm_pass ∝ sqrt(Id) for saturation: gm(10mA)/gm(1mA) ≈ sqrt(10) ≈ 3.2×
+  → Loop gain drops ~10 dB at 1 mA vs 10 mA → UGB drops too
+
+Estimated PM at each load (TT 27C):
+  ┌──────────┬──────────┬──────────┬────────┬────────────────────────┐
+  │ Iload    │ UGB est. │ PM est.  │ Status │ Transient behavior      │
+  ├──────────┼──────────┼──────────┼────────┼────────────────────────┤
+  │ 0 mA     │ ~10 kHz  │ -20 to   │ UNSTABLE│ Sustained oscillation  │
+  │          │          │ -10 deg  │        │                         │
+  │ 1 mA     │ ~30 kHz  │ -5 to    │ UNSTABLE│ Sustained oscillation  │
+  │          │          │ +10 deg  │        │                         │
+  │ 5 mA     │ ~80 kHz  │ 15-25°   │ MARGINAL│ Heavy ringing, slow    │
+  │          │          │          │        │ decay                    │
+  │ 10 mA    │ ~142 kHz │ ~30°     │ MARGINAL│ Ringing (Q~2-3)        │
+  │ 50 mA    │ ~250 kHz │ 45-55°   │ OK-ish │ Some overshoot, settles │
+  └──────────┴──────────┴──────────┴────────┴────────────────────────┘
+
+CRITICAL: The load transient test steps between 1 mA and 10 mA. At 1 mA
+baseline the loop is at or near instability. The "oscillation" seen in the
+plot is the loop oscillating at the 1 mA operating point, NOT ringing from
+the load step. This explains why it is SUSTAINED and does not decay.
+
+=======================================================================
+(4) IS THIS CONDITIONALLY STABLE?
+=======================================================================
+
+Strictly speaking, "conditional stability" means the Nyquist plot passes
+through the third quadrant (phase < -180 degrees) at frequencies where
+|T| > 1, but the phase recovers above -180 degrees before the gain drops
+to 0 dB. In such a system, reducing the gain (e.g., by reducing load,
+increasing beta, or component drift) can push the 0dB crossing into the
+unstable phase region.
+
+From the Bode at 10 mA:
+  - Phase drops monotonically to -150 degrees at UGB
+  - No visible phase recovery above -180 degrees
+  - This does NOT look like classic conditional stability at 10 mA
+
+However, the system IS conditionally stable WITH RESPECT TO LOAD:
+  - At heavy load (50 mA): stable, PM > 45 degrees
+  - At medium load (10 mA): marginally stable, PM ~ 30 degrees
+  - At light load (1 mA): UNSTABLE, PM ~ 0 degrees or negative
+  - During transitions: the operating point traverses unstable regions
+
+This is a form of conditional stability where the "condition" is the DC
+operating point (load current), not a frequency-domain gain margin issue.
+The mechanism is the load-dependent output pole.
+
+=======================================================================
+(5) PHASE MARGIN REQUIREMENTS
+=======================================================================
+
+For different transient behaviors:
+
+  PM > 76 degrees: Critical damping (Q = 0.5). No overshoot at all.
+                    Monotonic settling. Required for precision references.
+
+  PM > 65 degrees: Q < 0.5. At most one small overshoot cycle, then
+                    monotonic. Acceptable for most LDOs.
+
+  PM > 55 degrees: Q < 1. Moderate ringing, 2-3 cycles. Common minimum
+                    spec for production LDOs.
+
+  PM > 45 degrees: Q < 1.5. Visible ringing, 4-6 cycles. Marginal.
+
+  PM ~ 30 degrees: Q ~ 2-3. Heavy ringing, 10-20 cycles. Unacceptable
+                    for most applications.
+
+  PM ~ 0 degrees:  Sustained oscillation. System failure.
+
+Current state:
+  - At 10 mA: PM ~ 30 degrees → Q ~ 2-3 (heavy ringing, confirmed by plot)
+  - At 1 mA: PM ~ 0 degrees → sustained oscillation (confirmed by plot)
+  - REQUIREMENT: PM > 65 degrees at ALL load conditions (0 to 50 mA)
+  - This means we need ~35 degrees MORE phase margin at light load
+
+=======================================================================
+(6) ROOT CAUSE AND FIX DIRECTION
+=======================================================================
+
+The fundamental problem: the 1 uF output cap creates an output pole that
+is load-dependent. At light load, this pole is too close to the dominant
+pole, wiping out phase margin. The Miller compensation (Cc=40pF, Rc=5k)
+was tuned for 10 mA where p_out ~ 318 Hz, but at 1 mA p_out drops to
+32 Hz and the design falls apart.
+
+This is a classic LDO stability problem. Solutions in order of effectiveness:
+
+A. OUTPUT CAP ESR ZERO (most impactful for this topology)
+
+   Add intentional ESR in series with Cout_ext:
+     z_esr = 1 / (2*pi * Resr * Cout) = 1 / (2*pi * Resr * 1uF)
+
+   To place the ESR zero near the output pole at light load (~32 Hz):
+     Resr = 1/(2*pi * 32 * 1e-6) ≈ 5 kΩ — too high, causes DC drop
+
+   Better: place z_esr near UGB to boost phase where it matters:
+     For z_esr ~ 10-50 kHz: Resr = 1/(2*pi * 30kHz * 1uF) ≈ 5 Ω
+     This adds 30-45 degrees of phase boost at UGB
+     Trade-off: 5Ω × 10mA = 50mV output impedance bump
+
+   Practical: Resr = 1-2 Ω gives z_esr at 80-160 kHz
+     Still provides 10-20 degrees near UGB at 10 mA
+     Less helpful at 1 mA where UGB is lower
+
+B. FEEDFORWARD CAPACITOR (Cff) ACROSS R_TOP
+
+   Creates a zero in the feedback path:
+     z_ff = 1 / (2*pi * R_TOP * Cff) = 1 / (2*pi * 364k * Cff)
+
+   For z_ff ~ 5-10 kHz: Cff ≈ 44-88 pF
+
+   This boosts phase at frequencies above z_ff, providing 15-30 degrees
+   additional PM. The zero location is load-independent — it helps at
+   ALL load conditions equally.
+
+   BUT: Cff also creates a high-frequency pole at:
+     p_ff = 1 / (2*pi * (R_TOP||R_BOT) * Cff) ≈ 38 kHz (for 47pF)
+   This limits the phase boost.
+
+   Recommended: Cff = 22-47 pF. Start with 33 pF → z_ff ≈ 13 kHz.
+
+C. REDUCE UGB (increase Cc further)
+
+   Current Cc = 40 pF, UGB ~ 142 kHz at 10 mA.
+   Increasing Cc to 100-200 pF would drop UGB to ~30-60 kHz.
+   Lower UGB means less phase accumulation from p_out → more PM.
+
+   But: This trades bandwidth for stability. Transient response gets
+   slower. Undershoot = Iload_step * dt / Cout increases as bandwidth
+   drops. Already at 40 pF the slew rate is only 0.575 V/us.
+
+   Cc = 100 pF: UGB ~ 57 kHz, slew = 0.23 V/us. Transient response
+   significantly degraded.
+
+D. ADAPTIVE COMPENSATION (best but most complex)
+
+   Use a load-sensing circuit to adjust compensation dynamically:
+   - At light load: engage more compensation (larger effective Cc)
+   - At heavy load: reduce compensation (higher bandwidth)
+
+   This is common in commercial LDOs but complex for this design stage.
+
+=======================================================================
+(7) RECOMMENDED IMMEDIATE ACTION
+=======================================================================
+
+Run multi-load Bode analysis to QUANTIFY PM at each load point:
+
+  Load points: 0 mA, 1 mA, 5 mA, 10 mA, 50 mA
+  Measure: DC gain, UGB, PM, GM at each
+  Corner: TT 27C first, then FS 150C (worst case from opinion_transient)
+
+This will confirm/refine the estimates above and guide compensation fixes.
+
+Priority fix to implement:
+  1. Add Cff = 33 pF across R_TOP in feedback network (load-independent
+     phase boost, addresses the root cause at ALL loads)
+  2. Consider Resr = 1 Ω in series with Cout_ext (ESR zero near ~160 kHz)
+  3. Possibly increase Cc from 40 pF to 60-80 pF (reduce UGB further)
+
+Target: PM > 65 degrees at all loads (0-50 mA) across PVT.
+         This gives Q < 0.5 and at most one overshoot cycle.
+
+=======================================================================
+(8) WHY THE BODE PLOT LOOKS "OK" BUT THE TRANSIENT DOESN'T
+=======================================================================
+
+The Bode was measured at 10 mA — the best-case stability point in the
+1-10 mA test range. Even there PM is only ~30 degrees (unacceptable).
+
+The load transient oscillates at the 1 mA operating point where PM is
+near zero. The Bode at 10 mA simply doesn't capture the worst case.
+
+This is the classic trap of LDO stability verification: measuring Bode
+at one load and assuming it applies everywhere. LDO stability MUST be
+verified at minimum load (including no-load) because that is where the
+output pole is at its lowest frequency and PM is worst.
+
+Additionally, during the load step transition itself, the operating point
+sweeps through intermediate states. If PM goes negative at any point
+during this sweep, the loop will oscillate. Even if the starting and
+ending load conditions are individually stable, the transition can be
+unstable — this is the "conditional stability during transition" failure
+mode.
+
+=======================================================================
+(9) OSCILLATION FREQUENCY CHECK
+=======================================================================
+
+From the plot: f_osc ~ 20 kHz (30 cycles in ~1.5 ms)
+
+For a system oscillating at PM = 0 degrees, the oscillation frequency
+equals the frequency where phase(T) = -180 degrees and |T| ≥ 0 dB.
+
+At 1 mA load:
+  - p1 ~ 3 Hz (dominant)
+  - p_out ~ 32 Hz (at Rload = 5 kΩ)
+  - Both contribute -90 degrees each by ~300 Hz
+  - Phase = -180 degrees at ~300 Hz... but gain is still very high there
+
+  The oscillation occurs where |T| crosses 0 dB with phase ≤ -180 degrees.
+  With 70 dB DC gain and -40 dB/decade slope (two poles), gain hits 0 dB at:
+    f_0dB = sqrt(p1 * p_out) * 10^(70/40) ≈ sqrt(3 * 32) * 10^1.75
+    ≈ 10 * 56 ≈ 560 Hz... this is lower than 20 kHz.
+
+  The discrepancy suggests additional gain from the pass device gm stage
+  and/or the Miller zero providing some gain boost. The exact oscillation
+  frequency requires full SPICE verification.
+
+  Alternative: the 20 kHz oscillation may be at the GAIN CROSSOVER with
+  additional phase contributed by p2 (~500 kHz) — at 20 kHz, p2 contributes
+  arctan(20k/500k) ≈ 2.3 degrees. Not significant.
+
+  Most likely: the effective UGB at 1 mA is near 20 kHz, and the phase at
+  20 kHz is exactly -180 degrees. This is consistent with ~10 dB lower loop
+  gain at 1 mA (from reduced gm_pass) shifting UGB down from 142 kHz to
+  ~30-50 kHz, with the closer output pole eroding phase.
+
+=======================================================================
+(10) SUMMARY
+=======================================================================
+
+  DIAGNOSIS: Load-dependent conditional instability.
+  MECHANISM: Output pole moves with Rload. At 1 mA, p_out merges with p1.
+  CURRENT PM: ~30 degrees at 10 mA (marginal), ~0 degrees at 1 mA (unstable)
+  REQUIREMENT: PM > 65 degrees at ALL loads for Q < 0.5 (acceptable ringing)
+  GAP: ~35 degrees at 10 mA, ~65+ degrees at 1 mA
+  FIX PRIORITY: Cff across R_TOP (load-independent phase boost)
+  NEXT STEP: Multi-load Bode analysis (0/1/5/10/50 mA) to quantify
+
+=======================================================================
+END OF ANALYSIS
+=======================================================================

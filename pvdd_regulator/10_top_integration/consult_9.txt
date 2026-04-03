@@ -1,0 +1,520 @@
+================================================================================
+CONSULT-9: Small-Signal Loop Model & Pole-Zero Phase Analysis
+PVDD 5V LDO — Post FIX-21/22/23
+Date: 2026-04-03
+================================================================================
+
+1. SMALL-SIGNAL MODEL
+================================================================================
+
+The loop is broken at vfb. Signal flows:
+
+   vref ──┐
+          (+)                                    ┌──────────┐
+           ├─── gm1 ──► d2 ───┤Cc+Rc├──► vout_gate ─► Rgate ─► gate
+          (-)                  │              │                    │
+   vfb ──┘                   Rd2||Cd2      gm2*Vd2            Csnub
+                                              │               (to BVDD)
+                                             Rout2               │
+                                              │                  │
+                                             GND              ┌──┘
+                                                               │
+                                                         ┌─────┴─────┐
+                                                         │ Pass PMOS │
+                                                         │ gm_pass   │
+                                                         └─────┬─────┘
+                                                               │
+                                                              pvdd
+                                                               │
+                                                         Rload ║ Cout
+                                                               │
+                                                              GND
+                                                               │
+                                                          ┌────┴────┐
+                                                          │ R_TOP   │
+                                                     vfb ─┤         │
+                                                          │ R_BOT   │
+                                                          └────┬────┘
+                                                              GND
+
+
+ASCII SCHEMATIC (linearized small-signal):
+
+                    Cc (40pF)
+              ┌───┤├───┬───/\/\/───┐
+              │         Rc (5kΩ)   │
+              │                    │
+    vref(+)   │                    │        Rgate         Pass PMOS
+     ──►(gm1)──► d2              vout_gate ─/\/\/─► gate ──►(gm_pass)──► pvdd
+    vfb(-)    │                    │        200Ω    │                     │
+              │                    │                │                     │
+             Rd2              (gm2*Vd2)          Csnub               Rload║Cout
+             Cd2                   │              100pF              (1µF+200pF)
+              │                   Rout2             │                     │
+             GND                   │              BVDD(ac gnd)           GND
+                                  GND
+
+    Feedback: vfb = beta * pvdd,  beta = R_BOT/(R_TOP+R_BOT) = 0.245
+
+
+2. NODE DEFINITIONS
+================================================================================
+
+  Node        Description                      Key impedance
+  ────        ───────────                      ──────────────
+  d2          Stage 1 output (drain)           Rd2 = ro1||ro2 ~ few MΩ
+                                               Cd2 = Cparasitic ~ 0.5-1pF
+  vout_gate   Stage 2 output (EA output)       Rout2 ~ few hundred kΩ
+  gate        Pass device gate                 Rgate=200Ω to vout_gate
+                                               Csnub=100pF to BVDD
+                                               Cgs~5pF to pvdd (source)
+  pvdd        Regulated output                 Rload || (Cout=1µF+200pF)
+  vfb         Feedback tap                     High-Z (divider midpoint)
+
+
+3. TRANSFER FUNCTION ELEMENTS
+================================================================================
+
+Stage 1 (Folded-cascode EA, differential pair):
+  ─ Transconductance: gm1 (set by tail current, ~10-50 µA/V typ)
+  ─ Output: current into node d2
+  ─ d2 impedance: Rd2 = ro_pmos || ro_nmos (very high, ~MΩ)
+  ─ d2 parasitic cap: Cd2 ~ 0.5-1 pF
+
+Miller compensation network (d2 to vout_gate):
+  ─ Cc = 40 pF (series with Rc = 5 kΩ)
+  ─ Creates: dominant pole splitting, LHP zero, RHP zero
+
+Stage 2 (NFET common-source/cascode):
+  ─ Transconductance: gm2 ~ 300 µA/V (estimated from p2 placement)
+  ─ Output: current into node vout_gate
+  ─ Rout2: output resistance of cascode (high, ~MΩ)
+
+Gate drive network:
+  ─ Rgate = 200 Ω (series resistance, ea_out to gate)
+  ─ Csnub = 100 pF (gate to BVDD, AC ground)
+  ─ Cgs_pass ~ 5 pF (gate-source of pass PMOS)
+
+Pass device (PMOS source follower in common-source config):
+  ─ gm_pass: depends on Iload. At 10mA ~ few mA/V
+  ─ Drives current into pvdd node
+  ─ Note: Vsg = Vbvdd - Vgate, so iout = -gm_pass * Vgate
+    (inverting: gate going low → more current → pvdd rises)
+
+Output node:
+  ─ Rload: depends on load current (∞ at no-load, ~500Ω at 10mA)
+  ─ Cout = 1 µF (external) + 200 pF (on-chip) ≈ 1 µF total
+
+Feedback:
+  ─ beta = R_BOT / (R_TOP + R_BOT) = 118k / (364k + 118k) = 0.245
+  ─ Cfb = 2 pF across R_TOP (FIX-11, adds a feedback zero/pole pair)
+
+
+4. POLES AND ZEROS
+================================================================================
+
+─────────────────────────────────────────────────────────────────────────────
+  Name    Type        Frequency       Formula
+─────────────────────────────────────────────────────────────────────────────
+  p1      Pole        ~300 Hz         1/(2π * Rout_total * Cout)
+          (dominant)                  Rout_total ≈ (rds_pass || Rload)
+                                      With Miller splitting, pushed very low
+
+  p2      Pole        ~1.2 MHz        gm2 / (2π * Cc)
+          (non-dom)                   = 300µ / (2π * 40p) ≈ 1.19 MHz
+
+  p3      Pole        ~7.6 MHz        1/(2π * Rgate * (Cgs + Csnub))
+          (gate)                      = 1/(2π * 200 * 105p) = 7.58 MHz
+
+  p_fb    Pole        ~220 kHz        1/(2π * (R_TOP||R_BOT) * Cfb)
+          (feedback)                  = 1/(2π * 89k * 2p) ≈ 894 kHz
+                                      BUT: in loop, appears at ~220 kHz
+                                      due to interaction with divider
+
+  z1      Zero (LHP)  ~796 kHz        1/(2π * Rc * Cc)
+          (Miller Rc)                 = 1/(2π * 5k * 40p) = 796 kHz
+
+  z2      Zero (RHP)  ~1.2 MHz        gm2 / (2π * Cc)
+          (Miller)                    = 300µ / (2π * 40p) ≈ 1.19 MHz
+                                      (cancels p2 approximately — depends
+                                       on exact gm2 vs Rc*gm2 ratio)
+
+  z_fb    Zero (LHP)  higher          From Cfb bypassing R_TOP at HF
+─────────────────────────────────────────────────────────────────────────────
+
+Note: p2 and z2 are both at ~gm2/(2πCc). The exact locations depend on
+whether gm2*Rc > 1 or < 1:
+  ─ If gm2*Rc = 300µ * 5k = 1.5 > 1: z1 (from Rc) is below p2, good.
+    The RHP zero z2 = gm2/Cc is at same frequency as p2.
+  ─ In practice, with Rc nulling, the RHP zero moves to:
+    z2_eff = 1/(Cc * (1/gm2 - Rc))
+    If Rc > 1/gm2: RHP zero becomes LHP zero! (both zeros are LHP)
+    1/gm2 = 1/300µ = 3.33 kΩ.  Rc = 5 kΩ > 3.33 kΩ.
+    → z2 is ALSO LHP at: 1/(2π*Cc*(Rc - 1/gm2)) = 1/(2π*40p*1.67k)
+                        = 2.39 MHz (LHP)
+    This is GOOD for stability.
+
+
+5. OPEN-LOOP GAIN
+================================================================================
+
+DC loop gain T(0):
+  T(0) = gm1 * Rd2 * gm2 * Rout2 * gm_pass * Rload * beta
+
+  Measured: 70.8 dB = 3467 V/V
+
+With single dominant pole at p1 = 300 Hz, gain crosses 0 dB at:
+  f_UGB = T(0) * f_p1 = 3467 * 300 = 1.04 MHz  (if single-pole rolloff)
+
+But measured UGB ≈ 142 kHz (from Bode sim), suggesting additional
+gain reduction from parasitic poles and/or lower effective DC gain at
+the operating point simulated.
+
+Alternatively, the gain slope steepens before 0 dB crossing due to p2,
+pulling UGB back. Let's use the measured value: UGB ≈ 142 kHz.
+
+
+6. PHASE ANALYSIS AT UGB = 142 kHz
+================================================================================
+
+Phase of loop gain T(jω) at f = f_UGB:
+
+  Phase contribution from each singularity:
+  ──────────────────────────────────────────────────────────────────────
+  Singularity   f_sing      f/f_sing    arctan      Contribution
+  ──────────────────────────────────────────────────────────────────────
+  p1 (300 Hz)    300 Hz      473.3      89.88°      -89.9°
+  p2 (1.2 MHz)   1.2 MHz     0.118      6.76°       -6.8°
+  p3 (7.6 MHz)   7.6 MHz     0.0187     1.07°       -1.1°
+  z1 (796 kHz)   796 kHz     0.178      10.11°      +10.1°  (LHP)
+  z2 (2.39 MHz)  2.39 MHz    0.059      3.40°       +3.4°   (LHP)
+  ──────────────────────────────────────────────────────────────────────
+  TOTAL from these 5 singularities:                  -84.3°
+
+  Phase margin = 180° + (-84.3°) = 95.7°  ← TOO HIGH vs measured ~50°
+
+  *** DISCREPANCY: 95.7° calculated vs ~50° measured ***
+
+  This means there are ADDITIONAL poles not in our simplified model.
+
+
+7. HUNTING THE MISSING POLES
+================================================================================
+
+The measured ~50° phase margin at ~142 kHz means total phase lag ≈ -130°.
+Our 5-singularity model gives only -84.3°. We're missing ~46° of phase lag.
+
+Possible sources of the missing phase:
+
+(a) Parasitic pole at node d2:
+    ─ p_d2 = 1/(2π * Rd2 * Cd2)
+    ─ Without Miller: if Rd2 ~ 5 MΩ, Cd2 ~ 1 pF → f = 32 kHz
+    ─ WITH Miller splitting, this pole gets pushed to p2 = gm2/Cc
+    ─ But if Cd2 is larger (layout parasitics), or if Miller splitting
+      is imperfect, a residual mid-frequency pole could remain.
+    ─ If effective p_d2 ~ 500 kHz: adds -arctan(142k/500k) = -15.8°
+
+(b) Feedback pole from Cfb = 2 pF:
+    ─ Cfb across R_TOP creates a pole in the feedback path
+    ─ f_pfb = 1/(2π * R_TOP * Cfb) = 1/(2π * 364k * 2p) = 219 kHz
+    ─ At 142 kHz: -arctan(142k/219k) = -arctan(0.649) = -33.0°
+    ─ THIS IS HUGE. A 33° phase loss from Cfb alone!
+
+(c) Pole inside the folded-cascode (current mirror pole):
+    ─ PMOS mirror in EA stage 1 has a pole from Cgs of mirror devices
+    ─ Typically at a few MHz, adds a few degrees
+
+(d) Distributed RC of poly resistors:
+    ─ R_TOP = 364 kΩ in xhigh_po: distributed RC with substrate
+    ─ Could add a few degrees of excess phase
+
+Let's check if (b) alone explains the discrepancy:
+
+  With p_fb at 219 kHz added:
+  ──────────────────────────────────────────────────────────────────────
+  Total phase = -84.3° + (-33.0°) = -117.3°
+  Phase margin = 180° - 117.3° = 62.7°
+  ──────────────────────────────────────────────────────────────────────
+
+  Still 12.7° more optimistic than measured 50°. The remaining ~13° likely
+  comes from (a) parasitic pole at d2 and (c) mirror poles.
+
+  If we add a lumped "parasitic" pole at ~800 kHz:
+  -arctan(142k/800k) = -10.1° → total = -127.4° → PM = 52.6°  ✓ MATCHES!
+
+
+8. REFINED POLE-ZERO MAP
+================================================================================
+
+                    Poles                              Zeros
+  ──────────────────────────────────────────────────────────────────────
+  p1   =   300 Hz     ████████████████████████████████   (dominant)
+  p_fb =   219 kHz    ████████████                       (Cfb = 2pF)
+  p_par ~  800 kHz    ██████                             (d2 + mirror)
+  p2   =  1.2 MHz     ████                              (Miller-pushed)
+  z1   =   796 kHz                                 ▓▓▓▓▓▓ (LHP, Rc)
+  z2   =  2.39 MHz                                 ▓▓▓▓   (LHP, Rc>1/gm2)
+  p3   =  7.6 MHz     ██                                (gate snubber)
+  ──────────────────────────────────────────────────────────────────────
+
+  Frequency axis (log):
+  10    100    1k    10k    100k    1M    10M    100M
+  |─────|─────|─────|──────|───────|─────|──────|
+  ·     ·     ·     ·   p1=300Hz   ·     ·      ·
+  ·     ·     ·     ·      ·  p_fb=219k  ·      ·
+  ·     ·     ·     ·      ·    z1=796k  ·      ·
+  ·     ·     ·     ·      ·   p_par~800k·      ·
+  ·     ·     ·     ·      ·       p2=1.2M      ·
+  ·     ·     ·     ·      ·      z2=2.39M      ·
+  ·     ·     ·     ·      ·       ·  p3=7.6M   ·
+  ·     ·     ·     ·      · UGB≈142k    ·      ·
+                                ↑
+
+
+9. SNUBBER IMPACT ANALYSIS
+================================================================================
+
+QUESTION: Does the 100pF snubber hurt stability?
+
+Without snubber (Csnub = 0):
+  p3 = 1/(2π * Rgate * Cgs) = 1/(2π * 200 * 5p) = 159 MHz
+  Phase at 142 kHz: -arctan(142k/159M) = -arctan(0.00089) = -0.051°
+
+With snubber (Csnub = 100pF):
+  p3 = 1/(2π * Rgate * (Cgs + Csnub)) = 1/(2π * 200 * 105p) = 7.58 MHz
+  Phase at 142 kHz: -arctan(142k/7.58M) = -arctan(0.0187) = -1.07°
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │  SNUBBER PHASE PENALTY AT UGB:                              │
+  │                                                             │
+  │    Δφ = -1.07° - (-0.051°) = -1.02°                        │
+  │                                                             │
+  │  VERDICT: NEGLIGIBLE. The snubber costs ~1° of phase.       │
+  │  The snubber is NOT the stability problem.                  │
+  └─────────────────────────────────────────────────────────────┘
+
+Even at 1 MHz (hypothetical higher UGB):
+  Without snubber: -arctan(1M/159M) = -0.36°
+  With snubber:    -arctan(1M/7.58M) = -7.5°
+  Δφ = -7.1°  (still modest at 1 MHz)
+
+
+10. THE REAL CULPRIT: Cfb = 2 pF
+================================================================================
+
+The feedback capacitor Cfb = 2 pF across R_TOP = 364 kΩ creates a pole at:
+
+  f_pfb = 1/(2π * R_TOP * Cfb) = 1/(2π * 364k * 2p) = 219 kHz
+
+This is only 1.54× above UGB (142 kHz). At UGB it contributes:
+
+  φ_pfb = -arctan(142k/219k) = -arctan(0.649) = -33.0°
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │  Cfb PHASE PENALTY AT UGB: -33°                             │
+  │                                                             │
+  │  This single capacitor eats 33° of phase margin!            │
+  │  It was added in FIX-11 to filter HF noise on vfb.         │
+  │  But it's destroying loop stability.                        │
+  └─────────────────────────────────────────────────────────────┘
+
+What Cfb does to the feedback:
+  ─ At DC: beta = R_BOT/(R_TOP+R_BOT) = 0.245
+  ─ At f >> f_pfb: Cfb shorts R_TOP, so beta → 1.0
+  ─ The transition happens around 219 kHz — right near UGB
+  ─ This creates a POLE in the loop gain (beta increases → more feedback
+    → but with phase lag from the RC)
+
+Actually, more precisely: Cfb across R_TOP creates a zero in beta(s)
+at f_z = 1/(2πR_TOP*Cfb) = 219 kHz and a pole at f_p = 1/(2π*(R_TOP||R_BOT)*Cfb)
+= 1/(2π*89k*2p) = 894 kHz.
+
+In the LOOP GAIN T(s) = A(s)*beta(s):
+  ─ The zero in beta appears as a ZERO in loop gain at 219 kHz
+  ─ The pole in beta appears as a POLE in loop gain at 894 kHz
+  ─ Net effect near UGB: the zero at 219 kHz BOOSTS gain (pushing UGB higher)
+    but the associated phase lead/lag interaction reduces phase margin.
+
+Wait — let me reconsider. If Cfb creates a zero in beta(s):
+  beta(s) = (R_BOT * (1 + s*R_TOP*Cfb)) / (R_TOP + R_BOT + s*R_TOP*R_BOT*Cfb)
+
+  Zero at: 1/(2π*R_TOP*Cfb) = 219 kHz → ADDS phase (LHP zero in beta)
+  Pole at: 1/(2π*(R_TOP||R_BOT)*Cfb) = 894 kHz → SUBTRACTS phase
+
+  At UGB = 142 kHz:
+    Phase from beta_zero (219 kHz):  +arctan(142k/219k) = +33.0°
+    Phase from beta_pole (894 kHz):  -arctan(142k/894k) = -9.0°
+    Net from Cfb: +33.0° - 9.0° = +24.0° of phase LEAD
+
+Hmm, that's phase LEAD, not lag. But Cfb also increases |beta| near UGB,
+which pushes UGB to a higher frequency where other poles contribute more lag.
+
+REVISED ANALYSIS — Cfb effect on UGB:
+  ─ |beta| at DC = 0.245
+  ─ |beta| at 142 kHz: boosted by ~10-20% due to Cfb zero
+  ─ |beta| at 1 MHz: approaching 1.0 (Cfb shorts R_TOP)
+  ─ Higher beta → higher loop gain → higher UGB → more phase from p2, p_par
+
+  If UGB increases from 142 kHz to (say) 200 kHz due to beta boost:
+    p2 at 200 kHz: -arctan(200k/1.2M) = -9.5° (was -6.8°)
+    p_par at 200 kHz: -arctan(200k/800k) = -14.0° (was -10.1°)
+    Additional lag: ~6.6°
+
+This is complex. The net effect of Cfb depends on the interaction.
+
+
+11. COMPLETE PHASE BUDGET AT UGB ≈ 142 kHz (BEST ESTIMATE)
+================================================================================
+
+  ┌──────────────────────────────────────────────────────────────────┐
+  │  Singularity        Location    Phase at 142 kHz                │
+  │  ────────────────── ─────────── ───────────────                 │
+  │  p1 (dominant)       300 Hz     -89.9°                          │
+  │  p_fb_pole           894 kHz    -9.0°                           │
+  │  p_parasitic(d2)     ~800 kHz   -10.1°  (estimated)             │
+  │  p2 (Miller)         1.2 MHz    -6.8°                           │
+  │  p3 (gate snubber)   7.6 MHz    -1.1°                           │
+  │  p_mirror            ~5 MHz     -1.6°   (estimated)             │
+  │  ─────────────────────────────────────────                      │
+  │  z1 (Rc nulling)     796 kHz    +10.1°                          │
+  │  z2 (LHP, Rc>1/gm2) 2.39 MHz   +3.4°                           │
+  │  z_fb (Cfb zero)     219 kHz    +33.0°                          │
+  │  ─────────────────────────────────────────                      │
+  │                                                                 │
+  │  TOTAL PHASE:  -89.9 -9.0 -10.1 -6.8 -1.1 -1.6                │
+  │                +10.1 +3.4 +33.0                                 │
+  │              = -72.0°                                           │
+  │                                                                 │
+  │  PHASE MARGIN = 180° + (-72.0°) = 108°  ← Still too optimistic │
+  └──────────────────────────────────────────────────────────────────┘
+
+Hmm. 108° is way too optimistic vs 50° measured. The linear small-signal
+model with these poles/zeros doesn't explain the measured phase margin.
+
+POSSIBLE EXPLANATIONS FOR THE DISCREPANCY:
+
+(1) UGB is actually higher than 142 kHz.
+    ─ The Cfb zero at 219 kHz boosts beta, increasing loop gain.
+    ─ If actual UGB ≈ 500 kHz - 1 MHz, phase margin drops significantly.
+    ─ At UGB = 800 kHz:
+      p1: -90°, p2: -arctan(0.667)=-33.7°, p3: -6.0°,
+      p_par: -45°, p_fb_pole: -arctan(0.895)=-41.8°
+      z1: +arctan(1.005)=+45.2°, z2: +arctan(0.335)=+18.5°,
+      z_fb: +arctan(3.65)=+74.7°
+      Total = -90 -33.7 -6.0 -45 -41.8 +45.2 +18.5 +74.7 = -78.1°
+      PM = 180 - 78.1 = 101.9°  (still too high)
+
+(2) There are additional HF poles we haven't accounted for.
+    ─ Pass device: Cgd creates a Miller pole seen at the drain
+    ─ Multiple poles inside the folded-cascode
+    ─ Distributed effects in long poly resistors
+
+(3) The phase margin was measured as CLOSED-LOOP from step response,
+    not directly from Bode. Ringing with ~50° PM was inferred from
+    transient overshoot, which can be misleading if there are
+    complex-conjugate poles.
+
+(4) The DC gain is load-dependent, and at the operating point in
+    the Bode sim, gm_pass may be very high, pushing UGB well above
+    142 kHz into the region where p2 and p_par really bite.
+
+
+12. KEY INSIGHT: WHAT ACTUALLY LIMITS PHASE MARGIN
+================================================================================
+
+From the pole-zero map, the phase margin is primarily set by the
+SPACING between UGB and the first non-dominant pole cluster (p_fb_pole,
+p_parasitic, p2) all bunched at 800 kHz - 1.2 MHz.
+
+If UGB is truly at 142 kHz (0.14 MHz), these poles at ~1 MHz are 7×
+above UGB, contributing only ~25° total lag. That should give PM > 60°.
+
+But if the actual UGB (accounting for Cfb beta-boost and gm_pass
+variation with load) is closer to 400-600 kHz, then:
+  ─ Poles at 800k-1.2M are only 1.3-3× above UGB
+  ─ Each pole contributes 20-40° of lag
+  ─ Phase margin collapses to 40-55°
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  CONCLUSION: The measured ~50° PM is consistent with an         │
+  │  EFFECTIVE UGB of ~400-600 kHz (not 142 kHz).                  │
+  │                                                                │
+  │  The Cfb zero at 219 kHz boosts loop gain by up to 12 dB       │
+  │  (beta goes from 0.245 to ~1.0), potentially pushing UGB       │
+  │  from 142 kHz to 500+ kHz.                                     │
+  │                                                                │
+  │  At UGB ≈ 500 kHz with poles at 800k, 900k, 1.2M:             │
+  │    p1: -90°, p_par: -32°, p_fb_pole: -29°, p2: -23°           │
+  │    z1: +32°, z_fb: +66°, z2: +12°                              │
+  │    p3: -3.8°                                                   │
+  │    Total ≈ -90 -32 -29 -23 +32 +66 +12 -3.8 = -67.8°          │
+  │    But z_fb only adds phase WITHIN the beta path; need careful  │
+  │    accounting of whether it appears in the LOOP gain.           │
+  │                                                                │
+  │  The zeros in beta add gain (pushing UGB up) but the phase     │
+  │  benefit partially cancels because the higher UGB means more   │
+  │  lag from p2, p_par. It's a wash at best, harmful at worst.    │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+13. SNUBBER: FINAL VERDICT
+================================================================================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                │
+  │  The 100pF gate snubber creates pole p3 at 7.6 MHz.            │
+  │                                                                │
+  │  Phase contribution at ANY reasonable UGB:                      │
+  │    At 142 kHz:  -1.1°   (negligible)                           │
+  │    At 500 kHz:  -3.8°   (small)                                │
+  │    At 1 MHz:    -7.5°   (noticeable but not dominant)           │
+  │                                                                │
+  │  Without snubber, p3 moves to 159 MHz → phase contribution     │
+  │  is essentially 0° at any UGB below 10 MHz.                    │
+  │                                                                │
+  │  VERDICT: The snubber is NOT the stability problem.             │
+  │  It adds at most 1-8° of phase lag depending on actual UGB.    │
+  │  Its benefit (damping gate-node oscillation at startup) far     │
+  │  outweighs this tiny phase cost.                               │
+  │                                                                │
+  │  KEEP the 100pF snubber. Look elsewhere for PM improvement.    │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+14. RECOMMENDATIONS FOR PHASE MARGIN IMPROVEMENT
+================================================================================
+
+Based on this analysis, the main stability levers are:
+
+(A) REDUCE UGB by increasing Cc or reducing gm1:
+    ─ Cc: 40pF → 80pF would halve UGB, gaining ~15° PM
+    ─ But: slower transient response, already 9ms settling
+
+(B) PUSH NON-DOMINANT POLES HIGHER:
+    ─ Reduce R_TOP||R_BOT to push p_fb_pole higher
+      (but changes beta → changes PVDD)
+    ─ Reduce Cfb: 2pF → 0.5pF moves p_fb_pole to 3.6 MHz
+      and z_fb to 874 kHz. Less beta-boost near UGB.
+      Cost: less HF filtering on vfb.
+
+(C) MOVE z1 CLOSER TO UGB for more phase boost at crossover:
+    ─ Currently z1 = 796 kHz. If UGB ≈ 500 kHz, z1 is only 1.6× above.
+    ─ Move z1 lower: Rc*Cc product must increase.
+    ─ Rc: 5kΩ → 20kΩ with Cc=40pF → z1 = 199 kHz
+    ─ Or Rc: 5kΩ → 10kΩ → z1 = 398 kHz
+    ─ Risk: if z1 goes below UGB, it boosts gain and pushes UGB up
+
+(D) REMOVE or REDUCE Cfb:
+    ─ Cfb was added in FIX-11 for HF noise filtering
+    ─ If Cfb is removed: no p_fb_pole, no beta boost, UGB drops,
+      PM improves significantly (~20-30°)
+    ─ If HF noise is a concern, use a smaller Cfb (0.2-0.5pF)
+      to push the pole above 1 MHz
+
+RECOMMENDED NEXT STEP:
+  Simulate Bode plot with Cfb = 0 (remove it) and compare PM.
+  If PM improves to >65°, then use Cfb = 0.2-0.5pF as compromise.
+
+================================================================================
+END CONSULT-9
+================================================================================

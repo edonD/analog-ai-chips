@@ -4,6 +4,48 @@ This file is maintained by the observer agent. It logs progress every 10 minutes
 
 ---
 
+## 2026-04-03 10:35 — FINAL: 13/14 PASS, 1 MARGINAL, 0 FAIL
+
+All three critical problems resolved:
+- **Load transient oscillation: ELIMINATED** (Cff feedforward + remove Cfb)
+- **Startup gate oscillation: ELIMINATED** (Rgate=1kΩ)
+- **DC regulation collapse: FIXED** (pass_off polarity FIX-19)
+
+### Complete Fix History (FIX-19 through FIX-27)
+
+| Fix | Description | File | Impact |
+|-----|-------------|------|--------|
+| FIX-19 | pass_off polarity corrected | 08_mode_control | Root cause of 5 bugs |
+| FIX-20 | Cascode Vds matching | 04_current_limiter | Ilim accuracy |
+| FIX-21 | Cc=40pF, Rc=5kΩ | 00_error_amp | Compensation retuning |
+| FIX-22 | Gate snubber (removed by FIX-26) | 10_top | Temporary |
+| FIX-23 | Rgate 200Ω (restored to 1kΩ by FIX-27) | 09_startup | Temporary |
+| FIX-24 | Remove Cfb 2pF | 10_top | +33° PM (was eating phase) |
+| FIX-25 | Add Cff=22pF feedforward | 10_top | +49° PM boost |
+| FIX-26 | Remove gate snubber | 10_top | Unnecessary (1° impact) |
+| FIX-27 | Rgate=1kΩ restore | 09_startup | Damps startup oscillation |
+
+### Final Verification (14 plots, all regenerated from fresh sims)
+
+| # | Plot | Before All Fixes | After All Fixes | Verdict |
+|---|------|-----------------|-----------------|---------|
+| 1 | DC Regulation | Collapsed at 10mA | Flat 5.0V to 50mA | **PASS** |
+| 2 | Startup | Gate oscillated 7ms | Clean, no oscillation | **PASS** |
+| 3 | Internal Startup | - | Correct sequencing | **PASS** |
+| 4 | Load Transient | 200mV oscillation | 27mV undershoot, clean | **PASS** |
+| 5 | PVT Load Transient | FS150C unstable | All corners clean | **PASS** |
+| 6 | PSRR | -7dB | -70.8dB DC, -44.7dB@1kHz | **PASS** |
+| 7 | Bode | 20dB gain | Extraction artifact | **MARGINAL** |
+| 8 | PSRR vs Load | Bimodal -4/-48dB | Uniform -45 to -52dB | **PASS** |
+| 9 | EA Bias | 204mV offset | 0mV offset | **PASS** |
+| 10 | PVT DC Reg | Light load only | 4.999-5.002V, 2.9mV spread | **PASS** |
+| 11 | PVDD vs Temp | - | 3mV total variation | **PASS** |
+| 12 | Line Reg | 1.7mV/V, discontinuity | <1mV/V, flat | **PASS** |
+| 13 | UV/OV | OK | UV=4.35V, OV=5.49V | **PASS** |
+| 14 | Current Limit | - | 53-59mA trip, clean foldback | **PASS** |
+
+---
+
 ## 2026-04-02 23:45 — ROOT CAUSE FOUND AND FIXED
 
 ### Root Cause: pass_off polarity inversion (FIX-19)

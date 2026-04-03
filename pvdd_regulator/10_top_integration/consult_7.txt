@@ -1,0 +1,171 @@
+CONSULT 7: Does the Current Limiter Engage During Load Transient Oscillation?
+=============================================================================
+
+QUESTION
+--------
+During load transient oscillation (200mV pk-pk on PVDD around 5.0V at 10mA),
+does the current limiter clamp (4x50um PFET from BVDD to gate) partially engage?
+
+STEADY-STATE ANALYSIS (10mA, PVDD=5.0V, Rload=500 ohm)
+-------------------------------------------------------
+  Pass device current:    Ipass = 10mA
+  Sense mirror ratio:     1:1000 (XMs W=1u vs pass W=1000u effective)
+  Sense current:          Isense = 10mA / 1000 = 10uA
+  Reference mirror:       XMref_d (W=2u L=8u) receives ibias=1uA
+                          XMref_m (W=100u L=8u) = 50:1 ratio -> sinks 50uA
+  Comparator:             Isense(10uA) < Iref(50uA) -> NMOS wins
+                          sense_out = LOW
+                          det_n = HIGH (inverted)
+                          Clamps = OFF
+
+  VERDICT: Current limiter firmly OFF at 10mA steady state.
+           Margin: 10uA / 50uA = 20% of trip threshold. 80% margin.
+
+DYNAMIC ANALYSIS (200mV pk-pk oscillation on PVDD)
+--------------------------------------------------
+  PVDD range during oscillation: 4.9V to 5.1V
+  Rload = 500 ohm (fixed)
+
+  At PVDD = 4.9V (trough):
+    Iload = 4.9V / 500 = 9.8mA -> Isense = 9.8uA
+
+  At PVDD = 5.1V (peak):
+    Iload = 5.1V / 500 = 10.2mA -> Isense = 10.2uA
+
+  Sense current range: 9.8 - 10.2 uA
+  Trip threshold:      50 uA
+
+  VERDICT: Sense current never exceeds 20.4% of trip threshold.
+           Current limiter does NOT engage during oscillation.
+           The +-0.2uA modulation is negligible vs the 40uA margin.
+
+PARASITIC PATH ANALYSIS
+------------------------
+Having read design.cir and top_circuit.spice, here are the potential
+parasitic coupling mechanisms:
+
+1. CRITICAL BUG FOUND: MISSING ibias CONNECTION
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Subckt definition (design.cir line 25):
+     .subckt current_limiter gate bvdd pvdd gnd ilim_flag ibias
+     (6 ports)
+
+   Top-level instantiation (top_circuit.spice line 28):
+     XILIM gate bvdd pvdd 0 ilim_flag current_limiter
+     (5 nodes + subckt name = 5 connections for 6 ports)
+
+   The 6th port (ibias) is NOT CONNECTED.
+
+   The design.cir comments (lines 11-13) explicitly document:
+     "Fix 2 (Block 10): Dedicated ibias_ilim for current limiter (1µA)"
+   But this fix was NEVER WIRED in top_circuit.spice.
+
+   Impact: XMref_d (diode NMOS, W=2u L=8u) gate/drain = ibias = FLOATING
+           XMref_m (mirror NMOS, W=100u L=8u) gate = ibias = FLOATING
+
+   With ibias floating:
+   - The reference mirror has no defined bias point
+   - XMref_m gate voltage depends on leakage currents
+   - If gate drifts below Vth: mirror sinks ~0 current
+     -> Even 10uA of sense current makes sense_out HIGH
+     -> det_n goes LOW -> clamp ENGAGES at any load
+   - If gate drifts above Vth from parasitic charging:
+     mirror could sink excessive current -> never trips
+
+   This makes the current limiter behavior UNDEFINED in the netlist
+   as currently wired. ngspice may:
+   (a) Error out (node with no DC path to ground)
+   (b) Initialize the floating node to 0V -> mirror OFF -> clamp always ON
+   (c) Converge to some leakage-dependent operating point
+
+   IF the clamp is partially ON due to this bug, it would:
+   - Fight the error amplifier on the gate node
+   - Pull gate toward BVDD (turning pass device harder OFF)
+   - EA would have to source more current to counteract
+   - Could contribute to loop instability and oscillation
+
+   RECOMMENDED FIX for top_circuit.spice line 28:
+     XILIM gate bvdd pvdd 0 ilim_flag ibias current_limiter
+                                       ^^^^^
+                                       Add ibias connection
+
+   Or if a dedicated bias is desired (as the comment suggests):
+     Ibias_ilim ibias_ilim 0 DC 1u
+     XILIM gate bvdd pvdd 0 ilim_flag ibias_ilim current_limiter
+
+2. Gate Node Contention (if clamp engages)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   The gate node is shared between:
+   - Error amplifier output (XEA ea_out -> XCOMP -> gate drive)
+   - Pass device gate
+   - Current limiter sense PMOS (XMs gate)
+   - Current limiter clamp PFETs (4 x 50um, W_total = 200um)
+
+   If clamp engages (det_n LOW), the 4x50um PFETs pull gate toward BVDD.
+   The compensation network (Cc, Rc on ea_out/gate) sees this as a
+   disturbance. The EA must fight the clamp to maintain regulation.
+
+   At 10mA load, the EA barely needs to pull gate down (pass device is
+   barely on). If the clamp is pulling gate up while EA pulls down,
+   this creates a current fight that could:
+   - Increase quiescent current
+   - Introduce additional phase shift in the loop
+   - Create a parasitic feedback path (gate oscillation -> sense current
+     modulation -> sense_out toggling -> clamp toggling -> gate disturbance)
+
+   This parasitic feedback loop has its own dynamics:
+   - Sense PMOS bandwidth: fast (small device, W=1u)
+   - Cascode: moderate bandwidth
+   - Inverter (XMinv): fast
+   - Clamp PFETs: fast (200um total W)
+   - Path delay: probably < 10ns
+
+   If this parasitic loop oscillates, it could create high-frequency
+   gate disturbance that the main EA loop cannot suppress.
+
+3. Cascode Bias Path (NOT a problem)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   cas_bias = BVDD x 400/(300+400) = 4.0V at BVDD=7V
+   This depends only on BVDD (input supply), not PVDD.
+   BVDD is presumably clean (external supply with large cap).
+   -> No modulation during PVDD oscillation.
+
+4. Capacitive Coupling (minimal in SPICE)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   In the SPICE netlist, there are no explicit parasitic capacitors
+   between gate/det_n/sense_out. In a real layout, there would be
+   coupling, but the netlist-level simulation won't show this.
+
+   The only coupling is through the circuit connectivity itself
+   (sense PMOS gate = pass device gate = gate node).
+
+5. det_n Pull-up Resistor (XRpu, ~500 kohm)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   XRpu pulls det_n toward BVDD with a high-impedance path.
+   If sense_out is in a metastable region (Isense ~ Iref), the
+   inverter could oscillate or sit in its linear region, drawing
+   significant supply current. But this only matters near the trip
+   point (50mA), not at 10mA.
+
+CONCLUSION
+----------
+1. The DC analysis conclusively shows the current limiter should NOT
+   engage during load transient oscillation at 10mA. The sense current
+   (9.8-10.2 uA) is 5x below the 50uA trip threshold.
+
+2. HOWEVER, the missing ibias connection in top_circuit.spice (line 28)
+   is a real bug that could make the current limiter behavior undefined.
+   If the floating ibias node causes the reference mirror to turn off,
+   the clamp could engage at ANY load current, creating a parasitic
+   fight with the error amplifier that could contribute to or worsen
+   the observed oscillation.
+
+3. This should be investigated immediately:
+   (a) Check ngspice logs for warnings about floating nodes
+   (b) Probe det_n and sense_out during load transient simulation
+   (c) Fix the ibias connection and re-simulate
+   (d) Compare oscillation amplitude before/after fix
+
+   If the 200mV oscillation disappears or significantly reduces after
+   fixing the ibias connection, the current limiter was indeed the
+   root cause — not the loop compensation.

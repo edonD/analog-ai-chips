@@ -1,0 +1,185 @@
+================================================================================
+CONSULT-10: Fix Option Ranking — Load Transient Oscillation & Startup Gate Osc
+================================================================================
+
+TWO DISTINCT PROBLEMS:
+  P1: Load transient oscillation (ringing/instability on Iload steps)
+  P2: Startup gate oscillation (pass device toggling during BVDD ramp)
+
+================================================================================
+RANKING (best first)
+================================================================================
+
+#1  OPTION (E+A): Feedforward cap Cff + remove snubber + Rgate=1k
+    ─────────────────────────────────────────────────────────────
+    Effectiveness: ★★★★★  Addresses BOTH P1 and P2
+    Risk:          ★★☆☆☆  Low — well-understood techniques, each independent
+    Complexity:    ★★☆☆☆  Two component changes + one removal
+
+    Reasoning:
+    - Removing 100pF snubber eliminates the parasitic pole entirely.
+      With Rgate=1k and Cgs≈5pF only: f_gate = 1/(2π·1k·5p) = 32 MHz.
+      This is 225× above UGB (142kHz) — contributes < 0.3° phase loss.
+      Compare to current state: 100pF snubber + 200Ω gives pole at 7.6MHz
+      which costs ~arctan(142k/7.6M) ≈ 1.1° — small but unnecessary.
+
+    - Rgate=1k (restored from 200Ω) slows gate drive:
+      τ_gate = 1k·5p = 5ns. Gate slew on 5V swing ≈ 1μs.
+      This DAMPS the startup gate oscillation (P2) by limiting dVgs/dt,
+      preventing the pass device from toggling faster than the loop can
+      track. This is the direct fix for P2.
+
+    - Cff=22pF across R_TOP (364k) creates a zero:
+      fz_ff = 1/(2π·364k·22p) = 19.8 kHz ≈ 20 kHz
+      This zero is placed ~0.7 decades below UGB, boosting phase right
+      where it matters most. Phase boost at UGB:
+        Δφ ≈ arctan(142k/20k) = arctan(7.1) ≈ 82°
+      In practice the boost is less because the Cff path also creates a
+      pole at fp_ff = 1/(2π·R_BOT∥R_TOP · Cff). With R_BOT=36.4k:
+        fp_ff = 1/(2π·33.1k·22p) = 219 kHz
+      Net phase boost at 142kHz: arctan(142/20) - arctan(142/219)
+        = 82° - 33° = +49° additional phase margin.
+      This is enormous. Even half this value transforms stability.
+
+    - Cff does NOT reduce bandwidth or slew rate. The DC operating point
+      is unchanged. Transient response actually improves because the
+      feedforward path speeds up the error signal for fast Vout changes.
+
+    Why #1: Fixes both problems. Each change is low-risk and reversible.
+    The Cff zero provides massive phase margin improvement without the
+    bandwidth/slew penalty of larger Cc. Removing the snubber simplifies
+    the design. Rgate=1k damps gate oscillation directly.
+
+    Sensitivity check on Cff value:
+      Cff=10pF: fz=44kHz, fp_ff=437kHz — less boost but still helpful
+      Cff=22pF: fz=20kHz, fp_ff=219kHz — sweet spot
+      Cff=50pF: fz=8.7kHz, fp_ff=97kHz — pole gets close to UGB,
+                diminishing returns. Avoid.
+    Recommend: Start with Cff=22pF, sweep 10-33pF in simulation.
+
+
+#2  OPTION (A): Remove 100pF snubber + restore Rgate=1k
+    ─────────────────────────────────────────────────────
+    Effectiveness: ★★★☆☆  Fixes P2 (gate osc), partially helps P1
+    Risk:          ★☆☆☆☆  Lowest risk — reverting to known-good components
+    Complexity:    ★☆☆☆☆  Simplest change
+
+    Reasoning:
+    - Rgate=1k fixes P2 directly (gate damping).
+    - Removing snubber eliminates a pole, which helps P1 but does not
+      add phase margin — it only stops subtracting it.
+    - The existing phase margin may still be marginal for load transients
+      if the base design is tight. You get back ~1-5° but if PM was
+      already ~45°, load transient ringing may persist.
+
+    Why #2: Safest option. If PM is actually adequate without snubber
+    interference, this alone may suffice. Try this FIRST in simulation —
+    if load transient still rings, add Cff (upgrade to option E+A).
+
+
+#3  OPTION (B): Keep snubber, reduce Rc to 1.05k
+    ──────────────────────────────────────────────
+    Effectiveness: ★★★☆☆  Helps P1 (moves comp zero to cancel p3)
+    Risk:          ★★★☆☆  Medium — changes Miller comp dynamics significantly
+    Complexity:    ★★★☆☆  Requires careful re-verification of all corners
+
+    Reasoning:
+    - Current: z1 = 1/(2π·5k·40p) = 796 kHz
+    - Proposed: z1 = 1/(2π·1.05k·40p) = 3.8 MHz (targeting p3/2)
+    - Lower Rc means less ESR in the compensation network at DC,
+      which changes the mid-band gain slope.
+    - The Miller compensation zero moving from 796kHz to 3.8MHz means
+      it no longer provides phase boost near UGB. The zero was previously
+      helping; now it helps at a frequency where it's less needed.
+
+    WAIT — this analysis has an error in the user's formulation.
+    Moving z1 HIGHER (to 3.8MHz) means z1 moves AWAY from UGB, which
+    REDUCES phase margin near crossover. The intent is to cancel p3,
+    but you lose the phase boost that z1 was providing near UGB.
+
+    Actually: with Rc=5k, z1=796kHz provides ~arctan(142/796)=10° boost
+    at UGB. With Rc=1.05k, z1=3.8MHz provides ~arctan(142/3800)=2° at UGB.
+    You LOSE 8° of phase margin. The p3 cancellation only helps if the
+    loop gain is still significant at 3.8MHz, which it isn't (gain has
+    rolled off well below unity by then).
+
+    Why #3: Conceptually sound (pole-zero cancellation) but the execution
+    hurts more than it helps near UGB. Also doesn't fix P2 at all.
+    The snubber remains as an unnecessary component.
+
+
+#4  OPTION (D): Increase Cc to 100pF
+    ──────────────────────────────────
+    Effectiveness: ★★★★☆  Strongly fixes P1 (much more PM)
+    Risk:          ★★☆☆☆  Low risk to stability, HIGH risk to performance
+    Complexity:    ★☆☆☆☆  Simple component change
+
+    Reasoning:
+    - UGB drops from ~142kHz to ~57kHz. Phase margin increases
+      substantially (all higher-frequency poles contribute less).
+    - But slew rate: SR = Itail/Cc = 23μA/100pF = 0.23 V/μs
+      Current: SR = 23μA/40pF = 0.575 V/μs
+    - 5V startup swing: 5V / 0.23 V/μs = 21.7 μs — very slow
+    - Load transient recovery: slower by 2.5× (proportional to BW loss)
+    - This is the "sledgehammer" fix. It works but you pay heavily in
+      dynamic performance.
+    - Does NOT directly fix P2 (gate oscillation during startup) — the
+      slower slew rate might coincidentally help, but the root cause
+      (gate drive rate vs loop bandwidth mismatch) remains.
+
+    Why #4: Works for P1 but at unacceptable performance cost. Only use
+    this if all other options fail, as a last resort to prove the loop
+    is stable before optimizing.
+
+
+#5  OPTION (C): Power mode control from BVDD
+    ──────────────────────────────────────────
+    Effectiveness: ★★☆☆☆  Fixes P2 only, does NOT fix P1
+    Risk:          ★★★★☆  High — adds digital/analog sequencing logic
+    Complexity:    ★★★★☆  New circuit block, new timing requirements
+
+    Reasoning:
+    - Only addresses startup gate toggling by keeping pass device off
+      until BVDD is stable. Does nothing for load transient stability.
+    - Requires: BVDD threshold detector, logic to gate pass_en,
+      proper sequencing with soft-start, handling of BVDD brownouts.
+    - Adds area, adds new failure modes (what if detector is wrong?),
+      adds verification burden across all PVT corners.
+    - The problem it solves (P2) can be fixed much more simply with
+      Rgate=1k (options A or E+A).
+
+    Why #5: Solves only half the problem with the most complexity and
+    risk. The gate oscillation (P2) has a simpler root-cause fix.
+
+
+================================================================================
+SUMMARY TABLE
+================================================================================
+
+ Rank | Option | Fixes | PM Boost | BW Impact | Slew Impact | Risk
+ ─────┼────────┼───────┼──────────┼───────────┼─────────────┼──────
+  1   | E+A    | P1+P2 | +49°     | None      | None        | Low
+  2   | A      | P2,~P1| +1-5°    | None      | None        | V.Low
+  3   | B      | ~P1   | -8°(!)   | None      | None        | Med
+  4   | D      | P1    | +15-20°  | -60%      | -60%        | Low*
+  5   | C      | P2    | None     | None      | None        | High
+
+ * Risk to stability is low; risk to performance is high.
+
+================================================================================
+RECOMMENDED ACTION PLAN
+================================================================================
+
+Step 1: Simulate option (A) alone — remove snubber, Rgate=1k.
+        Run: load transient, startup, AC stability (all PVT corners).
+        If load transient is clean → DONE. Ship it.
+
+Step 2: If load transient still rings → add Cff=22pF (upgrade to E+A).
+        Re-run all verification. Sweep Cff = 10/22/33 pF.
+        Pick value with best PM without degrading transient response.
+
+Step 3: Verify Cff doesn't cause issues at extreme corners (fast/hot
+        where R_TOP may be lower, shifting fz_ff up).
+
+This incremental approach minimizes changes while targeting root causes.
+================================================================================

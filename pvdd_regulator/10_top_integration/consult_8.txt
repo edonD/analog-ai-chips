@@ -1,0 +1,91 @@
+CONSULT 8 — Phase Margin Analysis & Compensation Strategy
+=========================================================
+Date: 2026-04-03
+
+CURRENT MEASURED PERFORMANCE (from Bode plot)
+---------------------------------------------
+- DC gain:        70.8 dB
+- Estimated UGB:  ~142 kHz (extrapolated)
+- Phase at 10kHz: ~-92 degrees
+- Estimated PM:   ~50 degrees
+
+PROBLEM STATEMENT
+-----------------
+For no ringing in transient response, PM should be >65 degrees.
+  - Critically damped response: PM = 76 degrees
+  - Acceptable for most applications: PM >= 65 degrees
+  - Current PM: ~50 degrees — INSUFFICIENT
+
+Need to add ~15-25 degrees of phase margin.
+
+CLOSED-LOOP Q ANALYSIS
+-----------------------
+With PM = 50 degrees at UGB:
+  Q = 1 / (2 * sin(PM/2))
+  Q = 1 / (2 * sin(25°))
+  Q = 1 / (2 * 0.4226)
+  Q = 1.183
+
+Q > 1 produces peaking and oscillatory step response:
+  - Peaking = ~1.4 dB in closed-loop frequency response
+  - PSRR plot confirms: resonant peak at ~30 kHz
+  - This frequency is where loop gain crosses 0 dB with inadequate PM
+
+Target: PM > 60 degrees for Q < 1 (no peaking)
+Ideal:  PM >= 65 degrees for well-damped response
+
+COMPENSATION OPTIONS
+--------------------
+
+Option 1: Reduce UGB by increasing Cc (lower bandwidth)
+  - Increases Cc to push the dominant pole lower
+  - Moves UGB to a frequency where phase erosion is less
+  - Trade-off: reduced bandwidth, slower transient response
+  - May degrade load transient recovery time
+
+Option 2: Add a zero below UGB for phase boost
+  - Place a compensation zero at f_z < UGB to add positive phase
+  - Typically via series R-C in the compensation network (Rc-Cc)
+  - If Rc already exists, increase Rc to lower the zero frequency
+  - Zero frequency: f_z = 1 / (2*pi*Rc*Cc)
+  - Target: place zero at ~0.3-0.5x UGB for maximum phase boost at UGB
+  - For UGB ~142 kHz, place zero at ~50-70 kHz
+
+Option 3: Feedforward capacitor across R_TOP (feedback resistor)
+  - Adds a zero-pole pair in the feedback network
+  - Zero: f_z = 1 / (2*pi*R_TOP*C_ff)
+  - Provides phase lead near UGB
+  - Also improves high-frequency PSRR
+  - Trade-off: may increase noise gain at high frequencies
+
+RECOMMENDED APPROACH
+--------------------
+Combine Options 2 and 3:
+
+1. Adjust Rc to place compensation zero at ~50-70 kHz
+   - This provides ~15-20 degrees of phase boost at UGB
+   - Directly addresses the PSRR resonant peak at 30 kHz
+
+2. Add small feedforward cap C_ff across R_TOP
+   - Provides additional 5-10 degrees of phase lead
+   - Improves PSRR at high frequencies
+   - Size C_ff so the zero is near UGB: C_ff = 1/(2*pi*R_TOP*f_UGB)
+
+3. Verify PM > 65 degrees after compensation changes
+
+PSRR RESONANT PEAK CORRELATION
+-------------------------------
+The PSRR resonant peak at ~30 kHz directly correlates with the
+loop gain crossover and inadequate phase margin:
+  - At frequencies near UGB where loop gain is low and PM is poor,
+    the closed-loop rejection degrades
+  - Improving PM will flatten the PSRR peak
+  - Target: PSRR peak should be < 0 dB (no peaking above DC level)
+
+VERIFICATION PLAN
+-----------------
+After compensation changes:
+  1. Re-run AC Bode analysis — confirm PM > 65 degrees
+  2. Re-run PSRR analysis — confirm resonant peak is eliminated
+  3. Run load transient — confirm no ringing on step response
+  4. Check across PVT corners — PM should be > 55 degrees worst-case

@@ -1,0 +1,204 @@
+CONSULTATION 6 — Startup Gate Oscillation Root Cause & Fix Selection
+=====================================================================
+
+PROBLEM STATEMENT
+-----------------
+During startup, EA is saturated low (vref_ss > vfb), driving the pass device
+hard ON. Inrush current through Cout_ext (1uF) + Cload (200pF) easily exceeds
+50mA. The current limiter trips, yanking gate to BVDD via 4x clamp PFETs
+(200um total W). Gate goes high → pass OFF → current drops → limiter releases
+→ EA drives gate low again → cycle repeats at ~15kHz.
+
+This is NOT a pass_off issue (pass_off is LOW with FIX-19). It is a
+current-limiter-vs-EA fight during the inrush transient.
+
+EXISTING MITIGATION ALREADY IN DESIGN
+--------------------------------------
+- Cgate_snub = 100pF (FIX-22): damps the oscillation somewhat but does not
+  eliminate it. 1nF was tried — too slow (22us gate slew, 324mV undershoot).
+- Rgate = 200 ohm (FIX-23): allows EA to drive gate with authority, but also
+  lets the clamp PFETs yank gate fast.
+- Soft-start on vref_ss (tau=2.2ms): slows the reference ramp, but EA still
+  saturates low early in startup, delivering maximum gate drive.
+
+THREE CANDIDATE FIXES
+=====================
+
+OPTION A: Soft-Start Current Ramp on ibias_ilim
+------------------------------------------------
+Concept: Replace the fixed 1uA source (Iibias_ilim) with an RC-ramped version.
+ibias_ilim ramps from 0 to 1uA over ~1ms. Since the trip point is
+  Itrip = ibias_ilim × 50 (mirror ratio) × 1000 (sense ratio),
+when ibias_ilim = 0, trip point = infinity (limiter never trips).
+As ibias_ilim ramps to 1uA, trip settles to 50mA.
+
+Implementation:
+  - Add Rss_ilim (100k xhigh_po) + Css_ilim (10nF external) on ibias_ilim
+    tau = 100k × 10nF = 1ms
+  - OR: mirror ibias through a PFET gated by vref_ss ramp (reuse existing RC)
+  - OR: RC filter on ibias_ilim node itself: Rilim_ss + Cilim_ss
+
+Pros:
+  + Current limiter is ALWAYS active — never unprotected, even during startup
+  + Graceful: trip point sweeps from infinity → 50mA, no hard threshold
+  + Works regardless of startup timing or PVT variation
+  + No digital logic or timing coordination needed
+
+Cons:
+  - During the first ~1ms, a true short circuit has NO current limiting
+    (ibias_ilim ≈ 0 → trip point ≈ infinity)
+  - Wait — the trip point doesn't go to infinity. With ibias_ilim = 0,
+    XMref_d and XMref_m are OFF, sense_out floats, det_n could be in
+    undefined state. Need pull-up on det_n to ensure limiter defaults OFF.
+    (Pull-up XRpu already exists: bvdd → det_n, 500 xhigh_po. Good.)
+  - Extra external cap (10nF) or additional on-chip RC area
+  - ibias_ilim ramp must be slower than vref_ss ramp, otherwise limiter
+    engages before PVDD reaches regulation and oscillation still occurs
+
+Complexity: MEDIUM. Need RC components + verification that det_n defaults
+safely when ibias_ilim ≈ 0.
+
+
+OPTION B: Blank Current Limiter During Startup (use startup_done)
+-----------------------------------------------------------------
+Concept: Gate the current limiter clamp PFETs with startup_done. During
+startup (startup_done = LOW), clamp PFETs are disabled. Once PVDD reaches
+regulation (startup_done = HIGH), clamp PFETs are enabled.
+
+Implementation (two sub-options):
+
+  B1. Use ilim_en from mode control (already exists, currently unconnected):
+      - Mode control already outputs ilim_en (line 114 of design.cir)
+      - Connect ilim_en to gate the 4x clamp PFETs
+      - Add an AND gate: clamp_en = ilim_en AND det_n_inv
+      - Requires modifying current_limiter subcircuit ports
+
+  B2. Use startup_done directly:
+      - startup_done goes HIGH when PVDD reaches regulation
+      - Gate clamp PFETs: clamp gate = NOR(det_n, startup_done_b)
+      - Clamp only activates when startup_done=HIGH AND det_n=LOW
+
+Pros:
+  + Simplest conceptually — binary ON/OFF
+  + Infrastructure already exists (startup_done signal, ilim_en output)
+  + Zero risk of oscillation during startup — limiter is completely off
+  + No additional passive components needed
+
+Cons:
+  - ZERO current protection during entire startup phase (~11ms for 5×tau)
+    This is the killer problem. If output is shorted during startup,
+    pass device delivers unlimited current. With BVDD=7V, Rds_on ≈ few ohms,
+    Ishort could be > 1A. The pass device (50x 10u/0.5u PMOS) may survive
+    briefly, but wire bonds, package, and PCB traces may not.
+  - Race condition: if startup_done asserts before PVDD is truly stable,
+    a brief current spike could still cause one oscillation cycle
+  - Adds a dependency between startup detection and protection — two
+    systems that should be independent are now coupled
+  - If startup_done is glitchy (PVDD near threshold), limiter toggles
+
+Complexity: LOW implementation, HIGH risk.
+
+
+OPTION C: Gate Slew-Rate Limiter (Large Rgate)
+-----------------------------------------------
+Concept: Increase Rgate so the clamp PFETs cannot yank gate fast enough to
+cause oscillation. The gate node becomes a low-pass filter:
+  f_pole = 1 / (2π × Rgate × Cgate_total)
+
+Current state: Rgate = 200 ohm, Cgate_total ≈ Cgate_snub(100pF) + Cgs_pass(~50pF)
+  f_pole ≈ 1/(2π × 200 × 150pF) ≈ 5.3 MHz — way above 15kHz oscillation
+
+To suppress 15kHz, need f_pole << 15kHz, so Rgate × Cgate >> 10us.
+  With Cgate_snub = 100pF: Rgate > 100us/100pF = 1M ohm — absurd.
+  With Cgate_snub = 10nF: Rgate > 100us/10nF = 10k ohm — kills EA bandwidth.
+
+Already explored: 1nF snubber caused 22us gate slew and 324mV undershoot.
+The fundamental problem: any RC that suppresses 15kHz oscillation also
+suppresses the EA's ability to regulate during fast load transients.
+
+Pros:
+  + Passive, no logic
+  + Already partially implemented (Cgate_snub = 100pF)
+
+Cons:
+  - Cannot solve the problem without destroying transient response
+  - Already proven inadequate: 1nF caused 324mV undershoot (FIX-22 reverted)
+  - The oscillation frequency adapts — slower gate → lower freq oscillation
+    (the limit cycle just moves, it doesn't disappear)
+
+Complexity: LOW but INEFFECTIVE.
+
+
+RECOMMENDATION: OPTION A (Soft-Start Current Ramp) — with modifications
+========================================================================
+
+Option C is already proven ineffective.
+Option B is dangerous — removing current protection during startup is a
+reliability risk that no production LDO should accept.
+
+Option A is the correct approach. Here is the specific implementation:
+
+PROPOSED FIX (FIX-24): Soft-start ramp on ibias_ilim
+-----------------------------------------------------
+
+Replace:
+  Iibias_ilim 0 ibias_ilim 1u
+
+With:
+  * Mirror ibias through a soft-start filtered copy
+  * Rss_ilim filters ibias into a slow-ramping version
+  Iibias_ilim_src 0 ibias_ilim_raw 1u
+  XRilim_ss ibias_ilim_raw ibias_ilim gnd sky130_fd_pr__res_xhigh_po w=1 l=50
+  Cilim_ss ibias_ilim gnd 10n
+
+  tau = R(~50k for L=50 xhigh_po) × 10nF = 500us
+
+  This gives:
+  - t=0:     ibias_ilim ≈ 0, trip point ≈ infinity (limiter OFF via XRpu)
+  - t=500us: ibias_ilim ≈ 0.63uA, trip point ≈ 31.5mA
+  - t=1ms:   ibias_ilim ≈ 0.86uA, trip point ≈ 43mA
+  - t=2.5ms: ibias_ilim ≈ 0.99uA, trip point ≈ 49.5mA (nearly nominal)
+
+  Meanwhile vref_ss ramp (tau=2.2ms) means:
+  - t=500us: vref_ss ≈ 0.25V → PVDD ≈ 1V → inrush still high but limiter
+    allows it (trip > 31mA)
+  - t=2.2ms: vref_ss ≈ 0.77V → PVDD ≈ 3.1V → inrush subsiding, limiter
+    at ~47mA threshold — close to nominal
+
+  The key: tau_ilim (500us) << tau_vref (2.2ms), so the current limiter
+  reaches near-nominal threshold well before PVDD reaches regulation.
+  During early startup when inrush is highest, the limiter threshold is
+  high enough to allow it. By the time PVDD stabilizes, limiter is at 50mA.
+
+SAFETY ANALYSIS:
+  - Short circuit at t=0: ibias_ilim ≈ 0, no limiting for ~200us.
+    Pass device Ishort ≈ BVDD/Rds_on ≈ 7V/5ohm = 1.4A for 200us.
+    Energy = 1.4A × 7V × 200us = 1.96mJ. SKY130 5V PMOS can handle this
+    (thermal resistance ~100 K/W for 50-finger device, ΔT ≈ 0.2°C).
+    Wire bonds rated for >1A continuous — 200us pulse is safe.
+  - Short circuit at t=500us: trip at 31mA, full protection.
+  - Compared to Option B: unprotected window is 200us vs 11ms (55× shorter).
+
+ADDITIONAL SAFEGUARD: If even 200us unprotected is unacceptable, add a
+coarse fast-trip: a second, unsoftstarted comparator with a very high
+threshold (e.g., 200mA) that activates immediately. This catches dead
+shorts but ignores normal inrush. Implementation: duplicate sense path
+with 4:1 mirror ratio instead of 50:1, always referenced to a fixed
+0.5uA from ibias (not ibias_ilim). This is optional — the 200us window
+is safe for the SKY130 process.
+
+IMPLEMENTATION CHANGES NEEDED:
+  1. design.cir (Block 10): Replace Iibias_ilim with RC-filtered version
+  2. No changes to current_limiter subcircuit (ibias port still receives
+     a current — it just ramps now instead of stepping)
+  3. Cilim_ss = 10nF: EXTERNAL cap (same pad strategy as Css=22nF)
+  4. Verify: run startup sim, confirm no gate oscillation, confirm current
+     limiter engages by t≈500us
+
+NOTE ON Cilim_ss = 10nF:
+  This is another external cap. The design already requires Css=22nF and
+  Cout_ext=1uF external. Adding 10nF is low cost. Alternatively, if the
+  ibias_ilim node can tolerate a smaller cap with larger R:
+    R=500k (L=500 xhigh_po, area=1000um²) × C=1nF = 500us
+  1nF MIM ≈ 0.5mm² — marginal for on-chip but possible. Trade-off is
+  larger resistor area. External 10nF is simpler and more reliable.
