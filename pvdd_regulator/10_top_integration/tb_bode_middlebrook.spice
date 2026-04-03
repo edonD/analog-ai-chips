@@ -1,0 +1,104 @@
+.title Bode_Middlebrook — Loop gain via Middlebrook at vfb node
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends
+.lib "../sky130.lib.spice" tt
+.temp 27
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+
+* === Manual instantiation with Middlebrook probe at vfb ===
+
+* Pass device
+XM_pass gate bvdd pvdd pass_device
+
+* Soft-start
+XRss avbg vref_ss gnd sky130_fd_pr__res_xhigh_po w=2 l=100
+Css vref_ss gnd 22n
+
+* Error amp: reads vfb_to_ea (the EA side of the probe)
+XEA vref_ss vfb_to_ea ea_out gnd ibias ea_en bvdd error_amp
+
+* Feedback network: output is vfb_from_div (the divider side of the probe)
+XFB pvdd vfb_from_div gnd feedback_network
+Cfb vfb_from_div gnd 2p
+
+* === MIDDLEBROOK PROBE at vfb ===
+* Linj: DC short between divider output and EA input (preserves DC bias)
+* Cinj: AC ground on EA input side (holds EA at DC operating point during AC)
+* Vac: AC injection on divider side
+Linj vfb_from_div vfb_to_ea 1T
+Cinj vfb_to_ea gnd 1T
+Vac_inj vfb_from_div vfb_inj DC 0 AC 1
+
+* Loop gain T(s) = v(vfb_to_ea) / v(vfb_inj)
+* (signal injected at divider output, measured at EA input after going around the loop)
+
+* Compensation
+XCOMP ea_out pvdd gnd compensation
+
+* Current limiter
+Iibias_ilim 0 ibias_ilim 1u
+XILIM gate bvdd pvdd gnd ilim_flag ibias_ilim current_limiter
+
+* UV/OV
+XUV pvdd avbg uv_flag svdd gnd uvov_en uv_comparator
+XOV pvdd avbg ov_flag svdd gnd uvov_en ov_comparator
+
+* Zener
+XZC pvdd gnd ibias zener_clamp
+
+* Mode control
+XMC bvdd pvdd svdd gnd en_ret bypass_en mc_ea_en ref_sel uvov_en ilim_en pass_off mode_control
+
+* Startup
+XSU bvdd pvdd gate gnd avbg startup_done su_ea_en ea_out startup
+
+* EA enable
+Ren_ea bvdd ea_en 100
+
+* POR gate pullup
+XMpo_invp pass_off_b pass_off bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=40e-6 l=2e-6
+XMpo_invn pass_off_b pass_off gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=2e-6 l=2e-6
+XMgate_pu gate pass_off_b bvdd bvdd sky130_fd_pr__pfet_g5v0d10v5 w=4e-6 l=2e-6
+
+* Level shifter
+XLS_EN en en_bvdd bvdd svdd gnd level_shifter_up
+
+* Output caps
+Cload pvdd gnd 200e-12
+Cout_ext pvdd gnd 1u
+
+* Supplies
+Vbvdd bvdd 0 7
+Ven en 0 2.2
+Vavbg avbg 0 1.226
+Iibias 0 ibias 1u
+Vsvdd svdd 0 2.2
+Ven_ret en_ret 0 0
+Rload pvdd 0 500
+
+.option gmin=1e-10
+.ac dec 50 1 10e6
+
+.control
+run
+* Middlebrook loop gain: T(s) = -v(vfb_to_ea)/v(vfb_inj)
+* Negative sign because negative feedback
+let loop_gain_db = db(v(vfb_to_ea)/v(vfb_inj))
+let loop_phase = 180 + 180/3.14159*ph(v(vfb_to_ea)/v(vfb_inj))
+wrdata bode_data.txt loop_gain_db loop_phase
+quit
+.endc
+.end

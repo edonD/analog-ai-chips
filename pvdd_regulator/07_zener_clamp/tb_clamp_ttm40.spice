@@ -1,0 +1,31 @@
+* Block 07: Zener Clamp — TT -40C
+.title TB_CLAMP_TTM40
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+.temp -40
+
+.include "design.cir"
+
+XDUT pvdd 0 ibias zener_clamp
+Vpvdd pvdd 0 DC 0
+Iibias 0 ibias 1u
+
+.option method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.dc Vpvdd 0 10 0.01
+
+.control
+run
+echo "=== TT -40C ==="
+let ipvdd = -i(Vpvdd)
+meas dc onset_10u find v(pvdd) when ipvdd=10u rise=1
+echo "onset_10uA: $&onset_10u"
+meas dc onset_1m find v(pvdd) when ipvdd=1m rise=1
+echo "onset_1mA: $&onset_1m"
+quit
+.endc
+.end

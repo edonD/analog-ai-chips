@@ -1,0 +1,32 @@
+.title UVOV_Trip
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends
+.lib "../sky130.lib.spice" tt
+.temp 27
+
+* Only include the UV/OV comparator blocks and dependencies
+.include ../05_uv_ov_comparators/design.cir
+
+Vavbg avbg 0 1.226
+Vsvdd svdd 0 2.2
+Vuvov_en uvov_en 0 2.2
+
+* Force PVDD ramp from 0 to 7V
+Vpvdd pvdd 0 PWL(0 0 10m 7)
+
+XUV pvdd avbg uv_flag svdd gnd uvov_en uv_comparator
+XOV pvdd avbg ov_flag svdd gnd uvov_en ov_comparator
+
+.option gmin=1e-10
+.tran 1u 10m
+
+.control
+run
+wrdata uvov_data.txt v(pvdd) v(uv_flag) v(ov_flag)
+quit
+.endc
+.end

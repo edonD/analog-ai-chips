@@ -1,0 +1,98 @@
+* Current limit plot: sequential resistive load steps in one transient
+* Start light, progressively heavier — no bi-stable issues since we never restart
+.title ILIM_SEQUENTIAL
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "sky130_top.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+.include design.cir
+
+Vbvdd bvdd 0 PWL(0 0 10u 7 100 7)
+Vavbg avbg 0 1.226
+Iibias 0 ibias 1u
+Vsvdd svdd 0 2.2
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
+Ven_ret en_ret 0 0
+
+* Base resistive load: 5k (1mA at 5V)
+Rbase pvdd 0 5000
+
+* Sequential current steps — each held for 10ms to settle
+* t=20ms: +4mA (5mA), t=30ms: +5mA (10mA), t=40ms: +5mA (15mA)
+* t=50ms: +5mA (20mA), t=60ms: +5mA (25mA), t=70ms: +5mA (30mA)
+* t=80ms: +5mA (35mA), t=90ms: +2mA (37mA), t=100ms: +2mA (39mA)
+* t=110ms: +1mA (40mA), t=120ms: +2mA (42mA), t=130ms: +2mA (44mA)
+* t=140ms: +2mA (46mA), t=150ms: +2mA (48mA), t=160ms: +2mA (50mA)
+* t=170ms: +5mA (55mA), t=180ms: +5mA (60mA), t=190ms: +10mA (70mA)
+* t=200ms: +30mA (100mA)
+Istep pvdd 0 PWL(
++ 0 0
++ 19.99m 0 20m 4m
++ 29.99m 4m 30m 9m
++ 39.99m 9m 40m 14m
++ 49.99m 14m 50m 19m
++ 59.99m 19m 60m 24m
++ 69.99m 24m 70m 29m
++ 79.99m 29m 80m 34m
++ 89.99m 34m 90m 36m
++ 99.99m 36m 100m 38m
++ 109.99m 38m 110m 39m
++ 119.99m 39m 120m 41m
++ 129.99m 41m 130m 43m
++ 139.99m 43m 140m 45m
++ 149.99m 45m 150m 47m
++ 159.99m 47m 160m 49m
++ 169.99m 49m 170m 54m
++ 179.99m 54m 180m 59m
++ 189.99m 59m 190m 69m
++ 199.99m 69m 200m 99m
++ 210m 99m)
+
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_regulator
+
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.ic V(pvdd)=0 V(bvdd)=0
+.tran 10u 210m uic
+
+.control
+run
+echo "=== Sequential load test ==="
+* Measure just before each step (settled value)
+* Format: total_mA PVDD
+echo "1 $&v(pvdd)[1900]"
+echo "5 $&v(pvdd)[2900]"
+echo "10 $&v(pvdd)[3900]"
+echo "15 $&v(pvdd)[4900]"
+echo "20 $&v(pvdd)[5900]"
+echo "25 $&v(pvdd)[6900]"
+echo "30 $&v(pvdd)[7900]"
+echo "35 $&v(pvdd)[8900]"
+echo "37 $&v(pvdd)[9900]"
+echo "39 $&v(pvdd)[10900]"
+echo "40 $&v(pvdd)[11900]"
+echo "42 $&v(pvdd)[12900]"
+echo "44 $&v(pvdd)[13900]"
+echo "46 $&v(pvdd)[14900]"
+echo "48 $&v(pvdd)[15900]"
+echo "50 $&v(pvdd)[16900]"
+echo "55 $&v(pvdd)[17900]"
+echo "60 $&v(pvdd)[18900]"
+echo "70 $&v(pvdd)[19900]"
+echo "100 $&v(pvdd)[20900]"
+wrdata plot7_ilim.dat v(pvdd)
+quit
+.endc
+.end

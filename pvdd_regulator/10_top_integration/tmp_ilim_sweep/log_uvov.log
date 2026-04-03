@@ -1,0 +1,59 @@
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: UVOV_Thresholds
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+pvdd                                         0
+vref                                     1.226
+svdd                                       2.2
+en                                         2.2
+xuv.xr_top.t1                      1.38184e-10
+xuv.xr_top.t2                      1.26794e-06
+xuv.mid_uv                         1.26807e-06
+xuv.xr_bot.t1                      1.26773e-06
+xuv.xr_bot.t2                      3.46448e-10
+xuv.out_n                          2.41623e-05
+xuv.xr_hyst.t1                     2.41616e-05
+xuv.xr_hyst.t2                     1.26877e-06
+xuv.xr_bias.t1                          2.1999
+xuv.xr_bias.t2                        0.800422
+xuv.bias_n                            0.800327
+xuv.tail                           2.31438e-05
+xuv.out_p                              1.60559
+xuv.en_bar                         2.99248e-06
+xuv.nor_mid                                2.2
+uv_flag                                    2.2
+xov.xr_top.t1                      7.16831e-13
+xov.xr_top.t2                      6.57743e-09
+xov.mid_ov                         6.57814e-09
+xov.xr_bot.t1                      6.57569e-09
+xov.xr_bot.t2                      2.45431e-12
+ov_flag                            4.85952e-07
+xov.xr_hyst.t1                     4.85948e-07
+xov.xr_hyst.t2                     6.58266e-09
+xov.xr_bias.t1                          2.1999
+xov.xr_bias.t2                        0.800422
+xov.bias_n                            0.800327
+xov.tail                              0.479533
+xov.out_p                              1.07892
+xov.out_n                              2.19999
+xov.en_bar                         2.99248e-06
+xov.nor_mid                           0.222956
+ven#branch                                   0
+vsvdd#branch                      -5.08168e-06
+vref#branch                                  0
+vpvdd#branch                       2.47768e-12
+
+ Reference value :  0.00000e+00 Reference value :  5.47280e-03 Reference value :  1.10028e-02 Reference value :  1.65328e-02 Reference value :  2.20728e-02 Reference value :  2.76228e-02 Reference value :  3.32028e-02 Reference value :  3.87428e-02 Reference value :  4.43428e-02 Reference value :  4.99528e-02 Reference value :  5.55528e-02 Reference value :  6.11228e-02 Reference value :  6.63679e-02 Reference value :  7.14679e-02 Reference value :  7.57779e-02 Reference value :  7.84923e-02 Reference value :  8.38918e-02 Reference value :  8.95218e-02 Reference value :  9.51718e-02
+No. of Data Rows : 10039
+ngspice-42 done

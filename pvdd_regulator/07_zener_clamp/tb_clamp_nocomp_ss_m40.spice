@@ -1,0 +1,44 @@
+* Block 07: Zener Clamp — No PTAT, 5-device, SS -40C
+.title TB_CLAMP_NOCOMP_SS_M40
+
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" ss
+.temp -40
+
+.subckt zener_clamp_nocomp pvdd gnd
+XMd1 pvdd pvdd n4 n4 sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
+XMd2 n3   n3   n4 n4 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6
+XMd3 n3   n3   n2 n2 sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
+XMd4 n1   n1   n2 n2 sky130_fd_pr__pfet_g5v0d10v5 w=20e-6 l=4e-6
+XMd5 n1   n1   vg vg sky130_fd_pr__nfet_g5v0d10v5 w=2.2e-6 l=4e-6
+XRpd vg gnd gnd sky130_fd_pr__res_xhigh_po w=2 l=500
+XMclamp pvdd vg gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=50e-6 l=0.5e-6 m=4
+XMf1 pvdd pvdd nf6 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf2 nf6  nf6  nf5 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf3 nf5  nf5  nf4 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf4 nf4  nf4  nf3 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf5 nf3  nf3  nf2 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf6 nf2  nf2  nf1 gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+XMf7 nf1  nf1  gnd gnd sky130_fd_pr__nfet_g5v0d10v5 w=10e-6 l=0.5e-6
+.ends zener_clamp_nocomp
+
+XDUT pvdd 0 zener_clamp_nocomp
+Vpvdd pvdd 0 DC 0
+.option method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.dc Vpvdd 0 10 0.01
+
+.control
+run
+echo "=== NO COMP SS -40C ==="
+let ipvdd = -i(Vpvdd)
+meas dc onset_10u find v(pvdd) when ipvdd=10u rise=1
+meas dc onset_1m find v(pvdd) when ipvdd=1m rise=1
+echo "onset_10uA: $&onset_10u"
+echo "onset_1mA: $&onset_1m"
+quit
+.endc
+.end

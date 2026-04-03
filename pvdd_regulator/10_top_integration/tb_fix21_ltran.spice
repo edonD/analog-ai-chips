@@ -1,0 +1,68 @@
+* FIX-21/22/23 Verification: Load transient 1mA->10mA step
+.title FIX21_LoadTransient
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+.include design.cir
+
+* Supplies
+Vbvdd bvdd 0 PWL(0 0 10u 7 100m 7)
+Vavbg avbg 0 1.226
+Iibias 0 ibias 1u
+Vsvdd svdd 0 2.2
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
+Ven_ret en_ret 0 0
+
+* Static 1mA load + pulsed 9mA load (total steps from 1mA to 10mA at 15ms)
+Rload_dc pvdd 0 5000
+Iload_step pvdd 0 PWL(0 0 14.99m 0 15m 9m 25m 9m)
+
+* DUT
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_regulator
+
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.ic V(pvdd)=0 V(bvdd)=0
+
+.control
+set filetype = ascii
+
+tran 2u 25m uic
+
+* Measure pre-step steady state
+meas tran pvdd_pre find v(pvdd) at=14.5m
+* Measure post-step (after settling)
+meas tran pvdd_post find v(pvdd) at=24m
+* Measure undershoot after step
+meas tran pvdd_undershoot min v(pvdd) from=15m to=20m
+* Measure overshoot during startup
+meas tran pvdd_startup_max max v(pvdd) from=3m to=14m
+* Gate voltage
+meas tran vgate_pre find v(xdut.gate) at=14.5m
+meas tran vgate_post find v(xdut.gate) at=24m
+
+echo "PVDD_PRE_STEP: $&pvdd_pre"
+echo "PVDD_POST_STEP: $&pvdd_post"
+echo "PVDD_UNDERSHOOT: $&pvdd_undershoot"
+echo "PVDD_STARTUP_MAX: $&pvdd_startup_max"
+echo "GATE_PRE: $&vgate_pre"
+echo "GATE_POST: $&vgate_post"
+
+quit
+.endc
+.end

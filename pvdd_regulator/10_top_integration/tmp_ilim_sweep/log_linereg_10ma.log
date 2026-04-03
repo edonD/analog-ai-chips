@@ -1,0 +1,13 @@
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: LineReg_10ma
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  5.00000e-09 Reference value :  7.87297e-07 Reference value :  5.78994e-06 Reference value :  1.53456e-04 Reference value :  1.31346e-03 Reference value :  2.67346e-03 Reference value :  3.98346e-03 Reference value :  4.61346e-03 Reference value :  4.62125e-03 Reference value :  5.97549e-03 Reference value :  7.32549e-03 Reference value :  8.68549e-03 Reference value :  1.00455e-02 Reference value :  1.13755e-02 Reference value :  1.27055e-02 Reference value :  1.40555e-02 Reference value :  1.54155e-02 Reference value :  1.67755e-02 Reference value :  1.81355e-02 Reference value :  1.94955e-02 Reference value :  2.08250e-02 Reference value :  2.21750e-02 Reference value :  2.35150e-02 Reference value :  2.48550e-02 Reference value :  2.62050e-02 Reference value :  2.75450e-02 Reference value :  2.88950e-02 Reference value :  3.02150e-02 Reference value :  3.15750e-02 Reference value :  3.29250e-02 Reference value :  3.42650e-02 Reference value :  3.56050e-02 Reference value :  3.69450e-02 Reference value :  3.82850e-02 Reference value :  3.96250e-02 Reference value :  4.09750e-02 Reference value :  4.23250e-02 Reference value :  4.36650e-02 Reference value :  4.50050e-02 Reference value :  4.63550e-02 Reference value :  4.77050e-02 Reference value :  4.90550e-02 Reference value :  5.03950e-02 Reference value :  5.17450e-02 Reference value :  5.30950e-02 Reference value :  5.44250e-02 Reference value :  5.57450e-02 Reference value :  5.70850e-02 Reference value :  5.84350e-02 Reference value :  5.97750e-02 Reference value :  6.11250e-02 Reference value :  6.24750e-02 Reference value :  6.38250e-02 Reference value :  6.51650e-02 Reference value :  6.65150e-02 Reference value :  6.78550e-02 Reference value :  6.91950e-02 Reference value :  7.05550e-02 Reference value :  7.19050e-02 Reference value :  7.32550e-02 Reference value :  7.46050e-02 Reference value :  7.59550e-02 Reference value :  7.73150e-02 Reference value :  7.86750e-02 Reference value :  7.99950e-02
+No. of Data Rows : 8158
+ngspice-42 done

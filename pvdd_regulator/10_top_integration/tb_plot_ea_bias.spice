@@ -1,4 +1,4 @@
-.title OP_1mA
+.title EA_Bias_Points
 .param mc_mm_switch = 0
 .param MC_MM_SWITCH = 0
 .subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
@@ -29,13 +29,28 @@ Rload pvdd 0 5000
 XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_regulator
 .option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
 .ic V(pvdd)=0 V(bvdd)=0
-.tran 2u 25m uic
+.tran 2u 20m uic
 .control
 run
-meas tran pvdd_final FIND v(pvdd) AT=25m
-meas tran vfb_final FIND v(xdut.vfb) AT=25m
-meas tran gate_final FIND v(xdut.gate) AT=25m
-meas tran eaout_final FIND v(xdut.ea_out) AT=25m
+meas tran v_d1 FIND v(xdut.xea.d1) AT=20m
+meas tran v_d2 FIND v(xdut.xea.d2) AT=20m
+meas tran v_vout FIND v(xdut.ea_out) AT=20m
+meas tran v_pb FIND v(xdut.xea.pb_tail) AT=20m
+meas tran v_vref FIND v(xdut.vref_ss) AT=20m
+meas tran v_vfb FIND v(xdut.vfb) AT=20m
+meas tran v_gate FIND v(xdut.gate) AT=20m
+meas tran v_pvdd FIND v(pvdd) AT=20m
+meas tran v_ibias FIND v(ibias) AT=20m
+
+echo "v_d1 = $&v_d1" > ea_bias_data.txt
+echo "v_d2 = $&v_d2" >> ea_bias_data.txt
+echo "v_vout = $&v_vout" >> ea_bias_data.txt
+echo "v_pb = $&v_pb" >> ea_bias_data.txt
+echo "v_vref = $&v_vref" >> ea_bias_data.txt
+echo "v_vfb = $&v_vfb" >> ea_bias_data.txt
+echo "v_gate = $&v_gate" >> ea_bias_data.txt
+echo "v_pvdd = $&v_pvdd" >> ea_bias_data.txt
+echo "v_ibias = $&v_ibias" >> ea_bias_data.txt
 quit
 .endc
 .end
