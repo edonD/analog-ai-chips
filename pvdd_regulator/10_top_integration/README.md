@@ -340,6 +340,76 @@ Composite overview of the 6 most important characterization results: startup tra
 
 ---
 
+## Schematics (xschem, SKY130A PDK)
+
+Transistor-level schematics for all blocks, rendered from xschem .sch files with SkyWater SKY130A device symbols.
+
+### Top-Level Block Diagram
+
+![Top Level](schematics_png/pvdd_regulator_top.png)
+
+### Block 00: Error Amplifier
+
+Two-stage Miller OTA. PMOS diff pair (W=80µm L=4µm m=2) + NMOS mirror load. NFET CS Stage 2 + PFET current source. Cc=40pF, Rc=5kΩ.
+
+![Error Amp](schematics_png/error_amp.png)
+
+### Block 01: Pass Device
+
+10× parallel PFET array (W=50µm L=0.5µm m=2 each). Total width 1mm.
+
+![Pass Device](schematics_png/pvdd_01_pass_device.png)
+
+### Block 02: Feedback Network
+
+Matched xhigh_po resistive divider. R_TOP=364kΩ, R_BOT=118kΩ. Ratio 0.2452 → vfb=1.226V at 5.0V.
+
+![Feedback](schematics_png/pvdd_02_feedback.png)
+
+### Block 04: Current Limiter
+
+Bandgap-referenced sense-mirror comparator. Sense PMOS + cascode for Vds matching. 50:1 mirror sinks 50µA reference. 4× clamp PFETs pull gate to BVDD on overcurrent.
+
+![Current Limiter](schematics_png/current_limiter.png)
+
+### Block 05: UV/OV Comparators
+
+NMOS diff pair + PMOS mirror load, powered from SVDD (1.8V). PDK xhigh_po dividers. NOR gate output with enable gating.
+
+![UV Comparator](schematics_png/pvdd_05_uv_ov.png)
+
+### Block 06: Level Shifters
+
+Cross-coupled PMOS topology. Zero static current. SVDD→BVDD (up) and PVDD→SVDD (down).
+
+![Level Shifter Up](schematics_png/level_shifter_up.png)
+
+### Block 07: MOS Voltage Clamp
+
+Hybrid N-P-N-P-N precision stack (L=4µm, low TC) + 7× fast diode stack (L=0.5µm). PTAT-compensated onset. Clamp NMOS W=100µm m=4.
+
+![MOS Clamp](schematics_png/zener_clamp.png)
+
+### Block 08: Mode Control
+
+Shared resistor ladder from BVDD. 4 Schmitt-trigger comparators with hysteresis feedback NFETs. Combinational logic generates sequenced enables.
+
+![Mode Control](schematics_png/mode_control.png)
+
+### Block 09: Startup
+
+Rgate=1kΩ gate drive isolation. BVDD pullup for ea_en. Resistive divider startup_done detector.
+
+![Startup](schematics_png/startup.png)
+
+### Top-Level Interconnect Detail
+
+Shows FIX-14/15/18/24-27 wiring: gate pullup inverter, dedicated ibias_ilim, Cff feedforward cap, ea_en BVDD pullup.
+
+![Top Interconnect](schematics_png/pvdd_top_interconnect.png)
+
+---
+
 ## Design Decisions
 
 ### BVDD-Powered Error Amplifier
