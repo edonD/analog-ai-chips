@@ -1,0 +1,108 @@
+=============================================================
+FIX-24/25/26/27 Verification Results
+Date: 2026-04-03
+=============================================================
+
+CHANGES APPLIED:
+  FIX-24: Removed Cfb (2pF on vfb) — 219kHz pole ate 33° PM
+  FIX-25: Added Cff=22pF across R_TOP (pvdd-vfb) — zero at 20kHz, +49° PM
+  FIX-26: Removed gate snubber Cgate_snub — only 1° PM impact
+  FIX-27: Restored Rgate to 1kΩ (from 200Ω) — damps startup gate oscillation
+
+=============================================================
+TEST 1: DC Operating Point — 1mA load (Rload=5kΩ)
+=============================================================
+  PVDD     = 5.0010 V   (target: 5.0V)  PASS
+  VFB      = 1.2262 V   (target: 1.226V) PASS
+  Gate     = 5.9600 V
+  EA_OUT   = 5.9600 V   (EA_OUT - Gate = 0.0 mV)
+
+=============================================================
+TEST 2: DC Operating Point — 10mA load (Rload=500Ω)
+=============================================================
+  PVDD     = 5.0009 V   (target: 5.0V)  PASS
+  VFB      = 1.2262 V   (target: 1.226V) PASS
+  Gate     = 5.6595 V
+  EA_OUT   = 5.6595 V   (EA_OUT - Gate = 0.0 mV)
+
+  Load regulation: |5.0010 - 5.0009| = 0.1 mV over 1-10mA — EXCELLENT
+
+=============================================================
+TEST 3: Load Transient — 1→10→1 mA step, TT 27°C
+=============================================================
+  Undershoot (1→10mA): 27.3 mV at t=10.006 ms
+  Overshoot (10→1mA):  33.1 mV at t=12.007 ms
+  Spec limit: ±175 mV (±3.5% of 5V)
+  Result: PASS — well within spec, NO oscillation
+
+=============================================================
+TEST 4: Load Transient — PVT Worst Case
+=============================================================
+  TT 27°C:  undershoot 27.3 mV
+  SS 27°C:  (see plot_pvt_load_transient.png)
+  FS 150°C: worst undershoot 38.1 mV
+  TT -40°C: (see plot_pvt_load_transient.png)
+  Result: PASS — all corners within spec
+
+=============================================================
+TEST 5: Startup — TT 27°C
+=============================================================
+  PVDD final (t>18ms): 4.9999 V
+  PVDD peak:           5.0003 V (no overshoot)
+  Gate sign changes:   1 (monotonic — NO oscillation)
+  Gate derivative std:  0.005 (smooth)
+  Result: PASS — clean startup, no gate ringing
+
+=============================================================
+TEST 6: PSRR — TT 27°C
+=============================================================
+  DC PSRR:      -70.8 dB
+  @100Hz:       (see plot_psrr.png)
+  @1kHz:        -44.7 dB
+  Spec:         better than -40 dB
+  Result: PASS
+
+  PSRR vs Load (@ 1kHz):
+    0 mA:  -53.0 dB
+    1 mA:  -51.1 dB
+    10 mA: -44.7 dB
+    50 mA: -44.4 dB
+  All loads beat -40 dB spec — PASS
+
+=============================================================
+TEST 7: EA Bias Points — 1mA load
+=============================================================
+  D1 (diff+):  see ea_bias_data.txt
+  D2 (diff-):  see ea_bias_data.txt
+  EA_OUT:      5.9600 V
+  Gate:        5.9600 V  (offset = 0.0 mV through Rgate=1k)
+  PVDD:        5.0003 V
+  VFB:         1.2261 V
+  VREF_SS:     stable
+  Result: PASS — all bias points nominal
+
+=============================================================
+PLOTS GENERATED:
+=============================================================
+  plot_dc_regulation.png     — DC regulation vs load
+  plot_startup.png           — Startup transient
+  plot_internal_startup.png  — Internal signal sequencing
+  plot_load_transient.png    — Load transient TT 27°C
+  plot_pvt_load_transient.png — Load transient PVT overlay
+  plot_psrr.png              — PSRR frequency response
+  plot_bode.png              — Loop gain (from PSRR)
+  plot_psrr_vs_load.png      — PSRR vs load current
+  plot_ea_bias.png           — EA bias bar chart
+
+=============================================================
+SUMMARY
+=============================================================
+  FIX-24 (remove Cfb):        VERIFIED — no adverse effect on regulation
+  FIX-25 (Cff=22pF feedfwd):  VERIFIED — LT undershoot 27mV (was ~100+mV)
+  FIX-26 (remove snubber):    VERIFIED — startup clean without it
+  FIX-27 (Rgate=1k restore):  VERIFIED — gate monotonic, no oscillation
+
+  ALL 7 TESTS: PASS
+  Load transient oscillation: ELIMINATED
+  Startup gate ringing:       ELIMINATED
+=============================================================
