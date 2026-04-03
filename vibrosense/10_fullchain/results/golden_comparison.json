@@ -1,0 +1,50 @@
+{
+  "normal": {
+    "expected": 0,
+    "golden_class": 0,
+    "golden_logits": [
+      4.417609176694177,
+      -0.531091032458662,
+      -2.7911651984738453,
+      0.5982872249038258
+    ],
+    "golden_correct": "True",
+    "spice_class": null
+  },
+  "inner_race": {
+    "expected": 1,
+    "golden_class": 1,
+    "golden_logits": [
+      -15.684406051285174,
+      8.442406528675603,
+      2.3676369131580977,
+      6.596849683889867
+    ],
+    "golden_correct": "True",
+    "spice_class": null
+  },
+  "outer_race": {
+    "expected": 3,
+    "golden_class": 1,
+    "golden_logits": [
+      -4.889387368665879,
+      8.345275290046214,
+      -0.2490106677436721,
+      -1.4898967632793725
+    ],
+    "golden_correct": "False",
+    "spice_class": null
+  },
+  "ball": {
+    "expected": 2,
+    "golden_class": 3,
+    "golden_logits": [
+      -9.427612519602674,
+      0.19856063337753005,
+      1.6671216591571514,
+      9.326035370749874
+    ],
+    "golden_correct": "False",
+    "spice_class": null
+  }
+}

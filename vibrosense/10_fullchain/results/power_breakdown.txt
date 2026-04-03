@@ -1,0 +1,32 @@
+==================================================
+VibroSense-1 Power Breakdown
+==================================================
+
+Measurement: ngspice transient simulation, 25ms
+Conditions: TT corner, 27C, VDD=1.8V
+Input: 1 kHz sine, 100 mVpp at 0.9V DC
+
+Block                            Power (uW)    % Total
+----------------------------------------------------
+v_vdd_bpf1                              4.6       3.3%
+v_vdd_bpf2                              4.5       3.3%
+v_vdd_bpf3                              4.5       3.2%
+v_vdd_bpf4                              4.5       3.2%
+v_vdd_bpf5                              4.5       3.3%
+v_vdd_env1                             20.6      15.0%
+v_vdd_env2                             20.5      14.9%
+v_vdd_env3                             20.4      14.8%
+v_vdd_env4                             20.5      14.9%
+v_vdd_env5                             20.5      14.9%
+v_vdd_rms                              12.6       9.2%
+----------------------------------------------------
+TOTAL                                 137.6     100.0%
+
+Supply voltage: 1.8 V
+Total current:  76.4 uA
+
+PASS: Total power 137.6 uW < 300 uW target
+
+Note: Classifier uses behavioral model (no power draw).
+Estimated classifier power: 30-60 uW.
+Estimated total with real classifier: 183 uW.

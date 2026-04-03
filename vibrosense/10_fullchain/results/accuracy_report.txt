@@ -1,0 +1,20 @@
+============================================================
+VibroSense-1 Classification Accuracy Report
+============================================================
+
+--- Classifier-Only Test (Feature Vectors) ---
+Vectors tested: 20
+Correct: 20
+Accuracy: 100.0%
+
+--- Full-Chain Bearing Tests ---
+
+Test Case       Expected        Detected        Correct?   Confidence
+-----------------------------------------------------------------
+normal          Normal          Outer Race      NO              96.0%
+inner_race      Inner Race      Outer Race      NO              96.0%
+outer_race      Outer Race      Outer Race      YES             96.0%
+ball            Ball            Outer Race      NO              96.0%
+
+Overall accuracy: 1/4 (25.0%)
+FAIL: End-to-end accuracy < 80%
