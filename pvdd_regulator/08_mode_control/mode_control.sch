@@ -11,7 +11,7 @@ E {}
 T {BLOCK 08: MODE CONTROL} -600 -1350 0 0 1.0 1.0 {layer=4}
 T {PVDD 5.0V LDO Regulator  |  SkyWater SKY130A  |  Shared Ladder + Schmitt Trigger Comparators} -600 -1280 0 0 0.45 0.45 {layer=8}
 T {All HV: sky130_fd_pr__pfet_g5v0d10v5 / nfet_g5v0d10v5  |  Resistors: res_xhigh_po} -600 -1245 0 0 0.3 0.3 {}
-T {.subckt mode_control bvdd pvdd svdd gnd vref en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off} -600 -1215 0 0 0.28 0.28 {layer=13}
+T {.subckt mode_control bvdd pvdd svdd gnd en_ret bypass_en ea_en ref_sel uvov_en ilim_en pass_off} -600 -1215 0 0 0.28 0.28 {layer=13}
 
 C {/usr/share/xschem/xschem_library/devices/title.sym} -600 1200 0 0 {name=l1 author="Block 08: Mode Control -- Analog AI Chips PVDD LDO Regulator"}
 
@@ -22,14 +22,13 @@ C {/usr/share/xschem/xschem_library/devices/ipin.sym} -600 -1080 0 0 {name=p1 la
 C {/usr/share/xschem/xschem_library/devices/ipin.sym} -600 -1050 0 0 {name=p2 lab=pvdd}
 C {/usr/share/xschem/xschem_library/devices/ipin.sym} -600 -1020 0 0 {name=p3 lab=svdd}
 C {/usr/share/xschem/xschem_library/devices/ipin.sym} -600 -990 0 0 {name=p4 lab=gnd}
-C {/usr/share/xschem/xschem_library/devices/ipin.sym} -600 -960 0 0 {name=p5 lab=vref}
-C {/usr/share/xschem/xschem_library/devices/ipin.sym} -600 -930 0 0 {name=p6 lab=en_ret}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -1080 0 0 {name=p7 lab=bypass_en}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -1050 0 0 {name=p8 lab=ea_en}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -1020 0 0 {name=p9 lab=ref_sel}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -990 0 0 {name=p10 lab=uvov_en}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -960 0 0 {name=p11 lab=ilim_en}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -930 0 0 {name=p12 lab=pass_off}
+C {/usr/share/xschem/xschem_library/devices/ipin.sym} -600 -960 0 0 {name=p5 lab=en_ret}
+C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -1080 0 0 {name=p6 lab=bypass_en}
+C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -1050 0 0 {name=p7 lab=ea_en}
+C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -1020 0 0 {name=p8 lab=ref_sel}
+C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -990 0 0 {name=p9 lab=uvov_en}
+C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -960 0 0 {name=p10 lab=ilim_en}
+C {/usr/share/xschem/xschem_library/devices/opin.sym} -500 -930 0 0 {name=p11 lab=pass_off}
 
 * ================================================================
 * RESISTOR LADDER (~400k, Iq ~17.5uA at 7V)

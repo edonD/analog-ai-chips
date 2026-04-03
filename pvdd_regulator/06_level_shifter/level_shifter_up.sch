@@ -1,128 +1,123 @@
-v {xschem version=3.4.5 file_version=1.2}
+v {xschem version=3.4.5 file_version=1.2
+}
 G {}
 K {}
 V {}
 S {}
 E {}
-T {Level Shifter UP (SVDD -> BVDD)} 240 -1060 0 0 0.8 0.8 {layer=15}
-T {Block 06  |  Cross-Coupled PMOS Level Shifter  |  SKY130A} 240 -1010 0 0 0.4 0.4 {layer=15}
-T {SVDD = 2.2 V  ->  BVDD (higher voltage domain)} 240 -970 0 0 0.35 0.35 {layer=8}
-T {Input Inverter} 280 -780 0 0 0.4 0.4 {layer=4}
-T {Cross-Coupled PMOS Pair} 620 -780 0 0 0.4 0.4 {layer=4}
-T {NMOS Pull-Downs} 620 -460 0 0 0.4 0.4 {layer=4}
-C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 320 -660 0 0 {name=XMP_INV
-W=4
+T {Level Shifter UP (SVDD -> BVDD)} 160 -1080 0 0 0.8 0.8 {layer=15}
+T {Block 06 | Cross-Coupled PMOS Level Shifter | SKY130A} 160 -1030 0 0 0.4 0.4 {layer=15}
+T {SVDD (2.2V) -> BVDD (5.4-10.5V) | All g5v0d10v5} 160 -990 0 0 0.35 0.35 {layer=8}
+T {Input Inverter (SVDD domain)} 260 -800 0 0 0.4 0.4 {layer=4}
+T {NMOS Pull-Downs (L=1u)} 540 -480 0 0 0.4 0.4 {layer=4}
+T {Cross-Coupled PMOS (BVDD domain)} 540 -800 0 0 0.4 0.4 {layer=4}
+C {devices/title.sym} 160 -30 0 0 {name=l1 author="PVDD LDO"}
+C {devices/ipin.sym} 160 -620 0 0 {name=p1 lab=in}
+C {devices/opin.sym} 880 -560 0 0 {name=p2 lab=out}
+C {devices/iopin.sym} 160 -920 0 1 {name=p3 lab=bvdd}
+C {devices/iopin.sym} 160 -880 0 1 {name=p4 lab=svdd}
+C {devices/iopin.sym} 160 -200 0 1 {name=p5 lab=gnd}
+C {sky130_fd_pr/pfet_g5v0d10v5.sym} 300 -680 0 0 {name=XMP_INV
 L=0.5
+W=4
 nf=1
 mult=1
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 320 -540 0 0 {name=XMN_INV
+C {sky130_fd_pr/nfet_g5v0d10v5.sym} 300 -560 0 0 {name=XMN_INV
+L=0.5
 W=2
+nf=1
+mult=1
+model=nfet_g5v0d10v5
+spiceprefix=X
+}
+C {sky130_fd_pr/nfet_g5v0d10v5.sym} 560 -400 0 0 {name=XMN1
+L=1
+W=15
+nf=1
+mult=1
+model=nfet_g5v0d10v5
+spiceprefix=X
+}
+C {sky130_fd_pr/nfet_g5v0d10v5.sym} 760 -400 0 0 {name=XMN2
+L=1
+W=15
+nf=1
+mult=1
+model=nfet_g5v0d10v5
+spiceprefix=X
+}
+C {sky130_fd_pr/pfet_g5v0d10v5.sym} 560 -660 0 0 {name=XMP1
 L=0.5
-nf=1
-mult=1
-model=nfet_g5v0d10v5
-spiceprefix=X
-}
-C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 560 -380 0 0 {name=XMN1
-W=15
-L=1
-nf=1
-mult=1
-model=nfet_g5v0d10v5
-spiceprefix=X
-}
-C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/nfet_g5v0d10v5.sym} 760 -380 0 0 {name=XMN2
-W=15
-L=1
-nf=1
-mult=1
-model=nfet_g5v0d10v5
-spiceprefix=X
-}
-C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 560 -640 0 0 {name=XMP1
 W=4
-L=0.5
 nf=1
 mult=1
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-C {/home/ubuntu/pdk/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/xschem/sky130_fd_pr/pfet_g5v0d10v5.sym} 760 -640 0 0 {name=XMP2
+C {sky130_fd_pr/pfet_g5v0d10v5.sym} 760 -660 0 0 {name=XMP2
+L=0.5
 W=5
-L=0.5
 nf=1
 mult=1
 model=pfet_g5v0d10v5
 spiceprefix=X
 }
-C {/usr/share/xschem/xschem_library/devices/ipin.sym} 240 -600 0 0 {name=p_in lab=in}
-C {/usr/share/xschem/xschem_library/devices/opin.sym} 900 -530 0 0 {name=p_out lab=out}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 240 -900 0 1 {name=p_bvdd lab=bvdd}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 240 -860 0 1 {name=p_svdd lab=svdd}
-C {/usr/share/xschem/xschem_library/devices/iopin.sym} 240 -260 0 1 {name=p_gnd lab=gnd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 240 -600 0 1 {name=l_in1 sig_type=std_logic lab=in}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 300 -660 0 1 {name=l_in2 sig_type=std_logic lab=in}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 300 -540 0 1 {name=l_in3 sig_type=std_logic lab=in}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 540 -380 0 1 {name=l_in4 sig_type=std_logic lab=in}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 740 -380 0 1 {name=l_inb1 sig_type=std_logic lab=in_b}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 380 -600 0 0 {name=l_inb2 sig_type=std_logic lab=in_b}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 580 -530 0 1 {name=l_n1a sig_type=std_logic lab=n1}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 780 -530 0 0 {name=l_out1 sig_type=std_logic lab=out}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 900 -530 0 0 {name=l_out2 sig_type=std_logic lab=out}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 340 -900 0 0 {name=l_bvdd1 sig_type=std_logic lab=bvdd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 340 -860 0 0 {name=l_svdd1 sig_type=std_logic lab=svdd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 340 -260 0 0 {name=l_gnd1 sig_type=std_logic lab=gnd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 340 -690 0 0 {name=l_svdd2 sig_type=std_logic lab=svdd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 340 -660 0 0 {name=l_svdd_body sig_type=std_logic lab=svdd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 340 -540 0 0 {name=l_gnd_body sig_type=std_logic lab=gnd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 580 -380 0 0 {name=l_gnd_body2 sig_type=std_logic lab=gnd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 780 -380 0 0 {name=l_gnd_body3 sig_type=std_logic lab=gnd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 580 -640 0 0 {name=l_bvdd_body1 sig_type=std_logic lab=bvdd}
-C {/usr/share/xschem/xschem_library/devices/lab_pin.sym} 780 -640 0 0 {name=l_bvdd_body2 sig_type=std_logic lab=bvdd}
-T {B=SVDD} 345 -670 0 0 0.3 0.3 {layer=7}
-T {B=GND} 345 -530 0 0 0.3 0.3 {layer=7}
-T {B=GND} 585 -390 0 0 0.3 0.3 {layer=7}
-T {B=GND} 785 -390 0 0 0.3 0.3 {layer=7}
-T {B=BVDD} 585 -650 0 0 0.3 0.3 {layer=7}
-T {B=BVDD} 785 -650 0 0 0.3 0.3 {layer=7}
-C {/usr/share/xschem/xschem_library/devices/title.sym} 240 -200 0 0 {name=l1 author="Claude AI"}
-N 240 -900 340 -900 {lab=bvdd}
-N 240 -860 340 -860 {lab=svdd}
-N 240 -260 340 -260 {lab=gnd}
-N 340 -690 340 -860 {lab=svdd}
-N 340 -510 340 -260 {lab=gnd}
-N 340 -630 340 -600 {lab=in_b}
-N 340 -600 380 -600 {lab=in_b}
-N 340 -570 340 -600 {lab=in_b}
-N 580 -670 580 -900 {lab=bvdd}
-N 780 -670 780 -900 {lab=bvdd}
-N 580 -900 780 -900 {lab=bvdd}
-N 340 -900 580 -900 {lab=bvdd}
-N 580 -610 580 -530 {lab=n1}
-N 580 -530 580 -410 {lab=n1}
-N 780 -610 780 -530 {lab=out}
-N 780 -530 780 -410 {lab=out}
-N 780 -530 900 -530 {lab=out}
-N 580 -350 580 -260 {lab=gnd}
-N 780 -350 780 -260 {lab=gnd}
-N 340 -260 580 -260 {lab=gnd}
-N 580 -260 780 -260 {lab=gnd}
-N 540 -640 500 -640 {lab=out}
-N 500 -640 500 -470 {lab=out}
-N 500 -470 810 -470 {lab=out}
-N 810 -470 810 -530 {lab=out}
-N 810 -530 780 -530 {lab=out}
-N 740 -640 720 -640 {lab=n1}
-N 720 -640 720 -490 {lab=n1}
-N 720 -490 560 -490 {lab=n1}
-N 560 -490 560 -530 {lab=n1}
-N 560 -530 580 -530 {lab=n1}
-N 340 -660 340 -690 {lab=svdd}
-N 340 -540 340 -510 {lab=gnd}
-N 580 -380 580 -350 {lab=gnd}
-N 780 -380 780 -350 {lab=gnd}
-N 580 -640 580 -670 {lab=bvdd}
-N 780 -640 780 -670 {lab=bvdd}
+C {devices/lab_pin.sym} 280 -680 0 0 {name=l1a sig_type=std_logic lab=in}
+C {devices/lab_pin.sym} 280 -560 0 0 {name=l1b sig_type=std_logic lab=in}
+C {devices/lab_pin.sym} 540 -400 0 0 {name=l2a sig_type=std_logic lab=in}
+C {devices/lab_pin.sym} 740 -400 0 0 {name=l2b sig_type=std_logic lab=in_b}
+C {devices/lab_pin.sym} 360 -620 0 0 {name=l3a sig_type=std_logic lab=in_b}
+C {devices/lab_pin.sym} 880 -560 0 0 {name=l4a sig_type=std_logic lab=out}
+N 160 -920 240 -920 {lab=bvdd}
+N 160 -880 240 -880 {lab=svdd}
+N 160 -200 240 -200 {lab=gnd}
+N 160 -620 280 -620 {lab=in}
+N 280 -620 280 -680 {lab=in}
+N 280 -620 280 -560 {lab=in}
+N 320 -650 320 -620 {lab=in_b}
+N 320 -620 320 -590 {lab=in_b}
+N 320 -620 360 -620 {lab=in_b}
+N 320 -710 320 -880 {lab=svdd}
+N 320 -680 320 -710 {lab=svdd}
+N 320 -530 320 -200 {lab=gnd}
+N 320 -560 320 -530 {lab=gnd}
+N 580 -690 580 -920 {lab=bvdd}
+N 580 -660 580 -690 {lab=bvdd}
+N 780 -690 780 -920 {lab=bvdd}
+N 780 -660 780 -690 {lab=bvdd}
+N 240 -920 580 -920 {lab=bvdd}
+N 580 -920 780 -920 {lab=bvdd}
+N 580 -630 580 -560 {lab=n1}
+N 580 -560 580 -430 {lab=n1}
+N 780 -630 780 -560 {lab=out}
+N 780 -560 780 -430 {lab=out}
+N 780 -560 880 -560 {lab=out}
+N 580 -370 580 -200 {lab=gnd}
+N 580 -400 580 -370 {lab=gnd}
+N 780 -370 780 -200 {lab=gnd}
+N 780 -400 780 -370 {lab=gnd}
+N 240 -200 580 -200 {lab=gnd}
+N 580 -200 780 -200 {lab=gnd}
+N 540 -660 500 -660 {lab=out}
+N 500 -660 500 -500 {lab=out}
+N 500 -500 820 -500 {lab=out}
+N 820 -500 820 -560 {lab=out}
+N 820 -560 780 -560 {lab=out}
+N 740 -660 700 -660 {lab=n1}
+N 700 -660 700 -520 {lab=n1}
+N 700 -520 560 -520 {lab=n1}
+N 560 -520 560 -560 {lab=n1}
+N 560 -560 580 -560 {lab=n1}
+C {devices/lab_pin.sym} 240 -920 0 0 {name=l5a sig_type=std_logic lab=bvdd}
+C {devices/lab_pin.sym} 240 -880 0 0 {name=l5b sig_type=std_logic lab=svdd}
+C {devices/lab_pin.sym} 240 -200 0 0 {name=l5c sig_type=std_logic lab=gnd}
+C {devices/lab_pin.sym} 580 -560 0 1 {name=l6a sig_type=std_logic lab=n1}
+T {B=SVDD} 325 -690 0 0 0.3 0.3 {layer=7}
+T {B=GND} 325 -550 0 0 0.3 0.3 {layer=7}
+T {B=GND} 585 -410 0 0 0.3 0.3 {layer=7}
+T {B=GND} 785 -410 0 0 0.3 0.3 {layer=7}
+T {B=BVDD} 585 -670 0 0 0.3 0.3 {layer=7}
+T {B=BVDD} 785 -670 0 0 0.3 0.3 {layer=7}
