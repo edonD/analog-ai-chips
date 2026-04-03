@@ -1,0 +1,45 @@
+PVDD LDO Regulator — Post FIX-19/FIX-20 Verification Results
+============================================================
+
+Current Limit:
+  TT 27C: regulation lost at ~60 mA (PVDD=4.779V)
+  SS 150C: regulation lost at ~63 mA (PVDD=4.735V)
+  FF -40C: regulation lost at ~56 mA (PVDD=4.737V)
+
+PVT DC Regulation:
+  PVDD range: 4.9989V to 5.0019V (spread: 2.9 mV)
+  Status: All PASS
+  TT  -40C: 4.9993V [PASS]
+  TT   27C: 5.0003V [PASS]
+  TT  150C: 5.0018V [PASS]
+  SS  -40C: 4.9989V [PASS]
+  SS   27C: 5.0002V [PASS]
+  SS  150C: 5.0018V [PASS]
+  FF  -40C: 4.9996V [PASS]
+  FF   27C: 5.0005V [PASS]
+  FF  150C: 5.0018V [PASS]
+  SF  -40C: 4.9993V [PASS]
+  SF   27C: 5.0003V [PASS]
+  SF  150C: 5.0017V [PASS]
+  FS  -40C: 4.9994V [PASS]
+  FS   27C: 5.0004V [PASS]
+  FS  150C: 5.0019V [PASS]
+  TT TC: 13.1 uV/C
+  SS TC: 14.8 uV/C
+  FF TC: 11.6 uV/C
+  SF TC: 13.0 uV/C
+  FS TC: 13.3 uV/C
+
+Line Regulation (5mA): dV=1003.5mV, 286.72 mV/V
+
+Line Regulation (10mA): dV=1002.7mV, 286.48 mV/V
+
+UV trip: 4.346V (spec 4.0-4.6V) [PASS]
+OV trip: 5.494V (spec 5.3-5.7V) [PASS]
+
+Plots generated:
+  plot_current_limit.png: OK
+  plot_pvt_dc_regulation.png: OK
+  plot_pvt_temperature.png: OK
+  plot_line_regulation.png: OK
+  plot_uvov.png: OK

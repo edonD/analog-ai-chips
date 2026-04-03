@@ -1,0 +1,15 @@
+Using SPARSE 1.3 as Direct Linear Solver
+
+Note: No compatibility mode selected!
+
+
+Circuit: PVT_B_sf_-40
+
+Doing analysis at TEMP = -40.000000 and TNOM = 27.000000
+
+Using transient initial conditions
+ Reference value :  5.00000e-09 Reference value :  7.09582e-07 Reference value :  3.10132e-06 Reference value :  1.13157e-05 Reference value :  2.00795e-04 Reference value :  4.04795e-04 Reference value :  5.86795e-04 Reference value :  7.24795e-04 Reference value :  9.18795e-04 Reference value :  1.11279e-03 Reference value :  1.30279e-03 Reference value :  1.47279e-03 Reference value :  1.67079e-03 Reference value :  1.88879e-03 Reference value :  2.08879e-03 Reference value :  2.29879e-03 Reference value :  2.51079e-03 Reference value :  2.72279e-03 Reference value :  2.93279e-03 Reference value :  3.13679e-03 Reference value :  3.35479e-03 Reference value :  3.56679e-03 Reference value :  3.78079e-03 Reference value :  3.98679e-03 Reference value :  4.18879e-03 Reference value :  4.40079e-03 Reference value :  4.61079e-03 Reference value :  4.82679e-03 Reference value :  5.03704e-03 Reference value :  5.03959e-03 Reference value :  5.23960e-03 Reference value :  5.46160e-03 Reference value :  5.67160e-03 Reference value :  5.89160e-03 Reference value :  6.13560e-03 Reference value :  6.37960e-03 Reference value :  6.64560e-03 Reference value :  6.90960e-03 Reference value :  7.17560e-03 Reference value :  7.43960e-03 Reference value :  7.70560e-03 Reference value :  7.97160e-03 Reference value :  8.23760e-03 Reference value :  8.46160e-03 Reference value :  8.72360e-03 Reference value :  8.98960e-03 Reference value :  9.25360e-03 Reference value :  9.51960e-03 Reference value :  9.78560e-03 Reference value :  1.00295e-02 Reference value :  1.02555e-02 Reference value :  1.05235e-02 Reference value :  1.07935e-02 Reference value :  1.10635e-02 Reference value :  1.13315e-02 Reference value :  1.16015e-02 Reference value :  1.18695e-02 Reference value :  1.21355e-02 Reference value :  1.24015e-02 Reference value :  1.26635e-02 Reference value :  1.29275e-02 Reference value :  1.31935e-02 Reference value :  1.34015e-02 Reference value :  1.36615e-02 Reference value :  1.39235e-02 Reference value :  1.41875e-02 Reference value :  1.44475e-02 Reference value :  1.47075e-02 Reference value :  1.49695e-02 Reference value :  1.52335e-02 Reference value :  1.54915e-02 Reference value :  1.57515e-02 Reference value :  1.60095e-02 Reference value :  1.62735e-02 Reference value :  1.65335e-02 Reference value :  1.67935e-02 Reference value :  1.70595e-02 Reference value :  1.73235e-02 Reference value :  1.75895e-02 Reference value :  1.78555e-02 Reference value :  1.81195e-02 Reference value :  1.83815e-02 Reference value :  1.86415e-02 Reference value :  1.89035e-02 Reference value :  1.91675e-02 Reference value :  1.94315e-02 Reference value :  1.96975e-02 Reference value :  1.99595e-02
+No. of Data Rows : 10156
+pvdd_pre            =  4.881416e+00
+pvdd_min            =  4.859847e+00 at=  1.000748e-02
+ngspice-42 done

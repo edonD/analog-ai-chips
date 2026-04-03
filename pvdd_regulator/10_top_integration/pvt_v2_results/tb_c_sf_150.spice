@@ -1,0 +1,38 @@
+* Test C: Current Limit — sf 150C
+.title PVT_C_sf_150
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" sf
+.temp 150
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../04_current_limiter/design.cir
+.include ../05_uv_ov_comparators/design.cir
+.include ../06_level_shifter/design.cir
+.include ../07_zener_clamp/design.cir
+.include ../08_mode_control/design.cir
+.include ../09_startup/design.cir
+.include design.cir
+Vbvdd bvdd 0 PWL(0 0 10u 7 100m 7)
+Ven en 0 PWL(0 0 0.5u 0 1u 2.2)
+Vavbg avbg 0 1.226
+Iibias 0 ibias 1u
+Vsvdd svdd 0 2.2
+Ven_ret en_ret 0 0
+Rload pvdd 0 0.1
+XDUT bvdd pvdd 0 avbg ibias svdd en en_ret uv_flag ov_flag startup_done pvdd_regulator
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.ic V(pvdd)=0 V(bvdd)=0
+.tran 2u 20m uic
+.control
+run
+meas tran pvdd_final FIND v(pvdd) AT=20m
+quit
+.endc
+.end
