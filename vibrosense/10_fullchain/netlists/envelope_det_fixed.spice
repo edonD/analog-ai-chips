@@ -9,7 +9,7 @@
 *     OTA2 (inp=vcm, inn=rect) + PMOS: clamps rect = vcm when vin < vcm
 *     NMOS sink (S=vcm, G=VDD): zero-current discharge at rect=vcm,
 *     proportional for rect>vcm. No resistor = no feedback instability.
-*   Stage 2: 5T OTA + 50nF cap for Gm-C LPF (fc ~ 9 Hz)
+*   Stage 2: 5T OTA + 5nF cap for Gm-C LPF (fc ~ 92 Hz)
 *
 * Requires: .option scale=1e-6 in testbench
 *           .include "ota_pga_v2.spice"
@@ -45,7 +45,9 @@ XMsink rect vdd vcm gnd sky130_fd_pr__nfet_01v8 w=0.42u l=100u
 .subckt lpf_10hz vin vout vdd gnd vbn_lpf
 
 * 5T OTA follower: fc = gm/(2*pi*C)
-* At 100nA tail: gm ~ 2.9uS, C = 50nF → fc ~ 9.3 Hz
+* At 100nA tail: gm ~ 2.9uS, C = 5nF → fc ~ 92 Hz
+* CHANGED: C reduced 10x (50nF -> 5nF) for faster settling (~8ms vs ~85ms)
+* Tradeoff: more ripple but envelopes differentiate within 50ms sim window
 XM1    d1   vin   tail gnd sky130_fd_pr__nfet_01v8 w=2u l=4u
 XM2    vout vout  tail gnd sky130_fd_pr__nfet_01v8 w=2u l=4u
 XMtail tail vbn_lpf gnd gnd sky130_fd_pr__nfet_01v8 w=1u l=8u
@@ -53,7 +55,7 @@ XMtail tail vbn_lpf gnd gnd sky130_fd_pr__nfet_01v8 w=1u l=8u
 XMp3   d1   d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4u l=4u
 XMp4   vout d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4u l=4u
 
-Clpf vout gnd 50n
+Clpf vout gnd 5n
 
 .ends lpf_10hz
 

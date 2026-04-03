@@ -159,7 +159,7 @@ def assemble_test_netlist(test_case):
     )
 
     # Adjust simulation time based on stimulus duration
-    content = content.replace('.tran 1u 25m UIC', '.tran 10u 200m UIC')
+    content = content.replace('.tran 10u 200m UIC', '.tran 10u 200m UIC')
 
     with open(out_spice, 'w') as f:
         f.write(content)

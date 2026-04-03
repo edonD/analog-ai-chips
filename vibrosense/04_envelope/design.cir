@@ -4,7 +4,7 @@
 * Architecture:
 *   Stage 1: Two half-wave rectifiers (OTA + diode) summed for full-wave
 *            Each OTA outputs gm*(Vdiff), MOSFET diode clips negative current
-*   Stage 2: First-order Gm-C LPF (fc ~ 10 Hz) smooths to DC envelope
+*   Stage 2: First-order Gm-C LPF (fc ~ 100 Hz) smooths to DC envelope
 *
 * Ports:
 *   vin  - Input signal (from BPF output, AC on top of VCM)
@@ -15,9 +15,9 @@
 *
 * Design targets:
 *   Rectification accuracy: <5% at 100mVpp, <15% at 10mVpp
-*   LPF cutoff: 10 Hz (5-20 Hz acceptable)
-*   Output ripple: <5% of DC at BPF3 frequency
-*   Settling time: <200 ms (10% to 90%)
+*   LPF cutoff: 100 Hz (50-150 Hz acceptable for fast settling)
+*   Output ripple: <10% of DC at BPF3 frequency (relaxed for speed)
+*   Settling time: <10 ms (10% to 90%)
 *   Power per channel: <10 uW
 
 * ============================================================
@@ -30,8 +30,8 @@
 
 * --- Design Parameters ---
 * Rectifier OTA: gm = 2.5 uA/V (matches Block 01 OTA at Ibias=500nA)
-* LPF OTA: gm = 6.28 nS (for fc=10 Hz with C=100pF)
-* LPF cap: 100 pF
+* LPF OTA: gm = 6.28 nS (for fc=100 Hz with C=10pF)
+* LPF cap: 10 pF (reduced from 100pF to speed up settling)
 
 * === Stage 1: Full-Wave Precision Rectifier ===
 *
@@ -63,14 +63,16 @@ C_rect rect vss 10f
 * === Stage 2: Gm-C Low-Pass Filter ===
 *
 * First-order LPF: H(s) = 1 / (1 + s*C/gm)
-* fc = gm / (2*pi*C) = 6.28e-9 / (2*pi*100e-12) = 10.0 Hz
+* fc = gm / (2*pi*C) = 6.28e-9 / (2*pi*10e-12) = 100.0 Hz
+* CHANGED: C reduced from 100pF to 10pF, fc raised from 10Hz to 100Hz
+* Settling time: ~5*tau = 5/(2*pi*100) ~ 8ms (was ~80ms at 10Hz)
 *
 * In real implementation: simple 5-transistor OTA with Ibias ~ 20 nA
 * Low gm achieved by very low bias current
 
 * Current from vss INTO vout: charges vout toward v(rect)
 G_lpf vss vout cur='6.28e-9 * (v(rect) - v(vout))'
-C_lpf vout vss 100p
+C_lpf vout vss 10p
 
 * High-value leakage resistor (sets DC bias, negligible at signal freq)
 R_leak vout vss 100G

@@ -1,0 +1,81 @@
+* TB: Envelope Detector v2 — Fast LPF Settling Test
+* Verify that fc~92Hz LPF (5nF cap) settles within 10-20ms
+.option scale=1e-6
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "ota_pga_v2.spice"
+.include "envelope_det.spice"
+
+.param vdd_val = 1.8
+.param vcm_val = 0.9
+.param amp_val = 50m
+.param freq_val = 3162
+
+* Supply
+Vdd vdd 0 dc {vdd_val}
+
+* Self-biasing vbn — same as OTA v2 testbench
+Ibias_n vdd vbn dc 1500n
+Xbias_n vbn vbn 0 0 sky130_fd_pr__nfet_01v8 w=11.4 l=14 nf=1
+Cbn vbn 0 100p
+
+* LPF bias — very low current for ~92 Hz cutoff
+Ibias_lpf vdd vbn_lpf dc 100n
+Xbias_lpf vbn_lpf vbn_lpf 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8 nf=1
+Cbn_lpf vbn_lpf 0 100p
+
+* Input: 100mVpp sine centered on VCM
+Vin vin 0 sin({vcm_val} {amp_val} {freq_val})
+Vcm vcm 0 dc {vcm_val}
+
+* DUT
+Xenv vin vcm vout vdd 0 vbn vbn_lpf envelope_det
+
+.tran 1u 50m
+
+.control
+run
+
+* Measure early (10-30ms) to verify fast settling
+meas tran vout_10ms FIND v(vout) at=10m
+meas tran vout_20ms FIND v(vout) at=20m
+meas tran vout_30ms FIND v(vout) at=30m
+meas tran vout_40ms FIND v(vout) at=40m
+meas tran vout_50ms FIND v(vout) at=50m
+
+meas tran vout_avg AVG v(vout) from=30m to=50m
+meas tran vout_min MIN v(vout) from=30m to=50m
+meas tran vout_max MAX v(vout) from=30m to=50m
+
+meas tran rect_avg AVG v(xenv.rect) from=30m to=50m
+meas tran rect_min MIN v(xenv.rect) from=30m to=50m
+meas tran rect_max MAX v(xenv.rect) from=30m to=50m
+
+let rect_pp = rect_max - rect_min
+let vout_pp = vout_max - vout_min
+let ripple_pct = 100 * vout_pp / vout_avg
+
+echo "=== Envelope Detector v2 — Fast LPF Test ==="
+echo "--- Settling Check (should stabilize by 10-20ms) ---"
+echo "vout @10ms = $&vout_10ms"
+echo "vout @20ms = $&vout_20ms"
+echo "vout @30ms = $&vout_30ms"
+echo "vout @40ms = $&vout_40ms"
+echo "vout @50ms = $&vout_50ms"
+echo ""
+echo "--- Rectifier output (30-50ms window) ---"
+echo "rect_avg = $&rect_avg"
+echo "rect_pp  = $&rect_pp"
+echo ""
+echo "--- LPF output (30-50ms window) ---"
+echo "vout_avg = $&vout_avg"
+echo "vout_pp  = $&vout_pp"
+echo "ripple   = $&ripple_pct %"
+
+* Power measurement
+meas tran idd AVG i(Vdd) from=30m to=50m
+let pwr = -idd * 1.8 * 1e6
+echo "power_uw = $&pwr"
+
+quit
+.endc
+.end

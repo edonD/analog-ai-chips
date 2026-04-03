@@ -172,7 +172,7 @@ Xclass venv1 venv2 venv3 venv4 venv5 rms_out peak_out rms_ref
 * ================================================================
 
 * Transient simulation
-.tran 10u 50m UIC
+.tran 10u 200m UIC
 
 * Save key nodes
 .save v(vin) v(vout_pga) v(vcm)

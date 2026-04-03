@@ -44,7 +44,11 @@ XMsink rect vdd vcm gnd sky130_fd_pr__nfet_01v8 w=0.42 l=100
 .subckt lpf_10hz vin vout vdd gnd vbn_lpf
 
 * 5T OTA follower: fc = gm/(2*pi*C)
-* At 100nA tail: gm ~ 2.9uS, C = 50nF → fc ~ 9.3 Hz
+* At 100nA tail: gm ~ 2.9uS, C = 5nF → fc ~ 92 Hz
+* CHANGED: C reduced from 50nF to 5nF to increase LPF cutoff from 9Hz to ~92Hz
+* This gives tau ~ 1.7ms, settling (5*tau) ~ 8.5ms — well within 50ms window
+* Still filters carrier frequencies (BPF1 lowest center ~ 100-200 Hz)
+* Tradeoff: more ripple on envelope, but much faster settling
 XM1    d1   vin   tail gnd sky130_fd_pr__nfet_01v8 w=2 l=4
 XM2    vout vout  tail gnd sky130_fd_pr__nfet_01v8 w=2 l=4
 XMtail tail vbn_lpf gnd gnd sky130_fd_pr__nfet_01v8 w=1 l=8
@@ -52,7 +56,7 @@ XMtail tail vbn_lpf gnd gnd sky130_fd_pr__nfet_01v8 w=1 l=8
 XMp3   d1   d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
 XMp4   vout d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
 
-Clpf vout gnd 50n
+Clpf vout gnd 5n
 
 .ends lpf_10hz
 
