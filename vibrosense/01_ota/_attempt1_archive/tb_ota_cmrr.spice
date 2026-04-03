@@ -1,0 +1,74 @@
+* CMRR Analysis - VibroSense OTA
+* Common-Mode Rejection Ratio = A_diff(dB) - A_cm(dB)
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+
+* Tie both inputs together and apply the common-mode AC signal
+* Vcm_dc sets DC operating point; Vcm_ac adds the AC stimulus
+Vcm_dc vcm 0 dc 0.9
+Vcm_ac vinp vcm dc 0 ac 1
+* Inverting input tied to the same node: both inputs driven identically
+Vtie vinn vinp dc 0
+
+* Unity-gain feedback for DC bias stability (Lfb connects vout back to vinn)
+* With vinn already tied to vinp, we add the feedback via inductor
+* to ensure the output has a defined DC operating point.
+* Note: vinn is already connected to vinp by Vtie;
+* Lfb is removed here since vinn is already hard-tied.
+* The DC bias comes from the common-mode input level (0.9V).
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+* Sweep from 1Hz to 100MHz
+.ac dec 100 1 100Meg
+
+.control
+  run
+
+  * Common-mode gain = V(vout) / Vcm_ac
+  * Since Vcm_ac = 1 (AC), vdb(vout) directly gives Acm in dB
+  let acm_db = vdb(vout)
+
+  * Spot values of common-mode gain
+  meas ac acm_1hz   FIND vdb(vout) AT=1
+  meas ac acm_1k    FIND vdb(vout) AT=1000
+  meas ac acm_10k   FIND vdb(vout) AT=10000
+  meas ac acm_100k  FIND vdb(vout) AT=100000
+  meas ac acm_1meg  FIND vdb(vout) AT=1000000
+
+  * DC common-mode gain (lowest frequency point)
+  meas ac acm_dc MAX vdb(vout) FROM=1 TO=10
+
+  echo ""
+  echo "======================================================"
+  echo "  CMRR Analysis Results"
+  echo "  (Both inputs driven together; Vout/Vcm)"
+  echo "  CMRR(f) = A_diff(f) - A_cm(f)  [dB]"
+  echo "======================================================"
+  echo "Common-mode gain A_cm:"
+  echo "  1 Hz:    $&acm_1hz dB"
+  echo "  1 kHz:   $&acm_1k dB"
+  echo "  10 kHz:  $&acm_10k dB"
+  echo "  100 kHz: $&acm_100k dB"
+  echo "  1 MHz:   $&acm_1meg dB"
+  echo ""
+  echo "DC common-mode gain (1-10 Hz): $&acm_dc dB"
+  echo ""
+  echo "Note: CMRR = diff_gain_dB - acm_dB"
+  echo "      Run tb_ota_ac.spice for diff gain, then subtract."
+  echo "======================================================"
+
+  wrdata cmrr_data vdb(vout) vp(vout)
+  quit
+.endc
+.end

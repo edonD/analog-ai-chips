@@ -1,0 +1,48 @@
+* Comparator Standalone Test
+* Sweep differential input, measure output at clock edges
+
+.include "sky130_pdk_fixup.spice"
+.lib "sky130_minimal_v2.lib.spice" tt
+
+.include "strongarm_comp.spice"
+
+* Supply
+VDD vdd 0 1.8
+
+* Differential input: sweep from -50mV to +50mV around Vcm=0.6V
+Vcm cm 0 0.6
+Vdiff inp cm 0
+Vinn inn cm 0
+
+* Clock: 100 kHz, 50% duty cycle
+Vclk clk 0 PULSE(0 1.8 0 1n 1n 4.9u 10u)
+
+* Sleep not asserted (active)
+Vsleep sleep_n 0 1.8
+
+* Comparator instance
+X1 inp inn outp outn vdd 0 clk sleep_n comparator
+
+* --- Offset measurement: DC sweep ---
+.control
+* Sweep Vdiff from -50mV to +50mV
+dc Vdiff -0.05 0.05 0.0005
+
+* Save output difference
+let vout_diff = v(outp) - v(outn)
+wrdata comp_dc_sweep.dat v(outp) v(outn)
+
+* Transient for speed measurement
+alter Vdiff = 0.005  ; 5 mV input difference
+tran 0.1n 30u
+wrdata comp_transient.dat v(outp) v(outn) v(clk)
+
+* Decision speed: apply 1 LSB (4.7mV) step
+alter Vdiff = 0.0047
+tran 0.1n 30u
+wrdata comp_1lsb.dat v(outp) v(outn) v(clk)
+
+quit
+.endc
+
+.end

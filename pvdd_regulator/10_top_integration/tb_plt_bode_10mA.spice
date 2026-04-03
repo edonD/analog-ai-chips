@@ -1,0 +1,66 @@
+* Bode plot template — 500 placeholder
+.title PVDD Bode at 500 ohm
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+
+.include ../00_error_amp/design.cir
+.include ../01_pass_device/design.cir
+.include ../02_feedback_network/design.cir
+.include ../03_compensation/design.cir
+.include ../09_startup/design.cir
+
+* Core regulation loop
+XM_pass gate bvdd pvdd pass_device
+XEA avbg vfb ea_out pvdd 0 ibias ea_en bvdd error_amp
+XFB pvdd vfb_div 0 feedback_network
+Cff_ext pvdd vfb_div 22p
+XCOMP ea_out pvdd 0 compensation
+XSU bvdd pvdd gate 0 avbg startup_done ea_en ea_out startup
+
+* DC loop closure + AC injection
+Rdc vfb_div vfb 100Meg
+Cinj ac_src vfb 1
+Vac ac_src 0 AC 1
+
+* Supplies
+Vbvdd bvdd 0 DC 7.0
+Vavbg avbg 0 DC 1.226
+Ibias ibias 0 DC 1u
+Ven en 0 DC 7.0
+
+* Load + output cap
+Rload pvdd 0 500
+Cout pvdd 0 1u
+
+.nodeset v(pvdd)=5.0 v(ea_out)=2.5 v(gate)=5.6 v(vfb)=1.226 v(ea_en)=7.0
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+
+.ac dec 50 1 100meg
+
+.control
+run
+set filetype = ascii
+let beta = 0.2452
+let T_mag = abs(v(pvdd)) * beta
+let T_db = 20 * log10(T_mag + 1e-30)
+let T_ph = 180/PI * cph(v(pvdd)) + 180
+let npts = length(T_db)
+let i = 0
+dowhile i < npts
+  if T_ph[i] > 180
+    let T_ph[i] = T_ph[i] - 360
+  end
+  let i = i + 1
+end
+wrdata plt6_gain_10mA T_db
+wrdata plt6_phase_10mA T_ph
+echo "Bode done for 500"
+quit
+.endc
+.end

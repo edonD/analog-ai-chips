@@ -1,0 +1,53 @@
+* Investigation testbench: noise spectrum, load sweep, offset
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* Open-loop bias for noise analysis
+Vinp vinp 0 dc 0.9 ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+* === NOISE ANALYSIS ===
+.noise V(vout) Vinp dec 50 1 10Meg
+
+.control
+run
+
+* Input-referred noise spectrum
+setplot noise1
+wrdata noise_spectrum inoise_spectrum
+
+* Print noise at key frequencies
+let freq_vec = frequency
+
+echo "=== INPUT-REFERRED NOISE ==="
+* Find values at specific frequencies by index
+* With dec 50 from 1 to 10M: total = 50*7 = 350 points
+* f = 1 * 10^(idx/50), so idx = 50*log10(f)
+* 10 Hz: idx = 50
+* 100 Hz: idx = 100
+* 500 Hz: idx = 135
+* 1 kHz: idx = 150
+* 5 kHz: idx = 185
+* 10 kHz: idx = 200
+
+print inoise_spectrum[50]
+print inoise_spectrum[100]
+print inoise_spectrum[135]
+print inoise_spectrum[150]
+print inoise_spectrum[185]
+print inoise_spectrum[200]
+
+echo "=== DONE ==="
+quit
+.endc
+.end

@@ -1,0 +1,17 @@
+{
+  "name": "VibroSense PGA OTA (high-current variant)",
+  "description": "Folded-cascode OTA scaled for PGA closed-loop use. Same topology as ota_foldcasc, 3x tail current for 50 kHz UGB. Used exclusively by Block 02 PGA.",
+  "supply_v": 1.8,
+  "tail_current_ua": 1.5,
+  "measurements": {
+    "dc_gain_db":               {"target": ">65",            "weight": 20},
+    "ugb_hz":                   {"target": "45000 to 300000","weight": 25},
+    "phase_margin_deg":         {"target": ">60",            "weight": 20},
+    "input_noise_nv_sqrthz_1k": {"target": "<300",           "weight": 10,
+                                 "note": "Relaxed from 200. Thermal noise improves with gm at higher current."},
+    "cmrr_db":                  {"target": ">70",            "weight": 10},
+    "psrr_db":                  {"target": ">60",            "weight": 10},
+    "power_uw":                 {"target": "<8",             "weight": 5,
+                                 "note": "1.5uA x 1.8V = 2.7uW typ. Budget 8uW including mirrors."}
+  }
+}

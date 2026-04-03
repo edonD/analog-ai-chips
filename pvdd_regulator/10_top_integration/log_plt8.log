@@ -1,0 +1,16 @@
+Using SPARSE 1.3 as Direct Linear Solver
+Note: iac: has no value, DC 0 assumed
+Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+Note: No compatibility mode selected!
+
+
+Circuit: PVDD Output Impedance
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  1.00000e+00
+No. of Data Rows : 351
+Zout done
+ngspice-42 done

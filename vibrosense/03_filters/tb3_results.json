@@ -1,0 +1,47 @@
+{
+  "1": {
+    "fundamental_V": 0.02962,
+    "HD2_dBc": -150.8,
+    "HD3_dBc": -163.8,
+    "HD4_dBc": -170.6,
+    "HD5_dBc": -175.5,
+    "THD_dBc": -150.6,
+    "pass": true
+  },
+  "2": {
+    "fundamental_V": 0.066794,
+    "HD2_dBc": -171.7,
+    "HD3_dBc": -190.1,
+    "HD4_dBc": -180.9,
+    "HD5_dBc": -178.6,
+    "THD_dBc": -170.4,
+    "pass": true
+  },
+  "3": {
+    "fundamental_V": 0.169557,
+    "HD2_dBc": -191.0,
+    "HD3_dBc": -198.7,
+    "HD4_dBc": -206.2,
+    "HD5_dBc": -208.7,
+    "THD_dBc": -190.2,
+    "pass": true
+  },
+  "4": {
+    "fundamental_V": 0.241518,
+    "HD2_dBc": -203.8,
+    "HD3_dBc": -213.1,
+    "HD4_dBc": -214.8,
+    "HD5_dBc": -209.9,
+    "THD_dBc": -202.2,
+    "pass": true
+  },
+  "5": {
+    "fundamental_V": 0.241713,
+    "HD2_dBc": -204.7,
+    "HD3_dBc": -211.1,
+    "HD4_dBc": -210.2,
+    "HD5_dBc": -208.9,
+    "THD_dBc": -201.9,
+    "pass": true
+  }
+}

@@ -1,0 +1,67 @@
+* ============================================================================
+* Comparator — v2 (Simple Continuous Differential Amplifier)
+* VibroSense 8-bit SAR ADC — Block 07
+* Process: SkyWater SKY130A (130 nm CMOS)
+* Supply: 1.8V
+* ============================================================================
+*
+* Architecture: Two-stage open-loop amplifier
+*   Stage 1: NMOS diff pair + PMOS current mirror load → high gain (~40dB)
+*   Stage 2: Common-source inverting amplifier → additional ~20dB
+*   Total gain > 10,000 → resolves 4.7mV (1 LSB) easily
+*
+* Output: outp = HIGH when inp < inn (vtop < vref → keep bit)
+*         outp = LOW when inp > inn (vtop > vref → clear bit)
+* outn = complement of outp
+*
+* No clocking needed — operates continuously. Power gating via sleep_n.
+* The comp_clk and TG latch are NOT needed with this design.
+*
+* ============================================================================
+
+.subckt v2_comparator inp inn outp outn vdd vss clk sleep_n
+
+* Power gating
+M_slpinv_n slp_bar sleep_n vss vss sky130_fd_pr__nfet_01v8__model w=1u l=0.15u
+M_slpinv_p slp_bar sleep_n vdd vdd sky130_fd_pr__pfet_01v8__model w=2u l=0.15u
+M_pg vdd_int slp_bar vdd vdd sky130_fd_pr__pfet_01v8__model w=10u l=0.15u
+
+* Bias generation (~5uA)
+M_bias vbias vbias vss vss sky130_fd_pr__nfet_01v8__model w=2u l=2u
+Rbias vdd_int vbias 200k
+
+* Stage 1: NMOS diff pair with PMOS current mirror load
+M_tail1 tail1 vbias vss vss sky130_fd_pr__nfet_01v8__model w=4u l=2u
+
+* Input pair (large for low offset)
+M_n1 d1n inp tail1 vss sky130_fd_pr__nfet_01v8__model w=8u l=1u
+M_n2 d1p inn tail1 vss sky130_fd_pr__nfet_01v8__model w=8u l=1u
+
+* PMOS current mirror load (provides single-ended conversion)
+M_p1 d1n d1n vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=1u
+M_p2 d1p d1n vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=1u
+
+* Stage 2: common-source with active load for more gain + rail-to-rail output
+M_n3 stg2 d1p vss vss sky130_fd_pr__nfet_01v8__model w=4u l=0.5u
+M_p3 stg2 vbias2 vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=2u
+
+* Bias for stage 2 PMOS load
+M_bias2 vbias2 vbias2 vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=2u l=2u
+Rbias2 vbias2 vss 200k
+
+* Output buffer/inverter for sharp transitions
+M_bufn outp_raw stg2 vss vss sky130_fd_pr__nfet_01v8__model w=2u l=0.15u
+M_bufp outp_raw stg2 vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=4u l=0.15u
+
+* Complementary output
+M_outn outn outp_raw vss vss sky130_fd_pr__nfet_01v8__model w=2u l=0.15u
+M_outp outn outp_raw vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=4u l=0.15u
+
+* outp = outp_raw (same signal, just buffered)
+M_outp2 outp outp_raw vss vss sky130_fd_pr__nfet_01v8__model w=2u l=0.15u
+M_outn2 outp outp_raw vdd_int vdd_int sky130_fd_pr__pfet_01v8__model w=4u l=0.15u
+
+* Compensation cap for stability
+Cc stg2 d1p 200f
+
+.ends v2_comparator

@@ -1,0 +1,105 @@
+** tb_temp.spice — Temperature sweep (simplified)
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+XM3 nbias nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4 out_n nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1 nbias nbias 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM2 out_n nbias src_m2 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1 src_m2 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7 iref_out nbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+Vload iref_out 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nbias)=0.7
+
+.control
+    set temp = -40
+    op
+    let i_m40 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=-40: Iref = $&i_m40 nA"
+
+    set temp = -20
+    op
+    let i_m20 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=-20: Iref = $&i_m20 nA"
+
+    set temp = 0
+    op
+    let i_0 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=0: Iref = $&i_0 nA"
+
+    set temp = 27
+    op
+    let i_27 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=27: Iref = $&i_27 nA"
+
+    set temp = 40
+    op
+    let i_40 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=40: Iref = $&i_40 nA"
+
+    set temp = 60
+    op
+    let i_60 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=60: Iref = $&i_60 nA"
+
+    set temp = 85
+    op
+    let i_85 = abs(@m.xm7.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    echo "T=85: Iref = $&i_85 nA"
+
+    echo ""
+    ** Calculate TC manually
+    ** Find min and max from the values
+    let iall = i_m40
+    if i_m20 < iall
+        let iall = i_m20
+    end
+    if i_0 < iall
+        let iall = i_0
+    end
+    if i_27 < iall
+        let iall = i_27
+    end
+    if i_40 < iall
+        let iall = i_40
+    end
+    if i_60 < iall
+        let iall = i_60
+    end
+    if i_85 < iall
+        let iall = i_85
+    end
+    echo "Imin = $&iall nA"
+
+    let imax = i_m40
+    if i_m20 > imax
+        let imax = i_m20
+    end
+    if i_0 > imax
+        let imax = i_0
+    end
+    if i_27 > imax
+        let imax = i_27
+    end
+    if i_40 > imax
+        let imax = i_40
+    end
+    if i_60 > imax
+        let imax = i_60
+    end
+    if i_85 > imax
+        let imax = i_85
+    end
+    echo "Imax = $&imax nA"
+
+    let tc = (imax - iall) / i_27 / 125 * 1e6
+    echo "TC = $&tc ppm/C"
+.endc
+
+.end

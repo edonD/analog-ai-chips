@@ -1,0 +1,1000 @@
+{
+  "pvt_summary": [
+    {
+      "corner": "tt",
+      "temp": -40,
+      "rms_acc": 0.4020030544011322,
+      "rms_r2": 0.9999994239363266,
+      "cf_sine": 6.2515451744448685,
+      "cf_square": 6.292800210669314,
+      "cf_triangle": 7.024041821297179,
+      "pk_acc": 6.725757999999998,
+      "pk_hold": 999,
+      "power": 7.396550477892109
+    },
+    {
+      "corner": "tt",
+      "temp": 27,
+      "rms_acc": 1.5784721785540974,
+      "rms_r2": 0.9999173296999414,
+      "cf_sine": 3.6299757204044525,
+      "cf_square": 3.8324527988126023,
+      "cf_triangle": 4.467645129093839,
+      "pk_acc": 5.221883000000066,
+      "pk_hold": 3.0791053694111143,
+      "power": 8.012180484791209
+    },
+    {
+      "corner": "tt",
+      "temp": 85,
+      "rms_acc": 2.5701028274304893,
+      "rms_r2": 0.9998289238578983,
+      "cf_sine": 1.4572781025948989,
+      "cf_square": 2.009459934006075,
+      "cf_triangle": 2.4577325403569725,
+      "pk_acc": 4.142023000000022,
+      "pk_hold": 999,
+      "power": 8.564675952515485
+    },
+    {
+      "corner": "ss",
+      "temp": -40,
+      "rms_acc": 0.33430645242447343,
+      "rms_r2": 0.9999977379919323,
+      "cf_sine": 6.7400226396499106,
+      "cf_square": 6.73236924185856,
+      "cf_triangle": 7.552755749590272,
+      "pk_acc": 7.167488999999999,
+      "pk_hold": 999,
+      "power": 5.651288893798202
+    },
+    {
+      "corner": "ss",
+      "temp": 27,
+      "rms_acc": 1.8053237390546109,
+      "rms_r2": 0.9999409674916475,
+      "cf_sine": 3.8035715383105093,
+      "cf_square": 4.112696272687311,
+      "cf_triangle": 4.699543017935329,
+      "pk_acc": 5.655662000000033,
+      "pk_hold": 3.038358661155761,
+      "power": 6.184042627954047
+    },
+    {
+      "corner": "ss",
+      "temp": 85,
+      "rms_acc": 2.7624170530238277,
+      "rms_r2": 0.999834704614952,
+      "cf_sine": 1.6464958155921199,
+      "cf_square": 1.9500492861599827,
+      "cf_triangle": 2.6174097549415354,
+      "pk_acc": 4.527330000000079,
+      "pk_hold": 999,
+      "power": 6.692283416823177
+    },
+    {
+      "corner": "ff",
+      "temp": -40,
+      "rms_acc": 0.334628814627171,
+      "rms_r2": 0.9999989740702774,
+      "cf_sine": 5.869700713450136,
+      "cf_square": 6.042826998462036,
+      "cf_triangle": 6.70676244552151,
+      "pk_acc": 6.2682040000000825,
+      "pk_hold": 999,
+      "power": 9.544644203934066
+    },
+    {
+      "corner": "ff",
+      "temp": 27,
+      "rms_acc": 1.2450179597635833,
+      "rms_r2": 0.999954334824651,
+      "cf_sine": 3.5475262986163223,
+      "cf_square": 3.4601362516404888,
+      "cf_triangle": 4.396454222725374,
+      "pk_acc": 4.843155000000015,
+      "pk_hold": 3.017384142074858,
+      "power": 10.196593340907093
+    },
+    {
+      "corner": "ff",
+      "temp": 85,
+      "rms_acc": 2.089122951301493,
+      "rms_r2": 0.9998687190569127,
+      "cf_sine": 1.5906369373436362,
+      "cf_square": 2.067004239332604,
+      "cf_triangle": 2.6365283013401624,
+      "pk_acc": 3.786774000000076,
+      "pk_hold": 999,
+      "power": 10.752618041658343
+    },
+    {
+      "corner": "sf",
+      "temp": -40,
+      "rms_acc": 0.29442469112365516,
+      "rms_r2": 0.9999988360637906,
+      "cf_sine": 6.453511044524593,
+      "cf_square": 6.621730271887594,
+      "cf_triangle": 7.285308436955355,
+      "pk_acc": 6.790159000000045,
+      "pk_hold": 999,
+      "power": 10.298889119004995
+    },
+    {
+      "corner": "sf",
+      "temp": 27,
+      "rms_acc": 1.0904911933236903,
+      "rms_r2": 0.9999618815387518,
+      "cf_sine": 4.313715345529863,
+      "cf_square": 4.6708050724343035,
+      "cf_triangle": 5.157344438074433,
+      "pk_acc": 5.418041000000012,
+      "pk_hold": 3.0506563102126236,
+      "power": 10.912736997242757
+    },
+    {
+      "corner": "sf",
+      "temp": 85,
+      "rms_acc": 1.8803891780618205,
+      "rms_r2": 0.9998875095712227,
+      "cf_sine": 2.4950601811130566,
+      "cf_square": 2.981168413901336,
+      "cf_triangle": 3.553396686875913,
+      "pk_acc": 4.462217000000074,
+      "pk_hold": 999,
+      "power": 11.426253681902097
+    },
+    {
+      "corner": "fs",
+      "temp": -40,
+      "rms_acc": 0.20457870274765816,
+      "rms_r2": 0.9999930011542355,
+      "cf_sine": 6.3075374905689845,
+      "cf_square": 6.233486433277802,
+      "cf_triangle": 7.144357745153399,
+      "pk_acc": 6.623958000000068,
+      "pk_hold": 999,
+      "power": 5.2078717892787205
+    },
+    {
+      "corner": "fs",
+      "temp": 27,
+      "rms_acc": 1.7635448585138713,
+      "rms_r2": 0.999952219294839,
+      "cf_sine": 3.2745614522316253,
+      "cf_square": 3.4290973164832206,
+      "cf_triangle": 4.205368157164958,
+      "pk_acc": 5.120735999999987,
+      "pk_hold": 3.0225261639767123,
+      "power": 5.725688734699301
+    },
+    {
+      "corner": "fs",
+      "temp": 85,
+      "rms_acc": 2.696420095767131,
+      "rms_r2": 0.9998561521701684,
+      "cf_sine": 1.0964664090128633,
+      "cf_square": 1.380429960645213,
+      "cf_triangle": 2.065235479367777,
+      "pk_acc": 3.936509999999976,
+      "pk_hold": 999,
+      "power": 6.230499037804195
+    }
+  ],
+  "all_results": {
+    "tt_27": {
+      "linearity": {
+        "r2": 0.9999173296999414,
+        "alpha": 1.2222213609298689,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 1.5784721785540974,
+        "rms_accuracy_pass": true
+      },
+      "freq_response": {
+        "bw_low": 10,
+        "bw_high": 20000,
+        "bw_pass": true
+      },
+      "peak_hold": {
+        "decay_500ms": 3.0791053694111143,
+        "decay_1s": 6.244074463279726,
+        "peak_hold_pass": true
+      },
+      "peak_accuracy": {
+        "peak_accuracy_pct": 5.221883000000066,
+        "peak_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.362672143313481,
+          "cf_err": 3.6299757204044525,
+          "rms_meas": 69.59452973728484,
+          "peak_meas": 94.83452699999972,
+          "rms_sq_mV": 5.919705190961411,
+          "true_rms": 70.70360809547496,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.961675472011874,
+          "cf_err": 3.8324527988126023,
+          "rms_meas": 99.49867890445518,
+          "peak_meas": 95.68543899999982,
+          "rms_sq_mV": 12.099975711111322,
+          "true_rms": 97.72624726448441,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6546203863640947,
+          "cf_err": 4.467645129093839,
+          "rms_meas": 57.033980590176284,
+          "peak_meas": 94.36958699999975,
+          "rms_sq_mV": 3.9757332384977584,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "power": {
+        "power_uw": 8.012180484791209,
+        "idd_uA": 4.4512113804395605,
+        "power_pass": true
+      }
+    },
+    "tt_-40": {
+      "linearity": {
+        "r2": 0.9999994239363266,
+        "alpha": 1.843041217472709,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 0.4020030544011322,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3256031512333495,
+          "cf_err": 6.2515451744448685,
+          "rms_meas": 70.42641903283001,
+          "peak_meas": 93.3574829999998,
+          "rms_sq_mV": 9.141264191161902,
+          "true_rms": 70.70360810674353,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9370719978933069,
+          "cf_err": 6.292800210669314,
+          "rms_meas": 100.35679351364752,
+          "peak_meas": 94.04154099999973,
+          "rms_sq_mV": 18.562163827199775,
+          "true_rms": 97.71712066569721,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6103435956551329,
+          "cf_err": 7.024041821297179,
+          "rms_meas": 57.68190419151539,
+          "peak_meas": 92.88768499999978,
+          "rms_sq_mV": 6.1321705560068995,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 6.725757999999998,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 7.396550477892109,
+        "idd_uA": 4.109194709940061,
+        "power_pass": true
+      }
+    },
+    "tt_85": {
+      "linearity": {
+        "r2": 0.9998289238578983,
+        "alpha": 0.898030970482736,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 2.5701028274304893,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.393394087629308,
+          "cf_err": 1.4572781025948989,
+          "rms_meas": 68.89334098103194,
+          "peak_meas": 95.9955739999998,
+          "rms_sq_mV": 4.262317598480614,
+          "true_rms": 70.70360809567484,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9799054006599393,
+          "cf_err": 2.009459934006075,
+          "rms_meas": 98.9209090333801,
+          "peak_meas": 96.93313299999973,
+          "rms_sq_mV": 8.787543984000168,
+          "true_rms": 97.76342716309173,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6894320724010172,
+          "cf_err": 2.4577325403569725,
+          "rms_meas": 56.49121711319433,
+          "peak_meas": 95.4380739999997,
+          "rms_sq_mV": 2.8658481694039395,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 4.142023000000022,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 8.564675952515485,
+        "idd_uA": 4.758153306953047,
+        "power_pass": true
+      }
+    },
+    "ss_-40": {
+      "linearity": {
+        "r2": 0.9999977379919323,
+        "alpha": 1.6616580415658897,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 0.33430645242447343,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3186960798753502,
+          "cf_err": 6.7400226396499106,
+          "rms_meas": 70.47428775915098,
+          "peak_meas": 92.93416699999979,
+          "rms_sq_mV": 8.25283276144706,
+          "true_rms": 70.70360822338425,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9326763075814144,
+          "cf_err": 6.73236924185856,
+          "rms_meas": 100.40659898699661,
+          "peak_meas": 93.64685599999977,
+          "rms_sq_mV": 16.751980820800092,
+          "true_rms": 97.91665809943302,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6011862704170965,
+          "cf_err": 7.552755749590272,
+          "rms_meas": 57.70118424506152,
+          "peak_meas": 92.39034399999979,
+          "rms_sq_mV": 5.532368588847314,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 7.167488999999999,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 5.651288893798202,
+        "idd_uA": 3.139604940999001,
+        "power_pass": true
+      }
+    },
+    "ss_27": {
+      "linearity": {
+        "r2": 0.9999409674916475,
+        "alpha": 1.1143507539547972,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 1.8053237390546109,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3602174984482893,
+          "cf_err": 3.8035715383105093,
+          "rms_meas": 69.43412146053218,
+          "peak_meas": 94.44550699999976,
+          "rms_sq_mV": 5.372393325334901,
+          "true_rms": 70.70360821315205,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9588730372731269,
+          "cf_err": 4.112696272687311,
+          "rms_meas": 99.38887245283337,
+          "peak_meas": 95.30130999999975,
+          "rms_sq_mV": 11.00772163520003,
+          "true_rms": 97.6878074470422,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.65060391492936,
+          "cf_err": 4.699543017935329,
+          "rms_meas": 56.875965306320886,
+          "peak_meas": 93.87969099999971,
+          "rms_sq_mV": 3.6047858738419425,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 5.655662000000033,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 6.184042627954047,
+        "idd_uA": 3.435579237752248,
+        "power_pass": true
+      }
+    },
+    "ss_85": {
+      "linearity": {
+        "r2": 0.999834704614952,
+        "alpha": 0.8285685761548575,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 2.7624170530238277,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3907185491675274,
+          "cf_err": 1.6464958155921199,
+          "rms_meas": 68.75735428799625,
+          "peak_meas": 95.6221279999998,
+          "rms_sq_mV": 3.917119066186414,
+          "true_rms": 70.70360812160784,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9804995071384002,
+          "cf_err": 1.9500492861599827,
+          "rms_meas": 98.5170245336647,
+          "peak_meas": 96.5958939999999,
+          "rms_sq_mV": 8.041758588889225,
+          "true_rms": 97.73637554433625,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6866664630444126,
+          "cf_err": 2.6174097549415354,
+          "rms_meas": 56.34803802789385,
+          "peak_meas": 95.04034599999977,
+          "rms_sq_mV": 2.6307892375223574,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 4.527330000000079,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 6.692283416823177,
+        "idd_uA": 3.7179352315684318,
+        "power_pass": true
+      }
+    },
+    "ff_-40": {
+      "linearity": {
+        "r2": 0.9999989740702774,
+        "alpha": 2.005971688200128,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 0.334628814627171,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.331002431911815,
+          "cf_err": 5.869700713450136,
+          "rms_meas": 70.47405981465147,
+          "peak_meas": 93.8011449999998,
+          "rms_sq_mV": 9.962845158968614,
+          "true_rms": 70.70360811936587,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9395717300153796,
+          "cf_err": 6.042826998462036,
+          "rms_meas": 100.53462442772054,
+          "peak_meas": 94.45949099999984,
+          "rms_sq_mV": 20.274778528571737,
+          "true_rms": 97.70427734359731,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6158388744435674,
+          "cf_err": 6.70676244552151,
+          "rms_meas": 57.74105851496408,
+          "peak_meas": 93.30024699999973,
+          "rms_sq_mV": 6.68796946350203,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 6.2682040000000825,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 9.544644203934066,
+        "idd_uA": 5.302580113296703,
+        "power_pass": true
+      }
+    },
+    "ff_27": {
+      "linearity": {
+        "r2": 0.999954334824651,
+        "alpha": 1.321120830022485,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 1.2450179597635833,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3638379781375651,
+          "cf_err": 3.5475262986163223,
+          "rms_meas": 69.83031747660688,
+          "peak_meas": 95.2372389999998,
+          "rms_sq_mV": 6.442146148770478,
+          "true_rms": 70.70360815586568,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9653986374835951,
+          "cf_err": 3.4601362516404888,
+          "rms_meas": 99.48439978156881,
+          "peak_meas": 96.0421039999998,
+          "rms_sq_mV": 13.07532547401613,
+          "true_rms": 97.62255903790567,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6558534128623965,
+          "cf_err": 4.396454222725374,
+          "rms_meas": 57.253288403179475,
+          "peak_meas": 94.8030529999998,
+          "rms_sq_mV": 4.3305535360105285,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 4.843155000000015,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 10.196593340907093,
+        "idd_uA": 5.664774078281718,
+        "power_pass": true
+      }
+    },
+    "ff_85": {
+      "linearity": {
+        "r2": 0.9998687190569127,
+        "alpha": 0.9600593615503734,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 2.089122951301493,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.391508393705961,
+          "cf_err": 1.5906369373436362,
+          "rms_meas": 69.23344511305702,
+          "peak_meas": 96.33891999999977,
+          "rms_sq_mV": 4.601823661267712,
+          "true_rms": 70.70360804808212,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.979329957606674,
+          "cf_err": 2.067004239332604,
+          "rms_meas": 99.29835929624076,
+          "peak_meas": 97.24585799999974,
+          "rms_sq_mV": 9.46634290719972,
+          "true_rms": 97.78451623081685,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6863353298207884,
+          "cf_err": 2.6365283013401624,
+          "rms_meas": 56.8021687656745,
+          "peak_meas": 95.7875039999998,
+          "rms_sq_mV": 3.097618450658368,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 3.786774000000076,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 10.752618041658343,
+        "idd_uA": 5.9736766898101905,
+        "power_pass": true
+      }
+    },
+    "sf_-40": {
+      "linearity": {
+        "r2": 0.9999988360637906,
+        "alpha": 2.000731569643286,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 0.29442469112365516,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3227473538304222,
+          "cf_err": 6.453511044524593,
+          "rms_meas": 70.50248842301247,
+          "peak_meas": 93.25697999999971,
+          "rms_sq_mV": 9.944838088382202,
+          "true_rms": 70.70360808371215,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9337826972811241,
+          "cf_err": 6.621730271887594,
+          "rms_meas": 100.58453885842688,
+          "peak_meas": 93.92410199999989,
+          "rms_sq_mV": 20.241900387301335,
+          "true_rms": 97.70264758687259,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6058184578719332,
+          "cf_err": 7.285308436955355,
+          "rms_meas": 57.772962158464985,
+          "peak_meas": 92.77288899999981,
+          "rms_sq_mV": 6.677872084213332,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 6.790159000000045,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 10.298889119004995,
+        "idd_uA": 5.721605066113886,
+        "power_pass": true
+      }
+    },
+    "sf_27": {
+      "linearity": {
+        "r2": 0.9999618815387518,
+        "alpha": 1.3134447600368109,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 1.0904911933236903,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3530040650142077,
+          "cf_err": 4.313715345529863,
+          "rms_meas": 69.93958440103135,
+          "peak_meas": 94.6285419999997,
+          "rms_sq_mV": 6.424774761047747,
+          "true_rms": 70.70360812198112,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.953291949275657,
+          "cf_err": 4.6708050724343035,
+          "rms_meas": 100.11555544187459,
+          "peak_meas": 95.43935299999973,
+          "rms_sq_mV": 13.164820276799771,
+          "true_rms": 97.72940547204952,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6426747943325508,
+          "cf_err": 5.157344438074433,
+          "rms_meas": 57.353457498128996,
+          "peak_meas": 94.21307899999975,
+          "rms_sq_mV": 4.3204702633716785,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 5.418041000000012,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 10.912736997242757,
+        "idd_uA": 6.062631665134865,
+        "power_pass": true
+      }
+    },
+    "sf_85": {
+      "linearity": {
+        "r2": 0.9998875095712227,
+        "alpha": 0.9510044930185005,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 1.8803891780618205,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3787198490390613,
+          "cf_err": 2.4950601811130566,
+          "rms_meas": 69.38104217957743,
+          "peak_meas": 95.65701999999976,
+          "rms_sq_mV": 4.5778779204155295,
+          "true_rms": 70.70360813476726,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9701883158609866,
+          "cf_err": 2.981168413901336,
+          "rms_meas": 99.5341692136358,
+          "peak_meas": 96.56688799999979,
+          "rms_sq_mV": 9.421649862400017,
+          "true_rms": 97.79529276806709,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6704551693833092,
+          "cf_err": 3.553396686875913,
+          "rms_meas": 56.936111033205236,
+          "peak_meas": 95.10922099999975,
+          "rms_sq_mV": 3.0828909884570432,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 4.462217000000074,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 11.426253681902097,
+        "idd_uA": 6.347918712167832,
+        "power_pass": true
+      }
+    },
+    "fs_-40": {
+      "linearity": {
+        "r2": 0.9999930011542355,
+        "alpha": 1.652897329389804,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 0.20457870274765816,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3248114198833545,
+          "cf_err": 6.3075374905689845,
+          "rms_meas": 70.56601913065553,
+          "peak_meas": 93.48666799999972,
+          "rms_sq_mV": 8.230706476704652,
+          "true_rms": 70.70360806777482,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.937665135667222,
+          "cf_err": 6.233486433277802,
+          "rms_meas": 100.47328029634149,
+          "peak_meas": 94.21029199999987,
+          "rms_sq_mV": 16.685800280952456,
+          "true_rms": 97.90306908396913,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.6082597238539431,
+          "cf_err": 7.144357745153399,
+          "rms_meas": 57.76805613048926,
+          "peak_meas": 92.90603799999974,
+          "rms_sq_mV": 5.515963527881418,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 6.623958000000068,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 5.2078717892787205,
+        "idd_uA": 2.893262105154845,
+        "power_pass": true
+      }
+    },
+    "fs_27": {
+      "linearity": {
+        "r2": 0.999952219294839,
+        "alpha": 1.1153385541854683,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 1.7635448585138713,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.3676977010654447,
+          "cf_err": 3.2745614522316253,
+          "rms_meas": 69.46366359027293,
+          "peak_meas": 95.00529299999971,
+          "rms_sq_mV": 5.3817322155567116,
+          "true_rms": 70.70360816105155,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9657090268351678,
+          "cf_err": 3.4290973164832206,
+          "rms_meas": 99.25320395328545,
+          "peak_meas": 95.84971499999972,
+          "rms_sq_mV": 10.987421486398974,
+          "true_rms": 97.7030615602444,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.659163023517903,
+          "cf_err": 4.205368157164958,
+          "rms_meas": 56.88947720150373,
+          "peak_meas": 94.38891699999974,
+          "rms_sq_mV": 3.609695768167498,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 5.120735999999987,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 5.725688734699301,
+        "idd_uA": 3.180938185944056,
+        "power_pass": true
+      }
+    },
+    "fs_85": {
+      "linearity": {
+        "r2": 0.9998561521701684,
+        "alpha": 0.8341168846422223,
+        "linearity_pass": true,
+        "rms_accuracy_pct": 2.696420095767131,
+        "rms_accuracy_pass": true
+      },
+      "crest_factor": [
+        {
+          "name": "Sine",
+          "cf_ideal": 1.414,
+          "cf_meas": 1.398495964976558,
+          "cf_err": 1.0964664090128633,
+          "rms_meas": 68.80402118401014,
+          "peak_meas": 96.22214599999978,
+          "rms_sq_mV": 3.9487037692456095,
+          "true_rms": 70.70360808203017,
+          "pass": true
+        },
+        {
+          "name": "Square",
+          "cf_ideal": 1.0,
+          "cf_meas": 0.9861957003935479,
+          "cf_err": 1.380429960645213,
+          "rms_meas": 98.55991154819654,
+          "peak_meas": 97.19936099999981,
+          "rms_sq_mV": 8.102658265079166,
+          "true_rms": 97.72662378971609,
+          "pass": true
+        },
+        {
+          "name": "Triangle",
+          "cf_ideal": 1.732,
+          "cf_meas": 1.69623012149735,
+          "cf_err": 2.065235479367777,
+          "rms_meas": 56.37418519344996,
+          "peak_meas": 95.62359099999973,
+          "rms_sq_mV": 2.650864127783814,
+          "true_rms": 67.60735241556131,
+          "pass": true
+        }
+      ],
+      "peak_accuracy": {
+        "peak_accuracy_pct": 3.936509999999976,
+        "peak_accuracy_pass": true
+      },
+      "power": {
+        "power_uw": 6.230499037804195,
+        "idd_uA": 3.4613883543356643,
+        "power_pass": true
+      }
+    }
+  },
+  "all_pass": true,
+  "worst_case": {
+    "rms_acc": 2.7624170530238277,
+    "cf_sine": 6.7400226396499106,
+    "cf_square": 6.73236924185856,
+    "cf_triangle": 7.552755749590272,
+    "pk_acc": 7.167488999999999,
+    "power": 11.426253681902097
+  }
+}

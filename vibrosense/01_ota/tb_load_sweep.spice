@@ -1,0 +1,37 @@
+* Load capacitance sweep: 2pF, 5pF, 10pF, 20pF, 30pF
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+Vinp vinp 0 dc 0.9 ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+
+* Parameterized load
+.param cl_val = 10p
+CL vout 0 {cl_val}
+
+.ac dec 100 0.1 1G
+
+.control
+* Sweep CL values
+foreach cl_pf 2p 5p 10p 20p 30p 50p
+  alter CL = $cl_pf
+  run
+  meas ac gain_peak MAX vdb(vout)
+  meas ac ugb WHEN vdb(vout)=0 FALL=1
+  meas ac phase_ugb_rad FIND vp(vout) WHEN vdb(vout)=0 FALL=1
+  let pm = phase_ugb_rad * 180 / 3.14159265 + 180
+  echo "CL=$cl_pf gain=$&gain_peak UGB=$&ugb PM=$&pm"
+  reset
+end
+
+quit
+.endc
+.end

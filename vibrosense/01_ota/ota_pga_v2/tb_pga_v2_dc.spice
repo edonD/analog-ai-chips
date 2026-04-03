@@ -1,0 +1,30 @@
+* TB: PGA OTA v2 DC Sweep — Output swing measurement
+.option scale=1e-6
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "ota_pga_v2.spice"
+
+.param vdd_val = 1.8
+
+Vdd vdd 0 dc {vdd_val}
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* Unity-gain feedback: out → inp (inverting), sweep at inn (non-inverting)
+Vinn inn 0 dc 0.9
+Xota vdd 0 out inn out vbn vbcn vbp vbcp ota_pga_v2
+CL out 0 10p
+
+.dc Vinn 0 1.8 0.001
+
+.control
+run
+meas dc vout_max MAX v(out)
+meas dc vout_min MIN v(out)
+
+echo "vout_max = $&vout_max"
+echo "vout_min = $&vout_min"
+quit
+.endc
+.end

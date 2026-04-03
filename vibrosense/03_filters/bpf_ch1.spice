@@ -1,0 +1,41 @@
+* VibroSense Block 03 — Channel 1 Band-Pass Filter (4th-order)
+* Two cascaded Tow-Thomas biquads for ≥20 dB adjacent channel isolation
+* f0=224 Hz, Qs=0.778 per section, Q_eff=1.21
+* BW_eff = 224/1.21 = 185 Hz
+* Peak gain = Qs² = 0.605 → -4.36 dB
+*
+* gm  = 2*pi*224*10p = 14.07 nS
+* gm3 = gm/Qs = 14.07n/0.778 = 18.08 nS
+
+.include ota_behavioral.spice
+
+.subckt bpf_ch1 vin bp_out vdd vss vcm
++ params: gm_scale=1.0
+
+.param gm_nom = 14.07n
+.param gm1_val = {gm_nom * gm_scale}
+.param gm2_val = {gm_nom * gm_scale}
+.param gm3_val = {18.08n * gm_scale}
+
+* ===== Stage 1 =====
+Xota1a vin s1_int2 s1_int1 vdd vss ota_gmc gm_val={gm1_val}
+C1a s1_int1 vss 10p
+Rbias1a s1_int1 vcm 10G
+Xota2a s1_int1 vcm s1_int2 vdd vss ota_gmc gm_val={gm2_val}
+C2a s1_int2 vss 10p
+Rbias2a s1_int2 vcm 10G
+Xota3a vcm s1_int1 s1_int1 vdd vss ota_gmc gm_val={gm3_val}
+
+* ===== Stage 2 (cascaded, input = stage 1 BP output) =====
+Xota1b s1_int1 s2_int2 s2_int1 vdd vss ota_gmc gm_val={gm1_val}
+C1b s2_int1 vss 10p
+Rbias1b s2_int1 vcm 10G
+Xota2b s2_int1 vcm s2_int2 vdd vss ota_gmc gm_val={gm2_val}
+C2b s2_int2 vss 10p
+Rbias2b s2_int2 vcm 10G
+Xota3b vcm s2_int1 s2_int1 vdd vss ota_gmc gm_val={gm3_val}
+
+* Output = stage 2 BP output
+Rout_tap bp_out s2_int1 1m
+
+.ends bpf_ch1

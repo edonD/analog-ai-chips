@@ -1,0 +1,193 @@
+* ================================================================
+* VibroSense-1 — Full-Chain Top-Level Netlist
+* Analog ML Bearing Fault Classifier on SKY130A
+* ================================================================
+*
+* Signal chain:
+*   VIN → PGA(16x) → 5×BPF → 5×Envelope → [RMS, Crest] → Classifier → Class Output
+*
+* Strategy:
+*   - Real transistor-level: PGA, BPFs, Envelopes, RMS/Crest
+*   - Behavioral: Classifier (VCVS-based MAC), Digital wrapper
+*   - Ideal: Bias sources (decouple bias debugging from chain)
+*
+* Simulation: ngspice -b -o results/sim.log -r results/sim.raw this_file.spice
+* ================================================================
+
+* --- PDK (use local minimal library that works with all blocks) ---
+.lib "../../05_rms_crest/sky130.lib.spice" tt
+.include "../../05_rms_crest/sky130_pdk_fixup.spice"
+
+* --- Options for convergence ---
+.option method=gear
+.option reltol=1e-3
+.option abstol=1e-12
+.option vntol=1e-6
+.option gmin=1e-12
+.option itl1=500
+.option itl2=200
+.option itl4=100
+* NOTE: .option scale=1e-6 REMOVED because blocks mix unit conventions
+* Blocks 01, 03, 05 use explicit 'u' suffix (W=5u)
+* Blocks 02, 04 use bare microns (w=0.42) — these need adapted copies
+
+* ================================================================
+* BLOCK SUBCIRCUIT INCLUDES
+* ================================================================
+
+* OTA used by filters (has explicit u units — no scale needed)
+.include ../../01_ota/ota_foldcasc.spice
+
+* OTA used by PGA and envelope (unit-fixed copy)
+.include ota_pga_v2_fixed.spice
+
+* Behavioral OTA for PGA
+.include ota_behavioral.spice
+
+* PGA (unit-fixed copy — bare microns converted to explicit u)
+.include pga_fixed.spice
+
+* Filter bank (real transistor-level, has explicit u units)
+.include ../../03_filters/pseudo_res.spice
+.include ../../03_filters/bpf_ch1_real.spice
+.include ../../03_filters/bpf_ch2_real.spice
+.include ../../03_filters/bpf_ch3_real.spice
+.include ../../03_filters/bpf_ch4_real.spice
+.include ../../03_filters/bpf_ch5_real.spice
+
+* Envelope detector (unit-fixed copy)
+.include envelope_det_fixed.spice
+
+* RMS and Crest factor (real transistor-level)
+.include ../../05_rms_crest/design.cir
+
+* Classifier (behavioral VCVS model)
+.include classifier_behavioral.spice
+
+* Digital wrapper (behavioral PWL clocks)
+.include digital_wrapper.spice
+
+* ================================================================
+* POWER SUPPLY
+* ================================================================
+Vdd vdd gnd 1.8
+Vss vss gnd 0
+
+* Per-block supply for power measurement (0-ohm sense resistors)
+V_vdd_pga vdd vdd_pga DC 0
+V_vdd_bpf1 vdd vdd_bpf1 DC 0
+V_vdd_bpf2 vdd vdd_bpf2 DC 0
+V_vdd_bpf3 vdd vdd_bpf3 DC 0
+V_vdd_bpf4 vdd vdd_bpf4 DC 0
+V_vdd_bpf5 vdd vdd_bpf5 DC 0
+V_vdd_env1 vdd vdd_env1 DC 0
+V_vdd_env2 vdd vdd_env2 DC 0
+V_vdd_env3 vdd vdd_env3 DC 0
+V_vdd_env4 vdd vdd_env4 DC 0
+V_vdd_env5 vdd vdd_env5 DC 0
+V_vdd_rms vdd vdd_rms DC 0
+V_vdd_class vdd vdd_class DC 0
+
+* ================================================================
+* IDEAL BIAS SOURCES
+* ================================================================
+* Common-mode voltage (mid-supply)
+Vvcm vcm gnd 0.9
+
+* OTA bias voltages (for folded-cascode OTAs in BPFs)
+* Values from filter channel tuning (bpf_ch1_real.spice headers)
+Vvbn vbn gnd 0.5973
+Vvbcn vbcn gnd 0.8273
+Vvbp vbp gnd 0.81
+Vvbcp vbcp gnd 0.555
+
+* Envelope detector bias (NMOS gate for rectifier OTAs and LPF OTA)
+Vvbn_env vbn_env gnd 0.65
+Vvbn_lpf vbn_lpf gnd 0.55
+
+* RMS/Crest bias
+Vvbn_rms vbn_rms gnd 0.65
+
+* Reset (hold low — no reset during measurement)
+Vreset reset gnd 0
+
+* ================================================================
+* INPUT STIMULUS
+* (replaced by .include for actual test — placeholder sine here)
+* ================================================================
+* Default: 1 kHz sine wave, 100mVpp around 0.9V (VCM)
+Vin vin gnd SIN(0.9 0.05 1000 0 0 0)
+
+* ================================================================
+* PGA (16x gain)
+* Subcircuit: pga vin vout vcm vdd vss g1 g0
+* g1=1, g0=0 -> gain setting 2 -> 16x
+* ================================================================
+Xpga vin vout_pga vcm vdd_pga vss g1 g0 pga
+
+* ================================================================
+* DIGITAL WRAPPER (provides gain control + FSM clocks)
+* ================================================================
+Xdigital phi_s phi_sb phi_e phi_eb phi_r g1 g0 irq_n class_valid vdd vss digital_wrapper
+
+* ================================================================
+* BAND-PASS FILTER BANK (5 channels, real transistor-level)
+* Each: bpf_chN_real vinp vinn bp_outp bp_outn vdd vss vcm vbn vbcn vbp vbcp
+* Drive differentially: vinp=vout_pga, vinn=vcm
+* ================================================================
+Xbpf1 vout_pga vcm vbpf1p vbpf1n vdd_bpf1 vss vcm vbn vbcn vbp vbcp bpf_ch1_real
+Xbpf2 vout_pga vcm vbpf2p vbpf2n vdd_bpf2 vss vcm vbn vbcn vbp vbcp bpf_ch2_real
+Xbpf3 vout_pga vcm vbpf3p vbpf3n vdd_bpf3 vss vcm vbn vbcn vbp vbcp bpf_ch3_real
+Xbpf4 vout_pga vcm vbpf4p vbpf4n vdd_bpf4 vss vcm vbn vbcn vbp vbcp bpf_ch4_real
+Xbpf5 vout_pga vcm vbpf5p vbpf5n vdd_bpf5 vss vcm vbn vbcn vbp vbcp bpf_ch5_real
+
+* ================================================================
+* ENVELOPE DETECTORS (5 instances, real transistor-level)
+* Subcircuit: envelope_det vin vcm vout vdd gnd vbn vbn_lpf
+* Use single-ended positive BPF output
+* ================================================================
+Xenv1 vbpf1p vcm venv1 vdd_env1 vss vbn_env vbn_lpf envelope_det
+Xenv2 vbpf2p vcm venv2 vdd_env2 vss vbn_env vbn_lpf envelope_det
+Xenv3 vbpf3p vcm venv3 vdd_env3 vss vbn_env vbn_lpf envelope_det
+Xenv4 vbpf4p vcm venv4 vdd_env4 vss vbn_env vbn_lpf envelope_det
+Xenv5 vbpf5p vcm venv5 vdd_env5 vss vbn_env vbn_lpf envelope_det
+
+* ================================================================
+* RMS and CREST FACTOR (real transistor-level)
+* Subcircuit: rms_crest_top inp rms_out rms_ref peak_out vdd vss reset vbn vcm
+* ================================================================
+Xrms vout_pga rms_out rms_ref peak_out vdd_rms vss reset vbn_rms vcm rms_crest_top
+
+* ================================================================
+* CLASSIFIER (behavioral VCVS model)
+* Inputs: 8 features = 5 envelopes + rms_out + peak_out + kurtosis_approx
+* Kurtosis not available from analog — use RMS reference as proxy
+* ================================================================
+Xclass venv1 venv2 venv3 venv4 venv5 rms_out peak_out rms_ref
++ class_out class_valid_out vdd_class vss classifier_behavioral
+
+* ================================================================
+* MEASUREMENTS
+* ================================================================
+
+* Transient simulation
+.tran 1u 25m UIC
+
+* Save key nodes
+.save v(vin) v(vout_pga) v(vcm)
+.save v(vbpf1p) v(vbpf2p) v(vbpf3p) v(vbpf4p) v(vbpf5p)
+.save v(vbpf1n) v(vbpf2n) v(vbpf3n) v(vbpf4n) v(vbpf5n)
+.save v(venv1) v(venv2) v(venv3) v(venv4) v(venv5)
+.save v(rms_out) v(rms_ref) v(peak_out)
+.save v(class_out) v(class_valid) v(irq_n)
+.save v(phi_s) v(phi_e) v(phi_r)
+.save v(score0) v(score1) v(score2) v(score3)
+
+* Power measurement: current through supply sense resistors
+.save i(v_vdd_pga)
+.save i(v_vdd_bpf1) i(v_vdd_bpf2) i(v_vdd_bpf3) i(v_vdd_bpf4) i(v_vdd_bpf5)
+.save i(v_vdd_env1) i(v_vdd_env2) i(v_vdd_env3) i(v_vdd_env4) i(v_vdd_env5)
+.save i(v_vdd_rms) i(v_vdd_class)
+.save i(vdd)
+
+.end

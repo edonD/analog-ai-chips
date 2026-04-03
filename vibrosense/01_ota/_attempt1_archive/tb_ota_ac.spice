@@ -1,0 +1,71 @@
+* AC Analysis - VibroSense OTA
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+
+Vcm cm 0 dc 0.9
+Vac vinp cm dc 0 ac 1
+
+* DC feedback via inductor
+Lfb vout vinn 1T
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+* Start from very low frequency to see full response
+.ac dec 100 0.001 100Meg
+
+.control
+  run
+
+  * Find the peak gain (this approximates the DC open-loop gain)
+  meas ac gain_peak MAX vdb(vout)
+  
+  * UGB
+  meas ac ugb WHEN vdb(vout)=0 FALL=1
+  
+  * Phase at UGB
+  meas ac phase_ugb FIND vp(vout) AT=ugb
+  let pm = phase_ugb + 180
+
+  * Spot gains
+  meas ac g001 FIND vdb(vout) AT=0.01
+  meas ac g01 FIND vdb(vout) AT=0.1
+  meas ac g1 FIND vdb(vout) AT=1
+  meas ac g10 FIND vdb(vout) AT=10
+  meas ac g100 FIND vdb(vout) AT=100
+  meas ac g1k FIND vdb(vout) AT=1000
+  meas ac g10k FIND vdb(vout) AT=10000
+  meas ac g100k FIND vdb(vout) AT=100000
+
+  echo ""
+  echo "======================================================"
+  echo "  AC Results"
+  echo "======================================================"
+  echo "Peak Gain: $&gain_peak dB"
+  echo "UGB: $&ugb Hz"
+  echo "Phase Margin: $&pm deg"
+  echo ""
+  echo "Bode plot:"
+  echo "  0.01 Hz: $&g001 dB"
+  echo "  0.1 Hz:  $&g01 dB"
+  echo "  1 Hz:    $&g1 dB"
+  echo "  10 Hz:   $&g10 dB"
+  echo "  100 Hz:  $&g100 dB"
+  echo "  1 kHz:   $&g1k dB"
+  echo "  10 kHz:  $&g10k dB"
+  echo "  100 kHz: $&g100k dB"
+  echo "======================================================"
+
+  wrdata bode_data vdb(vout) vp(vout)
+  quit
+.endc
+.end

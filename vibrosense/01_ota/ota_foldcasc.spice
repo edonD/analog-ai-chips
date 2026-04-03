@@ -1,0 +1,72 @@
+* VibroSense Folded-Cascode OTA — SKY130A v11
+* Low-noise design: all NMOS L=14u for reduced 1/f noise
+* No tail cascode needed — long L provides sufficient CMRR
+
+.subckt ota_foldcasc vinp vinn vout vdd vss vbn vbcn vbp vbcp
+
+* Input Pair (W=5u L=14u for low 1/f noise, Vov>50mV)
+XM1 fold_p vinp tail vss sky130_fd_pr__nfet_01v8 W=5u L=14u nf=1
+XM2 fold_n vinn tail vss sky130_fd_pr__nfet_01v8 W=5u L=14u nf=1
+
+* Tail (500nA) — long L for high output impedance
+XM11 tail vbn vss vss sky130_fd_pr__nfet_01v8 W=3.8u L=14u nf=1
+
+* PMOS Fold: 20 parallel instances of W=0.42u L=20u for low noise
+XM3a  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3b  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3c  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3d  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3e  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3f  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3g  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3h  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3i  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3j  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3k  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3l  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3m  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3n  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3o  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3p  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3q  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3r  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3s  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM3t  fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4a  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4b  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4c  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4d  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4e  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4f  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4g  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4h  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4i  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4j  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4k  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4l  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4m  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4n  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4o  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4p  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4q  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4r  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4s  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM4t  fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+
+* PMOS Bias Mirrors
+XM12 fold_p vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+XM13 fold_n vbp vdd vdd sky130_fd_pr__pfet_01v8 W=0.42u L=20u nf=1
+
+* PMOS Cascode (W=0.42u L=2u)
+XM5  cas_p vbcp fold_p vdd sky130_fd_pr__pfet_01v8 W=0.42u L=2u nf=1
+XM6  vout  vbcp fold_n vdd sky130_fd_pr__pfet_01v8 W=0.42u L=2u nf=1
+
+* NMOS Cascode (W=2u L=14u for low 1/f noise)
+XM7  cas_p vbcn src7 vss sky130_fd_pr__nfet_01v8 W=2u L=14u nf=1
+XM8  vout  vbcn src8 vss sky130_fd_pr__nfet_01v8 W=2u L=14u nf=1
+
+* NMOS Current Sources (W=2.15u L=14u — matched L with tail)
+XM9  src7 vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
+XM10 src8 vbn vss vss sky130_fd_pr__nfet_01v8 W=2.15u L=14u nf=1
+
+.ends ota_foldcasc

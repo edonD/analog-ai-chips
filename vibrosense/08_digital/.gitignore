@@ -1,0 +1,6 @@
+tb/__pycache__/
+tb/sim_build/
+synth/sky130_fd_sc_hd__tt_025C_1v80.lib
+img/gen_*.py
+*.vcd
+*.fst

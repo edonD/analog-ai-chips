@@ -1,0 +1,48 @@
+* Test OTA bias distribution network
+* Verify it generates correct VBN/VBP/VBCN/VBCP for the OTA
+* Then test OTA in unity-gain config to verify operating point
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "ota_bias_dist.spice"
+
+Vdd vdd 0 dc 1.8
+
+* Reference current source (represents Block 00 Iref output)
+* ~500nA from VDD (PMOS current source)
+Iref vdd iref 500n
+
+* Bias distribution
+Xbdist iref vdd 0 vbn vbcn vbp vbcp ota_bias_dist
+
+* OTA in unity-gain configuration
+Vin vinp 0 dc 0.9 ac 1
+Xota vinp vout vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+
+.control
+op
+echo "=== Bias Distribution Output ==="
+print v(vbn) v(vbcn) v(vbp) v(vbcp)
+echo "=== OTA Output ==="
+print v(vout)
+let offset = v(vout) - v(vinp)
+echo "Offset (V):"
+print offset
+echo "Supply (A):"
+print -i(vdd)
+
+* AC to measure gm
+Lbreak vout2 vinn2 1G
+Cdc vinn2 0 1
+Xota2 vinp vinn2 vout2 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout2 0 10p
+
+ac dec 100 0.1 1Meg
+meas ac ugb WHEN vdb(vout2)=0 FALL=1
+let gm = ugb * 2 * 3.14159 * 10e-12
+echo "UGB:"
+print ugb
+echo "gm:"
+print gm
+.endc
+.end

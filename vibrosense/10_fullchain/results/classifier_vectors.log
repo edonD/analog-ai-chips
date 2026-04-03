@@ -1,0 +1,89 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * ================================================================
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+feat0                                  0.47076
+feat1                                 0.290717
+feat2                                 0.034081
+feat3                                 0.004547
+feat4                                 0.005028
+feat5                                 0.011438
+feat6                                 0.020287
+feat7                                 0.013594
+vdd                                        1.8
+vss                                          0
+xclass.score0                          4.99419
+xclass.score1                         -3.44096
+xclass.score2                         0.874279
+xclass.score3                         -2.09892
+class_out                                    0
+class_valid_out                              0
+b.xclass.bcv#branch                          0
+b.xclass.bclass#branch                       0
+b.xclass.bscore3#branch                      0
+b.xclass.bscore2#branch                      0
+b.xclass.bscore1#branch                      0
+b.xclass.bscore0#branch                      0
+vss#branch                                   0
+vdd#branch                                   0
+v_feat7#branch                               0
+v_feat6#branch                               0
+v_feat5#branch                               0
+v_feat4#branch                               0
+v_feat3#branch                               0
+v_feat2#branch                               0
+v_feat1#branch                               0
+v_feat0#branch                               0
+
+
+No. of Data Rows : 2458
+
+  Measurements for Transient Analysis
+
+class_v0            =  0.000000e+00
+class_v1            =  0.000000e+00
+class_v2            =  0.000000e+00
+class_v3            =  0.000000e+00
+class_v4            =  0.000000e+00
+class_v5            =  4.500000e-01
+class_v6            =  4.500000e-01
+class_v7            =  4.500000e-01
+class_v8            =  4.500000e-01
+class_v9            =  4.500000e-01
+class_v10           =  9.000000e-01
+class_v11           =  9.000000e-01
+class_v12           =  9.000000e-01
+class_v13           =  9.000000e-01
+class_v14           =  9.000000e-01
+class_v15           =  1.350000e+00
+class_v16           =  1.350000e+00
+class_v17           =  1.350000e+00
+class_v18           =  1.350000e+00
+class_v19           =  1.350000e+00
+
+
+Total analysis time (seconds) = 0.046
+
+Total elapsed time (seconds) = 0.050 
+
+Total DRAM available = 31720.152 MB.
+DRAM currently available = 27606.562 MB.
+Maximum ngspice program size =   21.629 MB.
+Current ngspice program size =   12.770 MB.
+
+Shared ngspice pages =   10.547 MB.
+Text (code) pages =    6.156 MB.
+Stack = 0 bytes.
+Library pages =    2.387 MB.
+

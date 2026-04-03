@@ -1,0 +1,80 @@
+* SKY130 Full-Bin Library for SAR ADC v2
+* Uses standalone model files with all bins (L=150nm-100um, W=360nm-100um)
+* Provides both:
+*   - Direct model names: sky130_fd_pr__nfet_01v8__model (for M devices)
+*   - Subcircuit wrappers: sky130_fd_pr__nfet_01v8 (for X devices)
+
+.lib tt
+.param mc_mm_switch = 0
+.param mc_pr_switch = 0
+.include "models/sky130_fd_pr__nfet_01v8__tt_standalone.spice"
+.include "models/sky130_fd_pr__pfet_01v8__tt_standalone.spice"
+.subckt sky130_fd_pr__nfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__nfet_01v8 d g s b sky130_fd_pr__nfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__nfet_01v8
+.subckt sky130_fd_pr__pfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__pfet_01v8 d g s b sky130_fd_pr__pfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__pfet_01v8
+.endl tt
+
+.lib ss
+.param mc_mm_switch = 0
+.param mc_pr_switch = 0
+.include "models/sky130_fd_pr__nfet_01v8__ss_standalone.spice"
+.include "models/sky130_fd_pr__pfet_01v8__ss_standalone.spice"
+.subckt sky130_fd_pr__nfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__nfet_01v8 d g s b sky130_fd_pr__nfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__nfet_01v8
+.subckt sky130_fd_pr__pfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__pfet_01v8 d g s b sky130_fd_pr__pfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__pfet_01v8
+.endl ss
+
+.lib ff
+.param mc_mm_switch = 0
+.param mc_pr_switch = 0
+.include "models/sky130_fd_pr__nfet_01v8__ff_standalone.spice"
+.include "models/sky130_fd_pr__pfet_01v8__ff_standalone.spice"
+.subckt sky130_fd_pr__nfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__nfet_01v8 d g s b sky130_fd_pr__nfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__nfet_01v8
+.subckt sky130_fd_pr__pfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__pfet_01v8 d g s b sky130_fd_pr__pfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__pfet_01v8
+.endl ff
+
+.lib sf
+.param mc_mm_switch = 0
+.param mc_pr_switch = 0
+.include "models/sky130_fd_pr__nfet_01v8__sf_standalone.spice"
+.include "models/sky130_fd_pr__pfet_01v8__sf_standalone.spice"
+.subckt sky130_fd_pr__nfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__nfet_01v8 d g s b sky130_fd_pr__nfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__nfet_01v8
+.subckt sky130_fd_pr__pfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__pfet_01v8 d g s b sky130_fd_pr__pfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__pfet_01v8
+.endl sf
+
+.lib fs
+.param mc_mm_switch = 0
+.param mc_pr_switch = 0
+.include "models/sky130_fd_pr__nfet_01v8__fs_standalone.spice"
+.include "models/sky130_fd_pr__pfet_01v8__fs_standalone.spice"
+.subckt sky130_fd_pr__nfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__nfet_01v8 d g s b sky130_fd_pr__nfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__nfet_01v8
+.subckt sky130_fd_pr__pfet_01v8 d g s b
+.param l=0.15e-6 w=1e-6 nf=1.0 ad=0 as=0 pd=0 ps=0 nrd=0 nrs=0 sa=0 sb=0 sd=0 mult=1
+msky130_fd_pr__pfet_01v8 d g s b sky130_fd_pr__pfet_01v8__model l={l} w={w} nf={nf} ad={ad} as={as} pd={pd} ps={ps} nrd={nrd} nrs={nrs} sa={sa} sb={sb} sd={sd}
+.ends sky130_fd_pr__pfet_01v8
+.endl fs

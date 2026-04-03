@@ -1,0 +1,79 @@
+======================================================================
+CLASSIFICATION REPORT — VibroSense-1 Training Pipeline
+Config: pump_cavitation — Centrifugal Pump Monitoring — 4-class (Normal, Cavitation, Impeller Damage, Bearing Wear)
+======================================================================
+
+--- Float Weights ---
+                 precision    recall  f1-score   support
+
+         Normal     1.0000    1.0000    1.0000        45
+     Cavitation     1.0000    1.0000    1.0000        45
+Impeller Damage     1.0000    1.0000    1.0000        45
+   Bearing Wear     1.0000    1.0000    1.0000        45
+
+       accuracy                         1.0000       180
+      macro avg     1.0000    1.0000    1.0000       180
+   weighted avg     1.0000    1.0000    1.0000       180
+
+
+--- 4-bit Quantized Weights ---
+                 precision    recall  f1-score   support
+
+         Normal     1.0000    1.0000    1.0000        45
+     Cavitation     1.0000    1.0000    1.0000        45
+Impeller Damage     1.0000    1.0000    1.0000        45
+   Bearing Wear     1.0000    1.0000    1.0000        45
+
+       accuracy                         1.0000       180
+      macro avg     1.0000    1.0000    1.0000       180
+   weighted avg     1.0000    1.0000    1.0000       180
+
+
+--- Quantized + 2% Analog Noise ---
+                 precision    recall  f1-score   support
+
+         Normal     1.0000    1.0000    1.0000        45
+     Cavitation     1.0000    1.0000    1.0000        45
+Impeller Damage     1.0000    1.0000    1.0000        45
+   Bearing Wear     1.0000    1.0000    1.0000        45
+
+       accuracy                         1.0000       180
+      macro avg     1.0000    1.0000    1.0000       180
+   weighted avg     1.0000    1.0000    1.0000       180
+
+
+--- Summary ---
+  train_float                   : 1.0000
+  val_float                     : 1.0000
+  test_float                    : 1.0000
+  test_quantized                : 1.0000
+  quantization_loss             : 0.0000
+  test_noisy_2pct               : 1.0000
+
+--- Noise Sensitivity ---
+   Sigma   Mean Acc      Std
+----------------------------
+   0.000     1.0000   0.0000
+   0.005     1.0000   0.0000
+   0.010     1.0000   0.0000
+   0.020     1.0000   0.0000
+   0.030     1.0000   0.0000
+   0.050     1.0000   0.0000
+   0.100     0.9978   0.0035
+
+--- PASS/FAIL Criteria ---
+  PASS: Float accuracy >= 85%
+  PASS: Quantized accuracy >= 80%
+  PASS: Quantization loss < 5pp
+  PASS: Noisy accuracy (2%) >= 75%
+
+--- Hardware Tuning Notes ---
+  PGA gain setting: 4x
+  Filter bands (program into Block 03 via bias currents):
+    BPF1:    10 -   200 Hz
+    BPF2:   200 -   800 Hz
+    BPF3:   800 -  2500 Hz
+    BPF4:  2500 -  4500 Hz
+    BPF5:  4500 -  5900 Hz
+  Envelope LPF cutoff: 5 Hz
+  Load weights via SPI WEIGHT0-3 registers (Block 08)

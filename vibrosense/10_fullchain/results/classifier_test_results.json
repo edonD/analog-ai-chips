@@ -1,0 +1,147 @@
+{
+  "total_vectors": 20,
+  "correct": 20,
+  "accuracy": 1.0,
+  "details": [
+    {
+      "vector": 0,
+      "expected": 0,
+      "detected": 0,
+      "voltage": 0.0,
+      "match": true
+    },
+    {
+      "vector": 1,
+      "expected": 0,
+      "detected": 0,
+      "voltage": 0.0,
+      "match": true
+    },
+    {
+      "vector": 2,
+      "expected": 0,
+      "detected": 0,
+      "voltage": 0.0,
+      "match": true
+    },
+    {
+      "vector": 3,
+      "expected": 0,
+      "detected": 0,
+      "voltage": 0.0,
+      "match": true
+    },
+    {
+      "vector": 4,
+      "expected": 0,
+      "detected": 0,
+      "voltage": 0.0,
+      "match": true
+    },
+    {
+      "vector": 5,
+      "expected": 1,
+      "detected": 1,
+      "voltage": 0.45,
+      "match": true
+    },
+    {
+      "vector": 6,
+      "expected": 1,
+      "detected": 1,
+      "voltage": 0.45,
+      "match": true
+    },
+    {
+      "vector": 7,
+      "expected": 1,
+      "detected": 1,
+      "voltage": 0.45,
+      "match": true
+    },
+    {
+      "vector": 8,
+      "expected": 1,
+      "detected": 1,
+      "voltage": 0.45,
+      "match": true
+    },
+    {
+      "vector": 9,
+      "expected": 1,
+      "detected": 1,
+      "voltage": 0.45,
+      "match": true
+    },
+    {
+      "vector": 10,
+      "expected": 2,
+      "detected": 2,
+      "voltage": 0.9,
+      "match": true
+    },
+    {
+      "vector": 11,
+      "expected": 2,
+      "detected": 2,
+      "voltage": 0.9,
+      "match": true
+    },
+    {
+      "vector": 12,
+      "expected": 2,
+      "detected": 2,
+      "voltage": 0.9,
+      "match": true
+    },
+    {
+      "vector": 13,
+      "expected": 2,
+      "detected": 2,
+      "voltage": 0.9,
+      "match": true
+    },
+    {
+      "vector": 14,
+      "expected": 2,
+      "detected": 2,
+      "voltage": 0.9,
+      "match": true
+    },
+    {
+      "vector": 15,
+      "expected": 3,
+      "detected": 3,
+      "voltage": 1.35,
+      "match": true
+    },
+    {
+      "vector": 16,
+      "expected": 3,
+      "detected": 3,
+      "voltage": 1.35,
+      "match": true
+    },
+    {
+      "vector": 17,
+      "expected": 3,
+      "detected": 3,
+      "voltage": 1.35,
+      "match": true
+    },
+    {
+      "vector": 18,
+      "expected": 3,
+      "detected": 3,
+      "voltage": 1.35,
+      "match": true
+    },
+    {
+      "vector": 19,
+      "expected": 3,
+      "detected": 3,
+      "voltage": 1.35,
+      "match": true
+    }
+  ]
+}

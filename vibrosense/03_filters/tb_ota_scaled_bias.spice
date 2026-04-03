@@ -1,0 +1,88 @@
+* Find OTA gm at reduced bias by scaling Vbn and Vbp together
+* In subthreshold, halving current requires ΔVgs = -n*Vt*ln(2) ≈ -23mV
+* For PMOS: VBP must increase by same amount (less negative Vsg)
+* VBCN and VBCP adjusted proportionally
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+Vinp vinp 0 dc 0.9 ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.control
+* Test at different bias levels
+* Each step reduces current by adjusting Vbn down and Vbp up
+* Delta per halving: ~23mV
+
+* Level 0: default (Itail≈500nA, gm≈2.12uS)
+ac dec 100 0.1 1Meg
+meas ac ugb0 WHEN vdb(vout)=0 FALL=1
+let gm0 = ugb0 * 2 * 3.14159 * 10e-12
+echo "L0 Vbn=0.650 Vbp=0.730: UGB=$&ugb0 gm=$&gm0"
+
+* Level 1: ~350nA (reduce by 30%)
+alter vbn 0.640
+alter vbp 0.740
+alter vbcn 0.870
+alter vbcp 0.485
+op
+ac dec 100 0.1 1Meg
+meas ac ugb1 WHEN vdb(vout)=0 FALL=1
+let gm1 = ugb1 * 2 * 3.14159 * 10e-12
+echo "L1 Vbn=0.640 Vbp=0.740: UGB=$&ugb1 gm=$&gm1"
+
+* Level 2: ~250nA (halved)
+alter vbn 0.627
+alter vbp 0.753
+alter vbcn 0.857
+alter vbcp 0.498
+op
+ac dec 100 0.1 1Meg
+meas ac ugb2 WHEN vdb(vout)=0 FALL=1
+let gm2 = ugb2 * 2 * 3.14159 * 10e-12
+echo "L2 Vbn=0.627 Vbp=0.753: UGB=$&ugb2 gm=$&gm2"
+
+* Level 3: ~125nA (quartered)
+alter vbn 0.604
+alter vbp 0.776
+alter vbcn 0.834
+alter vbcp 0.521
+op
+ac dec 100 0.1 500k
+meas ac ugb3 WHEN vdb(vout)=0 FALL=1
+let gm3 = ugb3 * 2 * 3.14159 * 10e-12
+echo "L3 Vbn=0.604 Vbp=0.776: UGB=$&ugb3 gm=$&gm3"
+
+* Level 4: ~60nA (1/8)
+alter vbn 0.581
+alter vbp 0.799
+alter vbcn 0.811
+alter vbcp 0.544
+op
+ac dec 100 0.01 100k
+meas ac ugb4 WHEN vdb(vout)=0 FALL=1
+let gm4 = ugb4 * 2 * 3.14159 * 10e-12
+echo "L4 Vbn=0.581 Vbp=0.799: UGB=$&ugb4 gm=$&gm4"
+
+* Level 5: ~30nA (1/16)
+alter vbn 0.558
+alter vbp 0.822
+alter vbcn 0.788
+alter vbcp 0.567
+op
+ac dec 100 0.01 50k
+meas ac ugb5 WHEN vdb(vout)=0 FALL=1
+let gm5 = ugb5 * 2 * 3.14159 * 10e-12
+echo "L5 Vbn=0.558 Vbp=0.822: UGB=$&ugb5 gm=$&gm5"
+
+.endc
+.end

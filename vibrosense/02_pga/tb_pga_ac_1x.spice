@@ -1,0 +1,54 @@
+* TB1: PGA AC Analysis — Gain = 1x (g1=0, g0=0)
+* Expected: 0 dB midband gain, BW > 25 kHz
+
+.option scale=1e-6
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_behavioral.spice"
+.include "pga.spice"
+
+** Supply
+Vdd vdd 0 1.8
+Vss vss 0 0
+Vcm vcm 0 0.9
+
+** Input: DC at Vcm, AC = 1 for transfer function
+Vin vin 0 DC 0.9 AC 1
+
+** Gain select: g1=0, g0=0 → 1x
+Vg1 g1 0 0
+Vg0 g0 0 0
+
+** PGA instance
+Xpga vin vout vcm vdd vss g1 g0 pga
+
+** Load capacitor (standard 10 pF)
+CL vout 0 10p
+
+** AC analysis: 1 Hz to 10 MHz, 100 points/decade
+.ac dec 100 1 10meg
+
+** Measurements
+** Measurements done in .control section
+
+.control
+run
+set hcopydevtype = postscript
+set color0 = white
+set color1 = black
+
+* Plot gain and phase
+plot vdb(vout) title 'PGA AC Response - Gain=1x' ylabel 'Gain (dB)' xlabel 'Frequency (Hz)'
+plot vp(vout) title 'PGA Phase - Gain=1x' ylabel 'Phase (deg)' xlabel 'Frequency (Hz)'
+
+* Print key measurements
+meas ac gain_mid find vdb(vout) at=1000
+meas ac phase_mid find vp(vout) at=1000
+meas ac gain_25k find vdb(vout) at=25000
+meas ac gain_peak max vdb(vout) from=10 to=10meg
+
+* Write raw data
+write tb_pga_ac_1x.raw v(vout) v(vin)
+echo "=== AC 1x COMPLETE ==="
+.endc
+
+.end

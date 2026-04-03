@@ -1,0 +1,36 @@
+* TB6: Sleep Power Measurement
+* sleep_n=0, clk=0, convert=0
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice tt
+
+.include v3_cap_dac.spice
+.include v3_comparator.spice
+.include v3_sar_logic.spice
+.include v3_sar_adc.spice
+
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+Vin vin 0 0.6
+
+Vclk clk 0 0
+Vconv convert 0 0
+Vslp sleep_n 0 0
+
+Xadc vin vref clk convert sleep_n
++ d7 d6 d5 d4 d3 d2 d1 d0 valid
++ vdd vss v3_sar_adc
+
+.tran 1u 100u
+
+.meas tran Isleep AVG i(VDD) FROM=10u TO=90u
+.meas tran Psleep PARAM='-Isleep*1.8'
+
+.control
+run
+echo "=== TB6: Sleep Power ==="
+print Isleep Psleep
+.endc
+
+.end

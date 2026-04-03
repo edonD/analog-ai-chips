@@ -1,0 +1,32 @@
+{
+  "name": "VibroSense Full Chain Integration",
+  "description": "End-to-end simulation: MEMS model → PGA → 5 BPFs → 5 Envelope detectors → RMS/Crest → MAC Classifier. Apply CWRU test vectors. All blocks use final real netlists (not behavioral).",
+  "supply_v": 1.8,
+  "margin_rule": "All blocks must already pass individually before integration. Report end-to-end accuracy.",
+  "measurements": {
+    "total_power_uw": {
+      "target": "<600",
+      "weight": 25,
+      "unit": "uW",
+      "description": "Total always-on chip power (hard limit 600uW, target 300uW)"
+    },
+    "end_to_end_accuracy_pct": {
+      "target": ">85",
+      "weight": 35,
+      "unit": "%",
+      "description": "4-class classification accuracy on CWRU vectors through full analog chain"
+    },
+    "detection_latency_ms": {
+      "target": "<200",
+      "weight": 20,
+      "unit": "ms",
+      "description": "Time from fault onset to classifier output change"
+    },
+    "false_alarm_rate_pct": {
+      "target": "<5",
+      "weight": 20,
+      "unit": "%",
+      "description": "False positive rate on normal-condition test vectors"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+
+* Inputs at 0.9V, output forced to 0.9V region
+Vinp vinp 0 dc 0.9
+Vinn vinn 0 dc 0.9
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* Force output and sweep
+Vout_force vout 0 dc 0.9
+
+* Sweep output to get Rout at the operating point
+.dc Vout_force 0.85 0.95 0.001
+
+.control
+  run
+  * Current into output = -i(Vout_force)  
+  * dI/dV at 0.9V gives the output conductance
+  meas dc i_low FIND i(Vout_force) AT=0.899
+  meas dc i_high FIND i(Vout_force) AT=0.901
+  let gout = (i_high - i_low) / 0.002
+  let rout = 1 / gout
+  echo "Output conductance: $&gout S"
+  echo "Output resistance: $&rout Ohm"
+  echo ""
+  * Also get the operating point data at Vout=0.9
+  alter Vout_force dc = 0.9
+  op
+  echo "At Vout=0.9V forced:"
+  echo "M2 gds=$&@m.xota.m2[gds] Id=$&@m.xota.m2[id] Vds=$&@m.xota.m2[vds]"
+  echo "M4 gds=$&@m.xota.m4[gds] Vds=$&@m.xota.m4[vds] Vdsat=$&@m.xota.m4[vdsat]"
+  echo "M6 gds=$&@m.xota.m6[gds] gm=$&@m.xota.m6[gm] Vds=$&@m.xota.m6[vds]"
+  echo "M8 gds=$&@m.xota.m8[gds] gm=$&@m.xota.m8[gm] Vds=$&@m.xota.m8[vds]"
+  echo "M10 gds=$&@m.xota.m10[gds] Vds=$&@m.xota.m10[vds]"
+  quit
+.endc
+.end

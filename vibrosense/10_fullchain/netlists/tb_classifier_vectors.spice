@@ -1,0 +1,39 @@
+* ================================================================
+* VibroSense-1 — Classifier-Only Test with Feature Vectors
+* ================================================================
+
+.option reltol=1e-3
+
+.include classifier_behavioral.spice
+.include ../../09_training/results/feature_vectors_spice.txt
+
+Vdd vdd gnd 1.8
+Vss vss gnd 0
+
+Xclass feat0 feat1 feat2 feat3 feat4 feat5 feat6 feat7
++ class_out class_valid_out vdd gnd classifier_behavioral
+
+.tran 10u 20.5m
+
+.meas tran class_v0 FIND v(class_out) AT=0.5m
+.meas tran class_v1 FIND v(class_out) AT=1.5m
+.meas tran class_v2 FIND v(class_out) AT=2.5m
+.meas tran class_v3 FIND v(class_out) AT=3.5m
+.meas tran class_v4 FIND v(class_out) AT=4.5m
+.meas tran class_v5 FIND v(class_out) AT=5.5m
+.meas tran class_v6 FIND v(class_out) AT=6.5m
+.meas tran class_v7 FIND v(class_out) AT=7.5m
+.meas tran class_v8 FIND v(class_out) AT=8.5m
+.meas tran class_v9 FIND v(class_out) AT=9.5m
+.meas tran class_v10 FIND v(class_out) AT=10.5m
+.meas tran class_v11 FIND v(class_out) AT=11.5m
+.meas tran class_v12 FIND v(class_out) AT=12.5m
+.meas tran class_v13 FIND v(class_out) AT=13.5m
+.meas tran class_v14 FIND v(class_out) AT=14.5m
+.meas tran class_v15 FIND v(class_out) AT=15.5m
+.meas tran class_v16 FIND v(class_out) AT=16.5m
+.meas tran class_v17 FIND v(class_out) AT=17.5m
+.meas tran class_v18 FIND v(class_out) AT=18.5m
+.meas tran class_v19 FIND v(class_out) AT=19.5m
+
+.end

@@ -1,0 +1,59 @@
+* VibroSense-1 Digital Block — Behavioral SPICE Wrapper
+* Replaces Verilog digital_top with behavioral voltage sources
+* Functions:
+*   1. Generate 3-phase FSM clocks (sample/evaluate/compare) at 1kHz
+*   2. Pre-loaded weight enables (from trained_weights.json)
+*   3. Debounce classifier output -> IRQ
+*   4. PGA gain control (fixed at 16x: g1=1, g0=0)
+*
+* For integration: weights are loaded statically, no SPI needed
+
+.subckt digital_wrapper
++ phi_s phi_sb phi_e phi_eb phi_r
++ g1 g0
++ irq_n
++ class_valid
++ vdd vss
+
+* ================================================
+* FSM Clock Generation (1 kHz cycle = 1ms period)
+* Phase timing within each 1ms cycle:
+*   0-64us:   phi_s HIGH (sample)
+*   64-192us: phi_e HIGH (evaluate)
+*   192-196us: phi_r HIGH (compare/reset)
+*   196-1000us: idle
+* ================================================
+
+* Master clock at 1 kHz
+Vclk_master clk_1k vss PULSE(0 1.8 10u 10n 10n 500u 1000u)
+
+* Sample phase: phi_s
+Vphi_s phi_s vss PULSE(0 1.8 10u 10n 10n 64u 1000u)
+Vphi_sb phi_sb vss PULSE(1.8 0 10u 10n 10n 64u 1000u)
+
+* Evaluate phase: phi_e (starts after phi_s ends)
+Vphi_e phi_e vss PULSE(0 1.8 84u 10n 10n 128u 1000u)
+Vphi_eb phi_eb vss PULSE(1.8 0 84u 10n 10n 128u 1000u)
+
+* Reset/compare phase: phi_r
+Vphi_r phi_r vss PULSE(0 1.8 222u 10n 10n 4u 1000u)
+
+* ================================================
+* PGA Gain Control (fixed 16x = g1=1, g0=0)
+* ================================================
+Vg1 g1 vss DC 1.8
+Vg0 g0 vss DC 0
+
+* ================================================
+* Class valid strobe (goes high briefly after compare phase)
+* ================================================
+Vcv class_valid vss PULSE(0 1.8 230u 10n 10n 10u 1000u)
+
+* ================================================
+* IRQ_N (active low, normally high)
+* In behavioral mode: driven by external analysis
+* Default: no alarm (IRQ_N = VDD)
+* ================================================
+Virq irq_n vss DC 1.8
+
+.ends digital_wrapper

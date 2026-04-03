@@ -1,0 +1,32 @@
+* Plot 18: MOS Clamp onset — IV characteristic
+.title MOS Voltage Clamp IV
+
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {0.1e-15*w*l}
+c1 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+.lib "../sky130.lib.spice" tt
+.temp 27
+
+.include ../07_zener_clamp/design.cir
+
+* Bias for clamp
+Iibias 0 ibias 1u
+
+* Sweep PVDD 0→8V
+Vpvdd pvdd 0 DC 0
+
+XZC pvdd 0 ibias zener_clamp
+
+.dc Vpvdd 0 8 0.01
+
+.control
+run
+set filetype = ascii
+wrdata plt18_clamp_iv.dat -i(vpvdd)
+echo "Clamp IV done"
+quit
+.endc
+.end

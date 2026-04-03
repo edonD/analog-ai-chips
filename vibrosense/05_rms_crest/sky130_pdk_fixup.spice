@@ -1,0 +1,32 @@
+* SKY130 PDK fixup — missing parasitic subcircuits and process params
+* Include this BEFORE .lib statements in testbenches
+* These parameters would normally come from the combined/continuous lib
+
+* Dummy parasitic subcircuit for poly resistor (missing from PDK)
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub
++ w=1 l=1
+c1 r0 sub {0.1e-15*w*l}
+c2 r1 sub {0.1e-15*w*l}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+* Process variation parameters for resistor models
+.param sky130_fd_pr__res_xhigh_po__var_mult = 0
+.param sky130_fd_pr__res_high_po__var_mult = 0
+.param sky130_fd_pr__res_high_po__var = 0
+.param crpf_precision = 0.001
+.param crpfsw_precision_1_1 = 0.001
+
+* MIM capacitor process parameters (SKY130 typical values)
+.param m3_dw = 0
+.param tol_m3 = 0
+.param rm3 = 0.047
+.param camimc = 2.0e-3
+.param cpmimc = 0
+.param rcvia3 = 4.5
+.param tc1rm3 = 0
+.param tc2rm3 = 0
+.param tc1rvia3 = 0
+.param tc2rvia3 = 0
+
+* Iso p-well resistor sheet resistance (Ohm/sq at typical)
+.param rspwres = 2000

@@ -1,0 +1,47 @@
+* TB0b: Comparator Transient — Clocked Operation + 1-LSB Step Response
+* Tests the StrongARM latch with realistic clocking
+* comp_clk toggles: LOW=reset, HIGH=evaluate
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice tt
+
+.include v3_comparator.spice
+
+* Supply
+VDD vdd 0 1.8
+VSS vss 0 0
+
+* Comparator instance
+Xcomp inp inn outp outn vdd vss comp_clk sleep_n v3_comparator
+
+* Reference input at Vref
+Vinn inn 0 1.2
+
+* Input: step from Vref-2LSB to Vref+2LSB at t=15us (large signal)
+* Then 1-LSB step at t=35us (precision test)
+Vinp inp 0 PWL(
++ 0    1.19
++ 14u  1.19
++ 14.1u 1.21
++ 34u  1.21
++ 34.1u 1.1953
++ 50u  1.1953)
+
+* comp_clk: 100kHz, 50% duty (matches SAR clock)
+* HIGH during evaluation, LOW during reset
+Vclk comp_clk 0 PULSE(0 1.8 1u 10n 10n 5u 10u)
+
+* sleep_n = HIGH
+Vslp sleep_n 0 1.8
+
+.tran 10n 50u
+
+* Measure decision time for the 1-LSB step
+.meas tran t_step FIND time WHEN v(outp)=0.9 FALL=4
+
+.control
+run
+wrdata v3_comp_tran_tt.dat v(inp) v(inn) v(outp) v(outn) v(comp_clk)
+.endc
+
+.end

@@ -1,0 +1,37 @@
+{
+  "name": "bearing_cwru",
+  "description": "CWRU Bearing Fault Detection — 4-class (Normal, Inner Race, Ball, Outer Race)",
+  "sensor": "MEMS accelerometer (ADXL355, +/-2g, 660mV/g)",
+  "sample_rate_hz": 12000,
+  "window_seconds": 0.5,
+  "classes": ["Normal", "Inner Race", "Ball", "Outer Race"],
+  "n_classes": 4,
+  "bands_hz": [
+    [100, 500],
+    [500, 1500],
+    [1500, 3000],
+    [3000, 4500],
+    [4500, 5900]
+  ],
+  "band_labels": [
+    "Low-freq structural resonance",
+    "Mid-freq bearing tones (BPFO fundamental)",
+    "High-freq bearing defect harmonics",
+    "Very high-freq early fault impulses",
+    "Near-Nyquist impulse energy"
+  ],
+  "envelope_lpf_hz": 10,
+  "rms_window_ms": 10,
+  "pga_gain": "16x",
+  "pga_gain_notes": "ADXL355 at +/-2g: 660mV full-scale, x16 -> 10.6Vpp clipped to 1.8V rail, good SNR for moderate vibration",
+  "quantization_bits": 4,
+  "c_unit_fF": 10,
+  "regularization_C_grid": [0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 100.0],
+  "targets": {
+    "float_accuracy_pct": 88,
+    "quantized_accuracy_pct": 85,
+    "max_quantization_loss_pp": 5,
+    "noisy_accuracy_pct_2sigma": 82,
+    "min_per_class_recall_pct": 80
+  }
+}

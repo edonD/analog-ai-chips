@@ -1,0 +1,71 @@
+* Measure OTA gm at properly balanced bias points
+* VBCN = VBN + 0.23, VBCP = VBP - 0.255
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+Vinp vinp 0 dc 0.9 ac 1
+Lbreak vout vinn 1G
+Cdc vinn 0 1
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.control
+* Level 0: default
+ac dec 100 0.1 1Meg
+meas ac ugb0 WHEN vdb(vout)=0 FALL=1
+let gm0 = ugb0 * 2 * 3.14159 * 10e-12
+echo "L0: Vbn=0.650 Vbp=0.730 UGB=$&ugb0 gm=$&gm0"
+
+* Level B: Vbn=0.627, Vbp=0.765
+alter vbn 0.627
+alter vbp 0.765
+alter vbcn 0.857
+alter vbcp 0.510
+op
+ac dec 100 0.1 1Meg
+meas ac ugbB WHEN vdb(vout)=0 FALL=1
+let gmB = ugbB * 2 * 3.14159 * 10e-12
+echo "LB: Vbn=0.627 Vbp=0.765 UGB=$&ugbB gm=$&gmB"
+
+* Level C: Vbn=0.604, Vbp=0.800
+alter vbn 0.604
+alter vbp 0.800
+alter vbcn 0.834
+alter vbcp 0.545
+op
+ac dec 100 0.1 500k
+meas ac ugbC WHEN vdb(vout)=0 FALL=1
+let gmC = ugbC * 2 * 3.14159 * 10e-12
+echo "LC: Vbn=0.604 Vbp=0.800 UGB=$&ugbC gm=$&gmC"
+
+* Level D: Vbn=0.585, Vbp=0.830
+alter vbn 0.585
+alter vbp 0.830
+alter vbcn 0.815
+alter vbcp 0.575
+op
+ac dec 100 0.01 200k
+meas ac ugbD WHEN vdb(vout)=0 FALL=1
+let gmD = ugbD * 2 * 3.14159 * 10e-12
+echo "LD: Vbn=0.585 Vbp=0.830 UGB=$&ugbD gm=$&gmD"
+
+* Level E: Vbn=0.565, Vbp=0.860
+alter vbn 0.565
+alter vbp 0.860
+alter vbcn 0.795
+alter vbcp 0.605
+op
+ac dec 100 0.01 100k
+meas ac ugbE WHEN vdb(vout)=0 FALL=1
+let gmE = ugbE * 2 * 3.14159 * 10e-12
+echo "LE: Vbn=0.565 Vbp=0.860 UGB=$&ugbE gm=$&gmE"
+
+.endc
+.end

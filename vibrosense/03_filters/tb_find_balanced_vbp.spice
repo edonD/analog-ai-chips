@@ -1,0 +1,54 @@
+* Find balanced Vbp for each Vbn level
+* At the correct Vbp, the OTA output should sit near Vcm when inputs are at Vcm
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+.param vbn_set = 0.65
+.param vbp_set = 0.73
+
+Vbn  vbn  0 dc {vbn_set}
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc {vbp_set}
+Vbcp vbcp 0 dc 0.475
+
+* Unity gain config: OTA in feedback
+Vin vinp 0 dc 0.9
+Xota vinp vout vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+
+.control
+* At each Vbn level, sweep Vbp to find the value where Vout ≈ 0.9V
+
+* Vbn = 0.627 (L2 target)
+alter vbn 0.627
+alter vbcn 0.857
+alter vbcp 0.498
+foreach vbp_try 0.700 0.710 0.720 0.730 0.740 0.750 0.760 0.770 0.780 0.790 0.800 0.810 0.820
+  alter vbp $vbp_try
+  op
+  echo "Vbn=0.627 Vbp=$vbp_try Vout=$&v(vout)"
+end
+
+* Vbn = 0.604 (L3 target)
+alter vbn 0.604
+alter vbcn 0.834
+alter vbcp 0.521
+foreach vbp_try 0.700 0.710 0.720 0.730 0.740 0.750 0.760 0.770 0.780 0.790 0.800
+  alter vbp $vbp_try
+  op
+  echo "Vbn=0.604 Vbp=$vbp_try Vout=$&v(vout)"
+end
+
+* Vbn = 0.585 (L3c target)
+alter vbn 0.585
+alter vbcn 0.815
+alter vbcp 0.540
+foreach vbp_try 0.700 0.710 0.720 0.730 0.740 0.750 0.760 0.770 0.780 0.790
+  alter vbp $vbp_try
+  op
+  echo "Vbn=0.585 Vbp=$vbp_try Vout=$&v(vout)"
+end
+
+.endc
+.end

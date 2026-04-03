@@ -1,0 +1,54 @@
+* TB3: THD Measurement — All 5 channels
+* Input: single tone at each channel's f0, 200 mVpp (100mV amplitude)
+* Measure: HD2, HD3, HD4, HD5, THD
+* PASS: THD < -30 dBc at 200 mVpp
+*
+* Note: Behavioral OTA is perfectly linear (G source).
+* THD will be essentially 0 (limited by numerical precision).
+* This validates the TOPOLOGY is correct; real THD requires transistor-level OTAs.
+* With the behavioral model, THD << -100 dBc is expected.
+
+.include bpf_ch1.spice
+.include bpf_ch2.spice
+.include bpf_ch3.spice
+.include bpf_ch4.spice
+.include bpf_ch5.spice
+
+Vdd vdd 0 1.8
+Vss vss 0 0
+Vcm vcm 0 0.9
+
+* Channel 1: f0=224 Hz, 200mVpp, 20 cycles, tstep=1/(100*f0)
+Vin1 in1 0 DC 0.9 SIN(0.9 0.1 224 0 0)
+
+* Channel 2: f0=1000 Hz
+Vin2 in2 0 DC 0.9 SIN(0.9 0.1 1000 0 0)
+
+* Channel 3: f0=3162 Hz
+Vin3 in3 0 DC 0.9 SIN(0.9 0.1 3162 0 0)
+
+* Channel 4: f0=7071 Hz
+Vin4 in4 0 DC 0.9 SIN(0.9 0.1 7071 0 0)
+
+* Channel 5: f0=14142 Hz
+Vin5 in5 0 DC 0.9 SIN(0.9 0.1 14142 0 0)
+
+Xch1 in1 bp1 vdd vss vcm bpf_ch1
+Xch2 in2 bp2 vdd vss vcm bpf_ch2
+Xch3 in3 bp3 vdd vss vcm bpf_ch3
+Xch4 in4 bp4 vdd vss vcm bpf_ch4
+Xch5 in5 bp5 vdd vss vcm bpf_ch5
+
+.control
+* Run transient: 20 cycles of each channel's f0
+* Use longest period channel (ch1: 20/224 = 89ms)
+tran 1u 100m 10m
+
+wrdata thd_ch1.txt v(bp1)
+wrdata thd_ch2.txt v(bp2)
+wrdata thd_ch3.txt v(bp3)
+wrdata thd_ch4.txt v(bp4)
+wrdata thd_ch5.txt v(bp5)
+.endc
+
+.end

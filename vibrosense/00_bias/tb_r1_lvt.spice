@@ -1,0 +1,63 @@
+** Test R1 effect with LVT PMOS config where M4 is in saturation
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Config: LVT PMOS W=0.42 L=8, NMOS M1=1/8 M2=4/8
+** Test R1 = 40k, 77k, 155k, 310k
+
+** R1=40k (l=5.6)
+XM3a nba nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4a outa nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1a nba nba 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM2a outa nba srca 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1a srca 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=5.6
+XM7a irefa nba vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLa irefa 0 0.9
+
+** R1=155k (l=21)
+XM3b nbb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4b outb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1b nbb nbb 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM2b outb nbb srcb 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1b srcb 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=21
+XM7b irefb nbb vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLb irefb 0 0.9
+
+** R1=310k (l=42)
+XM3c nbc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM4c outc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+XM1c nbc nbc 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8
+XM2c outc nbc srcc 0 sky130_fd_pr__nfet_01v8 w=4 l=8
+XR1c srcc 0 0 sky130_fd_pr__res_xhigh_po w=0.35 l=42
+XM7c irefc nbc vdd vdd sky130_fd_pr__pfet_01v8_lvt w=0.42 l=8
+VLc irefc 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nba)=0.7 v(nbb)=0.7 v(nbc)=0.7
+
+.control
+    op
+    let ia = abs(@m.xm7a.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    let m1a = @m.xm1a.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m2a = @m.xm2a.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m4a = @m.xm4a.msky130_fd_pr__pfet_01v8_lvt[vds]
+    echo "R1=40k:  I=$&ia  M1=$&m1a M2=$&m2a  M4vds=$&m4a  nb=$&v(nba) on=$&v(outa)"
+
+    let ib = abs(@m.xm7b.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    let m1b = @m.xm1b.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m2b = @m.xm2b.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m4b = @m.xm4b.msky130_fd_pr__pfet_01v8_lvt[vds]
+    echo "R1=155k: I=$&ib  M1=$&m1b M2=$&m2b  M4vds=$&m4b  nb=$&v(nbb) on=$&v(outb)"
+
+    let ic = abs(@m.xm7c.msky130_fd_pr__pfet_01v8_lvt[id]) * 1e9
+    let m1c = @m.xm1c.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m2c = @m.xm2c.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m4c = @m.xm4c.msky130_fd_pr__pfet_01v8_lvt[vds]
+    echo "R1=310k: I=$&ic  M1=$&m1c M2=$&m2c  M4vds=$&m4c  nb=$&v(nbc) on=$&v(outc)"
+.endc
+
+.end

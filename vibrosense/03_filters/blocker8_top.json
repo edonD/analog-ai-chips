@@ -1,0 +1,41 @@
+{
+  "channels": {
+    "1": {
+      "f0_target": 224,
+      "f0_meas": 226.7,
+      "peak_dB": 0.37,
+      "f0_err_pct": 1.2,
+      "pass": true
+    },
+    "2": {
+      "f0_target": 1000,
+      "f0_meas": 1001.3,
+      "peak_dB": 0.37,
+      "f0_err_pct": 0.1,
+      "pass": true
+    },
+    "3": {
+      "f0_target": 3162,
+      "f0_meas": 3167.2,
+      "peak_dB": 0.37,
+      "f0_err_pct": 0.2,
+      "pass": true
+    },
+    "4": {
+      "f0_target": 7071,
+      "f0_meas": 7256.9,
+      "peak_dB": 0.05,
+      "f0_err_pct": 2.6,
+      "pass": true
+    },
+    "5": {
+      "f0_target": 14142,
+      "f0_meas": 14649.0,
+      "peak_dB": -0.1,
+      "f0_err_pct": 3.6,
+      "pass": true
+    }
+  },
+  "all_pass": true,
+  "power_uW": 42.5
+}

@@ -1,0 +1,32 @@
+* Wakeup Time Test
+.include "sky130_pdk_fixup.spice"
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "strongarm_comp.spice"
+
+VDD vdd 0 1.8
+
+* Start in sleep, wake up at t=5us
+Vsleep sleep_n 0 PWL(0 0 4.99u 0 5u 1.8)
+
+* Input: 5mV above threshold
+Vinp inp 0 0.605
+Vinn inn 0 0.600
+
+* Clock starts at t=5us
+Vclk clk 0 PULSE(0 1.8 5u 0.5n 0.5n 4.9u 10u)
+
+X1 inp inn outp outn vdd 0 clk sleep_n comparator
+
+.tran 0.1u 50u
+
+* Measure when comparator first produces valid output after wakeup
+.meas tran t_wake TRIG v(sleep_n) VAL=0.9 RISE=1 TARG v(outp) VAL=0.9 RISE=1
+.meas tran t_wake2 TRIG v(sleep_n) VAL=0.9 RISE=1 TARG v(outn) VAL=0.1 FALL=1
+
+.control
+run
+wrdata wakeup_transient.dat v(outp) v(outn) v(clk) v(sleep_n)
+quit
+.endc
+
+.end

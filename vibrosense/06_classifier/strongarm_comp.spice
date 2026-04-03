@@ -1,0 +1,39 @@
+* VibroSense Block 06: StrongARM Latch Comparator
+* Process: SKY130A | Supply: 1.8V
+* Topology: Dynamic StrongARM with reset switches
+*
+* Operation:
+*   CLK=0 (reset):  reset PMOS pull outputs to VDD, internal nodes reset
+*   CLK=1 (evaluate): Tail current flows, input pair steers current,
+*                       cross-coupled inverters regenerate to full rail
+*
+* Inputs:  vinp, vinn (differential)
+* Outputs: voutp, voutn (differential, complementary)
+* Clock:   clk (active-high evaluate)
+
+.subckt strongarm_comp vinp vinn voutp voutn clk vdd vss
+
+* --- Tail current switch ---
+XM0 tail clk vss vss sky130_fd_pr__nfet_01v8 W=2u L=0.15u
+
+* --- Input differential pair ---
+XM1 di_p vinp tail vss sky130_fd_pr__nfet_01v8 W=4u L=0.5u
+XM2 di_n vinn tail vss sky130_fd_pr__nfet_01v8 W=4u L=0.5u
+
+* --- Cross-coupled NMOS inverters ---
+XM3 voutp voutn di_p vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u
+XM4 voutn voutp di_n vss sky130_fd_pr__nfet_01v8 W=1u L=0.15u
+
+* --- Cross-coupled PMOS inverters ---
+XM5 voutp voutn vdd vdd sky130_fd_pr__pfet_01v8 W=1u L=0.15u
+XM6 voutn voutp vdd vdd sky130_fd_pr__pfet_01v8 W=1u L=0.15u
+
+* --- Reset switches (active-low, reset when CLK=0) ---
+XM7 voutp clk vdd vdd sky130_fd_pr__pfet_01v8 W=0.84u L=0.15u
+XM8 voutn clk vdd vdd sky130_fd_pr__pfet_01v8 W=0.84u L=0.15u
+
+* --- Reset for internal diff nodes ---
+XM9  di_p clk vdd vdd sky130_fd_pr__pfet_01v8 W=0.84u L=0.15u
+XM10 di_n clk vdd vdd sky130_fd_pr__pfet_01v8 W=0.84u L=0.15u
+
+.ends strongarm_comp

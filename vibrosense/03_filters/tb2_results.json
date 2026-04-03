@@ -1,0 +1,27 @@
+{
+  "1": {
+    "desired_mV": 28.862,
+    "worst_intermod_rejection_dB": 21.1,
+    "pass": true
+  },
+  "2": {
+    "desired_mV": 66.793,
+    "worst_intermod_rejection_dB": 21.5,
+    "pass": true
+  },
+  "3": {
+    "desired_mV": 168.395,
+    "worst_intermod_rejection_dB": 22.5,
+    "pass": true
+  },
+  "4": {
+    "desired_mV": 212.476,
+    "worst_intermod_rejection_dB": 20.5,
+    "pass": true
+  },
+  "5": {
+    "desired_mV": 239.728,
+    "worst_intermod_rejection_dB": 22.5,
+    "pass": true
+  }
+}

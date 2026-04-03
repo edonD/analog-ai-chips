@@ -1,0 +1,28 @@
+* Sleep Power Measurement
+.include "sky130_pdk_fixup.spice"
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "strongarm_comp.spice"
+
+VDD vdd 0 1.8
+
+* Sleep asserted (sleep_n = 0V = sleep mode)
+Vsleep sleep_n 0 0
+
+* No input, no clock
+Vinp inp 0 0.6
+Vinn inn 0 0.6
+Vclk clk 0 0
+
+* Comparator instance (power-gated)
+X1 inp inn outp outn vdd 0 clk sleep_n comparator
+
+.tran 1u 100u
+
+.meas tran Isleep AVG I(VDD) FROM=10u TO=100u
+
+.control
+run
+quit
+.endc
+
+.end

@@ -1,0 +1,105 @@
+* Manual C tuning for all channels based on interpolated values
+* Includes Q correction by increasing C1/C2 ratio
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn vbn 0 dc 0.565
+Vbcn vbcn 0 dc 0.795
+Vbp vbp 0 dc 0.860
+Vbcp vbcp 0 dc 0.605
+Vcm vcm 0 dc 0.9
+Vin in 0 dc 0.9 ac 1
+
+.param c1v=10p
+.param c2v=10p
+
+Xota1 in int2 int1 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C1 int1 0 {c1v}
+Rbias1 int1 vcm 1G
+Xota2 int1 vcm int2 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C2 int2 0 {c2v}
+Rbias2 int2 vcm 1G
+Xota3 vcm int1 int1 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+.nodeset v(int1)=0.9 v(int2)=0.9
+
+.control
+* Ch1: f0=224Hz, Q=0.75 — interpolated C1≈305 C2≈544, add Q boost
+alter c1 340p
+alter c2 510p
+op
+ac dec 200 1 10k
+wrdata tune_ch1a.txt vdb(int1)
+
+alter c1 370p
+alter c2 490p
+op
+ac dec 200 1 10k
+wrdata tune_ch1b.txt vdb(int1)
+
+alter c1 400p
+alter c2 480p
+op
+ac dec 200 1 10k
+wrdata tune_ch1c.txt vdb(int1)
+
+* Ch3: f0=3162Hz, Q=1.05 — interpolated C1≈30 C2≈27
+alter c1 33p
+alter c2 25p
+op
+ac dec 200 10 100k
+wrdata tune_ch3a.txt vdb(int1)
+
+alter c1 36p
+alter c2 24p
+op
+ac dec 200 10 100k
+wrdata tune_ch3b.txt vdb(int1)
+
+alter c1 38p
+alter c2 23p
+op
+ac dec 200 10 100k
+wrdata tune_ch3c.txt vdb(int1)
+
+* Ch4: f0=7071Hz, Q=1.41 — interpolated C1≈18 C2≈9
+alter c1 21p
+alter c2 8p
+op
+ac dec 200 100 200k
+wrdata tune_ch4a.txt vdb(int1)
+
+alter c1 23p
+alter c2 7.5p
+op
+ac dec 200 100 200k
+wrdata tune_ch4b.txt vdb(int1)
+
+alter c1 25p
+alter c2 7p
+op
+ac dec 200 100 200k
+wrdata tune_ch4c.txt vdb(int1)
+
+* Ch5: f0=14142Hz, Q=1.41 — interpolated C1≈8.8 C2≈4.4
+alter c1 10p
+alter c2 4p
+op
+ac dec 200 100 200k
+wrdata tune_ch5a.txt vdb(int1)
+
+alter c1 11p
+alter c2 3.5p
+op
+ac dec 200 100 200k
+wrdata tune_ch5b.txt vdb(int1)
+
+alter c1 12p
+alter c2 3p
+op
+ac dec 200 100 200k
+wrdata tune_ch5c.txt vdb(int1)
+
+.endc
+.end

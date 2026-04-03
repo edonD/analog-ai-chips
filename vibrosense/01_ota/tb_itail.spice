@@ -1,0 +1,19 @@
+* Get supply current at different Vbn
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+Vinp vinp 0 dc 0.9
+Vfb vout vinn dc 0
+Xota vinp vinn vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+.dc Vbn 0.60 0.72 0.005
+.control
+run
+wrdata supply_vs_vbn -i(Vdd) v(vout)
+quit
+.endc
+.end

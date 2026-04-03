@@ -1,0 +1,43 @@
+* TB4: ENOB via FFT — Coherent Sine Input
+* N=512 conversions, M=43 (prime), fs=500kSPS (5MHz clk / 10)
+* fin = 500000 * 43 / 512 = 41992.1875 Hz
+* 530 conversions × 2us = 1.06ms sim time (extra for startup)
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice tt
+
+.include v3_cap_dac.spice
+.include v3_comparator.spice
+.include v3_sar_logic.spice
+.include v3_sar_adc.spice
+
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+
+* Coherent sine: 0.6V +/- 0.595V at 41992.1875 Hz
+Vin vin 0 SIN(0.6 0.595 41992.1875)
+
+* Clock: 5MHz accelerated
+Vclk clk 0 PULSE(0 1.8 100n 5n 5n 100n 200n)
+
+* Convert: HIGH at 300ns
+Vconv convert 0 PWL(0 0 299n 0 300n 1.8)
+
+* Sleep: awake
+Vslp sleep_n 0 1.8
+
+Xadc vin vref clk convert sleep_n
++ d7 d6 d5 d4 d3 d2 d1 d0 valid
++ vdd vss v3_sar_adc
+
+.save v(d7) v(d6) v(d5) v(d4) v(d3) v(d2) v(d1) v(d0) v(valid)
+
+.tran 50n 1.1m
+
+.control
+run
+wrdata v3_tb4_enob.dat v(d7) v(d6) v(d5) v(d4) v(d3) v(d2) v(d1) v(d0) v(valid)
+.endc
+
+.end

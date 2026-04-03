@@ -1,0 +1,56 @@
+* Find optimal bias: sweep Vbp with ideal source, Vbcp with ideal source
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+
+* All ideal voltage sources for maximum control
+Vbn  vbn  0 dc 0.58
+Vbcn vbcn 0 dc 0.80
+Vbp  vbp  0 dc 0.83
+Vbcp vbcp 0 dc 0.85
+
+* Unity-gain feedback
+Vinp vinp 0 dc 0.9
+Rfb vout vinn 1
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.op
+
+.control
+  * First, find Vbn that gives M11 = 500nA
+  echo "=== Sweep Vbn ==="
+  alter Vbp dc = 0.83
+  alter Vbcp dc = 0.85
+  foreach vbn_val 0.50 0.52 0.54 0.56 0.58 0.60 0.62 0.64 0.66 0.68 0.70
+    alter Vbn dc = $vbn_val
+    op
+    echo "Vbn=$vbn_val M11=$&@m.xota.m11[id] M9=$&@m.xota.m9[id] Vout=$&v(vout)"
+  end
+
+  echo ""
+  echo "=== Sweep Vbp with Vbn=0.58 ==="
+  alter Vbn dc = 0.58
+  foreach vbp_val 0.76 0.78 0.80 0.82 0.84 0.845 0.850 0.855 0.860 0.865 0.870 0.88 0.90
+    alter Vbp dc = $vbp_val
+    op
+    echo "Vbp=$vbp_val Vout=$&v(vout) M3=$&@m.xota.m3[id] M4=$&@m.xota.m4[id] M4_Vds=$&@m.xota.m4[vds] M6_Vds=$&@m.xota.m6[vds]"
+  end
+
+  echo ""
+  echo "=== Sweep Vbcp with Vbn=0.58 Vbp=0.855 ==="
+  alter Vbn dc = 0.58
+  alter Vbp dc = 0.855
+  foreach vbcp_val 0.60 0.65 0.70 0.75 0.80 0.82 0.84 0.86 0.88 0.90 0.92 0.94 0.96
+    alter Vbcp dc = $vbcp_val
+    op
+    echo "Vbcp=$vbcp_val Vout=$&v(vout) M4_Vds=$&@m.xota.m4[vds] M6_Vds=$&@m.xota.m6[vds] M8_Vds=$&@m.xota.m8[vds] M10_Vds=$&@m.xota.m10[vds]"
+  end
+
+  quit
+.endc
+
+.end

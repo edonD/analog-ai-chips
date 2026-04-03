@@ -1,0 +1,34 @@
+Using SPARSE 1.3 as Direct Linear Solver
+Note: vac: has no value, DC 0 assumed
+Warning: singular matrix:  check node ibias
+
+Note: Starting dynamic gmin stepping
+Warning: singular matrix:  check node ibias
+
+Warning: Dynamic gmin stepping failed
+Note: Starting true gmin stepping
+Warning: singular matrix:  check node ibias
+
+Warning: singular matrix:  check node ibias
+
+Warning: singular matrix:  check node ibias
+
+Warning: singular matrix:  check node ibias
+
+Warning: True gmin stepping failed
+Note: Starting source stepping
+Warning: source stepping failed
+Note: Transient op started
+Note: Transient op finished successfully
+
+Note: No compatibility mode selected!
+
+
+Circuit: PVDD Bode at 10000000 ohm
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+ Reference value :  1.00000e+00
+No. of Data Rows : 401
+Bode done for 10000000
+ngspice-42 done

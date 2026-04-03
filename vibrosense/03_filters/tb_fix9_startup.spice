@@ -1,0 +1,28 @@
+* Fix #9: Startup transient — measure settling time
+* Ch2 with LE bias, shows DC settling through 1GΩ bias resistors
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.565
+Vbcn vbcn 0 dc 0.795
+Vbp  vbp  0 dc 0.860
+Vbcp vbcp 0 dc 0.605
+Vcm  vcm  0 dc 0.9
+Vin in 0 dc 0.9
+
+Xota1 in int2 int1 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C1 int1 0 63p
+Rbias1 int1 vcm 1G
+Xota2 int1 vcm int2 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+C2 int2 0 120p
+Rbias2 int2 vcm 1G
+Xota3 vcm int1 int1 vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+
+* NO .nodeset — let it start from zero
+.control
+tran 10u 2000m
+wrdata fix9_startup.txt v(int1) v(int2)
+.endc
+.end

@@ -1,0 +1,30 @@
+* VibroSense Block 03 — Channel 4 Pseudo-Differential BPF
+* f0=7071Hz, Q=1.41, Iref=440nA
+* Tuned: C1=59.0pF C2=29.7pF → f0=7235.8Hz Q=1.42 pk=0.05dB
+* Bias: VBN=0.6399 VBP=0.745 VBCN=0.8699 VBCP=0.49
+
+.subckt bpf_ch4_real vinp vinn bp_outp bp_outn vdd vss vcm vbn vbcn vbp vbcp
+
+* Positive path
+Xota1p vinp int2p int1p vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C1p int1p vss 59.0p
+Xpr1p int1p vcm pseudo_res
+Xota2p int1p vcm int2p vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C2p int2p vss 29.7p
+Xpr2p int2p vcm pseudo_res
+Xota3p vcm int1p int1p vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* Negative path
+Xota1n vinn int2n int1n vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C1n int1n vss 59.0p
+Xpr1n int1n vcm pseudo_res
+Xota2n int1n vcm int2n vdd vss vbn vbcn vbp vbcp ota_foldcasc
+C2n int2n vss 29.7p
+Xpr2n int2n vcm pseudo_res
+Xota3n vcm int1n int1n vdd vss vbn vbcn vbp vbcp ota_foldcasc
+
+* Differential output
+Routp bp_outp int1p 1m
+Routn bp_outn int1n 1m
+
+.ends bpf_ch4_real

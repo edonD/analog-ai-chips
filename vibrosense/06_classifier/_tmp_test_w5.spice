@@ -1,0 +1,89 @@
+** VibroSense Block 06: MAC Linearity Base Testbench
+** Called by run_all.py with weight substitution
+** Parameters: WB3, WB2, WB1, WB0 (0 or 1)
+** Returns V(bl) at t=450ns
+
+.lib "sky130_local.lib" tt
+
+.param Vcm_val = 0.9
+.param Vinp_val = 1.05
+
+** Weight bits (substituted by runner)
+.param WB3 = 0
+.param WB2 = 1
+.param WB1 = 0
+.param WB0 = 1
+
+Vvdd vdd 0 dc 1.8
+Vinp inp 0 dc {Vinp_val}
+Vvcm vcm_src 0 dc {Vcm_val}
+
+** Phase clocks
+Vs_reset  s_reset  0  PULSE(1.8 0  0n   1n 1n 90n  600n)
+Vs_resetb s_resetb 0  PULSE(0 1.8  0n   1n 1n 90n  600n)
+Vs_samp   s_samp   0  PULSE(0 1.8  100n 5n 5n 200n 600n)
+Vs_sampb  s_sampb  0  PULSE(1.8 0  100n 5n 5n 200n 600n)
+Vs_eval   s_eval   0  PULSE(0 1.8  310n 5n 5n 200n 600n)
+
+** Bitline
+Cbl bl 0 1e-12
+MP_bl_pre bl s_reset vcm_src vdd sky130_fd_pr__pfet_01v8__model W=8e-6 L=1.5e-7 nf=2
+
+** ===== Bit 3 (8 x 50fF) =====
+MP_rt3 cap3_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb3 cap3_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MN_s3  cap3_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s3  cap3_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+C3a cap3_top cap3_bot 50e-15
+C3b cap3_top cap3_bot 50e-15
+C3c cap3_top cap3_bot 50e-15
+C3d cap3_top cap3_bot 50e-15
+C3e cap3_top cap3_bot 50e-15
+C3f cap3_top cap3_bot 50e-15
+C3g cap3_top cap3_bot 50e-15
+C3h cap3_top cap3_bot 50e-15
+** Eval switch gate: s_eval * WB3
+Bs_e3 s_eval3 0 V = {WB3} * V(s_eval)
+MN_e3  bl s_eval3 cap3_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+** ===== Bit 2 (4 x 50fF) =====
+MP_rt2 cap2_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb2 cap2_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MN_s2  cap2_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s2  cap2_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+C2a cap2_top cap2_bot 50e-15
+C2b cap2_top cap2_bot 50e-15
+C2c cap2_top cap2_bot 50e-15
+C2d cap2_top cap2_bot 50e-15
+Bs_e2 s_eval2 0 V = {WB2} * V(s_eval)
+MN_e2  bl s_eval2 cap2_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+** ===== Bit 1 (2 x 50fF) =====
+MP_rt1 cap1_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb1 cap1_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MN_s1  cap1_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s1  cap1_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+C1a cap1_top cap1_bot 50e-15
+C1b cap1_top cap1_bot 50e-15
+Bs_e1 s_eval1 0 V = {WB1} * V(s_eval)
+MN_e1  bl s_eval1 cap1_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+** ===== Bit 0 (1 x 50fF) =====
+MP_rt0 cap0_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb0 cap0_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MN_s0  cap0_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s0  cap0_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+C0a cap0_top cap0_bot 50e-15
+Bs_e0 s_eval0 0 V = {WB0} * V(s_eval)
+MN_e0  bl s_eval0 cap0_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+.tran 1n 520n
+
+.control
+  run
+  meas tran vbl_result FIND V(bl) AT=450n
+  echo "VBL_RESULT=$&vbl_result"
+  quit
+.endc
+
+.end

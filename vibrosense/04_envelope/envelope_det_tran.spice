@@ -1,0 +1,61 @@
+* VibroSense Block 04: Envelope Detector — Transistor-Level (SKY130A)
+*
+* HYBRID DESIGN:
+*   Stage 1: Behavioral precision rectifier (OTA + diode feedback model)
+*            Output level-shifted to VCM for NMOS OTA compatibility
+*   Stage 2: Gm-C LPF with transistor-level 5T OTA + 100pF cap
+*
+* Key insight: Rectifier output is referenced to VCM (0.9V) so the
+* transistor-level NMOS-input LPF OTA has sufficient headroom.
+* V(rect) = VCM + |Vin - VCM|, V(vout) settles to VCM + (2/pi)*Vpeak
+
+* ============================================================
+* 5-TRANSISTOR OTA for LPF (transistor-level, ~40 nA)
+* gm target: ~6 nS for fc=10 Hz with C=100pF
+* ============================================================
+.subckt ota_5t vinp vinn vout vdd vss vbn
+
+* NMOS diff pair: W=2u L=2u, ~250 nA/side
+* At 250 nA: Vov ~ 80-100 mV (above 50 mV min for signal NMOS)
+M1 drain1 vinp tail vss sky130_fd_pr__nfet_01v8__model W=2u L=2u
+M2 vout  vinn tail vss sky130_fd_pr__nfet_01v8__model W=2u L=2u
+
+* Tail current source: ~500 nA
+Mtail tail vbn vss vss sky130_fd_pr__nfet_01v8__model W=1u L=4u
+
+* PMOS active load (diode-connected mirror)
+* W=4u L=2u: at ~250nA, |Vov| > 150 mV (moderate inversion)
+M3 drain1 drain1 vdd vdd sky130_fd_pr__pfet_01v8__model W=4u L=2u
+M4 vout   drain1 vdd vdd sky130_fd_pr__pfet_01v8__model W=4u L=2u
+
+.ends ota_5t
+
+* ============================================================
+* FULL-WAVE ENVELOPE DETECTOR (hybrid)
+* ============================================================
+.subckt envelope_det_tran vin vcm vout vdd vss vbn_lpf
+
+* === Stage 1: Behavioral precision rectifier ===
+* Full-wave: two half-wave OTA rectifiers
+* Output LEVEL-SHIFTED to VCM for NMOS OTA input range
+
+* Half-wave 1: positive half-cycles
+B_hw1 vss rect I = max(0, 2.5e-6 * (v(vin) - v(vcm)))
+
+* Half-wave 2: negative half-cycles
+B_hw2 vss rect I = max(0, 2.5e-6 * (v(vcm) - v(vin)))
+
+* Load resistor to VCM (level shift):
+* At zero input: V(rect) = VCM = 0.9V
+* With signal: V(rect) = VCM + |Vin-VCM| (unity gain)
+R_rect rect vcm 400k
+C_rect rect vss 10f
+
+* === Stage 2: Transistor-level Gm-C LPF ===
+* With real transistor gm ~ 1-3 uS at 500 nA, need C ~ 30-50 nF for fc=10 Hz
+* Alternatively, use C = 10 nF and tune gm via bias current
+* fc = gm/(2*pi*C); with gm = 628nS, C = 10nF: fc = 10 Hz
+Xlpf rect vout vout vdd vss vbn_lpf ota_5t
+C_lpf vout vss 10n
+
+.ends envelope_det_tran

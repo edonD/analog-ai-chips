@@ -1,0 +1,33 @@
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+
+* Both inputs tied to 0.9V (diff input = 0)
+Vinp vinp 0 dc 0.9
+Vinn vinn 0 dc 0.9
+
+* Test current source at output to measure Rout
+* Sweep the output voltage around the operating point
+Xota vinp vinn vout_int vdd vss vbn vbcn vbp vbcp ota_foldcasc
+Vtest vout_int vout dc 0
+Itest vout 0 dc 0
+CL vout 0 10p
+
+* Use .tf to get output impedance directly
+.tf v(vout_int) Itest
+
+.control
+  run
+  print transfer_function output_impedance_at_v(vout_int)
+  echo "Rout = $&transfer_function ohms"
+  quit
+.endc
+.end

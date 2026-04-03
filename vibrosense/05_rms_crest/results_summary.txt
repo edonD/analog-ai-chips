@@ -1,0 +1,34 @@
+[PASS] RMS accuracy (calibrated, <5%): 1.6%
+[PASS] RMS linearity (R2>0.99): 0.99992
+[PASS] RMS bandwidth (10Hz-10kHz): 10Hz-20000Hz
+[PASS] Peak accuracy (<10% @100mVpk): 5.2%
+[PASS] Peak hold (<10% @500ms): 3.1%
+[PASS] Crest factor sine (<15%): 3.6%
+[PASS] Crest factor square (<15%): 3.8%
+[PASS] Crest factor triangle (<15%): 4.5%
+[PASS] Power (<25uW): 8.0uW
+[PASS] PVT all corners pass: YES
+
+Crest Factor Details (TT/27C):
+  Sine: CF=1.363 (ideal=1.414, err=3.6%)
+  Square: CF=0.962 (ideal=1.000, err=3.8%)
+  Triangle: CF=1.655 (ideal=1.732, err=4.5%)
+
+PVT Summary:
+  tt/-40C: RMS=0.4% CF_sin=6.3% CF_sqr=6.3% CF_tri=7.0% Pwr=7.4uW
+  tt/27C: RMS=1.6% CF_sin=3.6% CF_sqr=3.8% CF_tri=4.5% Pwr=8.0uW
+  tt/85C: RMS=2.6% CF_sin=1.5% CF_sqr=2.0% CF_tri=2.5% Pwr=8.6uW
+  ss/-40C: RMS=0.3% CF_sin=6.7% CF_sqr=6.7% CF_tri=7.6% Pwr=5.7uW
+  ss/27C: RMS=1.8% CF_sin=3.8% CF_sqr=4.1% CF_tri=4.7% Pwr=6.2uW
+  ss/85C: RMS=2.8% CF_sin=1.6% CF_sqr=2.0% CF_tri=2.6% Pwr=6.7uW
+  ff/-40C: RMS=0.3% CF_sin=5.9% CF_sqr=6.0% CF_tri=6.7% Pwr=9.5uW
+  ff/27C: RMS=1.2% CF_sin=3.5% CF_sqr=3.5% CF_tri=4.4% Pwr=10.2uW
+  ff/85C: RMS=2.1% CF_sin=1.6% CF_sqr=2.1% CF_tri=2.6% Pwr=10.8uW
+  sf/-40C: RMS=0.3% CF_sin=6.5% CF_sqr=6.6% CF_tri=7.3% Pwr=10.3uW
+  sf/27C: RMS=1.1% CF_sin=4.3% CF_sqr=4.7% CF_tri=5.2% Pwr=10.9uW
+  sf/85C: RMS=1.9% CF_sin=2.5% CF_sqr=3.0% CF_tri=3.6% Pwr=11.4uW
+  fs/-40C: RMS=0.2% CF_sin=6.3% CF_sqr=6.2% CF_tri=7.1% Pwr=5.2uW
+  fs/27C: RMS=1.8% CF_sin=3.3% CF_sqr=3.4% CF_tri=4.2% Pwr=5.7uW
+  fs/85C: RMS=2.7% CF_sin=1.1% CF_sqr=1.4% CF_tri=2.1% Pwr=6.2uW
+
+ALL PVT PASS

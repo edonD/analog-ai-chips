@@ -1,0 +1,62 @@
+* Transient Step Response - VibroSense OTA
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vss vss 0 dc 0
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+Vbcn vbcn 0 dc 0.80
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+Vbcp vbcp 0 dc 0.70
+
+* Direct unity-gain feedback (wire from vout to vinn)
+Vfb vout vinn dc 0
+
+* 100mV step at t=10us: 0.9V -> 1.0V
+Vinp vinp 0 pwl(0 0.9 9.99u 0.9 10.01u 1.0)
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.tran 10n 100u
+
+.control
+  run
+
+  * Measure slew rate on rising edge
+  meas tran t10 WHEN v(vout)=0.91 RISE=1
+  meas tran t90 WHEN v(vout)=0.99 RISE=1
+
+  * Settling: measure final value
+  meas tran vout_final FIND v(vout) AT=100u
+
+  * Overshoot
+  meas tran vout_peak MAX v(vout) FROM=10u TO=100u
+
+  echo ""
+  echo "======================================================"
+  echo "  Transient Step Response (100mV step at t=10us)"
+  echo "======================================================"
+
+  * Slew rate
+  let delta_t = t90 - t10
+  let sr = 0.08 / delta_t
+  echo "t10=$&t10 t90=$&t90"
+  echo "Slew rate: $&sr V/s"
+
+  * Convert to mV/us
+  let sr_mvus = sr * 1e-6 * 1e3
+  echo "Slew rate: $&sr_mvus mV/us"
+
+  echo "Peak: $&vout_peak V"
+  echo "Final: $&vout_final V"
+  let overshoot = (vout_peak - 1.0) * 1000
+  echo "Overshoot: $&overshoot mV"
+  echo "======================================================"
+
+  wrdata tran_step_data v(vout) v(vinp)
+  quit
+.endc
+.end

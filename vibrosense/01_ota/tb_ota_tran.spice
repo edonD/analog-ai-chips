@@ -1,0 +1,56 @@
+* TB03: Transient Step Response — Slew rate (large-signal)
+* 500mV step to force current-limited slewing
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.65
+Vbcn vbcn 0 dc 0.88
+Vbp  vbp  0 dc 0.73
+Vbcp vbcp 0 dc 0.475
+
+* 500mV step: 0.5V to 1.0V at t=10us, unity-gain feedback
+Vinp vinp 0 PULSE(0.5 1.0 10u 1n 1n 50u 100u)
+Xota vinp vout vout vdd 0 vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.tran 10n 80u
+
+.control
+run
+
+* Compute derivative vector, then measure its max during slewing window
+let dvdt = deriv(v(vout))
+meas tran sr_meas MAX dvdt FROM=11u TO=35u
+
+echo "sr_meas = $&sr_meas"
+
+* Also provide two-crossing method as backup
+* Output goes from ~0.62V to ~0.99V, so use 0.7V and 0.9V crossings
+meas tran t_low WHEN v(vout)=0.7 RISE=1
+meas tran t_high WHEN v(vout)=0.9 RISE=1
+
+echo "t_low = $&t_low"
+echo "t_high = $&t_high"
+echo "v_low = 0.7"
+echo "v_high = 0.9"
+
+* Also 10-90% fallback
+meas tran v_before FIND v(vout) AT=9.9u
+meas tran v_after FIND v(vout) AT=60u
+
+let step = v_after - v_before
+let v_10 = v_before + 0.1 * step
+let v_90 = v_before + 0.9 * step
+
+meas tran t10 WHEN v(vout)=$&v_10 RISE=1
+meas tran t90 WHEN v(vout)=$&v_90 RISE=1
+
+echo "t10 = $&t10"
+echo "t90 = $&t90"
+echo "v_before = $&v_before"
+echo "v_after = $&v_after"
+
+quit
+.endc
+.end

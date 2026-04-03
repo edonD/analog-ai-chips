@@ -1,0 +1,69 @@
+* UNIT-FIXED copy of envelope_det.spice (bare microns -> explicit u suffix)
+* VibroSense Block 04: Envelope Detector v2 — SKY130A (Transistor-Level)
+* Precision half-wave rectifier (dual ota_pga_v2 in feedback) + Gm-C LPF
+* NO behavioral models — all real SKY130 MOSFETs + verified two-stage Miller OTA
+*
+* Architecture:
+*   Stage 1: Dual-OTA precision rectifier using ota_pga_v2 (>75dB gain).
+*     OTA1 (inp=vin, inn=rect) + PMOS: forces rect = vin when vin > rect
+*     OTA2 (inp=vcm, inn=rect) + PMOS: clamps rect = vcm when vin < vcm
+*     NMOS sink (S=vcm, G=VDD): zero-current discharge at rect=vcm,
+*     proportional for rect>vcm. No resistor = no feedback instability.
+*   Stage 2: 5T OTA + 50nF cap for Gm-C LPF (fc ~ 9 Hz)
+*
+* Requires: .option scale=1e-6 in testbench
+*           .include "ota_pga_v2.spice"
+
+* ============================================================
+* SUB-BLOCK 1: Precision Half-Wave Rectifier (dual OTA feedback)
+* ============================================================
+
+.subckt rectifier_v2 vin vcm rect vdd gnd vbn
+
+* OTA1: positive-half follower (rect tracks vin when vin > vcm)
+Xota1 vdd gnd vin rect oa1 vbn gnd vdd vdd ota_pga_v2
+
+* OTA2: clamp to vcm during negative half
+Xota2 vdd gnd vcm rect oa2 vbn gnd vdd vdd ota_pga_v2
+
+* PMOS output transistors
+XMph1 rect oa1 vdd vdd sky130_fd_pr__pfet_01v8 w=2u l=1u
+XMph2 rect oa2 vdd vdd sky130_fd_pr__pfet_01v8 w=2u l=1u
+
+* NMOS discharge to vcm: source=vcm, gate=VDD, drain=rect
+* In triode (small Vds): I proportional to (rect-vcm)
+* At rect=vcm: Vds=0, I=0 → no undershoot below vcm
+* Effective R ~ 6.85M → tau = 8.9us with 1.3pF parasitic
+XMsink rect vdd vcm gnd sky130_fd_pr__nfet_01v8 w=0.42u l=100u
+
+.ends rectifier_v2
+
+* ============================================================
+* SUB-BLOCK 2: Gm-C Low-Pass Filter (fc ~ 9 Hz)
+* ============================================================
+
+.subckt lpf_10hz vin vout vdd gnd vbn_lpf
+
+* 5T OTA follower: fc = gm/(2*pi*C)
+* At 100nA tail: gm ~ 2.9uS, C = 50nF → fc ~ 9.3 Hz
+XM1    d1   vin   tail gnd sky130_fd_pr__nfet_01v8 w=2u l=4u
+XM2    vout vout  tail gnd sky130_fd_pr__nfet_01v8 w=2u l=4u
+XMtail tail vbn_lpf gnd gnd sky130_fd_pr__nfet_01v8 w=1u l=8u
+
+XMp3   d1   d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4u l=4u
+XMp4   vout d1   vdd vdd sky130_fd_pr__pfet_01v8 w=4u l=4u
+
+Clpf vout gnd 50n
+
+.ends lpf_10hz
+
+* ============================================================
+* TOP-LEVEL: Envelope Detector
+* ============================================================
+
+.subckt envelope_det vin vcm vout vdd gnd vbn vbn_lpf
+
+Xrect vin vcm rect vdd gnd vbn rectifier_v2
+Xlpf  rect vout vdd gnd vbn_lpf lpf_10hz
+
+.ends envelope_det

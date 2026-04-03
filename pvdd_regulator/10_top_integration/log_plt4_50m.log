@@ -1,0 +1,167 @@
+Using SPARSE 1.3 as Direct Linear Solver
+Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+Note: No compatibility mode selected!
+
+
+Circuit: PVDD Dropout Characterization
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+bvdd                                        10
+avbg                                     1.226
+ibias                                 0.995801
+svdd                                       2.2
+en                                         2.2
+en_ret                                       0
+pvdd                                   5.00276
+xdut.gate                              8.51057
+xdut.xrss.t1                             1.226
+xdut.xrss.t2                             1.226
+xdut.vref_ss                             1.226
+xdut.xea.ibias_en                     0.995742
+xdut.ea_en                                  10
+xdut.ea_out                            8.51057
+xdut.xea.pb_tail                       8.63788
+xdut.xea.tail_s                        3.63315
+xdut.xea.d1                            1.11258
+xdut.xea.d2                           0.890214
+xdut.vfb                               1.22668
+xdut.xea.comp_mid                      8.51057
+xdut.xfb.xr_top.t1                     5.00231
+xdut.xfb.xr_top.t2                     1.22713
+xdut.xfb.xr_bot.t1                     1.22623
+xdut.xfb.xr_bot.t2                 0.000447066
+xdut.ibias_ilim                        1.08951
+xdut.xilim.xrcas_top.t1                9.99946
+xdut.xilim.xrcas_top.t2                 5.7088
+xdut.xilim.cas_bias                    5.70827
+xdut.xilim.xrcas_bot.t1                5.70773
+xdut.xilim.xrcas_bot.t2            0.000537233
+xdut.xilim.cas_mid                     6.70129
+xdut.xilim.sense_out                 0.0602242
+xdut.xilim.det_n                            10
+xdut.xilim.xrpu.t1                          10
+xdut.xilim.xrpu.t2                          10
+xdut.ilim_flag                     2.36256e-06
+xdut.xuv.xr_top.t1                     5.58736
+xdut.xuv.xr_top.t2                     1730.65
+xdut.xuv.mid_uv                        1731.23
+xdut.xuv.xr_bot.t1                     1731.86
+xdut.xuv.xr_bot.t2                   -0.631423
+xdut.xuv.out_n                         3.10571
+xdut.xuv.xr_hyst.t1                    3.17243
+xdut.xuv.xr_hyst.t2                    1731.16
+xdut.xuv.xr_bias.t1                     2.1999
+xdut.xuv.xr_bias.t2                   0.800422
+xdut.xuv.bias_n                       0.800327
+xdut.xuv.tail                         0.533025
+xdut.xuv.out_p                         1.11517
+xdut.xuv.en_bar                    6.38495e-07
+xdut.uvov_en                           5.00276
+xdut.xuv.nor_mid                      0.167425
+uv_flag                            1.18794e-07
+xdut.xov.xr_top.t1                      5.4872
+xdut.xov.xr_top.t2                     1633.04
+xdut.xov.mid_ov                        1633.52
+xdut.xov.xr_bot.t1                     1634.02
+xdut.xov.xr_bot.t2                   -0.495593
+ov_flag                                2.42447
+xdut.xov.xr_hyst.t1                    2.44035
+xdut.xov.xr_hyst.t2                    1633.51
+xdut.xov.xr_bias.t1                     2.1999
+xdut.xov.xr_bias.t2                   0.800422
+xdut.xov.bias_n                       0.800327
+xdut.xov.tail                         0.510739
+xdut.xov.out_p                         1.13473
+xdut.xov.out_n                        0.936509
+xdut.xov.en_bar                    6.38495e-07
+xdut.xov.nor_mid                       2.34962
+xdut.xzc.n3                            3.90682
+xdut.xzc.n2                            2.74038
+xdut.xzc.n1                            1.64444
+xdut.xzc.ns                           0.964426
+xdut.xzc.xrstack.t1                   0.964293
+xdut.xzc.xrstack.t2                   0.500434
+xdut.xzc.vg                           0.500301
+xdut.xzc.xrpd.t1                      0.500246
+xdut.xzc.xrpd.t2                   5.45114e-05
+xdut.xzc.nf6                            3.9799
+xdut.xzc.nf5                           3.05294
+xdut.xzc.nf4                           2.22657
+xdut.xzc.nf3                           1.50507
+xdut.xzc.nf2                          0.892035
+xdut.xzc.nf1                          0.390084
+xdut.xmc.xrtop.t1                      9.99803
+xdut.xmc.xrtop.t2                      8.06096
+xdut.xmc.tap1                            8.059
+xdut.xmc.xr12.t1                       8.05703
+xdut.xmc.xr12.t2                       4.81311
+xdut.xmc.tap2                          4.81114
+xdut.xmc.xr23.t1                       4.80918
+xdut.xmc.xr23.t2                       4.49827
+xdut.xmc.tap3                          4.49631
+xdut.xmc.xr34.t1                       4.49434
+xdut.xmc.xr34.t2                       3.60809
+xdut.xmc.tap4                          3.60612
+xdut.xmc.xrbot.t1                      3.60415
+xdut.xmc.xrbot.t2                   0.00196882
+xdut.xmc.c1inv                     1.99874e-06
+xdut.xmc.comp1                         5.00276
+xdut.xmc.c2inv                     1.43236e-06
+xdut.xmc.comp2                         5.00276
+xdut.xmc.c3inv                     1.51826e-06
+xdut.xmc.comp3                         5.00276
+xdut.xmc.c4inv                        0.016907
+xdut.xmc.comp4                         5.00276
+xdut.xmc.comp1b                    1.41039e-06
+xdut.xmc.comp2b                    1.41039e-06
+xdut.xmc.comp3b                    1.41039e-06
+xdut.xmc.comp4b                    1.41039e-06
+xdut.pass_off                      1.41039e-06
+xdut.xmc.by_s1                      1.4096e-06
+xdut.xmc.bypass_enb                    5.00275
+xdut.xmc.by_s2                      1.4096e-06
+xdut.xmc.by_pmid                       5.00275
+xdut.bypass_en                     1.41039e-06
+xdut.xmc.ea_s1                     4.06559e-13
+xdut.xmc.ea_enb                    1.41038e-06
+xdut.xmc.ea_pmid                       5.00276
+xdut.mc_ea_en                          5.00276
+xdut.xmc.rs_s1                      1.4096e-06
+xdut.xmc.ref_selb                      5.00276
+xdut.ref_sel                       1.41039e-06
+xdut.xmc.uvov_enb                  1.41039e-06
+xdut.xmc.ilim_enb                  1.41039e-06
+xdut.ilim_en                           5.00276
+xdut.su_ea_en                               10
+xdut.xsu.xr_top.t1                     5.45718
+xdut.xsu.xr_top.t2                     2462.24
+xdut.xsu.sense_mid                     2462.69
+xdut.xsu.xr_bot.t1                     2463.15
+xdut.xsu.xr_bot.t2                   -0.454416
+xdut.xsu.det_n                       0.0210779
+xdut.xsu.xr_pu.t1                      9.99981
+xdut.xsu.xr_pu.t2                    0.0212655
+startup_done                                10
+xdut.pass_off_b                             10
+xdut.xls_en.in_b                   3.25866e-07
+xdut.xls_en.n1                     8.97451e-06
+xdut.en_bvdd                                10
+ven_ret#branch                               0
+ven#branch                                   0
+vsvdd#branch                       0.000952903
+vavbg#branch                       3.46945e-18
+vbvdd#branch                        -0.0230197
+
+ Reference value :  0.00000e+00 Reference value :  3.52800e-03 Reference value :  6.22800e-03 Reference value :  8.92800e-03 Reference value :  1.14280e-02 Reference value :  1.39280e-02 Reference value :  1.64280e-02 Reference value :  1.89280e-02 Reference value :  2.14280e-02 Reference value :  2.42280e-02 Reference value :  2.69280e-02 Reference value :  2.96280e-02 Reference value :  3.23280e-02 Reference value :  3.48280e-02 Reference value :  3.74280e-02 Reference value :  4.04280e-02 Reference value :  4.29280e-02 Reference value :  4.55280e-02 Reference value :  4.68280e-02 Reference value :  4.79392e-02 Reference value :  5.01535e-02 Reference value :  5.27535e-02 Reference value :  5.55535e-02 Reference value :  5.81535e-02
+No. of Data Rows : 610
+Plot 4 dropout done
+ngspice-42 done

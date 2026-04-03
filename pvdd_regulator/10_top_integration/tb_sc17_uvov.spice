@@ -1,0 +1,28 @@
+* Plot 17: UV/OV Comparator Thresholds (showcase)
+.title Showcase UVOV
+.param mc_mm_switch = 0
+.param MC_MM_SWITCH = 0
+.subckt sky130_fd_pr__model__parasitic__res_po r0 r1 sub w=1 l=1
+c0 r0 sub {{0.1e-15*w*l}}
+c1 r1 sub {{0.1e-15*w*l}}
+.ends sky130_fd_pr__model__parasitic__res_po
+
+.lib "../sky130.lib.spice" tt
+.include ../05_uv_ov_comparators/design.cir
+Vpvdd pvdd 0 PWL(0 0 50m 7 100m 0)
+Vref vref 0 1.226
+Vsvdd svdd 0 2.2
+Ven en 0 2.2
+XUV pvdd vref uv_flag svdd 0 en uv_comparator
+XOV pvdd vref ov_flag svdd 0 en ov_comparator
+.option gmin=1e-10 method=gear reltol=1e-3 abstol=1e-10 vntol=1e-4
+.tran 10u 100m
+.control
+run
+set filetype = ascii
+wrdata sc17_pvdd.dat v(pvdd)
+wrdata sc17_uv.dat v(uv_flag)
+wrdata sc17_ov.dat v(ov_flag)
+quit
+.endc
+.end

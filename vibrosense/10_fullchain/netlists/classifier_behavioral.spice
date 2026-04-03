@@ -1,0 +1,104 @@
+* VibroSense-1 Classifier — Behavioral SPICE Model
+* 8-input, 4-class linear classifier using voltage-controlled sources
+* Computes: score[k] = sum_i(w[k][i] * V(in_i)) + bias[k]
+* Output: class = argmax(score[k]), encoded as voltage on class_out
+*
+* This behavioral model validates the signal chain without requiring
+* the full charge-domain MAC circuit. Weights from trained_weights.json.
+*
+* Architecture:
+*   - 4 VCVS compute weighted sums (one per class)
+*   - WTA comparator selects maximum
+*   - Output encoded as: class 0=0V, 1=0.45V, 2=0.9V, 3=1.35V
+
+.subckt classifier_behavioral
++ in0 in1 in2 in3 in4 in5 in6 in7
++ class_out class_valid_out
++ vdd vss
+
+* ================================================
+* Normalization scaling
+* Features come as voltages [0, 1.8V]
+* Normalized features = V(in_i) / 1.8 (maps to [0,1])
+* ================================================
+
+* ================================================
+* Weighted sum computation for each class
+* Using quantized weights from trained_weights.json
+* w_quantized values, scaled to work with [0,1.8V] inputs
+* Score = sum(w[k][i] * V(in_i)/1.8) + bias[k]
+* ================================================
+
+* Class 0 (Normal): weights = [5.55, 1.32, -5.03, -9.25, -11.37, -5.03, -7.14, -0.80]
+* bias = 3.60
+Bscore0 score0 vss V = {
++  5.545 * V(in0,vss)/1.8
++  + 1.317 * V(in1,vss)/1.8
++  + (-5.026) * V(in2,vss)/1.8
++  + (-9.254) * V(in3,vss)/1.8
++  + (-11.369) * V(in4,vss)/1.8
++  + (-5.026) * V(in5,vss)/1.8
++  + (-7.140) * V(in6,vss)/1.8
++  + (-0.797) * V(in7,vss)/1.8
++  + 3.600 }
+
+* Class 1 (Inner Race): weights = [-7.14, 5.55, 14.00, -0.80, 1.32, -2.91, 3.43, 5.55]
+* bias = -2.80
+Bscore1 score1 vss V = {
++  (-7.140) * V(in0,vss)/1.8
++  + 5.545 * V(in1,vss)/1.8
++  + 14.002 * V(in2,vss)/1.8
++  + (-0.797) * V(in3,vss)/1.8
++  + 1.317 * V(in4,vss)/1.8
++  + (-2.912) * V(in5,vss)/1.8
++  + 3.431 * V(in6,vss)/1.8
++  + 5.545 * V(in7,vss)/1.8
++  + (-2.798) }
+
+* Class 2 (Ball): weights = [-0.80, -2.91, 5.55, 9.77, -9.25, -2.91, 3.43, -5.03]
+* bias = 1.47
+Bscore2 score2 vss V = {
++  (-0.797) * V(in0,vss)/1.8
++  + (-2.912) * V(in1,vss)/1.8
++  + 5.545 * V(in2,vss)/1.8
++  + 9.774 * V(in3,vss)/1.8
++  + (-9.254) * V(in4,vss)/1.8
++  + (-2.912) * V(in5,vss)/1.8
++  + 3.431 * V(in6,vss)/1.8
++  + (-5.026) * V(in7,vss)/1.8
++  + 1.467 }
+
+* Class 3 (Outer Race): weights = [3.43, -2.91, -13.48, 1.32, 18.23, 9.77, -0.80, -0.80]
+* bias = -2.37
+Bscore3 score3 vss V = {
++  3.431 * V(in0,vss)/1.8
++  + (-2.912) * V(in1,vss)/1.8
++  + (-13.483) * V(in2,vss)/1.8
++  + 1.317 * V(in3,vss)/1.8
++  + 18.231 * V(in4,vss)/1.8
++  + 9.774 * V(in5,vss)/1.8
++  + (-0.797) * V(in6,vss)/1.8
++  + (-0.797) * V(in7,vss)/1.8
++  + (-2.372) }
+
+* ================================================
+* Winner-Take-All (argmax)
+* Output voltage encodes class: 0=0V, 1=0.45V, 2=0.9V, 3=1.35V
+* ================================================
+
+Bclass class_out vss V = {
++  ( V(score0,vss) >= V(score1,vss)
++    && V(score0,vss) >= V(score2,vss)
++    && V(score0,vss) >= V(score3,vss) ) ? 0.0
++  : ( V(score1,vss) >= V(score0,vss)
++    && V(score1,vss) >= V(score2,vss)
++    && V(score1,vss) >= V(score3,vss) ) ? 0.45
++  : ( V(score2,vss) >= V(score0,vss)
++    && V(score2,vss) >= V(score1,vss)
++    && V(score2,vss) >= V(score3,vss) ) ? 0.9
++  : 1.35 }
+
+* Class valid passthrough
+Bcv class_valid_out vss V = { 0 }
+
+.ends classifier_behavioral

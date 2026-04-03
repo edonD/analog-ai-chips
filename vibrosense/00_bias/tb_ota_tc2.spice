@@ -1,0 +1,72 @@
+** tb_ota_tc2.spice — OTA beta-mult with MOSFET R + TC tuning
+** Fine-tune Mr1 vs R1 ratio for minimum TC
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+XM3 nbias vbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4 out_n vbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1 nbias nbias 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2 out_n nbias src_m2 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+
+** R1 = xhigh_po (TC≈0) + NMOS triode (TC≈+5000 ppm/C)
+** Previous: Rpoly l=10 (~74k) + Mr1 W=0.42 L=8 (~79k) gave -131 ppm/C (CTAT)
+** Need less MOSFET, more poly to reduce CTAT → toward ZTC
+** Try: Rpoly l=14 (~103k) + Mr1 W=0.55 L=8 (~lower R, less MOSFET fraction)
+XR1 src_m2 mid_r 0 sky130_fd_pr__res_xhigh_po w=0.35 l=14
+XMr1 mid_r vdd 0 0 sky130_fd_pr__nfet_01v8 w=0.55 l=8
+
+** OTA
+XMo1 od1 nbias otail 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo2 vbias out_n otail 0 sky130_fd_pr__nfet_01v8 w=1 l=4
+XMo3 od1 od1 vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo4 vbias od1 vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XMo5 otail nbias 0 0 sky130_fd_pr__nfet_01v8 w=0.5 l=8
+
+XM7 iref_out vbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+Vload iref_out 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nbias)=0.65 v(out_n)=0.65 v(vbias)=0.55 v(od1)=0.85 v(mid_r)=0.04
+
+.control
+    echo "=== Temperature Sweep ==="
+    foreach temp_val -40 -20 0 20 27 40 60 85
+        set temp = $temp_val
+        op
+        let i = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let sat = v(nbias) - 0.01
+        echo "T=$temp_val I=$&i nA nbias=$&v(nbias)"
+    end
+
+    echo ""
+    echo "=== VDD Sweep (27C) ==="
+    set temp = 27
+    foreach vdd_val 1.4 1.5 1.6 1.7 1.8 1.9 2.0
+        alter Vdd = $vdd_val
+        op
+        let i = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        echo "VDD=$vdd_val I=$&i nA"
+    end
+
+    echo ""
+    echo "=== Key checks at VDD=1.8 27C ==="
+    set temp = 27
+    alter Vdd = 1.8
+    op
+    let iref = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "Iref=$&iref nA"
+    echo "src_m2=$&v(src_m2) mid_r=$&v(mid_r)"
+    let r_poly = (v(src_m2) - v(mid_r)) / abs(@m.xm2.msky130_fd_pr__nfet_01v8[id]) / 1000
+    let r_mos = v(mid_r) / abs(@m.xmr1.msky130_fd_pr__nfet_01v8[id]) / 1000
+    echo "R_poly=$&r_poly kohm  R_mos=$&r_mos kohm"
+    let frac_mos = r_mos / (r_poly + r_mos) * 100
+    echo "MOSFET fraction = $&frac_mos %"
+    let power = abs(i(Vdd)) * 1.8 * 1e6
+    echo "Power = $&power uW"
+.endc
+
+.end

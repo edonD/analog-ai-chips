@@ -1,0 +1,51 @@
+* Bias optimization: sweep Vbcp with unity-gain feedback
+.lib "sky130_minimal.lib.spice" tt
+.include "ota_foldcasc.spice"
+
+.param vdd_val = 1.8
+
+Vdd vdd 0 dc {vdd_val}
+Vss vss 0 dc 0
+
+* Bias: diode-connected NMOS for Vbn
+Mbn vbn vbn 0 0 sky130_fd_pr__nfet_01v8__model W=4u L=4u nf=1
+Ibias vdd vbn dc 500n
+
+Vbcn vbcn 0 dc 0.80
+
+* PMOS bias: diode-connected
+Mbp vbp vbp vdd vdd sky130_fd_pr__pfet_01v8__model W=8u L=1u nf=2
+Ibp vbp 0 dc 500n
+
+Vbcp vbcp 0 dc 0.70
+
+* Unity-gain feedback
+Vinp vinp 0 dc 0.9
+Rfb vout vinn 1
+
+Xota vinp vinn vout vdd vss vbn vbcn vbp vbcp ota_foldcasc
+CL vout 0 10p
+
+.op
+
+.control
+  * Sweep Vbcp
+  foreach vbcp_val 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10
+    alter Vbcp dc = $vbcp_val
+    op
+    echo "Vbcp=$vbcp_val Vout=$&v(vout) M6_Vds=$&@m.xota.m6[vds] M4_Vds=$&@m.xota.m4[vds] M8_Vds=$&@m.xota.m8[vds]"
+  end
+
+  echo ""
+  echo "Now sweep Vbcn with Vbcp=0.70:"
+  alter Vbcp dc = 0.70
+  foreach vbcn_val 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00
+    alter Vbcn dc = $vbcn_val
+    op
+    echo "Vbcn=$vbcn_val Vout=$&v(vout) M8_Vds=$&@m.xota.m8[vds] M10_Vds=$&@m.xota.m10[vds] M7_Vds=$&@m.xota.m7[vds]"
+  end
+
+  quit
+.endc
+
+.end

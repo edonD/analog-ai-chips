@@ -1,0 +1,25 @@
+* Noise Analysis — Ch1 with REAL transistor-level OTA
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "bpf_ch1_real.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.565
+Vbcn vbcn 0 dc 0.795
+Vbp  vbp  0 dc 0.860
+Vbcp vbcp 0 dc 0.605
+Vcm vcm 0 dc 0.9
+
+Vin in 0 dc 0.9 ac 0
+Vss vss 0 dc 0
+
+Xbpf in bp_out vdd vss vcm vbn vbcn vbp vbcp bpf_ch1_real
+
+.nodeset v(xbpf.int1)=0.9 v(xbpf.int2)=0.9
+
+.control
+noise v(bp_out) Vin dec 50 1 100k
+print onoise_total
+.endc
+.end

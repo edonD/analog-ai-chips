@@ -1,0 +1,36 @@
+* VERIFICATION: Ch5 pseudo-diff BPF with EXACT claimed bias voltages
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "pseudo_res.spice"
+.include "bpf_ch5_real.spice"
+
+Vdd vdd 0 dc 1.8
+Vcm vcm 0 dc 0.9
+Vss vss 0 dc 0
+
+* Ch5 Iref=870nA - bias from bpf_ch5_real.spice header
+Vbn vbn 0 dc 0.6914
+Vbcn vbcn 0 dc 0.9214
+Vbp vbp 0 dc 0.66
+Vbcp vbcp 0 dc 0.405
+
+* Differential input
+Vinp inp 0 dc 0.9 ac 0.5
+Vinn inn 0 dc 0.9 ac -0.5
+
+* DUT
+Xbpf inp inn bp_outp bp_outn vdd vss vcm vbn vbcn vbp vbcp bpf_ch5_real
+
+.nodeset v(xbpf.int1p)=0.9 v(xbpf.int2p)=0.9
++ v(xbpf.int1n)=0.9 v(xbpf.int2n)=0.9
+
+.control
+op
+echo "Supply current:"
+let isup = -i(vdd)
+print isup
+
+ac dec 200 100 200k
+wrdata verify_ch5_ac.txt vdb(bp_outp,bp_outn)
+.endc
+.end

@@ -1,0 +1,32 @@
+{
+  "name": "VibroSense Python Training Pipeline",
+  "description": "CWRU Bearing Dataset feature extraction + single-layer perceptron training. Features MUST match analog filter specs (2nd-order Butterworth, same bands). Weights quantized to 4-bit after training.",
+  "supply_v": null,
+  "margin_rule": "Float32 accuracy >92%, INT4 accuracy >88%, quantization loss <5pp",
+  "measurements": {
+    "float32_accuracy_pct": {
+      "target": ">92",
+      "weight": 30,
+      "unit": "%",
+      "description": "4-class classification accuracy with float32 weights on CWRU test set"
+    },
+    "int4_accuracy_pct": {
+      "target": ">88",
+      "weight": 30,
+      "unit": "%",
+      "description": "4-class accuracy after weight quantization to 4-bit"
+    },
+    "quantization_loss_pp": {
+      "target": "<5",
+      "weight": 20,
+      "unit": "pp",
+      "description": "Accuracy drop from float32 to INT4"
+    },
+    "analog_sim_accuracy_pct": {
+      "target": ">85",
+      "weight": 20,
+      "unit": "%",
+      "description": "Accuracy when tested with analog-simulated feature vectors vs Python golden"
+    }
+  }
+}

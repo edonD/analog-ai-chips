@@ -1,0 +1,40 @@
+* VERIFICATION: Ch2 pseudo-diff BPF with EXACT claimed bias voltages
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "pseudo_res.spice"
+.include "bpf_ch2_real.spice"
+
+Vdd vdd 0 dc 1.8
+Vcm vcm 0 dc 0.9
+Vss vss 0 dc 0
+
+* EXACT bias voltages from results.md for Ch2
+Vbn vbn 0 dc 0.5973
+Vbcn vbcn 0 dc 0.8273
+Vbp vbp 0 dc 0.81
+Vbcp vbcp 0 dc 0.555
+
+* Differential input
+Vinp inp 0 dc 0.9 ac 0.5
+Vinn inn 0 dc 0.9 ac -0.5
+
+* DUT
+Xbpf inp inn bp_outp bp_outn vdd vss vcm vbn vbcn vbp vbcp bpf_ch2_real
+
+.nodeset v(xbpf.int1p)=0.9 v(xbpf.int2p)=0.9
++ v(xbpf.int1n)=0.9 v(xbpf.int2n)=0.9
+
+.control
+op
+echo "=== DC Operating Point ==="
+echo "Supply current:"
+let isup = -i(vdd)
+print isup
+let pwr = isup * 1.8
+echo "Power:"
+print pwr
+
+ac dec 200 10 100k
+wrdata verify_ch2_ac.txt vdb(bp_outp,bp_outn)
+.endc
+.end

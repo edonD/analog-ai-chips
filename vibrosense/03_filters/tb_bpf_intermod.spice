@@ -1,0 +1,35 @@
+* TB2: Multi-Tone Intermodulation Test
+* All 5 channels active simultaneously
+* Input: sum of 5 tones at f0 of each channel, 100 mVpk each
+
+.include bpf_ch1.spice
+.include bpf_ch2.spice
+.include bpf_ch3.spice
+.include bpf_ch4.spice
+.include bpf_ch5.spice
+
+Vdd vdd 0 1.8
+Vss vss 0 0
+Vcm vcm 0 0.9
+
+* Multi-tone input using behavioral source
+* 5 tones: 224, 1000, 3162, 7071, 14142 Hz at 100 mVpk each
+.param pi = 3.14159265359
+Bin in 0 V = 0.9 + 0.1*sin(2*pi*224*time) + 0.1*sin(2*pi*1000*time) + 0.1*sin(2*pi*3162*time) + 0.1*sin(2*pi*7071*time) + 0.1*sin(2*pi*14142*time)
+
+Xch1 in bp1 vdd vss vcm bpf_ch1
+Xch2 in bp2 vdd vss vcm bpf_ch2
+Xch3 in bp3 vdd vss vcm bpf_ch3
+Xch4 in bp4 vdd vss vcm bpf_ch4
+Xch5 in bp5 vdd vss vcm bpf_ch5
+
+.control
+tran 1u 60m 10m
+wrdata intermod_ch1.txt v(bp1)
+wrdata intermod_ch2.txt v(bp2)
+wrdata intermod_ch3.txt v(bp3)
+wrdata intermod_ch4.txt v(bp4)
+wrdata intermod_ch5.txt v(bp5)
+.endc
+
+.end

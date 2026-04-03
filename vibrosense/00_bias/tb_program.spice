@@ -1,0 +1,67 @@
+** tb_program.spice — Exact program sizing with R1=2M
+** R1=2M: sky130_fd_pr__res_xhigh_po w=2 l=2000 (1000 squares * 2000 ohm/sq)
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Program exact sizing
+XM3 nbias nbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM4 out_n nbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+XM1 nbias nbias 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM2 out_n nbias src_m2 0 sky130_fd_pr__nfet_01v8 w=8 l=4
+XR1 src_m2 0 0 sky130_fd_pr__res_xhigh_po w=2 l=2000
+XM7 iref_out nbias vdd vdd sky130_fd_pr__pfet_01v8 w=4 l=4
+Vload iref_out 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nbias)=0.62
+
+.control
+    op
+    echo "=== Program Exact Sizing (R1=2M) ==="
+    let iref = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "Iref = $&iref nA"
+    echo "nbias = $&v(nbias)"
+    echo "out_n = $&v(out_n)"
+    echo "src_m2 = $&v(src_m2)"
+    let m1 = @m.xm1.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m2 = @m.xm2.msky130_fd_pr__nfet_01v8[id] * 1e9
+    let m4vds = @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+    let m2vds = @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+    let m2vov = @m.xm2.msky130_fd_pr__nfet_01v8[vgs] - @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+    echo "M1=$&m1 M2=$&m2 M4vds=$&m4vds M2vds=$&m2vds M2vov=$&m2vov"
+    let power = abs(i(Vdd)) * 1.8 * 1e6
+    echo "Power = $&power uW"
+
+    ** Quick supply check
+    echo ""
+    foreach vdd_val 1.6 1.8 2.0
+        alter Vdd = $vdd_val
+        op
+        let iv = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+        let m1v = @m.xm1.msky130_fd_pr__nfet_01v8[id] * 1e9
+        let m2v = @m.xm2.msky130_fd_pr__nfet_01v8[id] * 1e9
+        echo "VDD=$vdd_val: I=$&iv M1=$&m1v M2=$&m2v nb=$&v(nbias) on=$&v(out_n)"
+    end
+
+    ** Quick temp check
+    echo ""
+    set temp = -40
+    alter Vdd = 1.8
+    op
+    let im40 = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    set temp = 27
+    op
+    let i27 = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    set temp = 85
+    op
+    let i85 = abs(@m.xm7.msky130_fd_pr__pfet_01v8[id]) * 1e9
+    echo "T=-40: $&im40 nA  T=27: $&i27 nA  T=85: $&i85 nA"
+    let tc = (i85 - im40) / i27 / 125 * 1e6
+    echo "TC approx = $&tc ppm/C"
+.endc
+
+.end

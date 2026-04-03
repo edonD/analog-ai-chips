@@ -1,0 +1,86 @@
+* TB1b: Two Consecutive Conversions — THE v2 KILLER TEST
+* Conversion 1: Vin = 0.47V → expect code ~156
+* Conversion 2: Vin = 0.90V → expect code ~64
+*
+* If conversion 2 gives code 255 or same as conversion 1,
+* the DAC reset bug is present. v2 failed this test.
+*
+* Also verifies during conversion 2's sample phase:
+*   - vtop tracks new Vin (0.9V)
+*   - ALL sw[7:0] = 0V (DAC reset to GND)
+
+.include sky130_pdk_fixup.spice
+.lib sky130_v3.lib.spice sf
+
+.include v3_cap_dac.spice
+.include v3_comparator.spice
+.include v3_sar_logic.spice
+.include v3_sar_adc.spice
+
+* Supply and reference
+VDD vdd 0 1.8
+VSS vss 0 0
+Vref vref 0 1.2
+
+* Input voltage: switches from 0.47V to 0.90V between conversions
+* First conversion starts at ~15us, completes at ~115us
+* Allow some setup time, then change Vin before second conversion starts
+Vin vin 0 PWL(0 0.47 114u 0.47 115u 0.90 260u 0.90)
+
+* Clock: 100kHz, 50% duty
+Vclk clk 0 PULSE(0 1.8 5u 10n 10n 5u 10u)
+
+* Convert: goes HIGH at 15us, stays HIGH for continuous conversion
+Vconv convert 0 PWL(0 0 14.9u 0 15u 1.8)
+
+* Sleep: always awake
+Vslp sleep_n 0 1.8
+
+* ADC instance
+Xadc vin vref clk convert sleep_n
++ d7 d6 d5 d4 d3 d2 d1 d0 valid
++ vdd vss v3_sar_adc
+
+.tran 100n 260u
+
+* Measure conversion 1 code (first valid pulse)
+.meas tran t_v1 WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=1
+.meas tran c1_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=1
+
+* Measure conversion 2 code (second valid pulse)
+.meas tran t_v2 WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b7 FIND v(d7) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b6 FIND v(d6) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b5 FIND v(d5) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b4 FIND v(d4) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b3 FIND v(d3) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b2 FIND v(d2) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b1 FIND v(d1) WHEN v(valid)=0.9 RISE=2
+.meas tran c2_b0 FIND v(d0) WHEN v(valid)=0.9 RISE=2
+
+.control
+run
+
+echo ""
+echo "=== TB1b: Two Consecutive Conversions ==="
+echo "Conv 1: Vin=0.47V, expected code ~156 (10011100)"
+echo "Conv 2: Vin=0.90V, expected code ~64  (01000000)"
+echo ""
+echo "--- Conversion 1 ---"
+print t_v1
+print c1_b7 c1_b6 c1_b5 c1_b4 c1_b3 c1_b2 c1_b1 c1_b0
+echo "--- Conversion 2 ---"
+print t_v2
+print c2_b7 c2_b6 c2_b5 c2_b4 c2_b3 c2_b2 c2_b1 c2_b0
+
+wrdata v3_tb8_sf.dat v(Xadc.vtop) v(d7) v(d6) v(d5) v(d4) v(d3) v(d2) v(d1) v(d0) v(valid) v(Xadc.sample)
+.endc
+
+.end

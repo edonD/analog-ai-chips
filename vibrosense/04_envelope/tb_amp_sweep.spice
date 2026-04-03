@@ -1,0 +1,60 @@
+* TB: Envelope Detector v2 — Amplitude Sweep
+* Tests rectification accuracy across 5mV to 500mVpp
+.option scale=1e-6
+.lib "sky130_minimal_v2.lib.spice" tt
+.include "ota_pga_v2.spice"
+.include "envelope_det.spice"
+
+.param vdd_val = 1.8
+.param vcm_val = 0.9
+.param amp_val = 50m
+.param freq_val = 3162
+
+Vdd vdd 0 dc {vdd_val}
+
+* Self-biasing vbn — reduced to 300nA for lower power
+* OTA UGB scales ~linearly with bias: ~95kHz at 300nA (plenty for 3kHz signals)
+Ibias_n vdd vbn dc 1500n
+Xbias_n vbn vbn 0 0 sky130_fd_pr__nfet_01v8 w=11.4 l=14 nf=1
+Cbn vbn 0 100p
+
+* LPF bias — target ~5nA for fc~10Hz (deep subthreshold)
+Ibias_lpf vdd vbn_lpf dc 100n
+Xbias_lpf vbn_lpf vbn_lpf 0 0 sky130_fd_pr__nfet_01v8 w=1 l=8 nf=1
+Cbn_lpf vbn_lpf 0 100p
+
+* Input
+Vin vin 0 sin({vcm_val} {amp_val} {freq_val})
+Vcm vcm 0 dc {vcm_val}
+
+* DUT
+Xenv vin vcm vout vdd 0 vbn vbn_lpf envelope_det
+
+.tran 1u 500m
+
+.control
+run
+
+* Measure from 400-500ms for settled values
+meas tran vout_avg AVG v(vout) from=400m to=500m
+meas tran rect_avg AVG v(xenv.rect) from=400m to=500m
+meas tran rect_min MIN v(xenv.rect) from=400m to=500m
+meas tran rect_max MAX v(xenv.rect) from=400m to=500m
+meas tran idd AVG i(Vdd) from=400m to=500m
+
+let delta_mv = (vout_avg - 0.9) * 1000
+let rect_delta_mv = (rect_avg - 0.9) * 1000
+let pwr = -idd * 1.8 * 1e6
+
+echo "amp_mV = $&amp_val"
+echo "vout_avg = $&vout_avg"
+echo "delta_mV = $&delta_mv"
+echo "rect_avg = $&rect_avg"
+echo "rect_delta_mV = $&rect_delta_mv"
+echo "rect_min = $&rect_min"
+echo "rect_max = $&rect_max"
+echo "power_uW = $&pwr"
+
+quit
+.endc
+.end

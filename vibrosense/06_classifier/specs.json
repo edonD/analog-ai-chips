@@ -1,0 +1,38 @@
+{
+  "name": "VibroSense Charge-Domain MAC Classifier",
+  "description": "Capacitive charge-sharing MAC (EnCharge-style). 4 parallel neurons x 8 features. Binary-weighted MIM caps (Cunit=50fF). Weights loaded via SPI. Winner-take-all 4-class output.",
+  "supply_v": 1.8,
+  "margin_rule": "MAC linearity and cap matching must pass Monte Carlo (100 runs minimum).",
+  "measurements": {
+    "mac_linearity_lsb": {
+      "target": "<2",
+      "weight": 30,
+      "unit": "LSB",
+      "description": "MAC output error vs ideal weighted sum"
+    },
+    "weight_precision_bits": {
+      "target": ">4",
+      "weight": 25,
+      "unit": "bits",
+      "description": "Effective weight precision from cap matching"
+    },
+    "charge_injection_lsb": {
+      "target": "<1",
+      "weight": 20,
+      "unit": "LSB",
+      "description": "Charge injection error from switch toggling"
+    },
+    "computation_time_us": {
+      "target": "<1",
+      "weight": 15,
+      "unit": "us",
+      "description": "Time for one full MAC + compare cycle"
+    },
+    "power_uw_avg": {
+      "target": "<5",
+      "weight": 10,
+      "unit": "uW",
+      "description": "Average power at 10Hz classification rate"
+    }
+  }
+}

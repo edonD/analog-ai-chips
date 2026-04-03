@@ -1,0 +1,36 @@
+* TB3: THD Measurement — Ch2 with REAL transistor-level OTA
+* Input: 200mVpp (100mV amplitude) sine at f0=1035Hz
+* 20 cycles, measure harmonics via .four
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "bpf_ch2_real.spice"
+
+Vdd vdd 0 dc 1.8
+Vbn  vbn  0 dc 0.565
+Vbcn vbcn 0 dc 0.795
+Vbp  vbp  0 dc 0.860
+Vbcp vbcp 0 dc 0.605
+Vcm vcm 0 dc 0.9
+
+* Input: 200mVpp sine at 1035Hz (measured f0) on top of Vcm
+Vin in 0 dc 0.9 SIN(0.9 0.1 1035 0 0)
+
+* DUT
+Xbpf in bp_out vdd vss vcm vbn vbcn vbp vbcp bpf_ch2_real
+Vss vss 0 dc 0
+
+.nodeset v(xbpf.int1)=0.9 v(xbpf.int2)=0.9
+
+.control
+* 20 cycles at 1035Hz = 19.3ms. Use 30ms total, skip first 10ms.
+tran 0.5u 30m 10m
+
+* Fourier analysis at f0=1035Hz
+.four 1035 v(bp_out)
+
+* Also write transient data for Python FFT
+wrdata ch2_real_thd.txt v(bp_out)
+
+.endc
+.end

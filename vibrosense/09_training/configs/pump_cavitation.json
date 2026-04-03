@@ -1,0 +1,37 @@
+{
+  "name": "pump_cavitation",
+  "description": "Centrifugal Pump Monitoring — 4-class (Normal, Cavitation, Impeller Damage, Bearing Wear)",
+  "sensor": "MEMS accelerometer mounted on pump casing",
+  "sample_rate_hz": 12000,
+  "window_seconds": 1.0,
+  "classes": ["Normal", "Cavitation", "Impeller Damage", "Bearing Wear"],
+  "n_classes": 4,
+  "bands_hz": [
+    [10, 200],
+    [200, 800],
+    [800, 2500],
+    [2500, 4500],
+    [4500, 5900]
+  ],
+  "band_labels": [
+    "Shaft rotation and vane-pass fundamental",
+    "Vane-pass harmonics, flow turbulence",
+    "Cavitation onset (broadband hiss)",
+    "Developed cavitation, impeller erosion",
+    "High-freq broadband (severe cavitation)"
+  ],
+  "envelope_lpf_hz": 5,
+  "rms_window_ms": 20,
+  "pga_gain": "4x",
+  "pga_gain_notes": "Pump vibration moderate amplitude, 4x typically sufficient",
+  "quantization_bits": 4,
+  "c_unit_fF": 10,
+  "regularization_C_grid": [0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 100.0],
+  "targets": {
+    "float_accuracy_pct": 85,
+    "quantized_accuracy_pct": 80,
+    "max_quantization_loss_pp": 5,
+    "noisy_accuracy_pct_2sigma": 75,
+    "min_per_class_recall_pct": 70
+  }
+}

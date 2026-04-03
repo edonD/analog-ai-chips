@@ -1,0 +1,63 @@
+** tb_optimize.spice — Try different PMOS/NMOS sizing combos
+
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.option scale=1e-6
+
+.lib "/home/ubuntu/.volare/sky130A/libs.tech/combined/continuous/sky130.lib.spice" tt
+
+** Config A: PMOS W=2 (halved), NMOS M1=2/4, M2=8/4
+XM3a nba nba vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XM1a nba nba 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM7a outa nba vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+VLa outa 0 0.9
+
+** Config B: PMOS W=2, NMOS M1=3/4, M2=12/4
+XM3b nbb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+XM1b nbb nbb 0 0 sky130_fd_pr__nfet_01v8 w=3 l=4
+XM7b outb nbb vdd vdd sky130_fd_pr__pfet_01v8 w=2 l=4
+VLb outb 0 0.9
+
+** Config C: PMOS W=3, NMOS M1=4/4, M2=16/4
+XM3c nbc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=3 l=4
+XM1c nbc nbc 0 0 sky130_fd_pr__nfet_01v8 w=4 l=4
+XM7c outc nbc vdd vdd sky130_fd_pr__pfet_01v8 w=3 l=4
+VLc outc 0 0.9
+
+** Config D: PMOS W=1.5, NMOS M1=2/4
+XM3d nbd nbd vdd vdd sky130_fd_pr__pfet_01v8 w=1.5 l=4
+XM1d nbd nbd 0 0 sky130_fd_pr__nfet_01v8 w=2 l=4
+XM7d outd nbd vdd vdd sky130_fd_pr__pfet_01v8 w=1.5 l=4
+VLd outd 0 0.9
+
+Vdd vdd 0 1.8
+.nodeset v(nba)=0.6 v(nbb)=0.6 v(nbc)=0.6 v(nbd)=0.6
+
+.control
+    op
+    echo "=== Config A: P=2/4 N1=2/4 ==="
+    echo "Iref = $&@m.xm7a.msky130_fd_pr__pfet_01v8[id]"
+    echo "nbias = $&v(nba)"
+    let oda = abs(@m.xm3a.msky130_fd_pr__pfet_01v8[vgs]) - abs(@m.xm3a.msky130_fd_pr__pfet_01v8[vth])
+    echo "PMOS_od = $&oda"
+
+    echo "=== Config B: P=2/4 N1=3/4 ==="
+    echo "Iref = $&@m.xm7b.msky130_fd_pr__pfet_01v8[id]"
+    echo "nbias = $&v(nbb)"
+    let odb = abs(@m.xm3b.msky130_fd_pr__pfet_01v8[vgs]) - abs(@m.xm3b.msky130_fd_pr__pfet_01v8[vth])
+    echo "PMOS_od = $&odb"
+
+    echo "=== Config C: P=3/4 N1=4/4 ==="
+    echo "Iref = $&@m.xm7c.msky130_fd_pr__pfet_01v8[id]"
+    echo "nbias = $&v(nbc)"
+    let odc = abs(@m.xm3c.msky130_fd_pr__pfet_01v8[vgs]) - abs(@m.xm3c.msky130_fd_pr__pfet_01v8[vth])
+    echo "PMOS_od = $&odc"
+
+    echo "=== Config D: P=1.5/4 N1=2/4 ==="
+    echo "Iref = $&@m.xm7d.msky130_fd_pr__pfet_01v8[id]"
+    echo "nbias = $&v(nbd)"
+    let odd = abs(@m.xm3d.msky130_fd_pr__pfet_01v8[vgs]) - abs(@m.xm3d.msky130_fd_pr__pfet_01v8[vth])
+    echo "PMOS_od = $&odd"
+.endc
+
+.end

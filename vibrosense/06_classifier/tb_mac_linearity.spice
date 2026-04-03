@@ -1,0 +1,223 @@
+** VibroSense Block 06: MAC Linearity Test
+** Single-input, 4-bit weight sweep using charge-domain MAC.
+**
+** Corrected charge-domain topology (bottom-plate sampling):
+**   Reset phase (s_reset=HIGH): cap_top=Vcm, cap_bot=Vcm, bl=Vcm
+**   Sample phase (s_samp=HIGH): cap_top charged to Vinp (TG); cap_bot stays at Vcm
+**     Net charge injected to cap = Cw * (Vinp - Vcm)
+**   Eval phase (s_eval=HIGH for active weight bits): cap_bot -> bl
+**     Charge sharing: V_bl = Vcm + Cw*(Vinp-Vcm)/(Cbl + Cw)
+**
+** Weight control: eval NFET gates driven by s_eval_wN = s_eval (if wN=1) or 0V (if wN=0)
+** Using B-source (VCVS): s_eval_wN = s_eval * wN_bit
+** This avoids series switch complexity.
+
+.lib "sky130_local.lib" tt
+
+.param Vcm_val = 0.9
+.param Vinp_val = 1.05
+Vvdd vdd 0 dc 1.8
+Vinp inp 0 dc {Vinp_val}
+Vvcm vcm_src 0 dc {Vcm_val}
+
+** ===== Phase Clocks =====
+** s_reset: HIGH = 0-90ns
+** s_samp:  HIGH = 100-300ns
+** s_eval:  HIGH = 310-510ns
+Vs_reset  s_reset  0  PULSE(1.8 0  0n   1n 1n 90n  600n)
+Vs_resetb s_resetb 0  PULSE(0 1.8  0n   1n 1n 90n  600n)
+Vs_samp   s_samp   0  PULSE(0 1.8  100n 5n 5n 200n 600n)
+Vs_sampb  s_sampb  0  PULSE(1.8 0  100n 5n 5n 200n 600n)
+Vs_eval   s_eval   0  PULSE(0 1.8  310n 5n 5n 200n 600n)
+
+** Weight bit params (0 or 1; altered by script)
+.param wb3 = 1
+.param wb2 = 1
+.param wb1 = 1
+.param wb0 = 1
+
+** ===== Bitline =====
+Cbl bl 0 1e-12
+** Precharge bitline to Vcm during reset
+MP_bl_pre bl s_reset vcm_src vdd sky130_fd_pr__pfet_01v8__model W=8e-6 L=1.5e-7 nf=2
+
+** ===== Bit 3 (8 x 50fF = 400fF) =====
+** Reset: cap_top and cap_bot -> Vcm
+MP_rt3 cap3_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb3 cap3_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+** Sample: cap_top -> Vinp (CMOS TG)
+MN_s3  cap3_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s3  cap3_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+** Caps
+C3a cap3_top cap3_bot 50e-15
+C3b cap3_top cap3_bot 50e-15
+C3c cap3_top cap3_bot 50e-15
+C3d cap3_top cap3_bot 50e-15
+C3e cap3_top cap3_bot 50e-15
+C3f cap3_top cap3_bot 50e-15
+C3g cap3_top cap3_bot 50e-15
+C3h cap3_top cap3_bot 50e-15
+** Eval: cap_bot -> bl (weight-gated by s_eval_w3)
+** B-source creates s_eval * wb3 as gate signal (0V or 1.8V)
+Bs_ew3 s_eval_w3 0 V = {wb3} * V(s_eval)
+MN_e3  bl s_eval_w3 cap3_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+** ===== Bit 2 (4 x 50fF = 200fF) =====
+MP_rt2 cap2_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb2 cap2_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MN_s2  cap2_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s2  cap2_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+C2a cap2_top cap2_bot 50e-15
+C2b cap2_top cap2_bot 50e-15
+C2c cap2_top cap2_bot 50e-15
+C2d cap2_top cap2_bot 50e-15
+Bs_ew2 s_eval_w2 0 V = {wb2} * V(s_eval)
+MN_e2  bl s_eval_w2 cap2_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+** ===== Bit 1 (2 x 50fF = 100fF) =====
+MP_rt1 cap1_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb1 cap1_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MN_s1  cap1_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s1  cap1_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+C1a cap1_top cap1_bot 50e-15
+C1b cap1_top cap1_bot 50e-15
+Bs_ew1 s_eval_w1 0 V = {wb1} * V(s_eval)
+MN_e1  bl s_eval_w1 cap1_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+** ===== Bit 0 (1 x 50fF = 50fF) =====
+MP_rt0 cap0_top s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MP_rb0 cap0_bot s_reset  vcm_src vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+MN_s0  cap0_top s_samp   inp 0   sky130_fd_pr__nfet_01v8__model W=2e-6 L=1.5e-7 nf=1
+MP_s0  cap0_top s_sampb  inp vdd sky130_fd_pr__pfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+C0a cap0_top cap0_bot 50e-15
+Bs_ew0 s_eval_w0 0 V = {wb0} * V(s_eval)
+MN_e0  bl s_eval_w0 cap0_bot 0 sky130_fd_pr__nfet_01v8__model W=4e-6 L=1.5e-7 nf=1
+
+.tran 1n 520n
+
+.control
+  let res_vbl   = vector(16)
+  let res_ideal = vector(16)
+
+  let Vin   = 1.05
+  let Vcm   = 0.9
+  let Cu    = 50e-15
+  let Cbl_v = 1e-12
+
+  let FS_ideal  = 15*Cu*(Vin-Vcm) / (Cbl_v + 15*Cu)
+  let lsb_v     = FS_ideal / 15
+  echo "Ideal FS=$&FS_ideal V  1LSB=$&lsb_v V"
+
+  let w = 0
+  dowhile ( w <= 15 )
+    let b3 = 0
+    let b2 = 0
+    let b1 = 0
+    let b0 = 0
+    let tmp = w
+    if ( tmp >= 8 )
+      let b3 = 1
+      let tmp = tmp - 8
+    end
+    if ( tmp >= 4 )
+      let b2 = 1
+      let tmp = tmp - 4
+    end
+    if ( tmp >= 2 )
+      let b1 = 1
+      let tmp = tmp - 2
+    end
+    if ( tmp >= 1 )
+      let b0 = 1
+    end
+
+    ** Set weight params via alter
+    alterparam wb3 = {b3}
+    alterparam wb2 = {b2}
+    alterparam wb1 = {b1}
+    alterparam wb0 = {b0}
+    reset
+
+    run
+
+    meas tran vbl_meas FIND V(bl) AT=450n
+
+    let Ca = w * Cu
+    if ( w > 0 )
+      let vbl_i = Vcm + Ca*(Vin-Vcm) / (Cbl_v + Ca)
+    else
+      let vbl_i = Vcm
+    end
+
+    let res_vbl[w]   = vbl_meas
+    let res_ideal[w] = vbl_i
+    let err_mv = (vbl_meas - vbl_i) * 1000
+    echo "W=$&w ($&b3$&b2$&b1$&b0): V_bl=$&vbl_meas V, ideal=$&vbl_i V, err=$&err_mv mV"
+
+    let w = w + 1
+  end
+
+  echo ""
+  echo "=== Linearity Summary ==="
+
+  let max_inl = 0
+  let max_dnl = 0
+  let mono_ok = 1
+
+  let w = 1
+  dowhile ( w <= 15 )
+    let inl  = (res_vbl[w] - res_ideal[w]) / lsb_v
+    let step = res_vbl[w] - res_vbl[w-1]
+    let ist  = res_ideal[w] - res_ideal[w-1]
+    let dnl  = (step - ist) / lsb_v
+
+    if ( abs(inl) > max_inl )
+      let max_inl = abs(inl)
+    end
+    if ( abs(dnl) > max_dnl )
+      let max_dnl = abs(dnl)
+    end
+    if ( res_vbl[w] < res_vbl[w-1] )
+      let mono_ok = 0
+    end
+    let w = w + 1
+  end
+
+  echo "Max INL = $&max_inl LSB  (spec < 2 LSB)"
+  echo "Max DNL = $&max_dnl LSB  (spec < 2 LSB)"
+
+  if ( mono_ok == 1 )
+    echo "Monotonicity: PASS"
+  else
+    echo "Monotonicity: FAIL"
+  end
+  if ( max_inl < 2.0 )
+    echo "MAC linearity INL: PASS"
+  else
+    echo "MAC linearity INL: FAIL"
+  end
+  if ( max_dnl < 2.0 )
+    echo "MAC linearity DNL: PASS"
+  else
+    echo "MAC linearity DNL: FAIL"
+  end
+
+  let enob = 4.0
+  if ( max_inl > 0.5 )
+    let enob = 4.0 - log(max_inl*2)/log(2)
+  end
+  if ( enob > 4.0 )
+    let enob = 4.0
+  end
+  echo "Weight precision ENOB = $&enob bits  (spec >= 4)"
+  if ( enob >= 4.0 )
+    echo "Weight precision: PASS"
+  else
+    echo "Weight precision: FAIL"
+  end
+
+  wrdata lin_vbl.dat res_vbl res_ideal
+  quit
+.endc
+
+.end

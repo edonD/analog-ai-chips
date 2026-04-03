@@ -1,0 +1,119 @@
+* ============================================================
+* Block 05: True RMS Detector + Peak Detector + Crest Factor
+* VibroSense Analog AI Chip — SKY130 PDK
+* FULLY TRANSISTOR-LEVEL — No behavioral models
+*
+* External bias from Block 00 bias_generator:
+*   vbn  — NMOS gate bias (~0.65V, sets ~1.25 uA tail currents)
+*   vcm  — Common-mode voltage (0.9V)
+*
+* Architecture:
+*   True RMS via single-pair MOSFET square-law squarer:
+*     Signal NFET: gate = inp = Vcm + V_signal
+*     Reference NFET: gate = Vcm (constant)
+*     dI = (K/2)[(Vov+V)^2 - Vov^2] = (K/2)[2*Vov*V + V^2]
+*     After LPF: mean(2*Vov*V) = 0 (symmetric AC), mean(V^2) = RMS^2
+*     So: dV_DC = (K*R/2) * RMS^2 = alpha * RMS^2
+*
+*   No inverter needed — linear term cancels by time-averaging.
+*   Works for ANY symmetric waveform (sine, square, triangle, etc.)
+*
+*   Peak detector: inp → peak_detector → peak_out
+*   Crest Factor = peak / sqrt(dV / alpha)  (digital computation)
+*
+* 10 MOSFETs, 8 resistors, 3 capacitors
+* ============================================================
+
+* ============================================================
+* 5-TRANSISTOR OTA (high-gain, for peak detector)
+* NMOS diff pair + PMOS mirror load
+* DC gain ~50 dB, GBW ~500 kHz at 1.25 uA tail
+* ============================================================
+.subckt ota5 vip vim vout vdd vss vbn
+XM1  d1   vip  tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XM2  vout vim  tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XMt  tail vbn  vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+XM3  d1   d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+XM4  vout d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+.ends ota5
+
+* ============================================================
+* TRUE RMS SQUARER — Single-Pair MOSFET Square-Law
+*
+* Signal NFET: gate at inp = Vcm + V_signal
+*   Id_sig = (K/2)(Vov + V)^2 = (K/2)[Vov^2 + 2*Vov*V + V^2]
+*
+* Reference NFET: gate at Vcm (constant)
+*   Id_ref = (K/2)(Vov)^2
+*
+* Difference current:
+*   dI = (K/2)[2*Vov*V + V^2]
+*
+* Time-averaged (for any symmetric AC signal, mean(V)=0):
+*   mean(dI) = (K/2) * mean(V^2) = (K/2) * RMS^2
+*
+* Load resistors: dV = R * mean(dI) = (K*R/2) * RMS^2
+*
+* Key advantage: NO inverter needed, so NO inverter offset.
+* The 1f ripple (from 2*Vov*V term) is removed by LPF + averaging.
+* ============================================================
+.subckt rms_squarer inp vcm sq_sig sq_ref vdd vss
+
+* Signal NFET (gate at inp, source at Vss)
+XMs  sig_d  inp  vss  vss  sky130_fd_pr__nfet_01v8  w=0.84u  l=6u
+
+* Reference NFET (gate at Vcm, matched to signal)
+XMr  ref_d  vcm  vss  vss  sky130_fd_pr__nfet_01v8  w=0.84u  l=6u
+
+* Matched resistive loads
+Rsig  vdd  sig_d  100k
+Rref  vdd  ref_d  100k
+
+* Isolation resistors to LPF (prevent cap loading on drain)
+Riso_s  sig_d  sq_sig  1k
+Riso_r  ref_d  sq_ref  1k
+
+.ends rms_squarer
+
+* ============================================================
+* LOW-PASS FILTER (passive R-C, fc ~ 50 Hz)
+* R = 3.18 Mohm, C = 1 nF -> fc = 1/(2*pi*R*C) = 50 Hz
+* ============================================================
+.subckt lpf_rc inp out vdd vss
+Rlpf  inp  out  3180k
+Clpf  out  vss  1n
+.ends lpf_rc
+
+* ============================================================
+* ACTIVE PEAK DETECTOR
+* High-gain ota5 + NMOS source follower + hold capacitor
+* Slow discharge via subthreshold NMOS (Vgs=0)
+* MCU-controlled reset switch
+* ============================================================
+.subckt peak_detector inp out vdd vss vbn vcm reset
+Xota_pk  inp  out  pk_ota_out  vdd vss vbn  ota5
+XMchrg  vdd  pk_ota_out  out  vss  sky130_fd_pr__nfet_01v8  w=4u  l=0.5u
+Chold  out  vss  500p
+XMdis  out  vcm  vcm  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=20u
+XMrst  out  reset  vcm  vss  sky130_fd_pr__nfet_01v8  w=1u  l=0.5u
+.ends peak_detector
+
+* ============================================================
+* TOP-LEVEL: rms_crest_top
+* Ports: inp rms_out rms_ref peak_out vdd vss reset vbn vcm
+* ============================================================
+.subckt rms_crest_top inp rms_out rms_ref peak_out vdd vss reset vbn vcm
+
+* True RMS squarer (single-pair, no inverter needed)
+Xsq  inp vcm sq_sig sq_ref vdd vss  rms_squarer
+
+* LPF on squarer signal -> rms_out (drops when signal present)
+Xlpf_sig  sq_sig  rms_out  vdd vss  lpf_rc
+
+* LPF on squarer reference -> rms_ref (constant DC level)
+Xlpf_ref  sq_ref  rms_ref  vdd vss  lpf_rc
+
+* Peak detector (independent path from input)
+Xpeak  inp peak_out vdd vss vbn vcm reset  peak_detector
+
+.ends rms_crest_top

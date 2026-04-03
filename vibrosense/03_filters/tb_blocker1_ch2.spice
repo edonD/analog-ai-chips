@@ -1,0 +1,48 @@
+* BLOCKER 1 verification: Ch2 pseudo-diff BPF with ota_bias_dist
+* Uses per-channel Iref=70nA, pseudo-resistor bias, differential I/O
+
+.lib "../01_ota/sky130_minimal.lib.spice" tt
+.include "../01_ota/ota_foldcasc.spice"
+.include "pseudo_res.spice"
+.include "ota_bias_dist.spice"
+.include "bpf_ch2_real.spice"
+
+Vdd vdd 0 dc 1.8
+
+* Per-channel Iref (200nA for Ch2 — minimum for adequate OTA gain)
+Iref vdd iref 200n
+
+* Bias distribution generates all 4 bias voltages from Iref
+Xbdist iref vdd 0 vbn vbcn vbp vbcp ota_bias_dist
+
+Vcm vcm 0 dc 0.9
+
+* Differential input: AC stimulus
+Vinp inp 0 dc 0.9 ac 0.5
+Vinn inn 0 dc 0.9 ac -0.5
+
+* DUT: Ch2 pseudo-diff BPF
+Xbpf inp inn bp_outp bp_outn vdd 0 vcm vbn vbcn vbp vbcp bpf_ch2_real
+
+.nodeset v(xbpf.int1p)=0.9 v(xbpf.int2p)=0.9
++ v(xbpf.int1n)=0.9 v(xbpf.int2n)=0.9
+
+.control
+op
+echo "=== DC Operating Point ==="
+echo "Bias voltages:"
+print v(vbn) v(vbcn) v(vbp) v(vbcp)
+echo "Filter outputs:"
+print v(bp_outp) v(bp_outn)
+echo "Supply current:"
+let isup = -i(vdd)
+print isup
+let pwr = isup * 1.8
+echo "Power (W):"
+print pwr
+
+ac dec 200 10 100k
+* Differential output magnitude
+wrdata blocker1_ch2_ac.txt vdb(bp_outp,bp_outn) vp(bp_outp,bp_outn)
+.endc
+.end
