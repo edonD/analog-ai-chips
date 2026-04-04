@@ -1,0 +1,73 @@
+* Testbench: Peak-Based Envelope Detector Verification
+* Test with sine wave inputs at different amplitudes to verify
+* the detector produces VCM + peak_amplitude output
+
+* No PDK needed - all behavioral
+
+.option method=gear
+.option reltol=1e-3
+
+* Include the peak envelope detector
+.include ../netlists/envelope_peak_behavioral.spice
+
+* Supply
+Vdd vdd gnd 1.8
+Vss vss gnd 0
+Vvcm vcm gnd 0.9
+
+* Dummy bias (unused by behavioral model but needed for pin compatibility)
+Vvbn vbn gnd 0.65
+Vvbn_lpf vbn_lpf gnd 0.70
+
+* === Test 1: 1 kHz sine, 50 mVpp (25 mV amplitude) ===
+* Expected output: 0.9V + 25 mV = 0.925V
+Vin1 vin1 gnd SIN(0.9 0.025 1000 0 0 0)
+Xenv1 vin1 vcm vout1 vdd vss vbn vbn_lpf envelope_det
+
+* === Test 2: 1 kHz sine, 200 mVpp (100 mV amplitude) ===
+* Expected output: 0.9V + 100 mV = 1.000V
+Vin2 vin2 gnd SIN(0.9 0.100 1000 0 0 0)
+Xenv2 vin2 vcm vout2 vdd vss vbn vbn_lpf envelope_det
+
+* === Test 3: 3 kHz sine, 10 mVpp (5 mV amplitude) ===
+* Expected output: 0.9V + 5 mV = 0.905V
+Vin3 vin3 gnd SIN(0.9 0.005 3000 0 0 0)
+Xenv3 vin3 vcm vout3 vdd vss vbn vbn_lpf envelope_det
+
+* === Test 4: 1 kHz sine, 500 mVpp (250 mV amplitude) ===
+* Expected output: 0.9V + 250 mV = 1.150V
+Vin4 vin4 gnd SIN(0.9 0.250 1000 0 0 0)
+Xenv4 vin4 vcm vout4 vdd vss vbn vbn_lpf envelope_det
+
+* Transient simulation: 100 ms to allow settling
+.tran 1u 100m
+
+.save v(vin1) v(vout1) v(vin2) v(vout2) v(vin3) v(vout3) v(vin4) v(vout4)
+
+* Measurements at end of simulation
+.meas tran vout1_final avg v(vout1) from=80m to=100m
+.meas tran vout2_final avg v(vout2) from=80m to=100m
+.meas tran vout3_final avg v(vout3) from=80m to=100m
+.meas tran vout4_final avg v(vout4) from=80m to=100m
+
+.control
+run
+echo "=== Peak Envelope Detector Test Results ==="
+echo "Test 1 (25 mV amplitude): vout1 should be ~0.925V"
+print @vout1_final[value]
+echo "Test 2 (100 mV amplitude): vout2 should be ~1.000V"
+print @vout2_final[value]
+echo "Test 3 (5 mV amplitude): vout3 should be ~0.905V"
+print @vout3_final[value]
+echo "Test 4 (250 mV amplitude): vout4 should be ~1.150V"
+print @vout4_final[value]
+
+* Print actual values at t=90ms
+echo "=== Actual values at t=90ms ==="
+meas tran v1_90 find v(vout1) at=90m
+meas tran v2_90 find v(vout2) at=90m
+meas tran v3_90 find v(vout3) at=90m
+meas tran v4_90 find v(vout4) at=90m
+.endc
+
+.end

@@ -1,0 +1,48 @@
+* ============================================================
+* VibroSense Block 04 REDESIGN: Peak-Based Envelope Detector
+* Replaces OTA-based half-wave rectifier + Gm-C LPF
+* with peak tracking of |BPF output - VCM|
+*
+* Architecture:
+*   Stage 1: Full-wave rectification (behavioral |vin - vcm|)
+*   Stage 2: Peak tracking with slow exponential decay
+*   Output: VCM + peak_amplitude (uses full voltage range)
+*
+* This behavioral model validates the peak-detection approach.
+* For transistor-level, use Block 05 peak_detector topology.
+*
+* Ports: same as envelope_det (vin vcm vout vdd gnd vbn vbn_lpf)
+*   vbn, vbn_lpf unused but kept for pin compatibility
+* ============================================================
+
+.subckt envelope_det vin vcm vout vdd gnd vbn vbn_lpf
+
+* === Full-wave rectified signal ===
+* rect = |vin - vcm| (always positive, referenced to ground)
+B_rect rect gnd V = { abs(v(vin) - v(vcm)) }
+
+* === Peak tracker with exponential decay ===
+* Charges fast (small R), discharges slow (large R through diode model)
+* Behavioral: track peak of rect with tau_charge ~ 10us, tau_decay ~ 20ms
+*
+* Implementation: peak = max(rect, peak * exp(-dt/tau))
+* In SPICE, approximate with diode + RC:
+*   - When rect > peak: diode conducts, peak charges to rect quickly
+*   - When rect < peak: diode off, peak decays through R_decay
+
+* Charge path: low resistance when rect > peak_cap
+* Behavioral ideal diode + series R
+B_charge gnd peak_cap I = { max(0, (v(rect) - v(peak_cap)) * 1e-3) }
+
+* Decay path: slow exponential discharge
+* tau = R_decay * C_hold = 20ms for 50Hz envelope bandwidth
+* C = 100pF, R = 200M -> tau = 20ms
+R_decay peak_cap gnd 200Meg
+C_hold peak_cap gnd 100p
+
+* === Level shift: output = VCM + peak amplitude ===
+* peak_cap is referenced to ground, represents |Vin - VCM| peak
+* Shift to VCM-centered output for classifier compatibility
+B_out vout gnd V = { min(v(vdd)-0.05, max(0.05, v(vcm) + v(peak_cap))) }
+
+.ends envelope_det

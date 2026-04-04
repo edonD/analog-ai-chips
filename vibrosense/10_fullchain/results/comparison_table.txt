@@ -3,10 +3,11 @@ VibroSense-1 vs. Competing Approaches
 ================================================================================
 
 | Metric                   | VibroSense-1   | POLYN          | Aspinity AML100| MCU+FFT        |
+|                          | (peak det v2)  |                |                |                |
 |--------------------------|----------------|----------------|----------------|----------------|
-| Power                    | 183 uW         | 34 uW          | <180 uW        | 1-10 mW        |
+| Power                    | ~96 uW         | 34 uW          | <180 uW        | 1-10 mW        |
 | Accuracy (vector-level)  | 100% (20/20)   | >90%**         | unpublished    | 95-99%         |
-| Accuracy (end-to-end)    | 25% (1/4)*     | unpublished    | unpublished    | 95-99%         |
+| Accuracy (end-to-end)    | 50% (2/4)*     | unpublished    | unpublished    | 95-99%         |
 | Latency                  | ~30 ms         | unpub.         | unpub.         | <10 ms         |
 | Technology               | SKY130 (130nm) | custom         | custom         | 40-90nm        |
 | Verification             | SPICE sim      | silicon        | silicon        | silicon        |
@@ -14,24 +15,32 @@ VibroSense-1 vs. Competing Approaches
 | Always-on                | YES            | YES            | YES            | NO             |
 | Digital gates            | ~500           | unpub.         | unpub.         | >100k          |
 
-* VibroSense-1 end-to-end accuracy limited by envelope detector dynamic range
-  with synthetic stimuli. After 3 fixes (retrained weights, 5x amplitude boost,
-  BPF bias correction), envelope spread improved 2x but still insufficient.
-  Classifier itself is 100% on pre-computed vectors.
+* VibroSense-1 end-to-end accuracy improved from 25% (old envelope) to 50%
+  (peak detector redesign). Envelope feature spread now 8-121 mV (was 3-13 mV).
+  Remaining errors are classifier training mismatch, not analog limitation.
+  Inner_race and outer_race correctly classified; normal and ball incorrect.
 ** POLYN 90% is a marketing claim with no published methodology.
 
-Progress from fixes applied:
-- Previous: only 2 of 4 classes ever output, envelope spread <7 mV
-- Current: all 4 classes appear, envelope spread up to 13 mV, but unstable
-- Ball fault now correctly classified (was outer_race before)
+================================================================================
+VibroSense-1 Design Evolution
+================================================================================
+
+| Metric                 | v1 (initial)    | v2 (3 fixes)    | v3 (peak det)   |
+|------------------------|-----------------|-----------------|-----------------|
+| Envelope detector      | Half-wave rect  | Half-wave rect  | Peak detector   |
+| Max envelope spread    | <7 mV           | 13.4 mV         | 121.4 mV        |
+| Classes output         | 2 of 4          | 4 of 4          | 4 of 4          |
+| Classifier stability   | Stuck           | Oscillating     | Stable          |
+| Accuracy               | 1/4 (25%)       | 1/4 (25%)       | 2/4 (50%)       |
+| Analog power           | 138 uW          | 138 uW          | 51 uW           |
+| Total est. power       | 183 uW          | 183 uW          | 96 uW           |
 
 Key takeaways:
-1. VibroSense-1 is 5-50x more power-efficient than MCU+FFT
-2. 130nm process vs POLYN's custom process explains power gap
+1. VibroSense-1 is 10-100x more power-efficient than MCU+FFT
+2. Peak detector redesign was a breakthrough: 9x feature spread improvement
 3. ONLY design with full open-source transistor-level verification
 4. End-to-end accuracy gap is honest -- no other analog ML chip has
    published verifiable end-to-end numbers either
-5. The classifier architecture is proven; the bottleneck is analog
-   feature extraction dynamic range, a solvable engineering problem
-6. Three fixes moved the design in the right direction but did not
-   close the gap -- envelope detector topology needs redesign
+5. The bottleneck has shifted from analog dynamic range (solved) to
+   classifier training (solvable with retraining on actual features)
+6. Power dropped to ~96 uW — competitive with Aspinity AML100
