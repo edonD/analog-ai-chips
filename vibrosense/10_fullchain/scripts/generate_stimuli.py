@@ -18,7 +18,7 @@ import sys
 # Parameters
 FS = 12000       # Sample rate (Hz) — matches CWRU
 DURATION = 0.2   # Simulation duration (seconds) — short for practical sim time
-V_SCALE = 0.02   # Volts per g (reduced from 0.1 to prevent PGA clipping at 4x gain)
+V_SCALE = 0.1    # Volts per g (restored to original — PGA at 4x gain handles this)
 V_OFFSET = 0.9   # DC bias (mid-supply)
 SHAFT_RPM = 1797
 F_SHAFT = SHAFT_RPM / 60.0  # ~29.95 Hz
