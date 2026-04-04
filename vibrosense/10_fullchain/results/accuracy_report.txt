@@ -1,6 +1,9 @@
 ============================================================
 VibroSense-1 Classification Accuracy Report
 ============================================================
+Date: 2026-04-04
+Simulation: 4 bearing test cases, 150-200ms transient each
+PDK: SkyWater SKY130A, TT corner, 27C, VDD=1.8V
 
 --- Classifier-Only Test (Feature Vectors) ---
 Vectors tested: 20
@@ -9,12 +12,62 @@ Accuracy: 100.0%
 
 --- Full-Chain Bearing Tests ---
 
-Test Case       Expected        Detected        Correct?   Confidence
------------------------------------------------------------------
-normal          Normal          Outer Race      NO              96.0%
-inner_race      Inner Race      Outer Race      NO              96.0%
-outer_race      Outer Race      Outer Race      YES             96.0%
-ball            Ball            Outer Race      NO              96.0%
+Test Case       Expected        Detected        Correct?   ClassV (median)
+----------------------------------------------------------------------
+normal          Normal          Outer Race      NO         1.350 V
+inner_race      Inner Race      Inner Race      YES        0.450 V
+outer_race      Outer Race      Inner Race      NO         0.450 V
+ball            Ball            Outer Race      NO         1.350 V
 
 Overall accuracy: 1/4 (25.0%)
-FAIL: End-to-end accuracy < 80%
+FAIL: End-to-end accuracy < 80% target
+
+--- Envelope Feature Analysis (last 50ms window) ---
+
+                 ENV1     ENV2     ENV3     ENV4     ENV5
+normal          0.9043   0.9064   0.9032   0.9019   0.9015
+inner_race      0.9043   0.9088   0.9097   0.9085   0.9064
+outer_race      0.9041   0.9085   0.9094   0.9068   0.9042
+ball            0.9044   0.9080   0.9081   0.9076   0.9054
+
+Max envelope spread across test cases:
+  ENV1: 0.3 mV   ENV2: 0.8 mV   ENV3: 6.5 mV   ENV4: 6.6 mV   ENV5: 4.9 mV
+
+--- Classifier Timeline (stable classification after 30ms) ---
+
+normal:      Class 3 (Outer Race) locked from t=10ms onward
+inner_race:  Class 1 (Inner Race) from t=30ms, brief flip at t=125ms
+outer_race:  Alternates between Class 1 and Class 3 throughout
+ball:        Class 3 (Outer Race) dominant, occasional flips to Class 1
+
+--- Root Cause Analysis ---
+
+1. INSUFFICIENT ENVELOPE DIFFERENTIATION: All 5 envelope channels
+   are within ~7 mV of VCM (0.9V) across all test cases. The maximum
+   spread between any two test cases on any channel is only 6.6 mV.
+   The classifier was trained on features spanning 0-1.8V, so the
+   ~millivolt differences at the input are indistinguishable.
+
+2. CLASSIFIER DEGENERACY: The classifier only ever outputs 0.45V
+   (Inner Race) or 1.35V (Outer Race). It never outputs 0.0V (Normal)
+   or 0.9V (Ball), indicating the weight*feature dot products for
+   classes 0 and 2 are always dominated by classes 1 and 3.
+
+3. SYNTHETIC STIMULUS LIMITATION: The bearing fault stimuli are
+   synthetic multi-tone signals, not real CWRU accelerometer data.
+   The spectral content may not sufficiently excite the BPF channels
+   at the correct relative amplitudes to produce distinctive envelopes.
+
+4. SIGNAL AMPLITUDE TOO LOW: With PGA gain of 4x and V_SCALE=0.02,
+   the signal swing at the BPF outputs is small (~10-50 mVpp).
+   The envelope detector half-wave rectifiers need larger swings
+   to produce meaningful DC shifts above VCM.
+
+--- What Works ---
+
+- The analog signal chain is fully functional (PGA -> BPF -> ENV)
+- Power budget is met: 138 uW analog chain
+- The classifier correctly classifies pre-computed feature vectors
+- Inner Race test case IS correctly classified (the one with the
+  most envelope activity in the mid-frequency channels)
+- All blocks are stable and simulation completes without convergence issues

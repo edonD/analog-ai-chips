@@ -103,7 +103,10 @@ Vvbcp vbcp gnd 0.555
 
 * Envelope detector bias (NMOS gate for rectifier OTAs and LPF OTA)
 Vvbn_env vbn_env gnd 0.65
-Vvbn_lpf vbn_lpf gnd 0.55
+* vbn_lpf raised from 0.55V to 0.70V to increase LPF OTA tail current
+* Higher current = faster slewing to reach VCM operating point
+* fc = gm/(2*pi*C) increases proportionally, but settling improves dramatically
+Vvbn_lpf vbn_lpf gnd 0.70
 
 * RMS/Crest bias
 Vvbn_rms vbn_rms gnd 0.65
@@ -170,6 +173,11 @@ Xclass venv1 venv2 venv3 venv4 venv5 rms_out peak_out rms_ref
 * ================================================================
 * MEASUREMENTS
 * ================================================================
+
+* Initial conditions: pre-charge envelope LPF caps to VCM (0.9V)
+* Without this, UIC starts caps at 0V and the LPF OTA slew-limits
+* for ~100ms to reach the 0.9V operating point, wasting simulation time
+.ic v(venv1)=0.9 v(venv2)=0.9 v(venv3)=0.9 v(venv4)=0.9 v(venv5)=0.9
 
 * Transient simulation
 .tran 10u 200m UIC

@@ -4,7 +4,7 @@ Note: No compatibility mode selected!
 
 Circuit: * ================================================================
 
-binary raw file "/home/ubuntu/analog-ai-chips/vibrosense/10_fullchain/results/fullchain_ball.raw"
+binary raw file "results/fullchain_ball.raw"
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using SPARSE 1.3 as Direct Linear Solver

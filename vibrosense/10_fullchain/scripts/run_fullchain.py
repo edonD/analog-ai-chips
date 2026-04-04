@@ -158,8 +158,7 @@ def assemble_test_netlist(test_case):
         f'.include ../../10_fullchain/stimuli/{test_case}_stimulus.pwl'
     )
 
-    # Adjust simulation time based on stimulus duration
-    content = content.replace('.tran 10u 200m UIC', '.tran 10u 200m UIC')
+    # No simulation time adjustment needed — top.spice already has correct .tran
 
     with open(out_spice, 'w') as f:
         f.write(content)

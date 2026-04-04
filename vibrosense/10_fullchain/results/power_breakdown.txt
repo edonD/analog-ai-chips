@@ -2,31 +2,60 @@
 VibroSense-1 Power Breakdown
 ==================================================
 
-Measurement: ngspice transient simulation, 25ms
+Measurement: ngspice transient simulation, 150-200ms
 Conditions: TT corner, 27C, VDD=1.8V
-Input: 1 kHz sine, 100 mVpp at 0.9V DC
+Input: Synthetic bearing vibration stimuli (4 test cases)
+
+Power is consistent across all 4 test cases (data-independent).
+Values below averaged from the 4 simulations.
 
 Block                            Power (uW)    % Total
 ----------------------------------------------------
-v_vdd_bpf1                              4.6       3.3%
-v_vdd_bpf2                              4.5       3.3%
-v_vdd_bpf3                              4.5       3.2%
-v_vdd_bpf4                              4.5       3.2%
-v_vdd_bpf5                              4.5       3.3%
-v_vdd_env1                             20.6      15.0%
-v_vdd_env2                             20.5      14.9%
-v_vdd_env3                             20.4      14.8%
-v_vdd_env4                             20.5      14.9%
-v_vdd_env5                             20.5      14.9%
-v_vdd_rms                              12.6       9.2%
+v_vdd_bpf1                              4.66       3.4%
+v_vdd_bpf2                              4.65       3.4%
+v_vdd_bpf3                              4.65       3.4%
+v_vdd_bpf4                              4.65       3.4%
+v_vdd_bpf5                              4.67       3.4%
+v_vdd_env1                             21.11      15.3%
+v_vdd_env2                             21.14      15.3%
+v_vdd_env3                             21.15      15.3%
+v_vdd_env4                             21.15      15.3%
+v_vdd_env5                             21.15      15.3%
+v_vdd_rms                               8.80       6.4%
 ----------------------------------------------------
-TOTAL                                 137.6     100.0%
+TOTAL (analog chain)                  137.77     100.0%
 
 Supply voltage: 1.8 V
-Total current:  76.4 uA
+Total current:  76.5 uA
 
-PASS: Total power 137.6 uW < 300 uW target
+Note: Individual block currents are measured as negative (current
+flowing out of VDD sources into circuit), consistent with SPICE
+sign convention. The 'vdd' main supply shows +137.8 uW, confirming
+the total.
 
-Note: Classifier uses behavioral model (no power draw).
-Estimated classifier power: 30-60 uW.
-Estimated total with real classifier: 183 uW.
+PASS: Total power 138 uW < 300 uW target
+
+--- Estimated System Total ---
+
+Classifier (behavioral in sim):  ~30-60 uW (estimated)
+PGA:                             <0.1 uW
+Total estimated:                 ~183 uW
+
+--- Power Breakdown by Function ---
+
+Bandpass filters (5x):            23.3 uW    16.9%
+Envelope detectors (5x):        105.7 uW    76.7%
+RMS/Crest detector:               8.8 uW     6.4%
+Analog subtotal:                137.8 uW   100.0%
+Classifier (est.):              ~45.0 uW
+System total (est.):           ~183.0 uW
+
+--- Power Observations ---
+
+1. Envelope detectors dominate (77%) due to the OTA bias currents
+   in the peak detector and LPF stages.
+2. Power is data-independent: <0.1% variation across 4 test cases.
+3. BPF power is low (4.7 uW each) due to Gm-C topology with
+   minimal bias current.
+4. The 130nm process limits efficiency vs. more advanced nodes,
+   but total power is still 5-50x below MCU+FFT approaches.
