@@ -96,10 +96,21 @@ Vvcm vcm gnd 0.9
 
 * OTA bias voltages (for folded-cascode OTAs in BPFs)
 * Values from filter channel tuning (bpf_ch1_real.spice headers)
+* Channels 1-3 share bias at Iref=200nA
 Vvbn vbn gnd 0.5973
 Vvbcn vbcn gnd 0.8273
 Vvbp vbp gnd 0.81
 Vvbcp vbcp gnd 0.555
+* Channel 4 per-channel bias (Iref=440nA for f0=7236 Hz)
+Vvbn_ch4 vbn_ch4 gnd 0.6399
+Vvbcn_ch4 vbcn_ch4 gnd 0.8699
+Vvbp_ch4 vbp_ch4 gnd 0.745
+Vvbcp_ch4 vbcp_ch4 gnd 0.49
+* Channel 5 per-channel bias (Iref=870nA for f0=14639 Hz)
+Vvbn_ch5 vbn_ch5 gnd 0.6914
+Vvbcn_ch5 vbcn_ch5 gnd 0.9214
+Vvbp_ch5 vbp_ch5 gnd 0.66
+Vvbcp_ch5 vbcp_ch5 gnd 0.405
 
 * Envelope detector bias (NMOS gate for rectifier OTAs and LPF OTA)
 Vvbn_env vbn_env gnd 0.65
@@ -142,8 +153,8 @@ Xdigital phi_s phi_sb phi_e phi_eb phi_r g1 g0 irq_n class_valid vdd vss digital
 Xbpf1 vout_pga vcm vbpf1p vbpf1n vdd_bpf1 vss vcm vbn vbcn vbp vbcp bpf_ch1_real
 Xbpf2 vout_pga vcm vbpf2p vbpf2n vdd_bpf2 vss vcm vbn vbcn vbp vbcp bpf_ch2_real
 Xbpf3 vout_pga vcm vbpf3p vbpf3n vdd_bpf3 vss vcm vbn vbcn vbp vbcp bpf_ch3_real
-Xbpf4 vout_pga vcm vbpf4p vbpf4n vdd_bpf4 vss vcm vbn vbcn vbp vbcp bpf_ch4_real
-Xbpf5 vout_pga vcm vbpf5p vbpf5n vdd_bpf5 vss vcm vbn vbcn vbp vbcp bpf_ch5_real
+Xbpf4 vout_pga vcm vbpf4p vbpf4n vdd_bpf4 vss vcm vbn_ch4 vbcn_ch4 vbp_ch4 vbcp_ch4 bpf_ch4_real
+Xbpf5 vout_pga vcm vbpf5p vbpf5n vdd_bpf5 vss vcm vbn_ch5 vbcn_ch5 vbp_ch5 vbcp_ch5 bpf_ch5_real
 
 * ================================================================
 * ENVELOPE DETECTORS (5 instances, real transistor-level)
