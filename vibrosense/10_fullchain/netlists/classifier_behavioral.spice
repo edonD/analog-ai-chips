@@ -3,11 +3,12 @@
 * Computes: score[k] = sum_i(w[k][i] * V(in_i)) + bias[k]
 * Output: class = argmax(score[k]), encoded as voltage on class_out
 *
-* RETRAINED for actual analog voltage ranges (v2)
-* Previous weights assumed features spanning [0, 1.8V]
-* Actual analog features: envelopes at ~0.900-0.910V, RMS ~1.57V, peak ~1.0-1.13V
-* New weights trained on measured feature values from 4 test case simulations
-* using least-squares fit with target scores of +5 (correct) / -5 (wrong)
+* RETRAINED v3: weights calibrated for post-fix analog feature values
+* After V_SCALE=0.1 and per-channel BPF bias correction:
+*   - Envelopes at ~0.901-0.923V (larger spread than v2)
+*   - RMS ~1.51-1.55V, Peak ~1.18-1.24V
+*   - RMS_ref constant at 1.6162V
+* Trained via least-squares on measured features from all 4 test cases
 *
 * Architecture:
 *   - 4 VCVS compute weighted sums (one per class)
@@ -21,61 +22,61 @@
 
 * ================================================
 * Weighted sum computation for each class
-* Retrained weights for actual analog feature voltages
+* Retrained v3 weights for post-fix analog feature voltages
 * Score = sum(w[k][i] * V(in_i)/1.8) + bias[k]
 * ================================================
 
-* Class 0 (Normal): weights = [805.38, -249.29, -2403.51, -1760.90, -200.32, 541.88, 99.58, 1116.77]
-* bias = 383.88
+* Class 0 (Normal): retrained for V_SCALE=0.1 + BPF bias fix
+* bias = 85.04
 Bscore0 score0 vss V = {
-+  805.384 * V(in0,vss)/1.8
-+  + (-249.290) * V(in1,vss)/1.8
-+  + (-2403.513) * V(in2,vss)/1.8
-+  + (-1760.901) * V(in3,vss)/1.8
-+  + (-200.322) * V(in4,vss)/1.8
-+  + 541.883 * V(in5,vss)/1.8
-+  + 99.578 * V(in6,vss)/1.8
-+  + 1116.769 * V(in7,vss)/1.8
-+  + 383.880 }
++  312.880 * V(in0,vss)/1.8
++  + 290.548 * V(in1,vss)/1.8
++  + (-240.879) * V(in2,vss)/1.8
++  + (-1.870) * V(in3,vss)/1.8
++  + 337.812 * V(in4,vss)/1.8
++  + (-332.117) * V(in5,vss)/1.8
++  + (-561.214) * V(in6,vss)/1.8
++  + 247.387 * V(in7,vss)/1.8
++  + 85.039 }
 
-* Class 1 (Inner Race): weights = [1130.39, -1133.33, -4389.49, -513.91, 1956.98, 540.52, 366.31, 645.02]
-* bias = 221.72
+* Class 1 (Inner Race): retrained for V_SCALE=0.1 + BPF bias fix
+* bias = 276.60
 Bscore1 score1 vss V = {
-+  1130.392 * V(in0,vss)/1.8
-+  + (-1133.330) * V(in1,vss)/1.8
-+  + (-4389.487) * V(in2,vss)/1.8
-+  + (-513.912) * V(in3,vss)/1.8
-+  + 1956.977 * V(in4,vss)/1.8
-+  + 540.517 * V(in5,vss)/1.8
-+  + 366.306 * V(in6,vss)/1.8
-+  + 645.020 * V(in7,vss)/1.8
-+  + 221.720 }
++  1232.060 * V(in0,vss)/1.8
++  + 437.356 * V(in1,vss)/1.8
++  + (-2136.176) * V(in2,vss)/1.8
++  + 1971.090 * V(in3,vss)/1.8
++  + 2726.369 * V(in4,vss)/1.8
++  + (-2245.765) * V(in5,vss)/1.8
++  + (-1801.267) * V(in6,vss)/1.8
++  + 804.667 * V(in7,vss)/1.8
++  + 276.604 }
 
-* Class 2 (Ball): weights = [-278.38, -1260.39, -761.74, 4388.66, 4223.19, -490.50, -356.80, -2041.00]
-* bias = -701.58
+* Class 2 (Ball): retrained for V_SCALE=0.1 + BPF bias fix
+* bias = -237.28
 Bscore2 score2 vss V = {
-+  (-278.378) * V(in0,vss)/1.8
-+  + (-1260.388) * V(in1,vss)/1.8
-+  + (-761.737) * V(in2,vss)/1.8
-+  + 4388.663 * V(in3,vss)/1.8
-+  + 4223.186 * V(in4,vss)/1.8
-+  + (-490.499) * V(in5,vss)/1.8
-+  + (-356.801) * V(in6,vss)/1.8
-+  + (-2041.003) * V(in7,vss)/1.8
-+  + (-701.578) }
++  (-715.072) * V(in0,vss)/1.8
++  + (-1152.354) * V(in1,vss)/1.8
++  + (-222.907) * V(in2,vss)/1.8
++  + 1099.861 * V(in3,vss)/1.8
++  + (-77.732) * V(in4,vss)/1.8
++  + 1204.775 * V(in5,vss)/1.8
++  + 559.336 * V(in6,vss)/1.8
++  + (-690.255) * V(in7,vss)/1.8
++  + (-237.275) }
 
-* Class 3 (Outer Race): weights = [-1659.73, 2641.18, 7554.77, -2112.59, -5979.83, -595.34, -109.19, 274.78]
-* bias = 94.45
+* Class 3 (Outer Race): retrained for V_SCALE=0.1 + BPF bias fix
+* bias = -125.59
 Bscore3 score3 vss V = {
-+  (-1659.728) * V(in0,vss)/1.8
-+  + 2641.181 * V(in1,vss)/1.8
-+  + 7554.767 * V(in2,vss)/1.8
-+  + (-2112.588) * V(in3,vss)/1.8
-+  + (-5979.835) * V(in4,vss)/1.8
-+  + (-595.338) * V(in5,vss)/1.8
-+  + (-109.190) * V(in6,vss)/1.8
-+  + 274.780 * V(in7,vss)/1.8
-+  + 94.453 }
++  (-832.455) * V(in0,vss)/1.8
++  + 421.435 * V(in1,vss)/1.8
++  + 2598.651 * V(in2,vss)/1.8
++  + (-3069.345) * V(in3,vss)/1.8
++  + (-2988.385) * V(in4,vss)/1.8
++  + 1372.303 * V(in5,vss)/1.8
++  + 1802.755 * V(in6,vss)/1.8
++  + (-365.358) * V(in7,vss)/1.8
++  + (-125.592) }
 
 * ================================================
 * Winner-Take-All (argmax)

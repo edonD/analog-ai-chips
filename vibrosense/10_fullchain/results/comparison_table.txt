@@ -14,9 +14,16 @@ VibroSense-1 vs. Competing Approaches
 | Always-on                | YES            | YES            | YES            | NO             |
 | Digital gates            | ~500           | unpub.         | unpub.         | >100k          |
 
-* VibroSense-1 end-to-end accuracy limited by envelope feature dynamic range
-  with synthetic stimuli. Classifier itself is 100% on pre-computed vectors.
+* VibroSense-1 end-to-end accuracy limited by envelope detector dynamic range
+  with synthetic stimuli. After 3 fixes (retrained weights, 5x amplitude boost,
+  BPF bias correction), envelope spread improved 2x but still insufficient.
+  Classifier itself is 100% on pre-computed vectors.
 ** POLYN 90% is a marketing claim with no published methodology.
+
+Progress from fixes applied:
+- Previous: only 2 of 4 classes ever output, envelope spread <7 mV
+- Current: all 4 classes appear, envelope spread up to 13 mV, but unstable
+- Ball fault now correctly classified (was outer_race before)
 
 Key takeaways:
 1. VibroSense-1 is 5-50x more power-efficient than MCU+FFT
@@ -26,3 +33,5 @@ Key takeaways:
    published verifiable end-to-end numbers either
 5. The classifier architecture is proven; the bottleneck is analog
    feature extraction dynamic range, a solvable engineering problem
+6. Three fixes moved the design in the right direction but did not
+   close the gap -- envelope detector topology needs redesign
