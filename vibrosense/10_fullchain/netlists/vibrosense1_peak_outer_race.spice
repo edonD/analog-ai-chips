@@ -56,8 +56,8 @@
 .include ../../03_filters/bpf_ch5_real.spice
 
 * Envelope detector (unit-fixed copy)
-* Envelope detector replaced with peak-based behavioral model
-.include envelope_peak_behavioral.spice
+* Envelope detector: transistor-level peak detector (from Block 05)
+.include envelope_peak_transistor.spice
 
 * RMS and Crest factor (real transistor-level)
 .include ../../05_rms_crest/design.cir

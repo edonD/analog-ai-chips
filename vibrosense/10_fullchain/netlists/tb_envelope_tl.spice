@@ -1,0 +1,62 @@
+* ============================================================
+* Testbench: Transistor-Level Envelope Detector
+* Verify: 1kHz sine input -> DC peak output near VCM + amplitude
+* ============================================================
+
+.lib "../../05_rms_crest/sky130.lib.spice" tt
+.include "../../05_rms_crest/sky130_pdk_fixup.spice"
+
+* OTA used by rectifier
+.include ota_pga_v2_fixed.spice
+
+* Device under test
+.include envelope_peak_transistor.spice
+
+* Options for convergence
+.option method=gear
+.option reltol=1e-3
+.option abstol=1e-12
+.option vntol=1e-6
+.option gmin=1e-12
+.option itl1=500
+.option itl2=200
+.option itl4=100
+
+* Supply
+Vdd vdd gnd 1.8
+Vss vss gnd 0
+
+* Bias
+Vvcm vcm gnd 0.9
+Vvbn vbn gnd 0.65
+Vvbn_lpf vbn_lpf gnd 0.70
+
+* Input: 1kHz sine, 50mV amplitude around VCM
+* Expected output: ~0.9 + 0.05 = 0.95V (VCM + peak amplitude)
+Vin vin gnd SIN(0.9 0.05 1000 0 0 0)
+
+* DUT
+Xenv vin vcm vout vdd gnd vbn vbn_lpf envelope_det
+
+* Pre-charge output cap to VCM to avoid long settling
+.ic v(vout)=0.9
+
+* Transient: 50ms should be enough to see peak tracking
+.tran 10u 50m UIC
+
+.save v(vin) v(vcm) v(vout) v(xenv.rect)
+
+* Measure final output
+.meas tran vout_final FIND v(vout) AT=49m
+.meas tran vout_avg AVG v(vout) FROM=30m TO=49m
+.meas tran vin_peak MAX v(vin) FROM=1m TO=49m
+
+.control
+run
+set wr_vecnames
+set wr_singlescale
+wrdata /home/ubuntu/analog-ai-chips/vibrosense/10_fullchain/results/tb_envelope_tl.csv v(vin) v(vout) v(xenv.rect)
+echo "Envelope TL testbench complete"
+.endc
+
+.end

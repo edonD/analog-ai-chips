@@ -1,0 +1,105 @@
+* ============================================================
+* VibroSense Block 04: Transistor-Level Peak Envelope Detector
+* Replaces behavioral envelope_peak_behavioral.spice
+*
+* Architecture:
+*   Stage 1: Transistor-level precision rectifier (dual-OTA feedback)
+*            Same topology as envelope_det_fixed.spice rectifier_v2
+*   Stage 2: Transistor-level peak detector (from Block 05)
+*            OTA5 + NMOS charge switch + hold cap + slow discharge
+*   Stage 3: Level shift output = VCM + peak_amplitude
+*
+* Interface: envelope_det vin vcm vout vdd gnd vbn vbn_lpf
+*   - vbn:     NMOS gate bias for rectifier OTAs (~0.65V)
+*   - vbn_lpf: NMOS gate bias for peak OTA tail (~0.70V)
+*
+* Transistor count: ~25 MOSFETs (5 in each OTA * 3 OTAs + charge + discharge + reset)
+* ============================================================
+
+* ============================================================
+* 5-Transistor OTA for peak detector feedback
+* (Identical to Block 05's ota5, duplicated here to avoid
+*  subcircuit name collision with Block 05 included in top-level)
+* NMOS diff pair + PMOS mirror load
+* DC gain ~50 dB, GBW ~500 kHz at 1.25 uA tail
+* ============================================================
+.subckt ota5_env vip vim vout vdd vss vbn
+XM1  d1   vip  tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XM2  vout vim  tail  vss  sky130_fd_pr__nfet_01v8  w=4u  l=2u
+XMt  tail vbn  vss   vss  sky130_fd_pr__nfet_01v8  w=2u  l=4u
+XM3  d1   d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+XM4  vout d1   vdd   vdd  sky130_fd_pr__pfet_01v8  w=2u  l=2u
+.ends ota5_env
+
+* ============================================================
+* Transistor-level precision half-wave rectifier
+* Uses ota_pga_v2 from the already-included PGA OTA
+* Same topology as rectifier_v2 in envelope_det_fixed.spice
+* ============================================================
+.subckt rectifier_tl vin vcm rect vdd gnd vbn
+
+* OTA1: positive-half follower (rect tracks vin when vin > vcm)
+Xota1 vdd gnd vin rect oa1 vbn gnd vdd vdd ota_pga_v2
+
+* OTA2: clamp to vcm during negative half
+Xota2 vdd gnd vcm rect oa2 vbn gnd vdd vdd ota_pga_v2
+
+* PMOS output transistors
+XMph1 rect oa1 vdd vdd sky130_fd_pr__pfet_01v8 w=2u l=1u
+XMph2 rect oa2 vdd vdd sky130_fd_pr__pfet_01v8 w=2u l=1u
+
+* NMOS discharge to vcm: source=vcm, gate=VDD, drain=rect
+* In triode (small Vds): I proportional to (rect-vcm)
+* At rect=vcm: Vds=0, I=0 -> no undershoot below vcm
+XMsink rect vdd vcm gnd sky130_fd_pr__nfet_01v8 w=0.42u l=100u
+
+.ends rectifier_tl
+
+* ============================================================
+* Transistor-level peak detector
+* Based on Block 05's proven peak_detector topology
+* OTA drives NMOS charge switch into hold capacitor
+* Slow discharge via subthreshold NMOS (Vgs=0)
+* ============================================================
+.subckt peak_det_tl inp out vdd vss vbn_lpf vcm
+
+* OTA compares input to held peak: when inp > out, OTA drives high
+Xota_pk  inp  out  pk_ota_out  vdd vss vbn_lpf  ota5_env
+
+* NMOS charge transistor: gate from OTA, source=VDD, drain=out
+* When inp > out: OTA output goes high, NMOS conducts, charges cap
+XMchrg  vdd  pk_ota_out  out  vss  sky130_fd_pr__nfet_01v8  w=4u  l=0.5u
+
+* Hold capacitor (500pF for low droop)
+Chold  out  vss  500p
+
+* Slow discharge: subthreshold NMOS with Vgs=0
+* Provides exponential decay with tau ~ 15-25ms
+* W/L very small for minimum leakage current
+XMdis  out  vcm  vcm  vss  sky130_fd_pr__nfet_01v8  w=0.42u  l=20u
+
+.ends peak_det_tl
+
+* ============================================================
+* TOP-LEVEL: Transistor-Level Envelope Detector
+* Same interface as behavioral: envelope_det vin vcm vout vdd gnd vbn vbn_lpf
+*
+* Signal flow:
+*   vin -> rectifier (half-wave) -> rect (>= vcm)
+*   rect -> peak_det -> peak (DC-like envelope)
+*   peak -> level_shift -> vout = peak (already vcm-referenced)
+*
+* The rectifier outputs vcm + |vin-vcm| for positive half-cycles,
+* and vcm for negative. The peak detector tracks the maximum of
+* this rectified signal, giving vcm + peak_amplitude.
+* This matches the behavioral model's output = vcm + peak_amplitude.
+* ============================================================
+.subckt envelope_det vin vcm vout vdd gnd vbn vbn_lpf
+
+* Stage 1: Precision half-wave rectifier
+Xrect vin vcm rect vdd gnd vbn rectifier_tl
+
+* Stage 2: Peak detector on rectified signal
+Xpeak rect vout vdd gnd vbn_lpf vcm peak_det_tl
+
+.ends envelope_det
