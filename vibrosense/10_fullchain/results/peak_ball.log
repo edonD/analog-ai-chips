@@ -4,9 +4,26 @@ Note: No compatibility mode selected!
 
 Circuit: * ================================================================
 
-binary raw file "../results/peak_ball.raw"
+binary raw file "results/peak_ball.raw"
 Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 
 Using SPARSE 1.3 as Direct Linear Solver
 No. of Data Columns : 42  
 Using transient initial conditions
+
+No. of Data Rows : 97149
+
+Total analysis time (seconds) = 4215.73
+
+Total elapsed time (seconds) = 4305.831 
+
+Total DRAM available = 31720.152 MB.
+DRAM currently available = 25727.758 MB.
+Maximum ngspice program size =  997.758 MB.
+Current ngspice program size =  980.824 MB.
+
+Shared ngspice pages =   10.555 MB.
+Text (code) pages =    6.156 MB.
+Stack = 0 bytes.
+Library pages =  978.512 MB.
+
