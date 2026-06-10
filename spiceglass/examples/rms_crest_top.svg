@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="970" height="480" viewBox="0 0 970 480" font-family="Segoe UI, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="480" viewBox="0 0 880 480" font-family="Segoe UI, Arial, sans-serif">
 <style>
  line, polyline, path, rect, circle { stroke: #111111; stroke-width: 1.8; }
  .wire { stroke: #1b1b1b; stroke-width: 1.6; }
@@ -15,26 +15,26 @@
  .title { font-size: 16px; font-weight: 700; }
  .meta { font-size: 10px; fill: #555; }
 </style>
-<rect x="0" y="0" width="970" height="480" fill="white" stroke="none"/>
-<line class="wire" x1="110" y1="260" x2="120" y2="260"/>
-<line class="wire" x1="120" y1="260" x2="120" y2="340"/>
-<line class="wire" x1="650" y1="250" x2="660" y2="250"/>
-<line class="wire" x1="660" y1="250" x2="660" y2="340"/>
-<line class="wire" x1="120" y1="340" x2="660" y2="340"/>
-<line class="wire" x1="110" y1="280" x2="130" y2="280"/>
-<line class="wire" x1="130" y1="280" x2="130" y2="350"/>
+<rect x="0" y="0" width="880" height="480" fill="white" stroke="none"/>
+<line class="wire" x1="110" y1="260" x2="100" y2="260"/>
+<line class="wire" x1="100" y1="260" x2="100" y2="340"/>
+<line class="wire" x1="650" y1="250" x2="640" y2="250"/>
+<line class="wire" x1="640" y1="250" x2="640" y2="340"/>
+<line class="wire" x1="100" y1="340" x2="640" y2="340"/>
+<line class="wire" x1="110" y1="280" x2="90" y2="280"/>
+<line class="wire" x1="90" y1="280" x2="90" y2="350"/>
 <line class="wire" x1="770" y1="270" x2="780" y2="270"/>
 <line class="wire" x1="780" y1="270" x2="780" y2="350"/>
-<line class="wire" x1="130" y1="350" x2="780" y2="350"/>
+<line class="wire" x1="90" y1="350" x2="780" y2="350"/>
 <line class="wire" x1="110" y1="300" x2="110" y2="360"/>
-<line class="wire" x1="290" y1="270" x2="300" y2="270"/>
-<line class="wire" x1="300" y1="270" x2="300" y2="360"/>
-<line class="wire" x1="110" y1="360" x2="300" y2="360"/>
+<line class="wire" x1="290" y1="270" x2="280" y2="270"/>
+<line class="wire" x1="280" y1="270" x2="280" y2="360"/>
+<line class="wire" x1="110" y1="360" x2="280" y2="360"/>
 <line class="wire" x1="230" y1="260" x2="240" y2="260"/>
 <line class="wire" x1="240" y1="260" x2="240" y2="370"/>
-<line class="wire" x1="470" y1="270" x2="480" y2="270"/>
-<line class="wire" x1="480" y1="270" x2="480" y2="370"/>
-<line class="wire" x1="240" y1="370" x2="480" y2="370"/>
+<line class="wire" x1="470" y1="270" x2="460" y2="270"/>
+<line class="wire" x1="460" y1="270" x2="460" y2="370"/>
+<line class="wire" x1="240" y1="370" x2="460" y2="370"/>
 <line x1="110" y1="260" x2="88" y2="260"/><rect x="67" y="251" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="77.5" y="264" text-anchor="middle" class="port">inp</text>
 <line x1="110" y1="280" x2="88" y2="280"/><rect x="67" y="271" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="77.5" y="284" text-anchor="middle" class="port">vcm</text>
 <line x1="230" y1="280" x2="242" y2="280"/><line x1="242" y1="280" x2="242" y2="270"/><line x1="233" y1="270" x2="251" y2="270" stroke-width="2.4"/><text x="242" y="265" text-anchor="middle" class="rail">VDD</text>
@@ -45,12 +45,12 @@
 <line x1="410" y1="290" x2="422" y2="290"/><line x1="422" y1="290" x2="422" y2="302"/><line x1="413" y1="302" x2="431" y2="302" stroke-width="2"/><line x1="416" y1="306" x2="428" y2="306" stroke-width="2"/><line x1="419" y1="310" x2="425" y2="310" stroke-width="2"/>
 <line x1="590" y1="290" x2="602" y2="290"/><line x1="602" y1="290" x2="602" y2="302"/><line x1="593" y1="302" x2="611" y2="302" stroke-width="2"/><line x1="596" y1="306" x2="608" y2="306" stroke-width="2"/><line x1="599" y1="310" x2="605" y2="310" stroke-width="2"/>
 <line x1="650" y1="310" x2="662" y2="310"/><line x1="662" y1="310" x2="662" y2="322"/><line x1="653" y1="322" x2="671" y2="322" stroke-width="2"/><line x1="656" y1="326" x2="668" y2="326" stroke-width="2"/><line x1="659" y1="330" x2="665" y2="330" stroke-width="2"/>
-<line x1="290" y1="290" x2="312" y2="290"/><rect x="312" y="281" width="49" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="336.5" y="294" text-anchor="middle" class="port">rms_out</text>
-<line x1="470" y1="290" x2="492" y2="290"/><rect x="492" y="281" width="49" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="516.5" y="294" text-anchor="middle" class="port">rms_ref</text>
-<line x1="650" y1="270" x2="672" y2="270"/><rect x="672" y="261" width="56" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="700.0" y="274" text-anchor="middle" class="port">peak_out</text>
+<line x1="290" y1="290" x2="268" y2="290"/><rect x="219" y="281" width="49" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="243.5" y="294" text-anchor="middle" class="port">rms_out</text>
+<line x1="470" y1="290" x2="448" y2="290"/><rect x="399" y="281" width="49" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="423.5" y="294" text-anchor="middle" class="port">rms_ref</text>
+<line x1="650" y1="270" x2="628" y2="270"/><rect x="572" y="261" width="56" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="600.0" y="274" text-anchor="middle" class="port">peak_out</text>
 <line x1="770" y1="250" x2="792" y2="250"/><rect x="792" y="241" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="802.5" y="254" text-anchor="middle" class="port">vbn</text>
 <line x1="770" y1="290" x2="792" y2="290"/><rect x="792" y="281" width="35" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="809.5" y="294" text-anchor="middle" class="port">reset</text>
-<g transform="translate(170 290) scale(1 1)" fill="none">
+<g transform="translate(170 290)" fill="none">
 <rect x="-60.0" y="-50.0" width="120" height="100" rx="4" fill="white"/>
 <text x="-54" y="-26.5" text-anchor="start" class="pin">inp</text>
 <text x="-54" y="-6.5" text-anchor="start" class="pin">vcm</text>
@@ -62,7 +62,7 @@
 </g>
 <text x="136" y="244" class="name">Xsq</text>
 <text x="192" y="348" class="param" text-anchor="start">rms_squarer</text>
-<g transform="translate(350 290) scale(1 1)" fill="none">
+<g transform="translate(350 290)" fill="none">
 <rect x="-60.0" y="-40.0" width="120" height="80" rx="4" fill="white"/>
 <text x="-54" y="-16.5" text-anchor="start" class="pin">inp</text>
 <text x="-54" y="3.5" text-anchor="start" class="pin">out</text>
@@ -72,7 +72,7 @@
 </g>
 <text x="316" y="244" class="name">Xlpf_sig</text>
 <text x="372" y="348" class="param" text-anchor="start">lpf_rc</text>
-<g transform="translate(530 290) scale(1 1)" fill="none">
+<g transform="translate(530 290)" fill="none">
 <rect x="-60.0" y="-40.0" width="120" height="80" rx="4" fill="white"/>
 <text x="-54" y="-16.5" text-anchor="start" class="pin">inp</text>
 <text x="-54" y="3.5" text-anchor="start" class="pin">out</text>
@@ -82,7 +82,7 @@
 </g>
 <text x="496" y="244" class="name">Xlpf_ref</text>
 <text x="552" y="348" class="param" text-anchor="start">lpf_rc</text>
-<g transform="translate(710 290) scale(1 1)" fill="none">
+<g transform="translate(710 290)" fill="none">
 <rect x="-60.0" y="-60.0" width="120" height="120" rx="4" fill="white"/>
 <text x="-54" y="-36.5" text-anchor="start" class="pin">inp</text>
 <text x="-54" y="-16.5" text-anchor="start" class="pin">out</text>
@@ -95,9 +95,9 @@
 </g>
 <text x="676" y="244" class="name">Xpeak</text>
 <text x="732" y="348" class="param" text-anchor="start">peak_detector</text>
-<line x1="20" y1="420" x2="950" y2="420" stroke="#999" stroke-width="1"/>
+<line x1="20" y1="420" x2="860" y2="420" stroke="#999" stroke-width="1"/>
 <text x="26" y="440" class="title">rms_crest_top</text>
 <text x="26" y="456" class="meta">design.cir — 4 devices — ports: inp, rms_out, rms_ref, peak_out, vdd, vss, reset, vbn, vcm — SpiceGlass — 2026-06-10</text>
-<rect x="820" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
-<text x="884" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
+<rect x="730" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
+<text x="794" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
 </svg>

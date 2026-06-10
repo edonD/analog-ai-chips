@@ -35,25 +35,41 @@ def box_height(nports: int) -> int:
     return max(8, 2 * side + 4)
 
 
-def pin_offsets(dev: Device, mirror: bool = False) -> dict[str, tuple[int, int]]:
-    """role -> (dx, dy) from device origin, in integer grid units."""
+TILE_PITCH = 10      # member spacing inside composite tiles, units
+
+
+def _orient(pins: dict[str, tuple[int, int]], orient: str) -> dict:
+    if orient == "MX":      # mirror about the through-axis (x=0)
+        return {r: (-dx, dy) for r, (dx, dy) in pins.items()}
+    if orient == "R90":     # lay flat: (dx,dy) -> (dy,-dx)
+        return {r: (dy, -dx) for r, (dx, dy) in pins.items()}
+    return pins
+
+
+def pin_offsets(dev: Device, orient: str = "R0") -> dict[str, tuple[int, int]]:
+    """role -> (dx, dy) from device origin, in integer grid units.
+
+    THROUGH-AXIS RULE: every series terminal (D/S, P/N) sits on x=0 so
+    any series chain renders as one straight vertical line — symbol
+    artwork is asymmetric around the axis, pins are not.
+    """
     k = dev.kind
     if k in ("nmos", "pmos"):
         pins = {"g": (-3, 0), "b": (3, 0)}
         if k == "nmos":
-            pins["d"] = (2, -4)
-            pins["s"] = (2, 4)
+            pins["d"] = (0, -4)
+            pins["s"] = (0, 4)
         else:                       # PMOS drawn source-up (toward VDD)
-            pins["s"] = (2, -4)
-            pins["d"] = (2, 4)
-        if mirror:
-            pins = {r: (-dx, dy) for r, (dx, dy) in pins.items()}
+            pins["s"] = (0, -4)
+            pins["d"] = (0, 4)
+        pins = _orient(pins, orient)
         return {r: pins.get(r, (3, 0)) for r in dev.roles}
     if k in ("res", "cap", "ind", "dio", "vsrc", "isrc", "bsrc"):
-        pins = {"p": (0, -4), "n": (0, 4), "b": (2, 0)}
+        pins = _orient({"p": (0, -4), "n": (0, 4), "b": (2, 0)}, orient)
         return {r: pins.get(r, (2, 0)) for r in dev.roles}
     if k in ("pnp", "npn"):
-        pins = {"c": (1, -4), "b": (-3, 0), "e": (1, 4), "s": (2, 1)}
+        pins = _orient({"c": (0, -4), "b": (-3, 0), "e": (0, 4), "s": (3, 1)},
+                       orient)
         return {r: pins.get(r, (2, 0)) for r in dev.roles}
     # subckt box / unknown: half the pins left, half right, on-grid
     n = len(dev.roles)
@@ -69,6 +85,6 @@ def pin_offsets(dev: Device, mirror: bool = False) -> dict[str, tuple[int, int]]
 
 
 def pin_pos(dev: Device, role: str, x: int, y: int,
-            mirror: bool = False) -> tuple[int, int]:
-    dx, dy = pin_offsets(dev, mirror)[role]
+            orient: str = "R0") -> tuple[int, int]:
+    dx, dy = pin_offsets(dev, orient)[role]
     return (x + dx, y + dy)

@@ -40,29 +40,29 @@ def _u(v: float) -> float:
 #   box   (±60, on-grid rows)
 
 def _mos(dev: Device) -> list[str]:
-    """Cadence/xschem-style 4-terminal FET: gate bar ∥ channel bar,
-    L-shaped drain/source arms, bulk arrow for polarity, PMOS bubble."""
+    """Cadence/xschem-style 4-terminal FET on the through-axis: D/S pins
+    at x=0, channel/gate bars to the left, bulk arrow for polarity,
+    PMOS bubble. Series chains stay perfectly straight."""
     pmos = dev.kind == "pmos"
     e = []
-    e.append('<line x1="20" y1="-40" x2="20" y2="-16"/>')
-    e.append('<line x1="20" y1="-16" x2="0" y2="-16"/>')
-    e.append('<line x1="20" y1="40" x2="20" y2="16"/>')
-    e.append('<line x1="20" y1="16" x2="0" y2="16"/>')
-    e.append('<line x1="0" y1="-17" x2="0" y2="17" stroke-width="2.6"/>')
-    e.append('<line x1="-7" y1="-13" x2="-7" y2="13" stroke-width="2.6"/>')
+    e.append('<line x1="0" y1="-40" x2="0" y2="-16"/>')
+    e.append('<line x1="0" y1="-16" x2="-14" y2="-16"/>')
+    e.append('<line x1="0" y1="40" x2="0" y2="16"/>')
+    e.append('<line x1="0" y1="16" x2="-14" y2="16"/>')
+    e.append('<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>')
+    e.append('<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>')
     if pmos:
-        e.append('<circle cx="-13" cy="0" r="4.5" fill="white" '
+        e.append('<circle cx="-25.6" cy="0" r="4.3" fill="white" '
                  'stroke-width="1.5"/>')
-        e.append('<line x1="-30" y1="0" x2="-17.5" y2="0"/>')
     else:
-        e.append('<line x1="-30" y1="0" x2="-7" y2="0"/>')
+        e.append('<line x1="-30" y1="0" x2="-21" y2="0"/>')
     if "b" in dev.roles:
-        e.append('<line x1="0" y1="0" x2="30" y2="0"/>')
+        e.append('<line x1="-14" y1="0" x2="30" y2="0"/>')
         if pmos:   # arrow away from channel (n-well bulk)
-            e.append(f'<path d="M 12 0 L 4 -3.6 L 4 3.6 Z" '
-                     f'fill="{SYM}" stroke="none" transform="rotate(180 8 0)"/>')
+            e.append(f'<path d="M 6 0 L -2 -3.6 L -2 3.6 Z" '
+                     f'fill="{SYM}" stroke="none"/>')
         else:      # arrow into the channel (p-substrate bulk)
-            e.append(f'<path d="M 1.5 0 L 10 -3.6 L 10 3.6 Z" '
+            e.append(f'<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" '
                      f'fill="{SYM}" stroke="none"/>')
     return e
 
@@ -282,9 +282,13 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
     for d in sub.devices:
         p = sheet.pos(d)
         px, py = _u(p.x), _u(p.y)
-        sx = -1 if p.mirror else 1
-        parts.append(f'<g transform="translate({px:.0f} {py:.0f}) '
-                     f'scale({sx} 1)" fill="none">')
+        tf = ""
+        if p.orient == "MX":
+            tf = " scale(-1 1)"
+        elif p.orient == "R90":
+            tf = " rotate(-90)"
+        parts.append(f'<g transform="translate({px:.0f} {py:.0f}){tf}" '
+                     'fill="none">')
         parts.extend(_symbol_elems(d))
         parts.append('</g>')
         parts.append(f'<text x="{px - 34}" y="{py - 46}" class="name">'
