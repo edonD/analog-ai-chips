@@ -23,6 +23,7 @@
            box-shadow:0 2px 14px rgba(0,0,0,.5); transform-origin:0 0; }
   #sheet line, #sheet polyline, #sheet path, #sheet rect, #sheet circle
     { stroke:#111; stroke-width:1.8; }
+  #sheet .gdot { stroke:none !important; }
   #sheet text { stroke:none; fill:#222; font-size:11px; }
   .name { font-weight:600; font-size:11px; }
   .param { fill:#666; font-size:9.5px; }
@@ -214,13 +215,13 @@ function build(p) {
     `<defs>
       <pattern id="dots1" x="${-u/2}" y="${-u/2}" width="${u}" height="${u}"
         patternUnits="userSpaceOnUse">
-        <circle cx="${u/2}" cy="${u/2}" r="0.35" fill="#f2f4f7"
-          stroke="none"/>
+        <circle class="gdot" cx="${u/2}" cy="${u/2}" r="0.3"
+          fill="#f3f5f8"/>
       </pattern>
       <pattern id="dots5" x="${-u*2.5}" y="${-u*2.5}" width="${u*5}"
         height="${u*5}" patternUnits="userSpaceOnUse">
-        <circle cx="${u*2.5}" cy="${u*2.5}" r="0.7" fill="#dfe4ea"
-          stroke="none"/>
+        <circle class="gdot" cx="${u*2.5}" cy="${u*2.5}" r="0.6"
+          fill="#e4e9ef"/>
       </pattern>
      </defs>` +
     `<rect width="100%" height="100%" fill="white" stroke="none"/>` +
