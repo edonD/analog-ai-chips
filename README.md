@@ -123,6 +123,12 @@
 | 30 | [build-plan-pragmatic.md](research/build-plan-pragmatic.md) | Original CIM chip plan (superseded by VibroSense-1) |
 | 31 | [vibrosense-chip-architecture.md](research/vibrosense-chip-architecture.md) | VibroSense-1 system architecture, SPICE simulations, revenue model |
 
+### Design Tooling
+
+| # | File | What It Answers |
+|---|------|----------------|
+| 32 | [netlist-to-schematic.md](research/netlist-to-schematic.md) | How to see an AI-generated .cir as a schematic (verified tool/paper landscape + cir2sch build plan) |
+
 ---
 
 # Part 2: VibroSense-1 Chip Design
@@ -912,6 +918,7 @@ Leave-one-fault-size-out cross-validation fails (66% accuracy). The model learns
 
 | Date | What |
 |------|------|
+| 2026-06-10 | **Netlist→schematic investigation.** Deep-research sweep (104 agents, 25/25 claims verified) on converting ngspice .cir to readable schematics: SpiceVision PRO is the only turn-key tool; Schemato (Sony, MLCAD'25) and EEschematic (Edinburgh, MIT) prove the LLM approach; recommendation = build a deterministic cir2sch with round-trip isomorphism verification. See [research/netlist-to-schematic.md](research/netlist-to-schematic.md). |
 | 2026-03-27 | **README rewritten** as comprehensive design document with all block schematics, device sizing, and simulation results. |
 | 2026-03-27 | **Bias generator schematic fixed.** M6 gate-to-GND connection added in xschem, PNG regenerated. |
 | 2026-03-23 | **Block 06 Classifier COMPLETE.** Full 8x4-bit charge-domain MAC classifier verified in ngspice with SKY130 BSIM4 models. 10/10 specs PASS: 0.08 LSB linearity, 0.4% multi-input error, 19.3 mV WTA margin, 99.5% Monte Carlo accuracy, 0.11% corner variation, <0.001 uW at 10 Hz. ~702 transistors, ~260 caps. |
