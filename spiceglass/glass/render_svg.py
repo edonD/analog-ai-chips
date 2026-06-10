@@ -1,7 +1,9 @@
 """SVG renderer: symbol library + wires + furniture.
 
-Pin positions MUST match glass.geom — that contract is what lets the
-verifier treat the drawing as ground truth.
+The pipeline thinks in integer grid units; this module is the ONLY place
+units become pixels (via geom.UNIT). Symbol artwork is drawn in px but
+must land its pins exactly on the grid contract in glass.geom — the
+verifier exploits that exactness.
 """
 from __future__ import annotations
 
@@ -9,7 +11,7 @@ import html
 
 from .classify import short_model
 from .db import Device, Subckt
-from .geom import BOX_PIN_DY, BOX_W, box_height, pin_offsets
+from .geom import BOX_PIN_DY, BOX_W, UNIT, box_height, pin_offsets
 from .place import Sheet
 from .route import Routing, Stub
 
@@ -26,19 +28,26 @@ def _esc(t: str) -> str:
     return html.escape(t, quote=True)
 
 
+def _u(v: float) -> float:
+    """grid units -> px"""
+    return v * UNIT
+
+
 # ------------------------------------------------------------ symbols
+# Artwork is in px; every pin must land at pin_offsets * UNIT:
+#   MOS   G(-30,0)  D/S(20,±40)  B(30,0)
+#   2-term  P(0,-40) N(0,40)  body B(20,0)
+#   box   (±60, on-grid rows)
 
 def _mos(dev: Device) -> list[str]:
     """Cadence/xschem-style 4-terminal FET: gate bar ∥ channel bar,
     L-shaped drain/source arms, bulk arrow for polarity, PMOS bubble."""
     pmos = dev.kind == "pmos"
     e = []
-    # drain/source leads with L-arms (top arm + stub, bottom arm + stub)
-    e.append('<line x1="14" y1="-38" x2="14" y2="-16"/>')
-    e.append('<line x1="14" y1="-16" x2="0" y2="-16"/>')
-    e.append('<line x1="14" y1="38" x2="14" y2="16"/>')
-    e.append('<line x1="14" y1="16" x2="0" y2="16"/>')
-    # channel bar and gate bar (thicker — the visual signature of a FET)
+    e.append('<line x1="20" y1="-40" x2="20" y2="-16"/>')
+    e.append('<line x1="20" y1="-16" x2="0" y2="-16"/>')
+    e.append('<line x1="20" y1="40" x2="20" y2="16"/>')
+    e.append('<line x1="20" y1="16" x2="0" y2="16"/>')
     e.append('<line x1="0" y1="-17" x2="0" y2="17" stroke-width="2.6"/>')
     e.append('<line x1="-7" y1="-13" x2="-7" y2="13" stroke-width="2.6"/>')
     if pmos:
@@ -48,7 +57,7 @@ def _mos(dev: Device) -> list[str]:
     else:
         e.append('<line x1="-30" y1="0" x2="-7" y2="0"/>')
     if "b" in dev.roles:
-        e.append('<line x1="0" y1="0" x2="26" y2="0"/>')
+        e.append('<line x1="0" y1="0" x2="30" y2="0"/>')
         if pmos:   # arrow away from channel (n-well bulk)
             e.append(f'<path d="M 12 0 L 4 -3.6 L 4 3.6 Z" '
                      f'fill="{SYM}" stroke="none" transform="rotate(180 8 0)"/>')
@@ -59,39 +68,38 @@ def _mos(dev: Device) -> list[str]:
 
 
 def _res(dev: Device) -> list[str]:
-    # symmetric US zigzag: half-step in, 5 full peaks, half-step out
     ys = [-21, -17.5, -10.5, -3.5, 3.5, 10.5, 17.5, 21]
     xs = [0, 8, -8, 8, -8, 8, -8, 0]
     pts = " ".join(f"{x},{y}" for x, y in zip(xs, ys))
-    e = ['<line x1="0" y1="-38" x2="0" y2="-21"/>',
-         '<line x1="0" y1="21" x2="0" y2="38"/>',
+    e = ['<line x1="0" y1="-40" x2="0" y2="-21"/>',
+         '<line x1="0" y1="21" x2="0" y2="40"/>',
          f'<polyline points="{pts}" fill="none" stroke-width="2"/>']
     if "b" in dev.roles:
-        e.append('<line x1="0" y1="0" x2="18" y2="0" stroke-dasharray="3 2"/>')
+        e.append('<line x1="0" y1="0" x2="20" y2="0" stroke-dasharray="3 2"/>')
     return e
 
 
 def _cap(dev: Device) -> list[str]:
-    e = ['<line x1="0" y1="-38" x2="0" y2="-5"/>',
-         '<line x1="0" y1="5" x2="0" y2="38"/>',
+    e = ['<line x1="0" y1="-40" x2="0" y2="-5"/>',
+         '<line x1="0" y1="5" x2="0" y2="40"/>',
          '<line x1="-14" y1="-5" x2="14" y2="-5" stroke-width="2.6"/>',
          '<line x1="-14" y1="5" x2="14" y2="5" stroke-width="2.6"/>']
     if "b" in dev.roles:
-        e.append('<line x1="0" y1="5" x2="18" y2="5" stroke-dasharray="3 2"/>')
-        e.append('<line x1="18" y1="5" x2="18" y2="0"/>')
+        e.append('<line x1="0" y1="5" x2="20" y2="5" stroke-dasharray="3 2"/>')
+        e.append('<line x1="20" y1="5" x2="20" y2="0"/>')
     return e
 
 
 def _dio(dev: Device) -> list[str]:
-    return ['<line x1="0" y1="-38" x2="0" y2="-9"/>',
-            '<line x1="0" y1="9" x2="0" y2="38"/>',
-            f'<path d="M -10 -9 L 10 -9 L 0 9 Z" fill="none"/>',
+    return ['<line x1="0" y1="-40" x2="0" y2="-9"/>',
+            '<line x1="0" y1="9" x2="0" y2="40"/>',
+            '<path d="M -10 -9 L 10 -9 L 0 9 Z" fill="none"/>',
             '<line x1="-10" y1="9" x2="10" y2="9"/>']
 
 
 def _src(dev: Device) -> list[str]:
-    e = ['<line x1="0" y1="-38" x2="0" y2="-16"/>',
-         '<line x1="0" y1="16" x2="0" y2="38"/>']
+    e = ['<line x1="0" y1="-40" x2="0" y2="-16"/>',
+         '<line x1="0" y1="16" x2="0" y2="40"/>']
     if dev.kind == "bsrc":
         e.append('<path d="M 0 -16 L 13 0 L 0 16 L -13 0 Z" fill="white"/>')
         e.append('<text x="0" y="4" text-anchor="middle" class="sym">B</text>')
@@ -103,22 +111,26 @@ def _src(dev: Device) -> list[str]:
 
 
 def _bjt(dev: Device) -> list[str]:
-    return ['<circle cx="2" cy="0" r="18" fill="none"/>',
-            '<line x1="-30" y1="0" x2="-6" y2="0"/>',
-            '<line x1="-6" y1="-10" x2="-6" y2="10"/>',
-            '<line x1="-6" y1="-4" x2="10" y2="-14"/>',
-            '<line x1="10" y1="-14" x2="10" y2="-38"/>',
-            '<line x1="-6" y1="4" x2="10" y2="14"/>',
-            '<line x1="10" y1="14" x2="10" y2="38"/>']
+    e = ['<circle cx="2" cy="0" r="18" fill="none"/>',
+         '<line x1="-30" y1="0" x2="-6" y2="0"/>',
+         '<line x1="-6" y1="-10" x2="-6" y2="10"/>',
+         '<line x1="-6" y1="-4" x2="10" y2="-14"/>',
+         '<line x1="10" y1="-14" x2="10" y2="-40"/>',
+         '<line x1="-6" y1="4" x2="10" y2="14"/>',
+         '<line x1="10" y1="14" x2="10" y2="40"/>']
+    if "s" in dev.roles:
+        e.append('<line x1="14" y1="10" x2="20" y2="10"/>')
+    return e
 
 
 def _box(dev: Device) -> list[str]:
-    h = box_height(len(dev.roles))
-    e = [f'<rect x="{-BOX_W/2}" y="{-h/2}" width="{BOX_W}" height="{h}" '
+    h = _u(box_height(len(dev.roles)))
+    w = _u(BOX_W)
+    e = [f'<rect x="{-w/2}" y="{-h/2}" width="{w}" height="{h}" '
          f'rx="4" fill="white"/>']
     offs = pin_offsets(dev, False)
     for role in dev.roles:
-        px, py = offs[role]
+        px, py = _u(offs[role][0]), _u(offs[role][1])
         anchor = "start" if px < 0 else "end"
         tx = px + 6 if px < 0 else px - 6
         e.append(f'<text x="{tx}" y="{py + 3.5}" text-anchor="{anchor}" '
@@ -134,7 +146,7 @@ def _symbol_elems(dev: Device) -> list[str]:
         return _mos(dev)
     if k == "res":
         return _res(dev)
-    if k in ("cap",):
+    if k == "cap":
         return _cap(dev)
     if k == "dio":
         return _dio(dev)
@@ -149,7 +161,7 @@ def _symbol_elems(dev: Device) -> list[str]:
 
 def _stub_svg(s: Stub, multi_gnd: bool) -> str:
     e = []
-    x, y = s.px, s.py
+    x, y = _u(s.px), _u(s.py)
     bulk = s.role == "b"
     if s.kind == "vdd":
         if s.direction.startswith("side"):
@@ -201,7 +213,7 @@ def _stub_svg(s: Stub, multi_gnd: bool) -> str:
 
 def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
     sub: Subckt = sheet.sub
-    W, H = sheet.width, sheet.height + 70
+    W, H = _u(sheet.width), _u(sheet.height) + 70
     parts: list[str] = []
     parts.append(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W:.0f}" '
@@ -230,9 +242,10 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
     sec_bounds: dict[str, list[float]] = {}
     for d in sub.devices:
         p = sheet.pos(d)
-        b = sec_bounds.setdefault(d.section or "", [p.x, p.y, p.x, p.y])
-        b[0] = min(b[0], p.x); b[1] = min(b[1], p.y)
-        b[2] = max(b[2], p.x); b[3] = max(b[3], p.y)
+        px, py = _u(p.x), _u(p.y)
+        b = sec_bounds.setdefault(d.section or "", [px, py, px, py])
+        b[0] = min(b[0], px); b[1] = min(b[1], py)
+        b[2] = max(b[2], px); b[3] = max(b[3], py)
     si = 0
     for sec in sub.sections:
         if sec not in sec_bounds:
@@ -248,11 +261,11 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
 
     # wires
     for s in routing.segments:
-        parts.append(f'<line class="wire" x1="{s.x1:.1f}" y1="{s.y1:.1f}" '
-                     f'x2="{s.x2:.1f}" y2="{s.y2:.1f}"/>')
+        parts.append(f'<line class="wire" x1="{_u(s.x1):.0f}" y1="{_u(s.y1):.0f}" '
+                     f'x2="{_u(s.x2):.0f}" y2="{_u(s.y2):.0f}"/>')
     for (x, y) in routing.dots:
-        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" fill="{WIRE}" '
-                     'stroke="none"/>')
+        parts.append(f'<circle cx="{_u(x):.0f}" cy="{_u(y):.0f}" r="3" '
+                     f'fill="{WIRE}" stroke="none"/>')
 
     # stubs
     gnd_nets = {s.net for s in routing.stubs if s.kind == "gnd"}
@@ -262,33 +275,34 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
 
     # dangling markers
     for t in routing.dangling:
-        parts.append(f'<circle cx="{t.x}" cy="{t.y}" r="4" fill="none" '
+        parts.append(f'<circle cx="{_u(t.x)}" cy="{_u(t.y)}" r="4" fill="none" '
                      'stroke="#cc0000" stroke-width="1.6"/>')
 
     # symbols + annotations
     for d in sub.devices:
         p = sheet.pos(d)
+        px, py = _u(p.x), _u(p.y)
         sx = -1 if p.mirror else 1
-        parts.append(f'<g transform="translate({p.x:.1f} {p.y:.1f}) '
+        parts.append(f'<g transform="translate({px:.0f} {py:.0f}) '
                      f'scale({sx} 1)" fill="none">')
         parts.extend(_symbol_elems(d))
         parts.append('</g>')
-        parts.append(f'<text x="{p.x - 34}" y="{p.y - 44}" class="name">'
+        parts.append(f'<text x="{px - 34}" y="{py - 46}" class="name">'
                      f'{_esc(d.name)}</text>')
         ann = _annotation(d)
         if ann:
-            parts.append(f'<text x="{p.x + 20}" y="{p.y + 58}" class="param" '
+            parts.append(f'<text x="{px + 22}" y="{py + 58}" class="param" '
                          f'text-anchor="start">{_esc(ann)}</text>')
 
     # title block + stamp
     y0 = H - 46
-    parts.append(f'<line x1="{20}" y1="{y0 - 14}" x2="{W - 20}" y2="{y0 - 14}" '
+    parts.append(f'<line x1="20" y1="{y0 - 14}" x2="{W - 20}" y2="{y0 - 14}" '
                  'stroke="#999" stroke-width="1"/>')
     parts.append(f'<text x="26" y="{y0 + 6}" class="title">{_esc(sub.name)}</text>')
     nd = len(sub.devices)
     parts.append(f'<text x="26" y="{y0 + 22}" class="meta">'
                  f'{_esc(meta.get("path", ""))} — {nd} devices — '
-                 f'ports: {_esc(", ".join(sub.ports))} — SpiceGlass M0 — '
+                 f'ports: {_esc(", ".join(sub.ports))} — SpiceGlass — '
                  f'{_esc(meta.get("date", ""))}</text>')
     if verdict is not None:
         ok = verdict.ok

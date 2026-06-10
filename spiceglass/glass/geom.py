@@ -1,69 +1,74 @@
-"""Symbol geometry shared by placer, router, renderer, and verifier.
+"""Grid-native symbol geometry — the systematic core.
 
-All coordinates are SVG-style (y grows downward), relative to the
-device origin (cell center). Pin positions are the contract: the
-renderer must draw symbol artwork whose pins land exactly here, and
-the router starts wires exactly here — the verifier exploits that.
+Everything in this pipeline thinks in INTEGER GRID UNITS:
+  * every symbol is a footprint tile of whole units,
+  * every pin sits exactly on a grid crossing,
+  * placement positions device origins on grid crossings,
+  * routing tracks are integer grid lines,
+  * verification compares integer coordinates exactly (no epsilons).
+Pixels exist only at the render boundary (UNIT px per grid unit), which
+is also what will make xschem/.sch export a pure scale factor.
+
+Pin positions are the contract: renderer artwork must land its pins
+exactly here, the router starts wires exactly here, and the verifier
+exploits that exactness.
 """
 from __future__ import annotations
 
 from .db import Device
 
-COL_W = 190          # column pitch
-ROW_H = 130          # row pitch
-MARGIN = 90          # sheet margin
-SECTION_GAP = 46     # extra gap between section groups
+UNIT = 10            # px per grid unit (render scale only)
 
-BOX_W = 132          # subckt instance box
-BOX_PIN_DY = 22
+COL_PITCH = 18       # units between column centers
+ROW_PITCH = 14       # units between row centers   (symbol is 8 tall -> 6 tracks free)
+MARGIN = 8           # sheet margin, units
+SECTION_GAP = 5      # extra units between section groups
+ROW0_OFFSET = 7      # units from top margin to row-0 center
+
+BOX_W = 12           # subckt instance box width, units
+BOX_PIN_DY = 2       # vertical pin spacing on box edges, units
 
 
 def box_height(nports: int) -> int:
+    """Box height in units (even, pins on-grid)."""
     side = (nports + 1) // 2
-    return max(72, side * BOX_PIN_DY + 28)
+    return max(8, 2 * side + 4)
 
 
-def pin_offsets(dev: Device, mirror: bool = False) -> dict[str, tuple[float, float]]:
-    """role -> (dx, dy) from device origin."""
+def pin_offsets(dev: Device, mirror: bool = False) -> dict[str, tuple[int, int]]:
+    """role -> (dx, dy) from device origin, in integer grid units."""
     k = dev.kind
     if k in ("nmos", "pmos"):
-        pins = {"g": (-30.0, 0.0), "b": (26.0, 0.0)}
+        pins = {"g": (-3, 0), "b": (3, 0)}
         if k == "nmos":
-            pins["d"] = (14.0, -38.0)
-            pins["s"] = (14.0, 38.0)
+            pins["d"] = (2, -4)
+            pins["s"] = (2, 4)
         else:                       # PMOS drawn source-up (toward VDD)
-            pins["s"] = (14.0, -38.0)
-            pins["d"] = (14.0, 38.0)
+            pins["s"] = (2, -4)
+            pins["d"] = (2, 4)
         if mirror:
             pins = {r: (-dx, dy) for r, (dx, dy) in pins.items()}
-        return {r: pins[r] for r in dev.roles if r in pins} | {
-            r: pins.get(r, (16.0, 0.0)) for r in dev.roles}
-    if k in ("res", "cap", "ind", "dio"):
-        pins = {"p": (0.0, -38.0), "n": (0.0, 38.0), "b": (18.0, 0.0)}
-        return {r: pins.get(r, (18.0, 0.0)) for r in dev.roles}
-    if k in ("vsrc", "isrc", "bsrc"):
-        return {r: {"p": (0.0, -38.0), "n": (0.0, 38.0)}.get(r, (18.0, 0.0))
-                for r in dev.roles}
+        return {r: pins.get(r, (3, 0)) for r in dev.roles}
+    if k in ("res", "cap", "ind", "dio", "vsrc", "isrc", "bsrc"):
+        pins = {"p": (0, -4), "n": (0, 4), "b": (2, 0)}
+        return {r: pins.get(r, (2, 0)) for r in dev.roles}
     if k in ("pnp", "npn"):
-        pins = {"c": (10.0, -38.0), "b": (-30.0, 0.0), "e": (10.0, 38.0),
-                "s": (18.0, 10.0)}
-        return {r: pins.get(r, (18.0, 0.0)) for r in dev.roles}
-    # subckt box / unknown: half the pins left, half right
+        pins = {"c": (1, -4), "b": (-3, 0), "e": (1, 4), "s": (2, 1)}
+        return {r: pins.get(r, (2, 0)) for r in dev.roles}
+    # subckt box / unknown: half the pins left, half right, on-grid
     n = len(dev.roles)
     side = (n + 1) // 2
     h = box_height(n)
-    out: dict[str, tuple[float, float]] = {}
+    out: dict[str, tuple[int, int]] = {}
     for i, role in enumerate(dev.roles):
         if i < side:
-            y = -h / 2 + 24 + i * BOX_PIN_DY
-            out[role] = (-BOX_W / 2, y)
+            out[role] = (-BOX_W // 2, -h // 2 + 2 + i * BOX_PIN_DY)
         else:
-            y = -h / 2 + 24 + (i - side) * BOX_PIN_DY
-            out[role] = (BOX_W / 2, y)
+            out[role] = (BOX_W // 2, -h // 2 + 2 + (i - side) * BOX_PIN_DY)
     return out
 
 
-def pin_pos(dev: Device, role: str, x: float, y: float,
-            mirror: bool = False) -> tuple[float, float]:
+def pin_pos(dev: Device, role: str, x: int, y: int,
+            mirror: bool = False) -> tuple[int, int]:
     dx, dy = pin_offsets(dev, mirror)[role]
     return (x + dx, y + dy)

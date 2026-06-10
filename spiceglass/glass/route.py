@@ -14,7 +14,7 @@ import re
 from dataclasses import dataclass, field
 
 from .db import Subckt
-from .geom import ROW_H, pin_pos
+from .geom import MARGIN, ROW0_OFFSET, ROW_PITCH, pin_pos
 from .place import Sheet
 
 _INPUTISH = re.compile(r"^(v?in\w*|vi[pm]\w*|clk\w*|reset\w*|en\w*|vcm|"
@@ -77,23 +77,25 @@ def route(sheet: Sheet) -> Routing:
             net_pins.setdefault(net, []).append(t)
 
     band_use: dict[int, int] = {}
-    # vertical-lane registry: rounded x -> [(net, ymin, ymax)], used to keep
-    # different nets' vertical runs from overlapping on one line. Pins are
+    # vertical-lane registry: integer grid x -> [(net, ymin, ymax)], keeps
+    # different nets' vertical runs from sharing one grid line. Pins are
     # seeded as zero-length intervals so no vertical ever runs over a
     # foreign pin (the classic stacked-box-pin short).
-    lanes: dict[float, list[tuple[str, float, float]]] = {}
+    lanes: dict[int, list[tuple[str, int, int]]] = {}
     for t in r.terminals:
-        lanes.setdefault(round(t.x, 1), []).append((t.net, t.y, t.y))
+        lanes.setdefault(t.x, []).append((t.net, t.y, t.y))
 
-    def track_y(pins: list[Terminal]) -> float:
+    row0 = MARGIN + ROW0_OFFSET
+
+    def track_y(pins: list[Terminal]) -> int:
+        """An integer horizontal track in the band nearest the pins."""
         ys = sorted(t.y for t in pins)
         mid = ys[len(ys) // 2]
-        band = round((mid - 84.0) / ROW_H)
+        band = round((mid - row0) / ROW_PITCH)
         k = band_use.get(band, 0)
         band_use[band] = k + 1
-        base = 84.0 + band * ROW_H + ROW_H / 2.0
-        offset = (k % 7 - 3) * 9.0
-        return base + offset
+        base = row0 + band * ROW_PITCH + ROW_PITCH // 2
+        return base + (k % 6) - 2          # 6 whole-unit tracks per band
 
     ports = set(sub.ports)
 
@@ -153,27 +155,26 @@ def _port_anchor(pins: list[Terminal], net: str) -> Terminal:
     return max(pins, key=lambda t: t.x)
 
 
-def _claim_lane(lanes, net: str, x: float, y1: float, y2: float,
-                side: str) -> float:
-    """Return an x where a vertical (y1..y2) won't overlap another net."""
+def _claim_lane(lanes, net: str, x: int, y1: int, y2: int,
+                side: str) -> int:
+    """Return an integer grid x where a vertical (y1..y2) is clash-free."""
     lo, hi = min(y1, y2), max(y1, y2)
-    step = -7.0 if side == "L" else 7.0
+    step = -1 if side == "L" else 1
     cand = x
-    for _ in range(12):
-        kx = round(cand, 1)
-        clash = any(n != net and hi > a - 0.2 and lo < b + 0.2
-                    for (n, a, b) in lanes.get(kx, []))
+    for _ in range(14):
+        clash = any(n != net and hi >= a and lo <= b
+                    for (n, a, b) in lanes.get(cand, []))
         if not clash:
-            lanes.setdefault(kx, []).append((net, lo, hi))
+            lanes.setdefault(cand, []).append((net, lo, hi))
             return cand
         cand += step
-    lanes.setdefault(round(cand, 1), []).append((net, lo, hi))
+    lanes.setdefault(cand, []).append((net, lo, hi))
     return cand
 
 
 def _route_net(r: Routing, net: str, pins: list[Terminal], track_y,
                lanes) -> None:
-    xs = {round(t.x, 1) for t in pins}
+    xs = {t.x for t in pins}
     if len(xs) == 1:
         ordered = sorted(pins, key=lambda t: t.y)
         x = _claim_lane(lanes, net, ordered[0].x, ordered[0].y,
@@ -189,19 +190,19 @@ def _route_net(r: Routing, net: str, pins: list[Terminal], track_y,
         return
 
     ty = track_y(pins)
-    drop_xs: list[float] = []
+    drop_xs: list[int] = []
     for t in pins:
-        if abs(t.y - ty) <= 0.1:
+        if t.y == ty:
             drop_xs.append(t.x)
             continue
         dx = _claim_lane(lanes, net, t.x, t.y, ty, t.side)
-        if abs(dx - t.x) > 0.1:
+        if dx != t.x:
             r.segments.append(Seg(t.x, t.y, dx, t.y, net))   # escape jog
         r.segments.append(Seg(dx, t.y, dx, ty, net))
         drop_xs.append(dx)
     minx, maxx = min(drop_xs), max(drop_xs)
-    if maxx - minx > 0.1:
+    if maxx != minx:
         r.segments.append(Seg(minx, ty, maxx, ty, net))
     for x in drop_xs:
-        if len(drop_xs) > 2 and minx + 0.1 < x < maxx - 0.1:
+        if len(drop_xs) > 2 and minx < x < maxx:
             r.dots.append((x, ty))

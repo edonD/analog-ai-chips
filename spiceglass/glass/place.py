@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 
 from .classify import rails_of
 from .db import Device, Subckt
-from .geom import COL_W, MARGIN, ROW_H, SECTION_GAP
+from .geom import COL_PITCH, MARGIN, ROW0_OFFSET, ROW_PITCH, SECTION_GAP
 
 LABEL_FANOUT = 5     # nets with >= this many terminals become named stubs
 
@@ -28,9 +28,9 @@ LABEL_FANOUT = 5     # nets with >= this many terminals become named stubs
 class Placed:
     dev: Device
     col: int = 0
-    row: float = 0.0
-    x: float = 0.0
-    y: float = 0.0
+    row: int = 0
+    x: int = 0          # grid units
+    y: int = 0          # grid units
     mirror: bool = False
 
 
@@ -42,8 +42,8 @@ class Sheet:
     label_nets: set[str] = field(default_factory=set)
     columns: list[list[Device]] = field(default_factory=list)
     col_section: list[str] = field(default_factory=list)
-    width: float = 0.0
-    height: float = 0.0
+    width: int = 0      # grid units
+    height: int = 0     # grid units
     rows: int = 0
 
     def pos(self, dev: Device) -> Placed:
@@ -182,30 +182,29 @@ def place(sub: Subckt) -> Sheet:
             ch = _channel(d)
             if ch and any(n in sheet.rails and sheet.rails[n] == "vdd" for n in ch):
                 # top-anchored chain from VDD keeps walk order
-                row = float(top_i)
+                row = top_i
                 top_i += 1
             elif ch:
                 lvls = [level[n] for n in ch if n in level]
                 if lvls:
-                    row = float(rows - 1 - min(lvls))
+                    row = rows - 1 - min(lvls)
                 else:
-                    row = float(min(i, rows - 1))
-                top_i = int(row) + 1
+                    row = min(i, rows - 1)
+                top_i = row + 1
             else:                      # boxes: middle band, stack downward
-                row = float(min(1 + i, rows - 1))
-            d_row = row
-            sheet.placed[d.name] = Placed(dev=d, row=d_row)
+                row = min(1 + i, rows - 1)
+            sheet.placed[d.name] = Placed(dev=d, row=row)
 
     for col in columns:
         assign_rows(col)
 
     # resolve collisions within a column (two devices landing on one row)
     for col in columns:
-        taken: dict[float, int] = {}
+        taken: dict[int, int] = {}
         for d in col:
             p = sheet.placed[d.name]
             while p.row in taken:
-                p.row -= 1.0 if p.row > 0 else -1.0
+                p.row -= 1 if p.row > 0 else -1
             taken[p.row] = 1
 
     # ---- column x-order: section appearance order, then first line
@@ -218,8 +217,8 @@ def place(sub: Subckt) -> Sheet:
     sheet.columns = columns
     sheet.col_section = [c[0].section for c in columns]
 
-    # ---- coordinates (extra gap whenever the section changes)
-    x = MARGIN + COL_W / 2
+    # ---- grid coordinates (extra gap whenever the section changes)
+    x = MARGIN + COL_PITCH // 2
     prev_sec = None
     for ci, col in enumerate(columns):
         sec = sheet.col_section[ci]
@@ -230,11 +229,11 @@ def place(sub: Subckt) -> Sheet:
             p = sheet.placed[d.name]
             p.col = ci
             p.x = x
-            p.y = MARGIN + 84 + p.row * ROW_H
-        x += COL_W
+            p.y = MARGIN + ROW0_OFFSET + p.row * ROW_PITCH
+        x += COL_PITCH
 
     sheet.width = x + MARGIN
-    sheet.height = MARGIN + 84 + (rows - 1) * ROW_H + MARGIN + 40
+    sheet.height = MARGIN + ROW0_OFFSET + (rows - 1) * ROW_PITCH + MARGIN + 4
 
     # ---- gate orientation: face the gate toward its net's nearest column
     for d in devices:
