@@ -27,13 +27,13 @@ def pin_offsets(dev: Device, mirror: bool = False) -> dict[str, tuple[float, flo
     """role -> (dx, dy) from device origin."""
     k = dev.kind
     if k in ("nmos", "pmos"):
-        pins = {"g": (-30.0, 0.0), "b": (16.0, 0.0)}
+        pins = {"g": (-30.0, 0.0), "b": (26.0, 0.0)}
         if k == "nmos":
-            pins["d"] = (8.0, -38.0)
-            pins["s"] = (8.0, 38.0)
+            pins["d"] = (14.0, -38.0)
+            pins["s"] = (14.0, 38.0)
         else:                       # PMOS drawn source-up (toward VDD)
-            pins["s"] = (8.0, -38.0)
-            pins["d"] = (8.0, 38.0)
+            pins["s"] = (14.0, -38.0)
+            pins["d"] = (14.0, 38.0)
         if mirror:
             pins = {r: (-dx, dy) for r, (dx, dy) in pins.items()}
         return {r: pins[r] for r in dev.roles if r in pins} | {

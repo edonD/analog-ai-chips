@@ -60,17 +60,17 @@
 <text x="341.0" y="260.0" class="name">B_hw2</text>
 <text x="395.0" y="362.0" class="param" text-anchor="start">I = max(0, 2.5e-6 * (v(vc…</text>
 <g transform="translate(565.0 304.0) scale(1 1)" fill="none">
-<line x1="0" y1="-38" x2="0" y2="-22"/>
-<line x1="0" y1="22" x2="0" y2="38"/>
-<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+<line x1="0" y1="-38" x2="0" y2="-21"/>
+<line x1="0" y1="21" x2="0" y2="38"/>
+<polyline points="0,-21 8,-17.5 -8,-10.5 8,-3.5 -8,3.5 8,10.5 -8,17.5 0,21" fill="none" stroke-width="2"/>
 </g>
 <text x="531.0" y="260.0" class="name">R_rect</text>
 <text x="585.0" y="362.0" class="param" text-anchor="start">400k</text>
 <g transform="translate(755.0 304.0) scale(1 1)" fill="none">
-<line x1="0" y1="-38" x2="0" y2="-6"/>
-<line x1="0" y1="6" x2="0" y2="38"/>
-<line x1="-13" y1="-6" x2="13" y2="-6"/>
-<line x1="-13" y1="6" x2="13" y2="6"/>
+<line x1="0" y1="-38" x2="0" y2="-5"/>
+<line x1="0" y1="5" x2="0" y2="38"/>
+<line x1="-14" y1="-5" x2="14" y2="-5" stroke-width="2.6"/>
+<line x1="-14" y1="5" x2="14" y2="5" stroke-width="2.6"/>
 </g>
 <text x="721.0" y="260.0" class="name">C_rect</text>
 <text x="775.0" y="362.0" class="param" text-anchor="start">10f</text>
@@ -83,17 +83,17 @@
 <text x="957.0" y="260.0" class="name">G_lpf</text>
 <text x="1011.0" y="362.0" class="param" text-anchor="start">cur=&#x27;6.28e-9 * (v(rect) -…</text>
 <g transform="translate(1181.0 304.0) scale(1 1)" fill="none">
-<line x1="0" y1="-38" x2="0" y2="-6"/>
-<line x1="0" y1="6" x2="0" y2="38"/>
-<line x1="-13" y1="-6" x2="13" y2="-6"/>
-<line x1="-13" y1="6" x2="13" y2="6"/>
+<line x1="0" y1="-38" x2="0" y2="-5"/>
+<line x1="0" y1="5" x2="0" y2="38"/>
+<line x1="-14" y1="-5" x2="14" y2="-5" stroke-width="2.6"/>
+<line x1="-14" y1="5" x2="14" y2="5" stroke-width="2.6"/>
 </g>
 <text x="1147.0" y="260.0" class="name">C_lpf</text>
 <text x="1201.0" y="362.0" class="param" text-anchor="start">10p</text>
 <g transform="translate(1371.0 304.0) scale(1 1)" fill="none">
-<line x1="0" y1="-38" x2="0" y2="-22"/>
-<line x1="0" y1="22" x2="0" y2="38"/>
-<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+<line x1="0" y1="-38" x2="0" y2="-21"/>
+<line x1="0" y1="21" x2="0" y2="38"/>
+<polyline points="0,-21 8,-17.5 -8,-10.5 8,-3.5 -8,3.5 8,10.5 -8,17.5 0,21" fill="none" stroke-width="2"/>
 </g>
 <text x="1337.0" y="260.0" class="name">R_leak</text>
 <text x="1391.0" y="362.0" class="param" text-anchor="start">100G</text>

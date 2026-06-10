@@ -29,49 +29,56 @@ def _esc(t: str) -> str:
 # ------------------------------------------------------------ symbols
 
 def _mos(dev: Device) -> list[str]:
+    """Cadence/xschem-style 4-terminal FET: gate bar ∥ channel bar,
+    L-shaped drain/source arms, bulk arrow for polarity, PMOS bubble."""
     pmos = dev.kind == "pmos"
     e = []
-    e.append('<line x1="8" y1="-38" x2="8" y2="-20"/>')      # top stub
-    e.append('<line x1="8" y1="20" x2="8" y2="38"/>')        # bottom stub
-    e.append('<line x1="8" y1="-20" x2="8" y2="20"/>')       # channel
-    e.append('<line x1="0" y1="-14" x2="0" y2="14"/>')       # gate plate
-    e.append('<line x1="8" y1="-20" x2="22" y2="-20"/>')
-    e.append('<line x1="8" y1="20" x2="22" y2="20"/>')
+    # drain/source leads with L-arms (top arm + stub, bottom arm + stub)
+    e.append('<line x1="14" y1="-38" x2="14" y2="-16"/>')
+    e.append('<line x1="14" y1="-16" x2="0" y2="-16"/>')
+    e.append('<line x1="14" y1="38" x2="14" y2="16"/>')
+    e.append('<line x1="14" y1="16" x2="0" y2="16"/>')
+    # channel bar and gate bar (thicker — the visual signature of a FET)
+    e.append('<line x1="0" y1="-17" x2="0" y2="17" stroke-width="2.6"/>')
+    e.append('<line x1="-7" y1="-13" x2="-7" y2="13" stroke-width="2.6"/>')
     if pmos:
-        e.append('<circle cx="-6" cy="0" r="5" fill="white"/>')
-        e.append('<line x1="-30" y1="0" x2="-11" y2="0"/>')
+        e.append('<circle cx="-13" cy="0" r="4.5" fill="white" '
+                 'stroke-width="1.5"/>')
+        e.append('<line x1="-30" y1="0" x2="-17.5" y2="0"/>')
     else:
-        e.append('<line x1="-30" y1="0" x2="0" y2="0"/>')
-        e.append('<path d="M 2 26 L 8 32 L 2 32 Z" fill="{c}" stroke="none"/>'
-                 .format(c=SYM))                              # source arrow tick
+        e.append('<line x1="-30" y1="0" x2="-7" y2="0"/>')
     if "b" in dev.roles:
-        e.append('<line x1="8" y1="0" x2="16" y2="0"/>')
+        e.append('<line x1="0" y1="0" x2="26" y2="0"/>')
+        if pmos:   # arrow away from channel (n-well bulk)
+            e.append(f'<path d="M 12 0 L 4 -3.6 L 4 3.6 Z" '
+                     f'fill="{SYM}" stroke="none" transform="rotate(180 8 0)"/>')
+        else:      # arrow into the channel (p-substrate bulk)
+            e.append(f'<path d="M 1.5 0 L 10 -3.6 L 10 3.6 Z" '
+                     f'fill="{SYM}" stroke="none"/>')
     return e
 
 
 def _res(dev: Device) -> list[str]:
-    pts = []
-    y = -22
-    step = 44 / 6
-    xs = [0, 9, -9, 9, -9, 9, 0]
-    for i, x in enumerate(xs):
-        pts.append(f"{x},{y + i * step:.1f}")
-    e = ['<line x1="0" y1="-38" x2="0" y2="-22"/>',
-         '<line x1="0" y1="22" x2="0" y2="38"/>',
-         f'<polyline points="{" ".join(pts)}" fill="none"/>']
+    # symmetric US zigzag: half-step in, 5 full peaks, half-step out
+    ys = [-21, -17.5, -10.5, -3.5, 3.5, 10.5, 17.5, 21]
+    xs = [0, 8, -8, 8, -8, 8, -8, 0]
+    pts = " ".join(f"{x},{y}" for x, y in zip(xs, ys))
+    e = ['<line x1="0" y1="-38" x2="0" y2="-21"/>',
+         '<line x1="0" y1="21" x2="0" y2="38"/>',
+         f'<polyline points="{pts}" fill="none" stroke-width="2"/>']
     if "b" in dev.roles:
         e.append('<line x1="0" y1="0" x2="18" y2="0" stroke-dasharray="3 2"/>')
     return e
 
 
 def _cap(dev: Device) -> list[str]:
-    e = ['<line x1="0" y1="-38" x2="0" y2="-6"/>',
-         '<line x1="0" y1="6" x2="0" y2="38"/>',
-         '<line x1="-13" y1="-6" x2="13" y2="-6"/>',
-         '<line x1="-13" y1="6" x2="13" y2="6"/>']
+    e = ['<line x1="0" y1="-38" x2="0" y2="-5"/>',
+         '<line x1="0" y1="5" x2="0" y2="38"/>',
+         '<line x1="-14" y1="-5" x2="14" y2="-5" stroke-width="2.6"/>',
+         '<line x1="-14" y1="5" x2="14" y2="5" stroke-width="2.6"/>']
     if "b" in dev.roles:
-        e.append('<line x1="0" y1="6" x2="18" y2="6" stroke-dasharray="3 2"/>')
-        e.append('<line x1="18" y1="6" x2="18" y2="0"/>')
+        e.append('<line x1="0" y1="5" x2="18" y2="5" stroke-dasharray="3 2"/>')
+        e.append('<line x1="18" y1="5" x2="18" y2="0"/>')
     return e
 
 

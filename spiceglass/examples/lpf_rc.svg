@@ -23,17 +23,17 @@
 <line x1="375.0" y1="396.0" x2="397.0" y2="396.0"/><rect x="397.0" y="387.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="407.5" y="400.0" text-anchor="middle" class="port">out</text>
 <line x1="375.0" y1="472.0" x2="375.0" y2="484.0"/><line x1="366.0" y1="484.0" x2="384.0" y2="484.0" stroke-width="2"/><line x1="369.0" y1="488.0" x2="381.0" y2="488.0" stroke-width="2"/><line x1="372.0" y1="492.0" x2="378.0" y2="492.0" stroke-width="2"/>
 <g transform="translate(185.0 304.0) scale(1 1)" fill="none">
-<line x1="0" y1="-38" x2="0" y2="-22"/>
-<line x1="0" y1="22" x2="0" y2="38"/>
-<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+<line x1="0" y1="-38" x2="0" y2="-21"/>
+<line x1="0" y1="21" x2="0" y2="38"/>
+<polyline points="0,-21 8,-17.5 -8,-10.5 8,-3.5 -8,3.5 8,10.5 -8,17.5 0,21" fill="none" stroke-width="2"/>
 </g>
 <text x="151.0" y="260.0" class="name">Rlpf</text>
 <text x="205.0" y="362.0" class="param" text-anchor="start">3180k</text>
 <g transform="translate(375.0 434.0) scale(1 1)" fill="none">
-<line x1="0" y1="-38" x2="0" y2="-6"/>
-<line x1="0" y1="6" x2="0" y2="38"/>
-<line x1="-13" y1="-6" x2="13" y2="-6"/>
-<line x1="-13" y1="6" x2="13" y2="6"/>
+<line x1="0" y1="-38" x2="0" y2="-5"/>
+<line x1="0" y1="5" x2="0" y2="38"/>
+<line x1="-14" y1="-5" x2="14" y2="-5" stroke-width="2.6"/>
+<line x1="-14" y1="5" x2="14" y2="5" stroke-width="2.6"/>
 </g>
 <text x="341.0" y="390.0" class="name">Clpf</text>
 <text x="395.0" y="492.0" class="param" text-anchor="start">1n</text>
