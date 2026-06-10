@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1035" height="634" viewBox="0 0 1035 634" font-family="Segoe UI, Arial, sans-serif">
+<style>
+ line, polyline, path, rect, circle { stroke: #111111; stroke-width: 1.8; }
+ .wire { stroke: #1b1b1b; stroke-width: 1.6; }
+ text { stroke: none; fill: #222; font-size: 11px; }
+ .name { font-weight: 600; font-size: 11px; }
+ .param { fill: #666; font-size: 9.5px; }
+ .pin { font-size: 9px; fill: #333; }
+ .sym { font-size: 11px; font-weight: 700; }
+ .boxmodel { font-size: 9.5px; fill: #555; font-style: italic; }
+ .rail { font-size: 9px; fill: #444444; font-weight: 600; }
+ .netlabel { font-size: 10.5px; fill: #a14d00; font-style: italic; }
+ .port { font-size: 10.5px; fill: #0b4ea2; font-weight: 700; }
+ .sectitle { font-size: 11px; fill: #8a7340; font-weight: 600; }
+ .title { font-size: 16px; font-weight: 700; }
+ .meta { font-size: 10px; fill: #555; }
+</style>
+<rect x="0" y="0" width="1035" height="634" fill="white" stroke="none"/>
+<line class="wire" x1="193.0" y1="396.0" x2="193.0" y2="252.0"/>
+<line class="wire" x1="185.0" y1="212.0" x2="185.0" y2="252.0"/>
+<line class="wire" x1="565.0" y1="266.0" x2="565.0" y2="252.0"/>
+<line class="wire" x1="185.0" y1="252.0" x2="565.0" y2="252.0"/>
+<line class="wire" x1="383.0" y1="396.0" x2="383.0" y2="261.0"/>
+<line class="wire" x1="375.0" y1="212.0" x2="375.0" y2="261.0"/>
+<line class="wire" x1="755.0" y1="266.0" x2="755.0" y2="261.0"/>
+<line class="wire" x1="375.0" y1="261.0" x2="755.0" y2="261.0"/>
+<circle cx="193.0" cy="252.0" r="3" fill="#1b1b1b" stroke="none"/>
+<circle cx="383.0" cy="261.0" r="3" fill="#1b1b1b" stroke="none"/>
+<line x1="155.0" y1="434.0" x2="133.0" y2="434.0"/><rect x="112.0" y="425.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="122.5" y="438.0" text-anchor="middle" class="port">inp</text>
+<line x1="193.0" y1="472.0" x2="193.0" y2="484.0"/><line x1="184.0" y1="484.0" x2="202.0" y2="484.0" stroke-width="2"/><line x1="187.0" y1="488.0" x2="199.0" y2="488.0" stroke-width="2"/><line x1="190.0" y1="492.0" x2="196.0" y2="492.0" stroke-width="2"/>
+<line x1="201.0" y1="434.0" x2="213.0" y2="434.0"/><line x1="213.0" y1="434.0" x2="213.0" y2="446.0"/><line x1="208.0" y1="446.0" x2="218.0" y2="446.0" stroke-width="2"/><line x1="210.0" y1="450.0" x2="216.0" y2="450.0" stroke-width="2"/>
+<line x1="383.0" y1="472.0" x2="383.0" y2="484.0"/><line x1="374.0" y1="484.0" x2="392.0" y2="484.0" stroke-width="2"/><line x1="377.0" y1="488.0" x2="389.0" y2="488.0" stroke-width="2"/><line x1="380.0" y1="492.0" x2="386.0" y2="492.0" stroke-width="2"/>
+<line x1="391.0" y1="434.0" x2="403.0" y2="434.0"/><line x1="403.0" y1="434.0" x2="403.0" y2="446.0"/><line x1="398.0" y1="446.0" x2="408.0" y2="446.0" stroke-width="2"/><line x1="400.0" y1="450.0" x2="406.0" y2="450.0" stroke-width="2"/>
+<line x1="345.0" y1="434.0" x2="323.0" y2="434.0"/><rect x="302.0" y="425.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="312.5" y="438.0" text-anchor="middle" class="port">vcm</text>
+<line x1="185.0" y1="136.0" x2="185.0" y2="122.0"/><line x1="176.0" y1="122.0" x2="194.0" y2="122.0" stroke-width="2.4"/><text x="185.0" y="117.0" text-anchor="middle" class="rail">VDD</text>
+<line x1="375.0" y1="136.0" x2="375.0" y2="122.0"/><line x1="366.0" y1="122.0" x2="384.0" y2="122.0" stroke-width="2.4"/><text x="375.0" y="117.0" text-anchor="middle" class="rail">VDD</text>
+<line x1="565.0" y1="342.0" x2="587.0" y2="342.0"/><rect x="587.0" y="333.0" width="42" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="608.0" y="346.0" text-anchor="middle" class="port">sq_sig</text>
+<line x1="755.0" y1="342.0" x2="777.0" y2="342.0"/><rect x="777.0" y="333.0" width="42" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="798.0" y="346.0" text-anchor="middle" class="port">sq_ref</text>
+<g transform="translate(185.0 434.0) scale(1 1)" fill="none">
+<line x1="8" y1="-38" x2="8" y2="-20"/>
+<line x1="8" y1="20" x2="8" y2="38"/>
+<line x1="8" y1="-20" x2="8" y2="20"/>
+<line x1="0" y1="-14" x2="0" y2="14"/>
+<line x1="8" y1="-20" x2="22" y2="-20"/>
+<line x1="8" y1="20" x2="22" y2="20"/>
+<line x1="-30" y1="0" x2="0" y2="0"/>
+<path d="M 2 26 L 8 32 L 2 32 Z" fill="#111111" stroke="none"/>
+<line x1="8" y1="0" x2="16" y2="0"/>
+</g>
+<text x="151.0" y="390.0" class="name">XMs</text>
+<text x="205.0" y="492.0" class="param" text-anchor="start">nfet_01v8  w=0.84u  l=6u</text>
+<g transform="translate(375.0 434.0) scale(1 1)" fill="none">
+<line x1="8" y1="-38" x2="8" y2="-20"/>
+<line x1="8" y1="20" x2="8" y2="38"/>
+<line x1="8" y1="-20" x2="8" y2="20"/>
+<line x1="0" y1="-14" x2="0" y2="14"/>
+<line x1="8" y1="-20" x2="22" y2="-20"/>
+<line x1="8" y1="20" x2="22" y2="20"/>
+<line x1="-30" y1="0" x2="0" y2="0"/>
+<path d="M 2 26 L 8 32 L 2 32 Z" fill="#111111" stroke="none"/>
+<line x1="8" y1="0" x2="16" y2="0"/>
+</g>
+<text x="341.0" y="390.0" class="name">XMr</text>
+<text x="395.0" y="492.0" class="param" text-anchor="start">nfet_01v8  w=0.84u  l=6u</text>
+<g transform="translate(185.0 174.0) scale(1 1)" fill="none">
+<line x1="0" y1="-38" x2="0" y2="-22"/>
+<line x1="0" y1="22" x2="0" y2="38"/>
+<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+</g>
+<text x="151.0" y="130.0" class="name">Rsig</text>
+<text x="205.0" y="232.0" class="param" text-anchor="start">100k</text>
+<g transform="translate(375.0 174.0) scale(1 1)" fill="none">
+<line x1="0" y1="-38" x2="0" y2="-22"/>
+<line x1="0" y1="22" x2="0" y2="38"/>
+<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+</g>
+<text x="341.0" y="130.0" class="name">Rref</text>
+<text x="395.0" y="232.0" class="param" text-anchor="start">100k</text>
+<g transform="translate(565.0 304.0) scale(1 1)" fill="none">
+<line x1="0" y1="-38" x2="0" y2="-22"/>
+<line x1="0" y1="22" x2="0" y2="38"/>
+<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+</g>
+<text x="531.0" y="260.0" class="name">Riso_s</text>
+<text x="585.0" y="362.0" class="param" text-anchor="start">1k</text>
+<g transform="translate(755.0 304.0) scale(1 1)" fill="none">
+<line x1="0" y1="-38" x2="0" y2="-22"/>
+<line x1="0" y1="22" x2="0" y2="38"/>
+<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+</g>
+<text x="721.0" y="260.0" class="name">Riso_r</text>
+<text x="775.0" y="362.0" class="param" text-anchor="start">1k</text>
+<line x1="20" y1="574" x2="1015.0" y2="574" stroke="#999" stroke-width="1"/>
+<text x="26" y="594" class="title">rms_squarer</text>
+<text x="26" y="610" class="meta">design.cir — 6 devices — ports: inp, vcm, sq_sig, sq_ref, vdd, vss — SpiceGlass M0 — 2026-06-10</text>
+<rect x="885.0" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
+<text x="949.0" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
+</svg>

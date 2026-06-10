@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1035" height="504" viewBox="0 0 1035 504" font-family="Segoe UI, Arial, sans-serif">
+<style>
+ line, polyline, path, rect, circle { stroke: #111111; stroke-width: 1.8; }
+ .wire { stroke: #1b1b1b; stroke-width: 1.6; }
+ text { stroke: none; fill: #222; font-size: 11px; }
+ .name { font-weight: 600; font-size: 11px; }
+ .param { fill: #666; font-size: 9.5px; }
+ .pin { font-size: 9px; fill: #333; }
+ .sym { font-size: 11px; font-weight: 700; }
+ .boxmodel { font-size: 9.5px; fill: #555; font-style: italic; }
+ .rail { font-size: 9px; fill: #444444; font-weight: 600; }
+ .netlabel { font-size: 10.5px; fill: #a14d00; font-style: italic; }
+ .port { font-size: 10.5px; fill: #0b4ea2; font-weight: 700; }
+ .sectitle { font-size: 11px; fill: #8a7340; font-weight: 600; }
+ .title { font-size: 16px; font-weight: 700; }
+ .meta { font-size: 10px; fill: #555; }
+</style>
+<rect x="0" y="0" width="1035" height="504" fill="white" stroke="none"/>
+<line class="wire" x1="119.0" y1="281.0" x2="112.0" y2="281.0"/>
+<line class="wire" x1="112.0" y1="281.0" x2="112.0" y2="382.0"/>
+<line class="wire" x1="689.0" y1="270.0" x2="682.0" y2="270.0"/>
+<line class="wire" x1="682.0" y1="270.0" x2="682.0" y2="382.0"/>
+<line class="wire" x1="112.0" y1="382.0" x2="682.0" y2="382.0"/>
+<line class="wire" x1="119.0" y1="303.0" x2="105.0" y2="303.0"/>
+<line class="wire" x1="105.0" y1="303.0" x2="105.0" y2="391.0"/>
+<line class="wire" x1="821.0" y1="292.0" x2="828.0" y2="292.0"/>
+<line class="wire" x1="828.0" y1="292.0" x2="828.0" y2="391.0"/>
+<line class="wire" x1="105.0" y1="391.0" x2="828.0" y2="391.0"/>
+<line class="wire" x1="119.0" y1="325.0" x2="119.0" y2="400.0"/>
+<line class="wire" x1="309.0" y1="292.0" x2="302.0" y2="292.0"/>
+<line class="wire" x1="302.0" y1="292.0" x2="302.0" y2="400.0"/>
+<line class="wire" x1="119.0" y1="400.0" x2="302.0" y2="400.0"/>
+<line class="wire" x1="251.0" y1="281.0" x2="258.0" y2="281.0"/>
+<line class="wire" x1="258.0" y1="281.0" x2="258.0" y2="409.0"/>
+<line class="wire" x1="499.0" y1="292.0" x2="492.0" y2="292.0"/>
+<line class="wire" x1="492.0" y1="292.0" x2="492.0" y2="409.0"/>
+<line class="wire" x1="258.0" y1="409.0" x2="492.0" y2="409.0"/>
+<line x1="119.0" y1="281.0" x2="97.0" y2="281.0"/><rect x="76.0" y="272.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="86.5" y="285.0" text-anchor="middle" class="port">inp</text>
+<line x1="119.0" y1="303.0" x2="97.0" y2="303.0"/><rect x="76.0" y="294.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="86.5" y="307.0" text-anchor="middle" class="port">vcm</text>
+<line x1="251.0" y1="303.0" x2="263.0" y2="303.0"/><line x1="263.0" y1="303.0" x2="263.0" y2="293.0"/><line x1="254.0" y1="293.0" x2="272.0" y2="293.0" stroke-width="2.4"/><text x="263.0" y="288.0" text-anchor="middle" class="rail">VDD</text>
+<line x1="441.0" y1="292.0" x2="453.0" y2="292.0"/><line x1="453.0" y1="292.0" x2="453.0" y2="282.0"/><line x1="444.0" y1="282.0" x2="462.0" y2="282.0" stroke-width="2.4"/><text x="453.0" y="277.0" text-anchor="middle" class="rail">VDD</text>
+<line x1="631.0" y1="292.0" x2="643.0" y2="292.0"/><line x1="643.0" y1="292.0" x2="643.0" y2="282.0"/><line x1="634.0" y1="282.0" x2="652.0" y2="282.0" stroke-width="2.4"/><text x="643.0" y="277.0" text-anchor="middle" class="rail">VDD</text>
+<line x1="689.0" y1="314.0" x2="701.0" y2="314.0"/><line x1="701.0" y1="314.0" x2="701.0" y2="304.0"/><line x1="692.0" y1="304.0" x2="710.0" y2="304.0" stroke-width="2.4"/><text x="701.0" y="299.0" text-anchor="middle" class="rail">VDD</text>
+<line x1="251.0" y1="325.0" x2="263.0" y2="325.0"/><line x1="263.0" y1="325.0" x2="263.0" y2="337.0"/><line x1="254.0" y1="337.0" x2="272.0" y2="337.0" stroke-width="2"/><line x1="257.0" y1="341.0" x2="269.0" y2="341.0" stroke-width="2"/><line x1="260.0" y1="345.0" x2="266.0" y2="345.0" stroke-width="2"/>
+<line x1="441.0" y1="314.0" x2="453.0" y2="314.0"/><line x1="453.0" y1="314.0" x2="453.0" y2="326.0"/><line x1="444.0" y1="326.0" x2="462.0" y2="326.0" stroke-width="2"/><line x1="447.0" y1="330.0" x2="459.0" y2="330.0" stroke-width="2"/><line x1="450.0" y1="334.0" x2="456.0" y2="334.0" stroke-width="2"/>
+<line x1="631.0" y1="314.0" x2="643.0" y2="314.0"/><line x1="643.0" y1="314.0" x2="643.0" y2="326.0"/><line x1="634.0" y1="326.0" x2="652.0" y2="326.0" stroke-width="2"/><line x1="637.0" y1="330.0" x2="649.0" y2="330.0" stroke-width="2"/><line x1="640.0" y1="334.0" x2="646.0" y2="334.0" stroke-width="2"/>
+<line x1="689.0" y1="336.0" x2="701.0" y2="336.0"/><line x1="701.0" y1="336.0" x2="701.0" y2="348.0"/><line x1="692.0" y1="348.0" x2="710.0" y2="348.0" stroke-width="2"/><line x1="695.0" y1="352.0" x2="707.0" y2="352.0" stroke-width="2"/><line x1="698.0" y1="356.0" x2="704.0" y2="356.0" stroke-width="2"/>
+<line x1="309.0" y1="314.0" x2="331.0" y2="314.0"/><rect x="331.0" y="305.0" width="49" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="355.5" y="318.0" text-anchor="middle" class="port">rms_out</text>
+<line x1="499.0" y1="314.0" x2="521.0" y2="314.0"/><rect x="521.0" y="305.0" width="49" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="545.5" y="318.0" text-anchor="middle" class="port">rms_ref</text>
+<line x1="689.0" y1="292.0" x2="711.0" y2="292.0"/><rect x="711.0" y="283.0" width="56" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="739.0" y="296.0" text-anchor="middle" class="port">peak_out</text>
+<line x1="821.0" y1="270.0" x2="843.0" y2="270.0"/><rect x="843.0" y="261.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="853.5" y="274.0" text-anchor="middle" class="port">vbn</text>
+<line x1="821.0" y1="314.0" x2="843.0" y2="314.0"/><rect x="843.0" y="305.0" width="35" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="860.5" y="318.0" text-anchor="middle" class="port">reset</text>
+<g transform="translate(185.0 304.0) scale(1 1)" fill="none">
+<rect x="-66.0" y="-47.0" width="132" height="94" rx="4" fill="white"/>
+<text x="-60.0" y="-19.5" text-anchor="start" class="pin">inp</text>
+<text x="-60.0" y="2.5" text-anchor="start" class="pin">vcm</text>
+<text x="-60.0" y="24.5" text-anchor="start" class="pin">sq_sig</text>
+<text x="60.0" y="-19.5" text-anchor="end" class="pin">sq_ref</text>
+<text x="60.0" y="2.5" text-anchor="end" class="pin">vdd</text>
+<text x="60.0" y="24.5" text-anchor="end" class="pin">vss</text>
+<text x="0" y="39.0" text-anchor="middle" class="boxmodel">rms_squarer</text>
+</g>
+<text x="151.0" y="260.0" class="name">Xsq</text>
+<text x="205.0" y="362.0" class="param" text-anchor="start">rms_squarer</text>
+<g transform="translate(375.0 304.0) scale(1 1)" fill="none">
+<rect x="-66.0" y="-36.0" width="132" height="72" rx="4" fill="white"/>
+<text x="-60.0" y="-8.5" text-anchor="start" class="pin">inp</text>
+<text x="-60.0" y="13.5" text-anchor="start" class="pin">out</text>
+<text x="60.0" y="-8.5" text-anchor="end" class="pin">vdd</text>
+<text x="60.0" y="13.5" text-anchor="end" class="pin">vss</text>
+<text x="0" y="28.0" text-anchor="middle" class="boxmodel">lpf_rc</text>
+</g>
+<text x="341.0" y="260.0" class="name">Xlpf_sig</text>
+<text x="395.0" y="362.0" class="param" text-anchor="start">lpf_rc</text>
+<g transform="translate(565.0 304.0) scale(1 1)" fill="none">
+<rect x="-66.0" y="-36.0" width="132" height="72" rx="4" fill="white"/>
+<text x="-60.0" y="-8.5" text-anchor="start" class="pin">inp</text>
+<text x="-60.0" y="13.5" text-anchor="start" class="pin">out</text>
+<text x="60.0" y="-8.5" text-anchor="end" class="pin">vdd</text>
+<text x="60.0" y="13.5" text-anchor="end" class="pin">vss</text>
+<text x="0" y="28.0" text-anchor="middle" class="boxmodel">lpf_rc</text>
+</g>
+<text x="531.0" y="260.0" class="name">Xlpf_ref</text>
+<text x="585.0" y="362.0" class="param" text-anchor="start">lpf_rc</text>
+<g transform="translate(755.0 304.0) scale(1 1)" fill="none">
+<rect x="-66.0" y="-58.0" width="132" height="116" rx="4" fill="white"/>
+<text x="-60.0" y="-30.5" text-anchor="start" class="pin">inp</text>
+<text x="-60.0" y="-8.5" text-anchor="start" class="pin">out</text>
+<text x="-60.0" y="13.5" text-anchor="start" class="pin">vdd</text>
+<text x="-60.0" y="35.5" text-anchor="start" class="pin">vss</text>
+<text x="60.0" y="-30.5" text-anchor="end" class="pin">vbn</text>
+<text x="60.0" y="-8.5" text-anchor="end" class="pin">vcm</text>
+<text x="60.0" y="13.5" text-anchor="end" class="pin">reset</text>
+<text x="0" y="50.0" text-anchor="middle" class="boxmodel">peak_detector</text>
+</g>
+<text x="721.0" y="260.0" class="name">Xpeak</text>
+<text x="775.0" y="362.0" class="param" text-anchor="start">peak_detector</text>
+<line x1="20" y1="444" x2="1015.0" y2="444" stroke="#999" stroke-width="1"/>
+<text x="26" y="464" class="title">rms_crest_top</text>
+<text x="26" y="480" class="meta">design.cir — 4 devices — ports: inp, rms_out, rms_ref, peak_out, vdd, vss, reset, vbn, vcm — SpiceGlass M0 — 2026-06-10</text>
+<rect x="885.0" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
+<text x="949.0" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
+</svg>

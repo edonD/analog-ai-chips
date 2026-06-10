@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="655" height="634" viewBox="0 0 655 634" font-family="Segoe UI, Arial, sans-serif">
+<style>
+ line, polyline, path, rect, circle { stroke: #111111; stroke-width: 1.8; }
+ .wire { stroke: #1b1b1b; stroke-width: 1.6; }
+ text { stroke: none; fill: #222; font-size: 11px; }
+ .name { font-weight: 600; font-size: 11px; }
+ .param { fill: #666; font-size: 9.5px; }
+ .pin { font-size: 9px; fill: #333; }
+ .sym { font-size: 11px; font-weight: 700; }
+ .boxmodel { font-size: 9.5px; fill: #555; font-style: italic; }
+ .rail { font-size: 9px; fill: #444444; font-weight: 600; }
+ .netlabel { font-size: 10.5px; fill: #a14d00; font-style: italic; }
+ .port { font-size: 10.5px; fill: #0b4ea2; font-weight: 700; }
+ .sectitle { font-size: 11px; fill: #8a7340; font-weight: 600; }
+ .title { font-size: 16px; font-weight: 700; }
+ .meta { font-size: 10px; fill: #555; }
+</style>
+<rect x="0" y="0" width="655" height="634" fill="white" stroke="none"/>
+<line class="wire" x1="185.0" y1="342.0" x2="185.0" y2="382.0"/>
+<line class="wire" x1="375.0" y1="396.0" x2="375.0" y2="382.0"/>
+<line class="wire" x1="185.0" y1="382.0" x2="375.0" y2="382.0"/>
+<line x1="185.0" y1="266.0" x2="207.0" y2="266.0"/><rect x="207.0" y="257.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="217.5" y="270.0" text-anchor="middle" class="port">inp</text>
+<line x1="375.0" y1="396.0" x2="397.0" y2="396.0"/><rect x="397.0" y="387.0" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="407.5" y="400.0" text-anchor="middle" class="port">out</text>
+<line x1="375.0" y1="472.0" x2="375.0" y2="484.0"/><line x1="366.0" y1="484.0" x2="384.0" y2="484.0" stroke-width="2"/><line x1="369.0" y1="488.0" x2="381.0" y2="488.0" stroke-width="2"/><line x1="372.0" y1="492.0" x2="378.0" y2="492.0" stroke-width="2"/>
+<g transform="translate(185.0 304.0) scale(1 1)" fill="none">
+<line x1="0" y1="-38" x2="0" y2="-22"/>
+<line x1="0" y1="22" x2="0" y2="38"/>
+<polyline points="0,-22.0 9,-14.7 -9,-7.3 9,0.0 -9,7.3 9,14.7 0,22.0" fill="none"/>
+</g>
+<text x="151.0" y="260.0" class="name">Rlpf</text>
+<text x="205.0" y="362.0" class="param" text-anchor="start">3180k</text>
+<g transform="translate(375.0 434.0) scale(1 1)" fill="none">
+<line x1="0" y1="-38" x2="0" y2="-6"/>
+<line x1="0" y1="6" x2="0" y2="38"/>
+<line x1="-13" y1="-6" x2="13" y2="-6"/>
+<line x1="-13" y1="6" x2="13" y2="6"/>
+</g>
+<text x="341.0" y="390.0" class="name">Clpf</text>
+<text x="395.0" y="492.0" class="param" text-anchor="start">1n</text>
+<line x1="20" y1="574" x2="635.0" y2="574" stroke="#999" stroke-width="1"/>
+<text x="26" y="594" class="title">lpf_rc</text>
+<text x="26" y="610" class="meta">design.cir — 2 devices — ports: inp, out, vdd, vss — SpiceGlass M0 — 2026-06-10</text>
+<rect x="505.0" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
+<text x="569.0" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
+</svg>
