@@ -34,13 +34,22 @@
   .netlabel { font-size:10.5px; fill:#a14d00; font-style:italic; }
   .port { font-size:10.5px; fill:#0b4ea2; font-weight:700; }
   .dev { cursor:grab; }
-  .dev.sel { filter:drop-shadow(0 0 3px #2b7de9); }
-  .wire { stroke:#1b1b1b; stroke-width:1.6; fill:none; }
-  .wire.pinned { stroke:#0b4ea2; }
-  .hit { stroke:transparent; stroke-width:11; fill:none; }
-  .hit.mid { cursor:ns-resize; }
-  .hit.midv { cursor:ew-resize; }
-  .hit:hover + .wire, .wirehl { stroke:#2b7de9 !important; stroke-width:2.6 !important; }
+  /* block-style grab surface: whole tile is clickable */
+  #sheet rect.grab { stroke:none !important; fill:#000; fill-opacity:0;
+                     pointer-events:all; }
+  #sheet .dev:hover rect.grab { fill:#2b7de9; fill-opacity:.06; }
+  #sheet .dev.sel rect.grab { fill:#2b7de9; fill-opacity:.08;
+    stroke:#2b7de9 !important; stroke-width:1.2 !important;
+    stroke-dasharray:5 4; }
+  /* high specificity: the global #sheet line rule must NOT win here */
+  #sheet line.wire { stroke:#1b1b1b; stroke-width:1.6; fill:none;
+                     pointer-events:none; }
+  #sheet line.wire.pinned { stroke:#0b4ea2; }
+  #sheet line.hit { stroke:#000; stroke-opacity:0; stroke-width:12;
+                    fill:none; pointer-events:stroke; }
+  #sheet line.hit.mid { cursor:ns-resize; }
+  #sheet line.hit.midv { cursor:ew-resize; }
+  #sheet line.hit:hover + line.wire { stroke:#2b7de9; stroke-width:2.6; }
   #info { color:#9aa3af; font-size:12px; min-width:200px; }
 </style>
 </head>
@@ -239,7 +248,9 @@ function build(p) {
     const art = document.createElementNS(NS, "g");
     art.setAttribute("class", "art");
     art.setAttribute("fill", "none");
-    art.innerHTML = dv.symbol;
+    art.innerHTML =
+      `<rect class="grab" x="${-dv.hw*U}" y="${-dv.hh*U}"
+        width="${2*dv.hw*U}" height="${2*dv.hh*U}" rx="6"/>` + dv.symbol;
     const nm = document.createElementNS(NS, "text");
     nm.setAttribute("class", "name");
     nm.setAttribute("x", -34); nm.setAttribute("y", -46);

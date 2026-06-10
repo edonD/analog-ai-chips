@@ -79,12 +79,15 @@ class EditorState:
                 "warnings": routing.warnings}
 
     def payload(self, overrides, wires=None) -> dict:
+        from .route import tile_halfdims
         sub, sheet, routing, verdict = self.build(overrides, wires)
         devs = []
         for d in sub.devices:
             p = sheet.pos(d)
+            hw, hh = tile_halfdims(d)
             devs.append({"name": d.name, "kind": d.kind, "x": p.x, "y": p.y,
                          "orient": p.orient, "symbol": symbol_svg(d),
+                         "hw": hw, "hh": hh,
                          "ann": _annotation(d), "section": d.section,
                          "nets": dict(zip(d.roles, d.nets))})
         from .geom import GRID_MM

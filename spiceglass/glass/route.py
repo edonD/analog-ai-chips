@@ -67,18 +67,20 @@ class Routing:
     debug: dict | None = None
 
 
-def _obstacle(dev, p) -> tuple[int, int, int, int]:
-    """Inflated symbol-tile rectangle (1-unit routing buffer)."""
+def tile_halfdims(dev) -> tuple[int, int]:
+    """Un-rotated symbol tile half-extents incl. 1-unit buffer (units)."""
     k = dev.kind
     if k in ("nmos", "pmos", "pnp", "npn"):
-        hw, hh = 4, 5
-    elif k in ("res", "cap", "ind", "dio", "vsrc", "isrc", "bsrc"):
-        hw, hh = 3, 5
-    else:
-        hw = BOX_W // 2 + 1
-        hh = box_height(len(dev.roles)) // 2 + 1
-        return (p.x - hw, p.y - hh, p.x + hw, p.y + hh)
-    if p.orient == "R90":
+        return 4, 5
+    if k in ("res", "cap", "ind", "dio", "vsrc", "isrc", "bsrc"):
+        return 3, 5
+    return BOX_W // 2 + 1, box_height(len(dev.roles)) // 2 + 1
+
+
+def _obstacle(dev, p) -> tuple[int, int, int, int]:
+    """Inflated symbol-tile rectangle (1-unit routing buffer)."""
+    hw, hh = tile_halfdims(dev)
+    if p.orient == "R90" and dev.kind not in ("sub", "unknown"):
         hw, hh = hh, hw
     return (p.x - hw, p.y - hh, p.x + hw, p.y + hh)
 
