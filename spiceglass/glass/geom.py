@@ -17,7 +17,19 @@ from __future__ import annotations
 
 from .db import Device
 
-UNIT = 10            # px per grid unit (render scale only)
+UNIT = 10            # px per grid unit (screen render scale only)
+
+# THE PHYSICAL GRID. 1 grid unit = GRID_MM millimetres. Every pin, device
+# origin, wire segment, routing track and nudge offset is an integer
+# number of grid units by construction (the verifier compares exact
+# integers), so the entire design sits on this grid — change GRID_MM to
+# rescale the whole system (finer/coarser grids later).
+GRID_MM = 1.0
+
+
+def set_grid_mm(mm: float) -> None:
+    global GRID_MM
+    GRID_MM = float(mm)
 
 COL_PITCH = 18       # units between column centers
 ROW_PITCH = 14       # units between row centers   (symbol is 8 tall -> 6 tracks free)

@@ -10,14 +10,16 @@ Status: **M0 complete** (program.md has the full M0–M5 roadmap).
 
 ## What works today (M0)
 
-- **Integer grid core**: the whole pipeline thinks in grid units (1 unit =
-  10 px only at the render boundary). Every symbol is a fixed-size tile
-  with pins on grid crossings (MOSFET 6×8: G(−3,0), D/S(+2,∓4), B(+3,0);
-  2-terminal devices 4×8; subckt boxes sized by port count) — any `.cir`
-  device maps to *some* tile, which is what keeps the converter general.
-  Columns sit every 18 units, rows every 14, leaving 6 integer wiring
-  tracks per row band and whole-unit vertical lanes. Placement, routing,
-  and verification are exact integer math — no epsilons anywhere.
+- **Integer grid core, physically bound to a 1 mm pitch**: the whole
+  pipeline thinks in grid units, and **1 unit = 1.0 mm** (configurable:
+  `--grid 0.5` etc.; 10 px/unit on screen). Every symbol is a fixed-size
+  tile with pins on grid crossings (MOSFET 6×8 mm: G(−3,0), D/S(0,∓4),
+  B(+3,0); 2-terminal devices 4×8 mm; subckt boxes sized by port count) —
+  any `.cir` device maps to *some* tile, which is what keeps the
+  converter general. Columns sit every 18 mm, rows every 14 mm, wiring
+  tracks and nudge offsets are whole millimetres. Placement, routing,
+  and verification are exact integer math — nothing can sit off-grid.
+  `--physical` emits true-to-scale SVG (`width` in mm) for printing.
 - **ngspice-subset parser**: `.subckt` hierarchy, Sky130 PDK `X`-instances,
   plain R/C/L, B/G behavioral sources with expressions, `+` continuations
 - **Analog-aware placement** (deterministic, no LLM anywhere):

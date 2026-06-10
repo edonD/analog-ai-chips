@@ -31,9 +31,9 @@ class Score:
     segments: int = 0
 
     def row(self) -> str:
-        return (f"len={self.wirelength}  bends={self.bends}  "
+        return (f"len={self.wirelength}mm  bends={self.bends}  "
                 f"crossings={self.crossings}  through={self.through}  "
-                f"area={self.area_ku2:.1f}ku²  segs={self.segments}")
+                f"area={self.area_ku2:.0f}cm²  segs={self.segments}")
 
 
 def _is_h(s: Seg) -> bool:
@@ -60,10 +60,12 @@ def _bbox(dev, p) -> tuple[int, int, int, int]:
 
 
 def score(sheet: Sheet, routing: Routing) -> Score:
+    from .geom import GRID_MM
     sc = Score()
     segs = routing.segments
     sc.segments = len(segs)
-    sc.area_ku2 = sheet.width * sheet.height / 1000.0
+    # physical sheet area in cm² (1 unit = GRID_MM mm)
+    sc.area_ku2 = sheet.width * sheet.height * GRID_MM * GRID_MM / 100.0
 
     # wirelength
     for s in segs:

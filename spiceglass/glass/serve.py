@@ -87,7 +87,9 @@ class EditorState:
                          "orient": p.orient, "symbol": symbol_svg(d),
                          "ann": _annotation(d), "section": d.section,
                          "nets": dict(zip(d.roles, d.nets))})
+        from .geom import GRID_MM
         return {"subckt": sub.name, "ports": sub.ports, "unit": UNIT,
+                "grid_mm": GRID_MM,
                 "width": sheet.width, "height": sheet.height,
                 "devices": devs,
                 "tiles": [[m.name for m in t.devices()] for t in sheet.tiles],

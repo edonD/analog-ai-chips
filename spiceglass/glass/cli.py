@@ -24,7 +24,8 @@ _EDGE_CANDIDATES = [
 ]
 
 
-def _render_one(design, name: str, out_svg: str, png: bool) -> bool:
+def _render_one(design, name: str, out_svg: str, png: bool,
+                physical: bool = False) -> bool:
     sub = design.subckts[name]
     overrides = wires = None
     sc = f"{os.path.splitext(design.path)[0]}.{name}.place.json"
@@ -39,7 +40,8 @@ def _render_one(design, name: str, out_svg: str, png: bool) -> bool:
     routing = route(sheet, pinned=wires)
     verdict = verify(routing)
     meta = {"path": os.path.basename(design.path),
-            "date": _dt.date.today().isoformat()}
+            "date": _dt.date.today().isoformat(),
+            "physical": physical}
     svg = render_sheet(sheet, routing, verdict, meta)
     with open(out_svg, "w", encoding="utf-8") as fh:
         fh.write(svg)
@@ -62,10 +64,10 @@ def _to_png(svg_path: str) -> None:
         return
     png_path = os.path.splitext(svg_path)[0] + ".png"
     url = "file:///" + os.path.abspath(svg_path).replace("\\", "/")
-    # size from the svg header
+    # size from the viewBox (width attr may be physical mm)
     import re
-    head = open(svg_path, encoding="utf-8").read(400)
-    m = re.search(r'width="(\d+)"\s+height="(\d+)"', head)
+    head = open(svg_path, encoding="utf-8").read(500)
+    m = re.search(r'viewBox="0 0 (\d+) (\d+)"', head)
     w, h = (m.group(1), m.group(2)) if m else ("1600", "1000")
     subprocess.run([edge, "--headless=new", "--disable-gpu",
                     f"--screenshot={os.path.abspath(png_path)}",
@@ -86,6 +88,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="render every subckt in the file")
     rp.add_argument("--png", action="store_true",
                     help="also screenshot to PNG via headless Edge")
+    rp.add_argument("--grid", type=float, default=None, metavar="MM",
+                    help="grid pitch in millimetres (default 1.0)")
+    rp.add_argument("--physical", action="store_true",
+                    help="emit SVG with true physical size (mm units)")
 
     jp = sp.add_parser("json", help="dump the circuit database as JSON")
     jp.add_argument("file")
@@ -148,18 +154,23 @@ def main(argv: list[str] | None = None) -> int:
         print(design.to_json())
         return 0
 
+    if getattr(args, "grid", None):
+        from .geom import set_grid_mm
+        set_grid_mm(args.grid)
+
     base = os.path.splitext(args.file)[0]
     ok = True
     if args.all:
         for name in design.order:
-            ok &= _render_one(design, name, f"{base}.{name}.svg", args.png)
+            ok &= _render_one(design, name, f"{base}.{name}.svg", args.png,
+                              args.physical)
     else:
         name = args.subckt or design.root().name
         if name not in design.subckts:
             print(f"no such subckt '{name}'; have: {', '.join(design.order)}")
             return 2
         out = args.out or f"{base}.{name}.svg"
-        ok = _render_one(design, name, out, args.png)
+        ok = _render_one(design, name, out, args.png, args.physical)
     return 0 if ok else 1
 
 

@@ -208,7 +208,7 @@ function wireSplit(ev, hit) {
 function build(p) {
   U = p.unit;
   document.getElementById("title").textContent =
-    `${p.subckt} — ports: ${p.ports.join(", ")}`;
+    `${p.subckt} — ports: ${p.ports.join(", ")} — grid ${p.grid_mm} mm`;
   paths = p.paths; preSegs = p.pre_segs; dotsArr = p.dots;
   pinned = new Set(p.pinned);
   svg.innerHTML =
@@ -255,7 +255,7 @@ function select(d) {
   if (sel) sel.el.classList.remove("sel");
   sel = d; d.el.classList.add("sel");
   document.getElementById("info").textContent =
-    `${d.name} (${d.kind})  ` +
+    `${d.name} (${d.kind}) @ ${d.x},${d.y} mm  ` +
     Object.entries(d.nets).map(([r, n]) => `${r}:${n}`).join("  ");
 }
 

@@ -254,12 +254,20 @@ def builtin_symbol_svg(dev: Device) -> str:
 # ------------------------------------------------------------ sheet
 
 def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
+    from .geom import GRID_MM
     sub: Subckt = sheet.sub
     W, H = _u(sheet.width), _u(sheet.height) + 70
+    if meta.get("physical"):
+        # true-to-scale output: 1 grid unit = GRID_MM millimetres
+        wmm = sheet.width * GRID_MM
+        hmm = (sheet.height + 7) * GRID_MM
+        size = f'width="{wmm:g}mm" height="{hmm:g}mm"'
+    else:
+        size = f'width="{W:.0f}" height="{H:.0f}"'
     parts: list[str] = []
     parts.append(
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W:.0f}" '
-        f'height="{H:.0f}" viewBox="0 0 {W:.0f} {H:.0f}" '
+        f'<svg xmlns="http://www.w3.org/2000/svg" {size} '
+        f'viewBox="0 0 {W:.0f} {H:.0f}" data-grid-mm="{GRID_MM:g}" '
         'font-family="Segoe UI, Arial, sans-serif">')
     parts.append("""<style>
  line, polyline, path, rect, circle { stroke: %s; stroke-width: 1.8; }
@@ -330,10 +338,13 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
                  'stroke="#999" stroke-width="1"/>')
     parts.append(f'<text x="26" y="{y0 + 6}" class="title">{_esc(sub.name)}</text>')
     nd = len(sub.devices)
+    from .geom import GRID_MM
     parts.append(f'<text x="26" y="{y0 + 22}" class="meta">'
                  f'{_esc(meta.get("path", ""))} — {nd} devices — '
-                 f'ports: {_esc(", ".join(sub.ports))} — SpiceGlass — '
-                 f'{_esc(meta.get("date", ""))}</text>')
+                 f'ports: {_esc(", ".join(sub.ports))} — '
+                 f'grid {GRID_MM:g} mm — sheet '
+                 f'{sheet.width * GRID_MM:g}×{sheet.height * GRID_MM:g} mm — '
+                 f'SpiceGlass — {_esc(meta.get("date", ""))}</text>')
     if verdict is not None:
         ok = verdict.ok
         color = "#0a7d28" if ok else "#bb1111"
