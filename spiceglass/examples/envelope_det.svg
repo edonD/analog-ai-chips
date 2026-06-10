@@ -20,30 +20,8 @@
 <text x="104" y="222" class="sectitle">Design Parameters</text>
 <rect x="868" y="228" width="504" height="124" rx="10" fill="#e8f3e6" stroke="none" opacity="0.7"/>
 <text x="874" y="222" class="sectitle">Stage 2: Gm-C Low-Pass Filter</text>
-<line class="wire" x1="170" y1="330" x2="170" y2="340"/>
-<line class="wire" x1="350" y1="330" x2="350" y2="340"/>
-<line class="wire" x1="530" y1="250" x2="540" y2="250"/>
-<line class="wire" x1="540" y1="250" x2="540" y2="340"/>
-<line class="wire" x1="710" y1="250" x2="720" y2="250"/>
-<line class="wire" x1="720" y1="250" x2="720" y2="340"/>
-<line class="wire" x1="170" y1="340" x2="720" y2="340"/>
-<line class="wire" x1="940" y1="330" x2="940" y2="350"/>
-<line class="wire" x1="1120" y1="250" x2="1130" y2="250"/>
-<line class="wire" x1="1130" y1="250" x2="1130" y2="350"/>
-<line class="wire" x1="1300" y1="250" x2="1310" y2="250"/>
-<line class="wire" x1="1310" y1="250" x2="1310" y2="350"/>
-<line class="wire" x1="940" y1="350" x2="1310" y2="350"/>
-<circle cx="350" cy="340" r="3" fill="#1b1b1b" stroke="none"/>
-<circle cx="540" cy="340" r="3" fill="#1b1b1b" stroke="none"/>
-<circle cx="1130" cy="350" r="3" fill="#1b1b1b" stroke="none"/>
-<line x1="170" y1="250" x2="170" y2="262"/><line x1="161" y1="262" x2="179" y2="262" stroke-width="2"/><line x1="164" y1="266" x2="176" y2="266" stroke-width="2"/><line x1="167" y1="270" x2="173" y2="270" stroke-width="2"/>
-<line x1="350" y1="250" x2="350" y2="262"/><line x1="341" y1="262" x2="359" y2="262" stroke-width="2"/><line x1="344" y1="266" x2="356" y2="266" stroke-width="2"/><line x1="347" y1="270" x2="353" y2="270" stroke-width="2"/>
-<line x1="530" y1="330" x2="530" y2="342"/><line x1="521" y1="342" x2="539" y2="342" stroke-width="2"/><line x1="524" y1="346" x2="536" y2="346" stroke-width="2"/><line x1="527" y1="350" x2="533" y2="350" stroke-width="2"/>
-<line x1="710" y1="330" x2="710" y2="342"/><line x1="701" y1="342" x2="719" y2="342" stroke-width="2"/><line x1="704" y1="346" x2="716" y2="346" stroke-width="2"/><line x1="707" y1="350" x2="713" y2="350" stroke-width="2"/>
-<line x1="940" y1="250" x2="940" y2="262"/><line x1="931" y1="262" x2="949" y2="262" stroke-width="2"/><line x1="934" y1="266" x2="946" y2="266" stroke-width="2"/><line x1="937" y1="270" x2="943" y2="270" stroke-width="2"/>
-<line x1="1120" y1="330" x2="1120" y2="342"/><line x1="1111" y1="342" x2="1129" y2="342" stroke-width="2"/><line x1="1114" y1="346" x2="1126" y2="346" stroke-width="2"/><line x1="1117" y1="350" x2="1123" y2="350" stroke-width="2"/>
-<line x1="1300" y1="330" x2="1300" y2="342"/><line x1="1291" y1="342" x2="1309" y2="342" stroke-width="2"/><line x1="1294" y1="346" x2="1306" y2="346" stroke-width="2"/><line x1="1297" y1="350" x2="1303" y2="350" stroke-width="2"/>
-<line x1="1300" y1="250" x2="1322" y2="250"/><rect x="1322" y="241" width="28" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="1336.0" y="254" text-anchor="middle" class="port">vout</text>
+<line class="wire" x1="1120" y1="250" x2="1120" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1120" y1="240" x2="970" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="970" y1="240" x2="970" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="970" y1="340" x2="940" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="940" y1="340" x2="940" y2="330" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1300" y1="250" x2="1300" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1300" y1="240" x2="1120" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="330" x2="350" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="340" x2="170" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="170" y1="340" x2="170" y2="330" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="530" y1="250" x2="530" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="530" y1="240" x2="320" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="320" y1="240" x2="320" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="710" y1="250" x2="710" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="710" y1="240" x2="530" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><circle cx="320" cy="340" r="3" fill="#1b1b1b" stroke="none"/>
+<line x1="170" y1="250" x2="170" y2="262"/><line x1="161" y1="262" x2="179" y2="262" stroke-width="2"/><line x1="164" y1="266" x2="176" y2="266" stroke-width="2"/><line x1="167" y1="270" x2="173" y2="270" stroke-width="2"/><line x1="350" y1="250" x2="350" y2="262"/><line x1="341" y1="262" x2="359" y2="262" stroke-width="2"/><line x1="344" y1="266" x2="356" y2="266" stroke-width="2"/><line x1="347" y1="270" x2="353" y2="270" stroke-width="2"/><line x1="530" y1="330" x2="530" y2="342"/><line x1="521" y1="342" x2="539" y2="342" stroke-width="2"/><line x1="524" y1="346" x2="536" y2="346" stroke-width="2"/><line x1="527" y1="350" x2="533" y2="350" stroke-width="2"/><line x1="710" y1="330" x2="710" y2="342"/><line x1="701" y1="342" x2="719" y2="342" stroke-width="2"/><line x1="704" y1="346" x2="716" y2="346" stroke-width="2"/><line x1="707" y1="350" x2="713" y2="350" stroke-width="2"/><line x1="940" y1="250" x2="940" y2="262"/><line x1="931" y1="262" x2="949" y2="262" stroke-width="2"/><line x1="934" y1="266" x2="946" y2="266" stroke-width="2"/><line x1="937" y1="270" x2="943" y2="270" stroke-width="2"/><line x1="1120" y1="330" x2="1120" y2="342"/><line x1="1111" y1="342" x2="1129" y2="342" stroke-width="2"/><line x1="1114" y1="346" x2="1126" y2="346" stroke-width="2"/><line x1="1117" y1="350" x2="1123" y2="350" stroke-width="2"/><line x1="1300" y1="330" x2="1300" y2="342"/><line x1="1291" y1="342" x2="1309" y2="342" stroke-width="2"/><line x1="1294" y1="346" x2="1306" y2="346" stroke-width="2"/><line x1="1297" y1="350" x2="1303" y2="350" stroke-width="2"/><line x1="1300" y1="250" x2="1322" y2="250"/><rect x="1322" y="241" width="28" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="1336.0" y="254" text-anchor="middle" class="port">vout</text>
 <g transform="translate(170 290)" fill="none">
 <line x1="0" y1="-40" x2="0" y2="-16"/>
 <line x1="0" y1="16" x2="0" y2="40"/>

@@ -1,12 +1,13 @@
-"""Orthogonal trunk router with rail stubs and net labels.
+"""Wire routing front-end.
 
-Rail nets are never routed — every rail terminal gets a stub glyph.
-High-fanout nets become named label stubs (analog convention for bias
-lines). Everything else gets vertical-drop + horizontal-trunk routing
-with per-band track allocation so trunks never overlap.
+Net classification (rail stubs, label stubs, ports, tile coverage/taps)
+lives here; the actual wire paths come from glass.route2 — the GD 2009
+orthogonal-visibility-graph A* router with nudging. Tile preroutes are
+first-class geometry: the router may join them (route-to-net) and the
+nudging pass treats them as immovable occupied tracks.
 
-Every emitted artifact is tagged with enough information for verify.py
-to rebuild connectivity *geometrically* and compare it to the netlist.
+Every emitted artifact carries enough information for verify.py to
+rebuild connectivity geometrically and compare it to the netlist.
 """
 from __future__ import annotations
 
@@ -14,8 +15,9 @@ import re
 from dataclasses import dataclass, field
 
 from .db import Subckt
-from .geom import MARGIN, ROW0_OFFSET, ROW_PITCH, pin_pos
+from .geom import BOX_W, box_height, pin_pos
 from .place import Sheet
+from .route2 import Router2
 
 _INPUTISH = re.compile(r"^(v?in\w*|vi[pm]\w*|clk\w*|reset\w*|en\w*|vcm|"
                        r"vb[npc]\w*|i?ref\w*_in)$", re.I)
@@ -48,7 +50,8 @@ class Terminal:
     net: str
     x: float
     y: float
-    side: str = "C"    # L | R | C relative to the symbol body (escape direction)
+    side: str = "C"    # L | R | C relative to the symbol body
+    esc: str = "U"     # portal escape direction L|R|U|D
 
 
 @dataclass
@@ -58,9 +61,27 @@ class Routing:
     dots: list[tuple[float, float]] = field(default_factory=list)
     terminals: list[Terminal] = field(default_factory=list)
     dangling: list[Terminal] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    debug: dict | None = None
 
 
-def route(sheet: Sheet) -> Routing:
+def _obstacle(dev, p) -> tuple[int, int, int, int]:
+    """Inflated symbol-tile rectangle (1-unit routing buffer)."""
+    k = dev.kind
+    if k in ("nmos", "pmos", "pnp", "npn"):
+        hw, hh = 4, 5
+    elif k in ("res", "cap", "ind", "dio", "vsrc", "isrc", "bsrc"):
+        hw, hh = 3, 5
+    else:
+        hw = BOX_W // 2 + 1
+        hh = box_height(len(dev.roles)) // 2 + 1
+        return (p.x - hw, p.y - hh, p.x + hw, p.y + hh)
+    if p.orient == "R90":
+        hw, hh = hh, hw
+    return (p.x - hw, p.y - hh, p.x + hw, p.y + hh)
+
+
+def route(sheet: Sheet, debug: bool = False) -> Routing:
     sub: Subckt = sheet.sub
     r = Routing()
 
@@ -70,9 +91,12 @@ def route(sheet: Sheet) -> Routing:
         p = sheet.pos(d)
         for role, net in zip(d.roles, d.nets):
             x, y = pin_pos(d, role, p.x, p.y, p.orient)
-            dx = x - p.x
+            dx, dy = x - p.x, y - p.y
             side = "L" if dx < -1 else ("R" if dx > 1 else "C")
-            t = Terminal(dev=d.name, role=role, net=net, x=x, y=y, side=side)
+            esc = ("L" if dx < -1 else "R") if abs(dx) > abs(dy) else \
+                  ("U" if dy < 0 else "D")
+            t = Terminal(dev=d.name, role=role, net=net, x=x, y=y,
+                         side=side, esc=esc)
             r.terminals.append(t)
             if (d.name, role) in sheet.covered:
                 continue            # terminal is wired inside a tile
@@ -81,53 +105,21 @@ def route(sheet: Sheet) -> Routing:
     # tile taps participate in global routing as ordinary pins
     for (net, x, y, side) in sheet.taps:
         net_pins.setdefault(net, []).append(
-            Terminal(dev="~tap", role="t", net=net, x=x, y=y, side=side))
+            Terminal(dev="~tap", role="t", net=net, x=x, y=y,
+                     side=side, esc="L" if side == "L" else "R"))
 
     covered_nets = {d.nets[i] for d in sub.devices
                     for i, role in enumerate(d.roles)
                     if (d.name, role) in sheet.covered}
 
-    band_use: dict[int, int] = {}
-    # vertical-lane registry: integer grid x -> [(net, ymin, ymax)], keeps
-    # different nets' vertical runs from sharing one grid line. Pins are
-    # seeded as zero-length intervals so no vertical ever runs over a
-    # foreign pin (the classic stacked-box-pin short).
-    lanes: dict[int, list[tuple[str, int, int]]] = {}
-    for t in r.terminals:
-        lanes.setdefault(t.x, []).append((t.net, t.y, t.y))
-
-    # pre-routed tile internals are first-class geometry: draw them,
-    # claim their lanes/tracks so global wires can't collide
-    claimed_h: list[tuple[int, int, int]] = []
+    # tile preroutes are first-class geometry
+    pre_by_net: dict[str, list[tuple[int, int, int, int]]] = {}
     for (x1, y1, x2, y2, net) in sheet.preroutes:
         r.segments.append(Seg(x1, y1, x2, y2, net))
-        if x1 == x2:
-            lanes.setdefault(x1, []).append((net, min(y1, y2), max(y1, y2)))
-        else:
-            claimed_h.append((y1, min(x1, x2), max(x1, x2)))
-
-    row0 = MARGIN + ROW0_OFFSET
-
-    def track_y(pins: list[Terminal]) -> int:
-        """An integer horizontal track in the band nearest the pins."""
-        ys = sorted(t.y for t in pins)
-        mid = ys[len(ys) // 2]
-        band = round((mid - row0) / ROW_PITCH)
-        minx = min(t.x for t in pins)
-        maxx = max(t.x for t in pins)
-        k = band_use.get(band, 0)
-        y = row0 + band * ROW_PITCH + ROW_PITCH // 2
-        for _ in range(12):
-            y = row0 + band * ROW_PITCH + ROW_PITCH // 2 + (k % 6) - 2
-            if not any(hy == y and hx2 >= minx and hx1 <= maxx
-                       for (hy, hx1, hx2) in claimed_h):
-                break
-            k += 1
-        band_use[band] = k + 1
-        claimed_h.append((y, minx, maxx))
-        return y
+        pre_by_net.setdefault(net, []).append((x1, y1, x2, y2))
 
     ports = set(sub.ports)
+    jobs: list[tuple[str, list[Terminal]]] = []
 
     for net, pins in net_pins.items():
         if net in sheet.rails:
@@ -137,7 +129,6 @@ def route(sheet: Sheet) -> Routing:
                                     direction=_stub_dir(t, kind), text=net,
                                     role=t.role))
             continue
-
         if net in sheet.label_nets:
             is_port = net in ports
             for t in pins:
@@ -146,39 +137,92 @@ def route(sheet: Sheet) -> Routing:
                                     direction=_label_dir(t), text=net,
                                     role=t.role))
             continue
-
-        if len(pins) == 1:
+        if len(pins) == 1 and net not in pre_by_net:
             t = pins[0]
             if net in ports:
                 r.stubs.append(Stub(kind="port", net=net, px=t.x, py=t.y,
                                     direction=_label_dir(t), text=net))
-            elif net not in covered_nets:   # internally tile-wired nets are fine
+            elif net not in covered_nets:
                 r.dangling.append(t)
             continue
+        jobs.append((net, pins))
 
-        _route_net(r, net, pins, track_y, lanes)
-        if net in ports:
+    # ---- the OVG/A* engine
+    rects = [_obstacle(d, sheet.pos(d)) for d in sub.devices]
+    portal: dict[tuple[int, int], str] = {}
+    for net, pins in jobs:
+        for t in pins:
+            portal[(t.x, t.y)] = t.esc
+    bounds = (1, 1, max(sheet.width - 1, 10), max(sheet.height - 1, 10))
+    engine = Router2(rects, portal, bounds, debug=debug)
+    result = engine.route_all(
+        [(net, [(t.x, t.y) for t in pins]) for net, pins in jobs],
+        pre_by_net)
+    r.warnings.extend(result.warnings)
+
+    net_segs: dict[str, list[Seg]] = {}
+    for (x1, y1, x2, y2, net) in sheet.preroutes:
+        net_segs.setdefault(net, []).append(Seg(x1, y1, x2, y2, net))
+    for net, paths in result.paths.items():
+        for path in paths or []:
+            for (a, b) in zip(path, path[1:]):
+                if a == b:
+                    continue
+                s = Seg(a[0], a[1], b[0], b[1], net)
+                r.segments.append(s)
+                net_segs.setdefault(net, []).append(s)
+
+    # junction dots: same-net endpoint landing on a segment interior
+    for net, segs in net_segs.items():
+        for s in segs:
+            for (x, y) in ((s.x1, s.y1), (s.x2, s.y2)):
+                for o in segs:
+                    if o is s:
+                        continue
+                    if _interior(x, y, o):
+                        r.dots.append((x, y))
+
+    if debug:
+        g = result.ovg
+        r.debug = {
+            "rects": rects,
+            "vspans": g.vspans if g else [],
+            "hspans": g.hspans if g else [],
+            "nodes": len(g.coords) if g else 0,
+            "nets": [{"net": v.net, "pins": v.pins, "raw": v.raw,
+                      "visited": v.visited, "cost": v.cost}
+                     for v in result.viz],
+        }
+
+    # ---- port flags
+    for net, pins in net_pins.items():
+        if net in sheet.rails or net in sheet.label_nets or net not in ports:
+            continue
+        if len(pins) >= 2 or net in pre_by_net:
             t = _port_anchor(pins, net)
             r.stubs.append(Stub(kind="port", net=net, px=t.x, py=t.y,
-                                direction="left" if _INPUTISH.match(net) else "right",
-                                text=net))
-
-    # ports whose every terminal is tile-internal still need a flag
-    flagged = set(net_pins) | set(sheet.rails)
+                                direction="left" if _INPUTISH.match(net)
+                                else "right", text=net))
+    flagged = {s.net for s in r.stubs if s.kind == "port"}
+    flagged |= set(sheet.rails)
     for net in ports:
-        if net in flagged:
+        if net in flagged or net in sheet.label_nets:
             continue
         t = next((t for t in r.terminals if t.net == net), None)
         if t is not None:
             r.stubs.append(Stub(kind="port", net=net, px=t.x, py=t.y,
                                 direction=_label_dir(t), text=net))
-
     return r
 
 
+def _interior(x, y, s: Seg) -> bool:
+    if s.x1 == s.x2:
+        return x == s.x1 and min(s.y1, s.y2) < y < max(s.y1, s.y2)
+    return y == s.y1 and min(s.x1, s.x2) < x < max(s.x1, s.x2)
+
+
 def _stub_dir(t: Terminal, kind: str) -> str:
-    if t.role in ("d", "s", "p", "n", "c", "e") :
-        # top/bottom pin: stub continues outward
+    if t.role in ("d", "s", "p", "n", "c", "e"):
         return "up" if kind == "vdd" else "down"
     return "side_up" if kind == "vdd" else "side_down"
 
@@ -195,56 +239,3 @@ def _port_anchor(pins: list[Terminal], net: str) -> Terminal:
     if _INPUTISH.match(net):
         return min(pins, key=lambda t: t.x)
     return max(pins, key=lambda t: t.x)
-
-
-def _claim_lane(lanes, net: str, x: int, y1: int, y2: int,
-                side: str) -> int:
-    """Return an integer grid x where a vertical (y1..y2) is clash-free."""
-    lo, hi = min(y1, y2), max(y1, y2)
-    step = -1 if side == "L" else 1
-    cand = x
-    for _ in range(14):
-        clash = any(n != net and hi >= a and lo <= b
-                    for (n, a, b) in lanes.get(cand, []))
-        if not clash:
-            lanes.setdefault(cand, []).append((net, lo, hi))
-            return cand
-        cand += step
-    lanes.setdefault(cand, []).append((net, lo, hi))
-    return cand
-
-
-def _route_net(r: Routing, net: str, pins: list[Terminal], track_y,
-               lanes) -> None:
-    xs = {t.x for t in pins}
-    if len(xs) == 1:
-        ordered = sorted(pins, key=lambda t: t.y)
-        x = _claim_lane(lanes, net, ordered[0].x, ordered[0].y,
-                        ordered[-1].y, ordered[0].side)
-        if abs(x - ordered[0].x) > 0.1:     # column line already taken: jog
-            for t in ordered:
-                r.segments.append(Seg(t.x, t.y, x, t.y, net))
-            r.segments.append(Seg(x, ordered[0].y, x, ordered[-1].y, net))
-        else:
-            for a, b in zip(ordered, ordered[1:]):
-                if abs(a.y - b.y) > 0.1:
-                    r.segments.append(Seg(a.x, a.y, b.x, b.y, net))
-        return
-
-    ty = track_y(pins)
-    drop_xs: list[int] = []
-    for t in pins:
-        if t.y == ty:
-            drop_xs.append(t.x)
-            continue
-        dx = _claim_lane(lanes, net, t.x, t.y, ty, t.side)
-        if dx != t.x:
-            r.segments.append(Seg(t.x, t.y, dx, t.y, net))   # escape jog
-        r.segments.append(Seg(dx, t.y, dx, ty, net))
-        drop_xs.append(dx)
-    minx, maxx = min(drop_xs), max(drop_xs)
-    if maxx != minx:
-        r.segments.append(Seg(minx, ty, maxx, ty, net))
-    for x in drop_xs:
-        if len(drop_xs) > 2 and minx < x < maxx:
-            r.dots.append((x, ty))

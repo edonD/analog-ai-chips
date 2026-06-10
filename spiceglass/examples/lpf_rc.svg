@@ -16,13 +16,8 @@
  .meta { font-size: 10px; fill: #555; }
 </style>
 <rect x="0" y="0" width="520" height="620" fill="white" stroke="none"/>
-<line class="wire" x1="210" y1="290" x2="210" y2="480"/>
-<line class="wire" x1="350" y1="390" x2="360" y2="390"/>
-<line class="wire" x1="360" y1="390" x2="360" y2="480"/>
-<line class="wire" x1="210" y1="480" x2="360" y2="480"/>
-<line x1="130" y1="290" x2="108" y2="290"/><rect x="87" y="281" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="97.5" y="294" text-anchor="middle" class="port">inp</text>
-<line x1="350" y1="390" x2="372" y2="390"/><rect x="372" y="381" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="382.5" y="394" text-anchor="middle" class="port">out</text>
-<line x1="350" y1="470" x2="350" y2="482"/><line x1="341" y1="482" x2="359" y2="482" stroke-width="2"/><line x1="344" y1="486" x2="356" y2="486" stroke-width="2"/><line x1="347" y1="490" x2="353" y2="490" stroke-width="2"/>
+<line class="wire" x1="350" y1="390" x2="350" y2="290" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="290" x2="210" y2="290" stroke="#1b1b1b" stroke-width="1.6"/>
+<line x1="130" y1="290" x2="108" y2="290"/><rect x="87" y="281" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="97.5" y="294" text-anchor="middle" class="port">inp</text><line x1="350" y1="470" x2="350" y2="482"/><line x1="341" y1="482" x2="359" y2="482" stroke-width="2"/><line x1="344" y1="486" x2="356" y2="486" stroke-width="2"/><line x1="347" y1="490" x2="353" y2="490" stroke-width="2"/><line x1="350" y1="390" x2="372" y2="390"/><rect x="372" y="381" width="21" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="382.5" y="394" text-anchor="middle" class="port">out</text>
 <g transform="translate(170 290) rotate(-90)" fill="none">
 <line x1="0" y1="-40" x2="0" y2="-21"/>
 <line x1="0" y1="21" x2="0" y2="40"/>

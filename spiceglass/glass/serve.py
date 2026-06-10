@@ -48,6 +48,36 @@ class EditorState:
                          "orient": sheet.pos(d).orient}
                 for d in sub.devices}
 
+    def algo_payload(self, overrides) -> dict:
+        """Everything the algorithm-visualization page needs: obstacles,
+        OVG corridors, per-net raw/A*-visited/final data, and the score."""
+        from .score import score
+        sub = self.design.subckts[self.subname]
+        sheet = place(sub, overrides)
+        routing = route(sheet, debug=True)
+        verdict = verify(routing)
+        sc = score(sheet, routing)
+        devs = []
+        for d in sub.devices:
+            p = sheet.pos(d)
+            devs.append({"name": d.name, "x": p.x, "y": p.y,
+                         "orient": p.orient, "symbol": symbol_svg(d)})
+        finals = {}
+        for s in routing.segments:
+            finals.setdefault(s.net, []).append([s.x1, s.y1, s.x2, s.y2])
+        return {"subckt": sub.name, "unit": UNIT,
+                "width": sheet.width, "height": sheet.height,
+                "devices": devs,
+                "furniture": render_furniture_svg(routing),
+                "debug": routing.debug,
+                "finals": finals,
+                "dots": routing.dots,
+                "verify": {"ok": verdict.ok, "errors": verdict.errors},
+                "score": {"wirelength": sc.wirelength, "bends": sc.bends,
+                          "crossings": sc.crossings,
+                          "through": sc.through},
+                "warnings": routing.warnings}
+
     def payload(self, overrides) -> dict:
         sub, sheet, routing, verdict = self.build(overrides)
         devs = []
@@ -85,23 +115,31 @@ class Handler(BaseHTTPRequestHandler):
         self._send(json.dumps(obj).encode("utf-8"),
                    "application/json; charset=utf-8", code)
 
+    def _overrides(self):
+        sc = sidecar_path(self.state.path, self.state.subname)
+        if os.path.exists(sc):
+            with open(sc, encoding="utf-8") as fh:
+                return json.load(fh).get("human")
+        return None
+
     def do_GET(self):
         if self.path in ("/", "/index.html"):
-            page = os.path.join(os.path.dirname(__file__), "..", "viewer",
-                                "editor.html")
-            with open(page, "rb") as fh:
-                self._send(fh.read(), "text/html; charset=utf-8")
-            return
+            return self._page("editor.html")
+        if self.path.startswith("/algo"):
+            return self._page("algo.html")
         if self.path.startswith("/api/sheet"):
-            overrides = None
-            if "reset" not in self.path:
-                sc = sidecar_path(self.state.path, self.state.subname)
-                if os.path.exists(sc):
-                    with open(sc, encoding="utf-8") as fh:
-                        overrides = json.load(fh).get("human")
+            overrides = None if "reset" in self.path else self._overrides()
             self._json(self.state.payload(overrides))
             return
+        if self.path.startswith("/api/algo"):
+            self._json(self.state.algo_payload(self._overrides()))
+            return
         self._json({"error": "not found"}, 404)
+
+    def _page(self, name: str):
+        page = os.path.join(os.path.dirname(__file__), "..", "viewer", name)
+        with open(page, "rb") as fh:
+            self._send(fh.read(), "text/html; charset=utf-8")
 
     def do_POST(self):
         n = int(self.headers.get("Content-Length", 0))
