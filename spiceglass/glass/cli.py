@@ -94,6 +94,11 @@ def main(argv: list[str] | None = None) -> int:
     ep.add_argument("--port", type=int, default=8137)
     ep.add_argument("--no-browser", action="store_true")
 
+    scp = sp.add_parser("score", help="routing quality metrics "
+                                      "(algo vs saved human placement)")
+    scp.add_argument("file")
+    scp.add_argument("--subckt", default=None)
+
     args = ap.parse_args(argv)
 
     if args.cmd == "edit":
@@ -105,6 +110,32 @@ def main(argv: list[str] | None = None) -> int:
                 0.8, lambda: webbrowser.open(
                     f"http://127.0.0.1:{args.port}/")).start()
         serve(args.file, args.subckt, args.port)
+        return 0
+
+    if args.cmd == "score":
+        import json
+        from .score import score
+        design = parse_file(args.file)
+        classify_design(design)
+        name = args.subckt or design.root().name
+        sub = design.subckts[name]
+
+        def measure(overrides):
+            sheet = place(sub, overrides)
+            routing = route(sheet)
+            return score(sheet, routing), verify(routing).ok
+
+        algo, ok_a = measure(None)
+        print(f"algo : {algo.row()}  verified={ok_a}")
+        sc = f"{os.path.splitext(args.file)[0]}.{name}.place.json"
+        if os.path.exists(sc):
+            with open(sc, encoding="utf-8") as fh:
+                human, ok_h = measure(json.load(fh).get("human"))
+            print(f"human: {human.row()}  verified={ok_h}")
+            print(f"delta: len{human.wirelength - algo.wirelength:+d}  "
+                  f"bends{human.bends - algo.bends:+d}  "
+                  f"crossings{human.crossings - algo.crossings:+d}  "
+                  f"through{human.through - algo.through:+d}")
         return 0
     design = parse_file(args.file)
     classify_design(design)
