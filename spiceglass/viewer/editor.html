@@ -5,21 +5,22 @@
 <title>SpiceGlass Editor</title>
 <style>
   body { margin:0; font-family:"Segoe UI",Arial,sans-serif; background:#23262b; }
-  #bar { display:flex; align-items:center; gap:14px; padding:8px 14px;
+  #bar { display:flex; align-items:center; gap:12px; padding:8px 14px;
          background:#2e323a; color:#dde1e8; position:sticky; top:0; z-index:5;
-         box-shadow:0 1px 6px rgba(0,0,0,.4); }
+         box-shadow:0 1px 6px rgba(0,0,0,.4); flex-wrap:wrap; }
   #bar b { font-size:15px; }
   #badge { padding:3px 12px; border-radius:6px; font-weight:800; font-size:13px; }
   .ok  { background:#0a7d28; color:#fff; }
   .bad { background:#bb1111; color:#fff; }
   button { background:#3d434d; color:#dde1e8; border:1px solid #555c68;
-           border-radius:6px; padding:5px 14px; font-size:13px; cursor:pointer; }
+           border-radius:6px; padding:5px 12px; font-size:13px; cursor:pointer; }
   button:hover { background:#4a515d; }
-  #hint { color:#9aa3af; font-size:12px; margin-left:auto; }
+  label.tg { font-size:12.5px; color:#c4cad4; display:flex; gap:4px;
+             align-items:center; cursor:pointer; }
+  #hint { color:#9aa3af; font-size:11.5px; margin-left:auto; max-width:480px; }
   #wrap { overflow:auto; height:calc(100vh - 46px); }
   #sheet { background:#ffffff; display:block; margin:14px;
            box-shadow:0 2px 14px rgba(0,0,0,.5); transform-origin:0 0; }
-  /* schematic styles (match render_svg.py) */
   #sheet line, #sheet polyline, #sheet path, #sheet rect, #sheet circle
     { stroke:#111; stroke-width:1.8; }
   #sheet text { stroke:none; fill:#222; font-size:11px; }
@@ -32,9 +33,14 @@
   .netlabel { font-size:10.5px; fill:#a14d00; font-style:italic; }
   .port { font-size:10.5px; fill:#0b4ea2; font-weight:700; }
   .dev { cursor:grab; }
-  .dev.sel .art { outline:none; }
   .dev.sel { filter:drop-shadow(0 0 3px #2b7de9); }
-  #info { color:#9aa3af; font-size:12px; min-width:260px; }
+  .wire { stroke:#1b1b1b; stroke-width:1.6; fill:none; }
+  .wire.pinned { stroke:#0b4ea2; }
+  .hit { stroke:transparent; stroke-width:11; fill:none; }
+  .hit.mid { cursor:ns-resize; }
+  .hit.midv { cursor:ew-resize; }
+  .hit:hover + .wire, .wirehl { stroke:#2b7de9 !important; stroke-width:2.6 !important; }
+  #info { color:#9aa3af; font-size:12px; min-width:200px; }
 </style>
 </head>
 <body>
@@ -42,18 +48,26 @@
   <b>SpiceGlass</b>
   <span id="title" style="color:#9aa3af"></span>
   <span id="badge">…</span>
-  <button id="save">Save placement</button>
+  <button id="save">Save</button>
   <button id="reset">Reset to algorithm</button>
   <button onclick="location.href='/algo'">Algorithm view</button>
+  <button onclick="location.href='/symbols'">Symbol designer</button>
+  <label class="tg"><input type="checkbox" id="grid" checked> grid dots</label>
   <button id="zin">+</button><button id="zout">−</button>
   <span id="info"></span>
-  <span id="hint">drag devices &nbsp;•&nbsp; R rotate &nbsp;•&nbsp; M mirror &nbsp;•&nbsp; wires re-route &amp; re-verify on drop</span>
+  <span id="hint">drag devices · R rotate · M mirror · <b>drag a wire's middle
+  segment to move it</b> · double-click a wire to add a jog · blue wires =
+  hand-pinned · everything re-routes &amp; re-verifies on drop</span>
 </div>
 <div id="wrap"><svg id="sheet" xmlns="http://www.w3.org/2000/svg"></svg></div>
 <script>
 "use strict";
 const svg = document.getElementById("sheet");
+const NS = "http://www.w3.org/2000/svg";
 let U = 10, devs = new Map(), sel = null, zoom = 1, busy = false;
+let paths = {}, pinned = new Set(), preSegs = [], dotsArr = [];
+
+const snap = v => Math.round(v / U);
 
 function tfFor(o) {
   return o === "MX" ? " scale(-1 1)" : (o === "R90" ? " rotate(-90)" : "");
@@ -67,11 +81,16 @@ function positions() {
   for (const [n, d] of devs) out[n] = { x: d.x, y: d.y, orient: d.orient };
   return out;
 }
+function wiresBody() {
+  const out = {};
+  for (const n of pinned) if (paths[n]) out[n] = paths[n];
+  return out;
+}
 function setBadge(v) {
   const b = document.getElementById("badge");
   b.textContent = v.ok ? "VERIFIED ✓" : "MISMATCH ✗";
   b.className = v.ok ? "ok" : "bad";
-  b.title = (v.errors || []).join("\n");
+  b.title = (v.errors || []).concat(v.warnings || []).join("\n");
 }
 function svgPoint(ev) {
   const pt = svg.createSVGPoint();
@@ -85,10 +104,12 @@ async function reroute() {
   try {
     const r = await fetch("/api/route", { method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ positions: positions() }) });
+      body: JSON.stringify({ positions: positions(), wires: wiresBody() }) });
     const p = await r.json();
-    document.getElementById("wires").innerHTML = p.wires;
+    paths = p.paths; preSegs = p.pre_segs; dotsArr = p.dots;
+    pinned = new Set(p.pinned);
     document.getElementById("furn").innerHTML = p.furniture;
+    drawWires();
     resize(p.width, p.height);
     setBadge(p.verify);
   } finally { busy = false; }
@@ -97,30 +118,124 @@ async function reroute() {
 function resize(w, h) {
   svg.setAttribute("width", w * U); svg.setAttribute("height", h * U);
   svg.setAttribute("viewBox", `0 0 ${w * U} ${h * U}`);
+  const bg = document.getElementById("gridrect");
+  if (bg) { bg.setAttribute("width", w * U); bg.setAttribute("height", h * U); }
 }
 
+// ------------------------------------------------------------ wires
+function drawWires() {
+  const layer = document.getElementById("wires");
+  let s = "";
+  for (const [x1, y1, x2, y2, net] of preSegs)
+    s += `<line class="wire" x1="${x1*U}" y1="${y1*U}" x2="${x2*U}" y2="${y2*U}"/>`;
+  for (const [net, plist] of Object.entries(paths)) {
+    const cls = pinned.has(net) ? "wire pinned" : "wire";
+    (plist || []).forEach((path, pi) => {
+      for (let k = 0; k < path.length - 1; k++) {
+        const [ax, ay] = path[k], [bx, by] = path[k + 1];
+        const mid = k > 0 && k < path.length - 2;
+        const horiz = ay === by;
+        s += `<line class="hit ${mid ? (horiz ? "mid" : "midv") : ""}"
+              data-net="${net}" data-pi="${pi}" data-k="${k}"
+              x1="${ax*U}" y1="${ay*U}" x2="${bx*U}" y2="${by*U}"/>`;
+        s += `<line class="${cls}" x1="${ax*U}" y1="${ay*U}"
+              x2="${bx*U}" y2="${by*U}"/>`;
+      }
+    });
+  }
+  for (const [x, y] of dotsArr)
+    s += `<circle cx="${x*U}" cy="${y*U}" r="3" fill="#1b1b1b" stroke="none"/>`;
+  layer.innerHTML = s;
+  for (const hit of layer.querySelectorAll(".hit")) {
+    hit.addEventListener("pointerdown", ev => wireDrag(ev, hit));
+    hit.addEventListener("dblclick", ev => wireSplit(ev, hit));
+  }
+}
+
+function wireDrag(ev, hit) {
+  const net = hit.dataset.net, pi = +hit.dataset.pi, k = +hit.dataset.k;
+  const path = paths[net][pi];
+  if (!(k > 0 && k < path.length - 2)) return;     // terminals stay on pins
+  ev.preventDefault(); ev.stopPropagation();
+  const horiz = path[k][1] === path[k + 1][1];
+  const start = svgPoint(ev);
+  const orig = horiz ? path[k][1] : path[k][0];
+  let moved = false;
+  function move(e) {
+    const pt = svgPoint(e);
+    const d = horiz ? snap(pt.y - start.y) : snap(pt.x - start.x);
+    const nv = orig + d;
+    const cur = horiz ? path[k][1] : path[k][0];
+    if (nv !== cur) {
+      if (horiz) { path[k][1] = nv; path[k + 1][1] = nv; }
+      else { path[k][0] = nv; path[k + 1][0] = nv; }
+      moved = true;
+      drawWires();
+      rebind();
+    }
+  }
+  function up() {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    if (moved) { pinned.add(net); reroute(); }
+  }
+  function rebind() { /* hits rebuilt; this drag keeps array refs */ }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+
+function wireSplit(ev, hit) {
+  ev.preventDefault();
+  const net = hit.dataset.net, pi = +hit.dataset.pi, k = +hit.dataset.k;
+  const path = paths[net][pi];
+  const [ax, ay] = path[k], [bx, by] = path[k + 1];
+  let p1, p2;
+  if (ay === by) {
+    const x1 = ax + Math.round((bx - ax) / 3), x2 = ax + Math.round(2 * (bx - ax) / 3);
+    if (x1 === ax || x2 === bx || x1 === x2) return;
+    p1 = [x1, ay]; p2 = [x2, ay];
+  } else {
+    const y1 = ay + Math.round((by - ay) / 3), y2 = ay + Math.round(2 * (by - ay) / 3);
+    if (y1 === ay || y2 === by || y1 === y2) return;
+    p1 = [ax, y1]; p2 = [ax, y2];
+  }
+  path.splice(k + 1, 0, p1, p2);
+  pinned.add(net);
+  drawWires();
+}
+
+// ------------------------------------------------------------ build
 function build(p) {
   U = p.unit;
   document.getElementById("title").textContent =
     `${p.subckt} — ports: ${p.ports.join(", ")}`;
-  resize(p.width, p.height);
+  paths = p.paths; preSegs = p.pre_segs; dotsArr = p.dots;
+  pinned = new Set(p.pinned);
   svg.innerHTML =
-    `<rect x="0" y="0" width="100%" height="100%" fill="white" stroke="none"/>` +
-    `<g id="wires">${p.wires}</g><g id="furn">${p.furniture}</g><g id="devlayer"></g>`;
+    `<defs><pattern id="griddots" width="${p.unit*2}" height="${p.unit*2}"
+       patternUnits="userSpaceOnUse">
+       <circle cx="1" cy="1" r="0.9" fill="#c9d2dd" stroke="none"/>
+     </pattern></defs>` +
+    `<rect width="100%" height="100%" fill="white" stroke="none"/>` +
+    `<rect id="gridrect" width="100%" height="100%" fill="url(#griddots)"
+       stroke="none"/>` +
+    `<g id="wires"></g><g id="furn">${p.furniture}</g><g id="devlayer"></g>`;
+  resize(p.width, p.height);
+  drawWires();
   const layer = document.getElementById("devlayer");
   devs.clear(); sel = null;
   for (const dv of p.devices) {
-    const g = document.createElementNS(svg.namespaceURI, "g");
+    const g = document.createElementNS(NS, "g");
     g.setAttribute("class", "dev");
-    const art = document.createElementNS(svg.namespaceURI, "g");
+    const art = document.createElementNS(NS, "g");
     art.setAttribute("class", "art");
     art.setAttribute("fill", "none");
     art.innerHTML = dv.symbol;
-    const nm = document.createElementNS(svg.namespaceURI, "text");
+    const nm = document.createElementNS(NS, "text");
     nm.setAttribute("class", "name");
     nm.setAttribute("x", -34); nm.setAttribute("y", -46);
     nm.textContent = dv.name;
-    const an = document.createElementNS(svg.namespaceURI, "text");
+    const an = document.createElementNS(NS, "text");
     an.setAttribute("class", "param");
     an.setAttribute("x", 22); an.setAttribute("y", 58);
     an.textContent = dv.ann;
@@ -133,6 +248,7 @@ function build(p) {
     g.addEventListener("click", () => select(d));
   }
   setBadge(p.verify);
+  gridToggle();
 }
 
 function select(d) {
@@ -151,8 +267,8 @@ function startDrag(ev, d) {
   let moved = false;
   function move(e) {
     const pt = svgPoint(e);
-    const nx = ox + Math.round((pt.x - start.x) / U);
-    const ny = oy + Math.round((pt.y - start.y) / U);
+    const nx = ox + snap(pt.x - start.x);
+    const ny = oy + snap(pt.y - start.y);
     if (nx !== d.x || ny !== d.y) {
       d.x = nx; d.y = ny; applyTf(d); moved = true;
     }
@@ -180,7 +296,7 @@ window.addEventListener("keydown", ev => {
 document.getElementById("save").onclick = async () => {
   const r = await fetch("/api/save", { method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ positions: positions() }) });
+    body: JSON.stringify({ positions: positions(), wires: wiresBody() }) });
   const p = await r.json();
   document.getElementById("info").textContent = "saved → " + p.saved;
 };
@@ -188,6 +304,11 @@ document.getElementById("reset").onclick = async () => {
   const r = await fetch("/api/sheet?reset=1");
   build(await r.json());
 };
+function gridToggle() {
+  document.getElementById("gridrect").style.display =
+    document.getElementById("grid").checked ? "" : "none";
+}
+document.getElementById("grid").onchange = gridToggle;
 document.getElementById("zin").onclick = () => {
   zoom = Math.min(3, zoom * 1.25); svg.style.transform = `scale(${zoom})`;
 };

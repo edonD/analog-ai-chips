@@ -140,8 +140,13 @@ def _box(dev: Device) -> list[str]:
     return e
 
 
-def _symbol_elems(dev: Device) -> list[str]:
+def _symbol_elems(dev: Device, use_custom: bool = True) -> list[str]:
     k = dev.kind
+    if use_custom:
+        from .symbols import lib, to_svg
+        custom = lib().get(k)
+        if custom:
+            return to_svg(custom)
     if k in ("nmos", "pmos"):
         return _mos(dev)
     if k == "res":
@@ -239,6 +244,11 @@ def render_furniture_svg(routing: Routing) -> str:
 def symbol_svg(dev: Device) -> str:
     """Bare symbol artwork (used by the interactive editor)."""
     return "".join(_symbol_elems(dev))
+
+
+def builtin_symbol_svg(dev: Device) -> str:
+    """Built-in artwork, ignoring the custom library (symbol designer)."""
+    return "".join(_symbol_elems(dev, use_custom=False))
 
 
 # ------------------------------------------------------------ sheet

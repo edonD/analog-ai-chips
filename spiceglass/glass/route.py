@@ -62,6 +62,8 @@ class Routing:
     terminals: list[Terminal] = field(default_factory=list)
     dangling: list[Terminal] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    paths: dict[str, list] = field(default_factory=dict)   # editable routes
+    pinned_nets: list[str] = field(default_factory=list)   # user-pinned
     debug: dict | None = None
 
 
@@ -81,9 +83,15 @@ def _obstacle(dev, p) -> tuple[int, int, int, int]:
     return (p.x - hw, p.y - hh, p.x + hw, p.y + hh)
 
 
-def route(sheet: Sheet, debug: bool = False) -> Routing:
+def route(sheet: Sheet, debug: bool = False,
+          pinned: dict[str, list] | None = None) -> Routing:
+    """`pinned`: net -> list of point-paths the user hand-edited in the
+    editor. A pinned net bypasses the engine IF its geometry still
+    touches every pin of the net; otherwise the pin is dropped and the
+    net re-routes normally (e.g. after the device moved away)."""
     sub: Subckt = sheet.sub
     r = Routing()
+    pinned = pinned or {}
 
     # ---- collect every terminal with its absolute pin position
     net_pins: dict[str, list[Terminal]] = {}
@@ -147,6 +155,34 @@ def route(sheet: Sheet, debug: bool = False) -> Routing:
             continue
         jobs.append((net, pins))
 
+    # ---- user-pinned wire paths: validate that every pin of the net
+    #      still lies on the pinned geometry, then bypass the engine
+    from .route2 import _on_seg
+    valid_pinned: dict[str, list] = {}
+    for net, paths in pinned.items():
+        job = next((j for j in jobs if j[0] == net), None)
+        if job is None:
+            continue
+        segs = []
+        for path in paths:
+            for a, b in zip(path, path[1:]):
+                segs.append((a[0], a[1], b[0], b[1]))
+        if segs and all(any(_on_seg(t.x, t.y, s) for s in segs)
+                        for t in job[1]):
+            valid_pinned[net] = [[list(p) for p in path] for path in paths]
+        else:
+            r.warnings.append(f"pinned wires for '{net}' no longer reach "
+                              "all pins — re-routed")
+    jobs = [j for j in jobs if j[0] not in valid_pinned]
+    r.pinned_nets = sorted(valid_pinned)
+
+    existing = {net: list(segs) for net, segs in pre_by_net.items()}
+    for net, paths in valid_pinned.items():
+        for path in paths:
+            for a, b in zip(path, path[1:]):
+                existing.setdefault(net, []).append(
+                    (a[0], a[1], b[0], b[1]))
+
     # ---- the OVG/A* engine
     rects = [_obstacle(d, sheet.pos(d)) for d in sub.devices]
     portal: dict[tuple[int, int], str] = {}
@@ -157,13 +193,18 @@ def route(sheet: Sheet, debug: bool = False) -> Routing:
     engine = Router2(rects, portal, bounds, debug=debug)
     result = engine.route_all(
         [(net, [(t.x, t.y) for t in pins]) for net, pins in jobs],
-        pre_by_net)
+        existing)
     r.warnings.extend(result.warnings)
 
     net_segs: dict[str, list[Seg]] = {}
     for (x1, y1, x2, y2, net) in sheet.preroutes:
         net_segs.setdefault(net, []).append(Seg(x1, y1, x2, y2, net))
-    for net, paths in result.paths.items():
+    all_paths = dict(result.paths)
+    for net, paths in valid_pinned.items():
+        all_paths.setdefault(net, [])
+        all_paths[net] = all_paths[net] + paths
+    r.paths = all_paths
+    for net, paths in all_paths.items():
         for path in paths or []:
             for (a, b) in zip(path, path[1:]):
                 if a == b:

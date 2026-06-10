@@ -26,15 +26,17 @@ _EDGE_CANDIDATES = [
 
 def _render_one(design, name: str, out_svg: str, png: bool) -> bool:
     sub = design.subckts[name]
-    overrides = None
+    overrides = wires = None
     sc = f"{os.path.splitext(design.path)[0]}.{name}.place.json"
     if os.path.exists(sc):
         import json
         with open(sc, encoding="utf-8") as fh:
-            overrides = json.load(fh).get("human")
+            data = json.load(fh)
+        overrides = data.get("human")
+        wires = data.get("wires")
         print(f"          applying human placement: {os.path.basename(sc)}")
     sheet = place(sub, overrides)
-    routing = route(sheet)
+    routing = route(sheet, pinned=wires)
     verdict = verify(routing)
     meta = {"path": os.path.basename(design.path),
             "date": _dt.date.today().isoformat()}

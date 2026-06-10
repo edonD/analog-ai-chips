@@ -35,10 +35,10 @@ class EditorState:
         classify_design(self.design)
         self.subname = subname or self.design.root().name
 
-    def build(self, overrides):
+    def build(self, overrides, wires=None):
         sub = self.design.subckts[self.subname]
         sheet = place(sub, overrides)
-        routing = route(sheet)
+        routing = route(sheet, pinned=wires)
         verdict = verify(routing)
         return sub, sheet, routing, verdict
 
@@ -78,8 +78,8 @@ class EditorState:
                           "through": sc.through},
                 "warnings": routing.warnings}
 
-    def payload(self, overrides) -> dict:
-        sub, sheet, routing, verdict = self.build(overrides)
+    def payload(self, overrides, wires=None) -> dict:
+        sub, sheet, routing, verdict = self.build(overrides, wires)
         devs = []
         for d in sub.devices:
             p = sheet.pos(d)
@@ -91,10 +91,13 @@ class EditorState:
                 "width": sheet.width, "height": sheet.height,
                 "devices": devs,
                 "tiles": [[m.name for m in t.devices()] for t in sheet.tiles],
-                "wires": render_wires_svg(routing),
+                "paths": routing.paths,
+                "pre_segs": [list(p) for p in sheet.preroutes],
+                "dots": routing.dots,
+                "pinned": routing.pinned_nets,
                 "furniture": render_furniture_svg(routing),
                 "verify": {"ok": verdict.ok, "errors": verdict.errors,
-                           "warnings": verdict.warnings},
+                           "warnings": verdict.warnings + routing.warnings},
                 "sidecar": sidecar_path(self.path, self.subname)}
 
 
@@ -115,24 +118,30 @@ class Handler(BaseHTTPRequestHandler):
         self._send(json.dumps(obj).encode("utf-8"),
                    "application/json; charset=utf-8", code)
 
-    def _overrides(self):
+    def _sidecar(self) -> dict:
         sc = sidecar_path(self.state.path, self.state.subname)
         if os.path.exists(sc):
             with open(sc, encoding="utf-8") as fh:
-                return json.load(fh).get("human")
-        return None
+                return json.load(fh)
+        return {}
 
     def do_GET(self):
         if self.path in ("/", "/index.html"):
             return self._page("editor.html")
         if self.path.startswith("/algo"):
             return self._page("algo.html")
+        if self.path.startswith("/symbols"):
+            return self._page("symbols.html")
         if self.path.startswith("/api/sheet"):
-            overrides = None if "reset" in self.path else self._overrides()
-            self._json(self.state.payload(overrides))
+            sc = {} if "reset" in self.path else self._sidecar()
+            self._json(self.state.payload(sc.get("human"), sc.get("wires")))
             return
         if self.path.startswith("/api/algo"):
-            self._json(self.state.algo_payload(self._overrides()))
+            sc = self._sidecar()
+            self._json(self.state.algo_payload(sc.get("human")))
+            return
+        if self.path.startswith("/api/symbols"):
+            self._json(_symbol_payload())
             return
         self._json({"error": "not found"}, 404)
 
@@ -145,24 +154,59 @@ class Handler(BaseHTTPRequestHandler):
         n = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(n) or b"{}")
         if self.path == "/api/route":
-            p = self.state.payload(body.get("positions"))
-            self._json({"wires": p["wires"], "furniture": p["furniture"],
-                        "verify": p["verify"], "width": p["width"],
-                        "height": p["height"]})
+            p = self.state.payload(body.get("positions"),
+                                   body.get("wires"))
+            self._json({"paths": p["paths"], "pre_segs": p["pre_segs"],
+                        "dots": p["dots"], "pinned": p["pinned"],
+                        "furniture": p["furniture"], "verify": p["verify"],
+                        "width": p["width"], "height": p["height"]})
             return
         if self.path == "/api/save":
-            human = body.get("positions", {})
             sc = sidecar_path(self.state.path, self.state.subname)
             data = {"netlist": os.path.basename(self.state.path),
                     "subckt": self.state.subname,
-                    "unit_note": "positions in grid units",
+                    "unit_note": "positions/wires in grid units",
                     "algo": self.state.positions(None),
-                    "human": human}
+                    "human": body.get("positions", {}),
+                    "wires": body.get("wires", {})}
             with open(sc, "w", encoding="utf-8") as fh:
                 json.dump(data, fh, indent=1)
             self._json({"saved": sc})
             return
+        if self.path == "/api/symbol":
+            from .symbols import save
+            path = save(body["kind"], body.get("elems"))
+            self._json({"saved": path})
+            return
         self._json({"error": "not found"}, 404)
+
+
+_KIND_ROLES = {
+    "nmos": ["d", "g", "s", "b"], "pmos": ["d", "g", "s", "b"],
+    "res": ["p", "n", "b"], "cap": ["p", "n", "b"], "dio": ["p", "n"],
+    "vsrc": ["p", "n"], "isrc": ["p", "n"], "bsrc": ["p", "n"],
+    "npn": ["c", "b", "e", "s"], "pnp": ["c", "b", "e"],
+}
+
+
+def _symbol_payload() -> dict:
+    from .db import Device
+    from .geom import pin_offsets
+    from .render_svg import builtin_symbol_svg
+    from .symbols import lib
+    custom = lib()
+    kinds = {}
+    for kind, roles in _KIND_ROLES.items():
+        dev = Device(name="_", kind=kind, model="", nets=[""] * len(roles),
+                     roles=list(roles))
+        offs = pin_offsets(dev)
+        kinds[kind] = {
+            "pins": [[r, offs[r][0] * UNIT, offs[r][1] * UNIT]
+                     for r in roles],
+            "builtin": builtin_symbol_svg(dev),
+            "custom": custom.get(kind),
+        }
+    return {"unit": UNIT, "kinds": kinds}
 
 
 def serve(path: str, subname: str | None, port: int) -> None:

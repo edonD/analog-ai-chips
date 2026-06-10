@@ -34,6 +34,18 @@ Status: **M0 complete** (program.md has the full M0–M5 roadmap).
   during M0 bring-up this caught a real router short (stacked subckt-box
   pins) that was invisible to the eye.
 
+## Interactive editor
+
+`python -m glass edit design.cir` — browser editor with: device dragging
+(R rotate / M mirror), **draggable wire segments** (grab any middle
+segment; double-click a wire to add a jog; hand-edited nets are pinned,
+drawn blue, persisted in the sidecar and respected by the router), grid
+dots, live re-route + re-verify on every drop, an `/algo` page that
+visualizes the routing pipeline (visibility graph, A* replay, nudging),
+and a `/symbols` page — a pixel-style half-unit-grid symbol designer
+(pins fixed by the grid contract, artwork yours; saved to symbols.json
+and used by every renderer).
+
 ## Usage
 
 ```
