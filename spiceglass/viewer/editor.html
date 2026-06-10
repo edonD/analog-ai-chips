@@ -118,8 +118,6 @@ async function reroute() {
 function resize(w, h) {
   svg.setAttribute("width", w * U); svg.setAttribute("height", h * U);
   svg.setAttribute("viewBox", `0 0 ${w * U} ${h * U}`);
-  const bg = document.getElementById("gridrect");
-  if (bg) { bg.setAttribute("width", w * U); bg.setAttribute("height", h * U); }
 }
 
 // ------------------------------------------------------------ wires
@@ -211,14 +209,23 @@ function build(p) {
     `${p.subckt} — ports: ${p.ports.join(", ")} — grid ${p.grid_mm} mm`;
   paths = p.paths; preSegs = p.pre_segs; dotsArr = p.dots;
   pinned = new Set(p.pinned);
+  const u = p.unit;
   svg.innerHTML =
-    `<defs><pattern id="griddots" width="${p.unit*2}" height="${p.unit*2}"
-       patternUnits="userSpaceOnUse">
-       <circle cx="1" cy="1" r="0.9" fill="#c9d2dd" stroke="none"/>
-     </pattern></defs>` +
+    `<defs>
+      <pattern id="dots1" x="${-u/2}" y="${-u/2}" width="${u}" height="${u}"
+        patternUnits="userSpaceOnUse">
+        <circle cx="${u/2}" cy="${u/2}" r="0.7" fill="#ccd5e0" stroke="none"/>
+      </pattern>
+      <pattern id="dots5" x="${-u*2.5}" y="${-u*2.5}" width="${u*5}"
+        height="${u*5}" patternUnits="userSpaceOnUse">
+        <circle cx="${u*2.5}" cy="${u*2.5}" r="1.4" fill="#aab7c8"
+          stroke="none"/>
+      </pattern>
+     </defs>` +
     `<rect width="100%" height="100%" fill="white" stroke="none"/>` +
-    `<rect id="gridrect" width="100%" height="100%" fill="url(#griddots)"
-       stroke="none"/>` +
+    `<g id="gridrect"><rect width="100%" height="100%" fill="url(#dots1)"
+       stroke="none"/><rect width="100%" height="100%" fill="url(#dots5)"
+       stroke="none"/></g>` +
     `<g id="wires"></g><g id="furn">${p.furniture}</g><g id="devlayer"></g>`;
   resize(p.width, p.height);
   drawWires();
