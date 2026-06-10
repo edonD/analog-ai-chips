@@ -129,6 +129,7 @@
 |---|------|----------------|
 | 32 | [netlist-to-schematic.md](research/netlist-to-schematic.md) | How to see an AI-generated .cir as a schematic (verified tool/paper landscape + cir2sch build plan) |
 | 33 | [spiceglass/program.md](spiceglass/program.md) | **SpiceGlass build program** — open SpiceVision PRO for the AI design era (feature teardown, architecture, M0–M5 milestones) |
+| 34 | [schematic-routing-algorithms.md](research/schematic-routing-algorithms.md) | Which wire-routing algorithm for schematics? (verified: GD 2009 orthogonal visibility graph + A* + nudging, libavoid's pipeline) |
 
 ---
 
