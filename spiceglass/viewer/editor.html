@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SpiceGlass Editor</title>
+<style>
+  body { margin:0; font-family:"Segoe UI",Arial,sans-serif; background:#23262b; }
+  #bar { display:flex; align-items:center; gap:14px; padding:8px 14px;
+         background:#2e323a; color:#dde1e8; position:sticky; top:0; z-index:5;
+         box-shadow:0 1px 6px rgba(0,0,0,.4); }
+  #bar b { font-size:15px; }
+  #badge { padding:3px 12px; border-radius:6px; font-weight:800; font-size:13px; }
+  .ok  { background:#0a7d28; color:#fff; }
+  .bad { background:#bb1111; color:#fff; }
+  button { background:#3d434d; color:#dde1e8; border:1px solid #555c68;
+           border-radius:6px; padding:5px 14px; font-size:13px; cursor:pointer; }
+  button:hover { background:#4a515d; }
+  #hint { color:#9aa3af; font-size:12px; margin-left:auto; }
+  #wrap { overflow:auto; height:calc(100vh - 46px); }
+  #sheet { background:#ffffff; display:block; margin:14px;
+           box-shadow:0 2px 14px rgba(0,0,0,.5); transform-origin:0 0; }
+  /* schematic styles (match render_svg.py) */
+  #sheet line, #sheet polyline, #sheet path, #sheet rect, #sheet circle
+    { stroke:#111; stroke-width:1.8; }
+  #sheet text { stroke:none; fill:#222; font-size:11px; }
+  .name { font-weight:600; font-size:11px; }
+  .param { fill:#666; font-size:9.5px; }
+  .pin { font-size:9px; fill:#333; }
+  .sym { font-size:11px; font-weight:700; }
+  .boxmodel { font-size:9.5px; fill:#555; font-style:italic; }
+  .rail { font-size:9px; fill:#444; font-weight:600; }
+  .netlabel { font-size:10.5px; fill:#a14d00; font-style:italic; }
+  .port { font-size:10.5px; fill:#0b4ea2; font-weight:700; }
+  .dev { cursor:grab; }
+  .dev.sel .art { outline:none; }
+  .dev.sel { filter:drop-shadow(0 0 3px #2b7de9); }
+  #info { color:#9aa3af; font-size:12px; min-width:260px; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <b>SpiceGlass</b>
+  <span id="title" style="color:#9aa3af"></span>
+  <span id="badge">…</span>
+  <button id="save">Save placement</button>
+  <button id="reset">Reset to algorithm</button>
+  <button id="zin">+</button><button id="zout">−</button>
+  <span id="info"></span>
+  <span id="hint">drag devices &nbsp;•&nbsp; R rotate &nbsp;•&nbsp; M mirror &nbsp;•&nbsp; wires re-route &amp; re-verify on drop</span>
+</div>
+<div id="wrap"><svg id="sheet" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<script>
+"use strict";
+const svg = document.getElementById("sheet");
+let U = 10, devs = new Map(), sel = null, zoom = 1, busy = false;
+
+function tfFor(o) {
+  return o === "MX" ? " scale(-1 1)" : (o === "R90" ? " rotate(-90)" : "");
+}
+function applyTf(d) {
+  d.el.setAttribute("transform", `translate(${d.x * U} ${d.y * U})`);
+  d.art.setAttribute("transform", `translate(0 0)${tfFor(d.orient)}`);
+}
+function positions() {
+  const out = {};
+  for (const [n, d] of devs) out[n] = { x: d.x, y: d.y, orient: d.orient };
+  return out;
+}
+function setBadge(v) {
+  const b = document.getElementById("badge");
+  b.textContent = v.ok ? "VERIFIED ✓" : "MISMATCH ✗";
+  b.className = v.ok ? "ok" : "bad";
+  b.title = (v.errors || []).join("\n");
+}
+function svgPoint(ev) {
+  const pt = svg.createSVGPoint();
+  pt.x = ev.clientX; pt.y = ev.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+async function reroute() {
+  if (busy) return;
+  busy = true;
+  try {
+    const r = await fetch("/api/route", { method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ positions: positions() }) });
+    const p = await r.json();
+    document.getElementById("wires").innerHTML = p.wires;
+    document.getElementById("furn").innerHTML = p.furniture;
+    resize(p.width, p.height);
+    setBadge(p.verify);
+  } finally { busy = false; }
+}
+
+function resize(w, h) {
+  svg.setAttribute("width", w * U); svg.setAttribute("height", h * U);
+  svg.setAttribute("viewBox", `0 0 ${w * U} ${h * U}`);
+}
+
+function build(p) {
+  U = p.unit;
+  document.getElementById("title").textContent =
+    `${p.subckt} — ports: ${p.ports.join(", ")}`;
+  resize(p.width, p.height);
+  svg.innerHTML =
+    `<rect x="0" y="0" width="100%" height="100%" fill="white" stroke="none"/>` +
+    `<g id="wires">${p.wires}</g><g id="furn">${p.furniture}</g><g id="devlayer"></g>`;
+  const layer = document.getElementById("devlayer");
+  devs.clear(); sel = null;
+  for (const dv of p.devices) {
+    const g = document.createElementNS(svg.namespaceURI, "g");
+    g.setAttribute("class", "dev");
+    const art = document.createElementNS(svg.namespaceURI, "g");
+    art.setAttribute("class", "art");
+    art.setAttribute("fill", "none");
+    art.innerHTML = dv.symbol;
+    const nm = document.createElementNS(svg.namespaceURI, "text");
+    nm.setAttribute("class", "name");
+    nm.setAttribute("x", -34); nm.setAttribute("y", -46);
+    nm.textContent = dv.name;
+    const an = document.createElementNS(svg.namespaceURI, "text");
+    an.setAttribute("class", "param");
+    an.setAttribute("x", 22); an.setAttribute("y", 58);
+    an.textContent = dv.ann;
+    g.append(art, nm, an);
+    layer.appendChild(g);
+    const d = { ...dv, el: g, art };
+    devs.set(dv.name, d);
+    applyTf(d);
+    g.addEventListener("pointerdown", ev => startDrag(ev, d));
+    g.addEventListener("click", () => select(d));
+  }
+  setBadge(p.verify);
+}
+
+function select(d) {
+  if (sel) sel.el.classList.remove("sel");
+  sel = d; d.el.classList.add("sel");
+  document.getElementById("info").textContent =
+    `${d.name} (${d.kind})  ` +
+    Object.entries(d.nets).map(([r, n]) => `${r}:${n}`).join("  ");
+}
+
+function startDrag(ev, d) {
+  ev.preventDefault();
+  select(d);
+  const start = svgPoint(ev);
+  const ox = d.x, oy = d.y;
+  let moved = false;
+  function move(e) {
+    const pt = svgPoint(e);
+    const nx = ox + Math.round((pt.x - start.x) / U);
+    const ny = oy + Math.round((pt.y - start.y) / U);
+    if (nx !== d.x || ny !== d.y) {
+      d.x = nx; d.y = ny; applyTf(d); moved = true;
+    }
+  }
+  function up() {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    if (moved) reroute();
+  }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+
+window.addEventListener("keydown", ev => {
+  if (!sel || ev.target.tagName === "INPUT") return;
+  if (ev.key === "r" || ev.key === "R") {
+    sel.orient = sel.orient === "R90" ? "R0" : "R90";
+  } else if (ev.key === "m" || ev.key === "M") {
+    sel.orient = sel.orient === "MX" ? "R0" : "MX";
+  } else return;
+  applyTf(sel);
+  reroute();
+});
+
+document.getElementById("save").onclick = async () => {
+  const r = await fetch("/api/save", { method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ positions: positions() }) });
+  const p = await r.json();
+  document.getElementById("info").textContent = "saved → " + p.saved;
+};
+document.getElementById("reset").onclick = async () => {
+  const r = await fetch("/api/sheet?reset=1");
+  build(await r.json());
+};
+document.getElementById("zin").onclick = () => {
+  zoom = Math.min(3, zoom * 1.25); svg.style.transform = `scale(${zoom})`;
+};
+document.getElementById("zout").onclick = () => {
+  zoom = Math.max(0.3, zoom / 1.25); svg.style.transform = `scale(${zoom})`;
+};
+
+fetch("/api/sheet").then(r => r.json()).then(build);
+</script>
+</body>
+</html>

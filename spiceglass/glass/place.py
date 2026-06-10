@@ -46,6 +46,7 @@ class Sheet:
     rails: dict[str, str] = field(default_factory=dict)       # net -> vdd|gnd
     label_nets: set[str] = field(default_factory=set)
     columns: list[list[Device]] = field(default_factory=list)
+    tiles: list = field(default_factory=list)
     preroutes: list[tuple[int, int, int, int, str]] = field(default_factory=list)
     covered: set[tuple[str, str]] = field(default_factory=set)  # (dev, role)
     taps: list[tuple[str, int, int, str]] = field(default_factory=list)
@@ -86,13 +87,17 @@ def _tile_covered(t: Tile) -> set[tuple[str, str]]:
 
 # ---------------------------------------------------------------- main
 
-def place(sub: Subckt) -> Sheet:
+def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
+    """Algorithmic placement; `overrides` (dev -> {x,y,orient}) applies
+    human edits AFTER it — tile internal wiring re-derives from the final
+    positions, so dragged tiles keep their pre-routed relationships."""
     sheet = Sheet(sub=sub)
     sheet.rails = rails_of(sub)
     rails = sheet.rails
     devices = sub.devices
 
     tiles, claimed = recognize(sub, rails)
+    sheet.tiles = tiles
     for t in tiles:
         sheet.covered |= _tile_covered(t)
         for m in t.devices():       # one tile = one section cluster
@@ -301,6 +306,23 @@ def place(sub: Subckt) -> Sheet:
               if o2.name != d.name and o2.name in sheet.placed]
         if xs and sum(xs) / len(xs) > p.x:
             p.orient = "MX"
+
+    # ---- human overrides (editor) — applied last, wiring follows
+    if overrides:
+        for name, o in overrides.items():
+            p = sheet.placed.get(name)
+            if p is None:
+                continue
+            p.x = int(o.get("x", p.x))
+            p.y = int(o.get("y", p.y))
+            p.orient = o.get("orient", p.orient)
+        maxx = max((p.x for p in sheet.placed.values()), default=10)
+        maxy = max((p.y for p in sheet.placed.values()), default=10)
+        sheet.width = max(sheet.width, maxx + MARGIN + 6)
+        sheet.height = max(sheet.height, maxy + MARGIN + 6)
+
+    # ---- tile internal wiring, derived from FINAL positions
+    _emit_tile_wiring(sheet)
     return sheet
 
 
@@ -308,32 +330,18 @@ def place(sub: Subckt) -> Sheet:
 
 def _lay_tile(sheet: Sheet, t: Tile, x0: int, rows: int,
               level: dict[str, int], row_y, ci: int) -> None:
-    """Place tile members and emit the pre-routed internal wires."""
+    """Assign tile member POSITIONS (wiring is emitted later from the
+    final positions so human edits keep tile relationships intact)."""
     rails = sheet.rails
-    pre = sheet.preroutes
 
     if t.kind == "mirror":
-        m0 = t.members[0]
-        src = m0.net_of("s")
+        src = t.members[0].net_of("s")
         top = src in rails and rails[src] == "vdd"
         row = 0 if top else rows - 1
         y = row_y(row)
-        rail_dy = 5 if top else -5          # gate rail toward sheet interior
-        gnet = m0.net_of("g")
-        xs = []
         for i, m in enumerate(t.members):
-            mx = x0 + i * TILE_PITCH
-            xs.append(mx)
-            sheet.placed[m.name] = Placed(dev=m, col=ci, row=row, x=mx, y=y)
-            pre.append((mx - 3, y, mx - 3, y + rail_dy, gnet))   # gate drop
-        pre.append((xs[0] - 3, y + rail_dy, xs[-1] - 3, y + rail_dy, gnet))
-        if t.diode is not None:
-            dx = sheet.placed[t.diode.name].x
-            dpin = 4 if top else -4          # drain pin side
-            pre.append((dx, y + rail_dy, dx, y + dpin, gnet))
-        else:
-            # gate driven externally: expose one tap on the rail
-            sheet.taps.append((gnet, xs[0] - 3, y + rail_dy, "L"))
+            sheet.placed[m.name] = Placed(dev=m, col=ci, row=row,
+                                          x=x0 + i * TILE_PITCH, y=y)
 
     elif t.kind in ("pair", "5t"):
         m1, m2 = t.members
@@ -342,47 +350,116 @@ def _lay_tile(sheet: Sheet, t: Tile, x0: int, rows: int,
         prow = max(prow, 1 if t.kind == "5t" else 0)
         py = row_y(prow)
         x1, x2 = x0, x0 + TILE_PITCH
-        mid = x0 + TILE_PITCH // 2
         sheet.placed[m1.name] = Placed(dev=m1, col=ci, row=prow, x=x1, y=py)
         sheet.placed[m2.name] = Placed(dev=m2, col=ci, row=prow, x=x2, y=py,
                                        orient="MX")
-        # shared source bus
-        pre.append((x1, py + 4, x1, py + 6, snet))
-        pre.append((x2, py + 4, x2, py + 6, snet))
-        pre.append((x1, py + 6, x2, py + 6, snet))
         if t.tail is not None:
-            trow = prow + 1
-            ty = row_y(trow)
-            sheet.placed[t.tail.name] = Placed(dev=t.tail, col=ci, row=trow,
-                                               x=mid, y=ty)
-            pre.append((mid, py + 6, mid, ty - 4, snet))
+            sheet.placed[t.tail.name] = Placed(
+                dev=t.tail, col=ci, row=prow + 1,
+                x=x0 + TILE_PITCH // 2, y=row_y(prow + 1))
         if t.kind == "5t":
-            lrow = prow - 1
-            ly = row_y(lrow)
-            gnet = t.loads[0].net_of("g")
+            ly = row_y(prow - 1)
             for ld, lx in zip(t.loads, (x1, x2)):
-                sheet.placed[ld.name] = Placed(dev=ld, col=ci, row=lrow,
+                sheet.placed[ld.name] = Placed(dev=ld, col=ci, row=prow - 1,
                                                x=lx, y=ly)
-                pre.append((lx, ly + 4, lx, py - 4,
-                            ld.net_of("d")))         # drain link to pair
-                pre.append((lx - 3, ly, lx - 3, ly + 5, gnet))
-            pre.append((x1 - 3, ly + 5, x2 - 3, ly + 5, gnet))
-            if t.diode is not None:
-                dx = sheet.placed[t.diode.name].x
-                pre.append((dx, ly + 5, dx, ly + 4, gnet))
 
     elif t.kind == "diode1":
         m = t.members[0]
         ch = _channel(m)
         lvls = [level[n] for n in ch if n in level]
         row = (rows - 1 - min(lvls)) if lvls else rows - 1
-        y = row_y(row)
         sheet.placed[m.name] = Placed(dev=m, col=ci, row=row,
-                                      x=x0 + COL_PITCH // 2 - 7, y=y)
-        mx = sheet.placed[m.name].x
-        dnet = m.net_of("g")
-        dpin = -4 if m.kind == "nmos" else 4   # drain side (nmos drain up)
-        pre.append((mx - 3, y, mx - 3, y + dpin - (1 if dpin < 0 else -1), dnet))
-        pre.append((mx - 3, y + dpin - (1 if dpin < 0 else -1), mx,
-                    y + dpin - (1 if dpin < 0 else -1), dnet))
-        pre.append((mx, y + dpin - (1 if dpin < 0 else -1), mx, y + dpin, dnet))
+                                      x=x0 + COL_PITCH // 2 - 7, y=row_y(row))
+
+
+def _emit_tile_wiring(sheet: Sheet) -> None:
+    """Pre-route tile internals from CURRENT member positions (orient-
+    and drag-aware). Every segment starts/ends exactly on a pin, so the
+    round-trip verifier checks tile internals like any other wire."""
+    from .geom import pin_pos
+    pre = sheet.preroutes
+    pre.clear()
+    sheet.taps.clear()
+
+    def pin(dev: Device, role: str) -> tuple[int, int]:
+        p = sheet.placed[dev.name]
+        return pin_pos(dev, role, p.x, p.y, p.orient)
+
+    def rail_block(members: list[Device], diode: Device | None,
+                   gnet: str, below: bool) -> tuple[int, int]:
+        """Common gate rail + drops (+ diode link). Returns a tap point."""
+        gpins = [pin(m, "g") for m in members]
+        raily = (max(gy for _, gy in gpins) + 5) if below else \
+                (min(gy for _, gy in gpins) - 5)
+        for gx, gy in gpins:
+            if gy != raily:
+                pre.append((gx, gy, gx, raily, gnet))
+        lo = min(gx for gx, _ in gpins)
+        hi = max(gx for gx, _ in gpins)
+        if lo != hi:
+            pre.append((lo, raily, hi, raily, gnet))
+        if diode is not None:
+            dx, dy = pin(diode, "d")
+            pre.append((dx, raily, dx, dy, gnet))
+            if dx < lo:
+                pre.append((dx, raily, lo, raily, gnet))
+            elif dx > hi:
+                pre.append((hi, raily, dx, raily, gnet))
+        return (lo, raily)
+
+    for t in sheet.tiles:
+        if t.kind == "mirror":
+            gnet = t.members[0].net_of("g")
+            below = t.members[0].kind == "pmos"   # rail toward interior
+            tap = rail_block(t.members, t.diode, gnet, below)
+            if t.diode is None:
+                sheet.taps.append((gnet, tap[0], tap[1], "L"))
+
+        elif t.kind in ("pair", "5t"):
+            m1, m2 = t.members
+            snet = m1.net_of("s")
+            s1, s2 = pin(m1, "s"), pin(m2, "s")
+            nmos_pair = m1.kind == "nmos"
+            busy = (max(s1[1], s2[1]) + 2) if nmos_pair else \
+                   (min(s1[1], s2[1]) - 2)
+            xs = [s1[0], s2[0]]
+            for sx, sy in (s1, s2):
+                if sy != busy:
+                    pre.append((sx, sy, sx, busy, snet))
+            if t.tail is not None:
+                tdx, tdy = pin(t.tail, "d")
+                xs.append(tdx)
+                if tdy != busy:
+                    pre.append((tdx, busy, tdx, tdy, snet))
+            if min(xs) != max(xs):
+                pre.append((min(xs), busy, max(xs), busy, snet))
+            if t.kind == "5t":
+                for ld, pm in zip(t.loads, t.members):
+                    dnet = ld.net_of("d")
+                    lx, lyy = pin(ld, "d")
+                    px, pyy = pin(pm, "d")
+                    if lx == px:
+                        pre.append((lx, lyy, lx, pyy, dnet))
+                    else:
+                        midy = (lyy + pyy) // 2
+                        pre.append((lx, lyy, lx, midy, dnet))
+                        pre.append((lx, midy, px, midy, dnet))
+                        pre.append((px, midy, px, pyy, dnet))
+                gnet = t.loads[0].net_of("g")
+                below = t.loads[0].kind == "pmos"
+                tap = rail_block(t.loads, t.diode, gnet, below)
+                exposed = any((d.name, "d") not in sheet.covered
+                              for d in t.loads if d.net_of("d") == gnet) or \
+                          t.diode is not None
+                if not exposed:
+                    sheet.taps.append((gnet, tap[0], tap[1], "L"))
+
+        elif t.kind == "diode1":
+            m = t.members[0]
+            dnet = m.net_of("g")
+            gx, gy = pin(m, "g")
+            dx, dy = pin(m, "d")
+            elbow = dy + (1 if dy > gy else -1)
+            pre.append((gx, gy, gx, elbow, dnet))
+            pre.append((gx, elbow, dx, elbow, dnet))
+            pre.append((dx, elbow, dx, dy, dnet))

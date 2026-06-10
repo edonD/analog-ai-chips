@@ -209,6 +209,38 @@ def _stub_svg(s: Stub, multi_gnd: bool) -> str:
     return "".join(e)
 
 
+# ------------------------------------------------------------ layers
+
+def render_wires_svg(routing: Routing) -> str:
+    parts = []
+    for s in routing.segments:
+        parts.append(f'<line class="wire" x1="{_u(s.x1):.0f}" '
+                     f'y1="{_u(s.y1):.0f}" x2="{_u(s.x2):.0f}" '
+                     f'y2="{_u(s.y2):.0f}" stroke="{WIRE}" '
+                     'stroke-width="1.6"/>')
+    for (x, y) in routing.dots:
+        parts.append(f'<circle cx="{_u(x):.0f}" cy="{_u(y):.0f}" r="3" '
+                     f'fill="{WIRE}" stroke="none"/>')
+    return "".join(parts)
+
+
+def render_furniture_svg(routing: Routing) -> str:
+    parts = []
+    gnd_nets = {s.net for s in routing.stubs if s.kind == "gnd"}
+    multi_gnd = len(gnd_nets) > 1
+    for s in routing.stubs:
+        parts.append(_stub_svg(s, multi_gnd))
+    for t in routing.dangling:
+        parts.append(f'<circle cx="{_u(t.x)}" cy="{_u(t.y)}" r="4" fill="none" '
+                     'stroke="#cc0000" stroke-width="1.6"/>')
+    return "".join(parts)
+
+
+def symbol_svg(dev: Device) -> str:
+    """Bare symbol artwork (used by the interactive editor)."""
+    return "".join(_symbol_elems(dev))
+
+
 # ------------------------------------------------------------ sheet
 
 def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
@@ -259,24 +291,8 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
         parts.append(f'<text x="{x0 - 66}" y="{y0 - 68}" class="sectitle">'
                      f'{_esc(sec)}</text>')
 
-    # wires
-    for s in routing.segments:
-        parts.append(f'<line class="wire" x1="{_u(s.x1):.0f}" y1="{_u(s.y1):.0f}" '
-                     f'x2="{_u(s.x2):.0f}" y2="{_u(s.y2):.0f}"/>')
-    for (x, y) in routing.dots:
-        parts.append(f'<circle cx="{_u(x):.0f}" cy="{_u(y):.0f}" r="3" '
-                     f'fill="{WIRE}" stroke="none"/>')
-
-    # stubs
-    gnd_nets = {s.net for s in routing.stubs if s.kind == "gnd"}
-    multi_gnd = len(gnd_nets) > 1
-    for s in routing.stubs:
-        parts.append(_stub_svg(s, multi_gnd))
-
-    # dangling markers
-    for t in routing.dangling:
-        parts.append(f'<circle cx="{_u(t.x)}" cy="{_u(t.y)}" r="4" fill="none" '
-                     'stroke="#cc0000" stroke-width="1.6"/>')
+    parts.append(render_wires_svg(routing))
+    parts.append(render_furniture_svg(routing))
 
     # symbols + annotations
     for d in sub.devices:

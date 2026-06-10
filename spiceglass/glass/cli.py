@@ -26,7 +26,14 @@ _EDGE_CANDIDATES = [
 
 def _render_one(design, name: str, out_svg: str, png: bool) -> bool:
     sub = design.subckts[name]
-    sheet = place(sub)
+    overrides = None
+    sc = f"{os.path.splitext(design.path)[0]}.{name}.place.json"
+    if os.path.exists(sc):
+        import json
+        with open(sc, encoding="utf-8") as fh:
+            overrides = json.load(fh).get("human")
+        print(f"          applying human placement: {os.path.basename(sc)}")
+    sheet = place(sub, overrides)
     routing = route(sheet)
     verdict = verify(routing)
     meta = {"path": os.path.basename(design.path),
@@ -81,7 +88,24 @@ def main(argv: list[str] | None = None) -> int:
     jp = sp.add_parser("json", help="dump the circuit database as JSON")
     jp.add_argument("file")
 
+    ep = sp.add_parser("edit", help="interactive editor in the browser")
+    ep.add_argument("file")
+    ep.add_argument("--subckt", default=None)
+    ep.add_argument("--port", type=int, default=8137)
+    ep.add_argument("--no-browser", action="store_true")
+
     args = ap.parse_args(argv)
+
+    if args.cmd == "edit":
+        from .serve import serve
+        if not args.no_browser:
+            import threading
+            import webbrowser
+            threading.Timer(
+                0.8, lambda: webbrowser.open(
+                    f"http://127.0.0.1:{args.port}/")).start()
+        serve(args.file, args.subckt, args.port)
+        return 0
     design = parse_file(args.file)
     classify_design(design)
     for w in design.warnings:
