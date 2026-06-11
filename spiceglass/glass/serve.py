@@ -30,10 +30,42 @@ def sidecar_path(netlist_path: str, subname: str) -> str:
 
 class EditorState:
     def __init__(self, path: str, subname: str | None):
+        self.load_path(path, subname)
+
+    def load_path(self, path: str, subname: str | None = None) -> None:
         self.path = os.path.abspath(path)
         self.design = parse_file(self.path)
         classify_design(self.design)
+        self._register_top()
         self.subname = subname or self.design.root().name
+        if self.subname not in self.design.subckts and self.design.order:
+            self.subname = self.design.order[-1]
+
+    def _register_top(self) -> None:
+        """Testbench-style files keep devices outside any .subckt —
+        expose them as a synthetic '(top)' sheet."""
+        if self.design.top_devices and "(top)" not in self.design.subckts:
+            from .db import Subckt
+            top = Subckt(name="(top)", ports=[],
+                         devices=self.design.top_devices)
+            seen: dict[str, None] = {}
+            for d in top.devices:
+                if d.section:
+                    seen.setdefault(d.section)
+            top.sections = list(seen)
+            self.design.subckts["(top)"] = top
+            self.design.order.append("(top)")
+
+    def load_text(self, filename: str, text: str) -> None:
+        """Persist an uploaded netlist and switch to it (uploads get
+        their own dir so sidecars/saved placements have a home)."""
+        safe = os.path.basename(filename) or "uploaded.cir"
+        updir = os.path.join(os.path.dirname(__file__), "..", "uploads")
+        os.makedirs(updir, exist_ok=True)
+        dest = os.path.join(updir, safe)
+        with open(dest, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        self.load_path(dest)
 
     def build(self, overrides, wires=None):
         sub = self.design.subckts[self.subname]
@@ -93,6 +125,8 @@ class EditorState:
         from .geom import GRID_MM
         return {"subckt": sub.name, "ports": sub.ports, "unit": UNIT,
                 "grid_mm": GRID_MM,
+                "file": os.path.basename(self.path),
+                "subckts": list(self.design.order),
                 "width": sheet.width, "height": sheet.height,
                 "devices": devs,
                 "tiles": [[m.name for m in t.devices()] for t in sheet.tiles],
@@ -102,7 +136,8 @@ class EditorState:
                 "pinned": routing.pinned_nets,
                 "furniture": render_furniture_svg(routing),
                 "verify": {"ok": verdict.ok, "errors": verdict.errors,
-                           "warnings": verdict.warnings + routing.warnings},
+                           "warnings": (verdict.warnings + routing.warnings
+                                        + self.design.warnings)},
                 "sidecar": sidecar_path(self.path, self.subname)}
 
 
@@ -156,8 +191,21 @@ class Handler(BaseHTTPRequestHandler):
             self._send(fh.read(), "text/html; charset=utf-8")
 
     def do_POST(self):
+        try:
+            self._post()
+        except Exception as exc:           # never drop the connection
+            try:
+                self._json({"error": f"{type(exc).__name__}: {exc}"}, 500)
+            except Exception:
+                pass
+
+    def _post(self):
         n = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(n) or b"{}")
+        raw = self.rfile.read(n) or b"{}"
+        try:
+            body = json.loads(raw.decode("utf-8"))
+        except UnicodeDecodeError:
+            body = json.loads(raw.decode("latin-1"))
         if self.path == "/api/route":
             p = self.state.payload(body.get("positions"),
                                    body.get("wires"))
@@ -182,6 +230,28 @@ class Handler(BaseHTTPRequestHandler):
             from .symbols import save
             path = save(body["kind"], body.get("elems"))
             self._json({"saved": path})
+            return
+        if self.path == "/api/open":
+            try:
+                self.state.load_text(body.get("name", "uploaded.cir"),
+                                     body.get("content", ""))
+            except Exception as exc:           # surface parse crashes
+                self._json({"error": f"could not load: {exc}"}, 400)
+                return
+            if not self.state.design.order:
+                self._json({"error": "no devices or subcircuits found"}, 400)
+                return
+            sc = self._sidecar()
+            self._json(self.state.payload(sc.get("human"), sc.get("wires")))
+            return
+        if self.path == "/api/subckt":
+            name = body.get("name")
+            if name not in self.state.design.subckts:
+                self._json({"error": f"no such subckt '{name}'"}, 400)
+                return
+            self.state.subname = name
+            sc = self._sidecar()
+            self._json(self.state.payload(sc.get("human"), sc.get("wires")))
             return
         self._json({"error": "not found"}, 404)
 
