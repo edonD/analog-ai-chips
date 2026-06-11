@@ -200,11 +200,14 @@ def _glyph_mos(pmos: bool) -> AsySymbol:
     return s
 
 
-def _glyph_opamp() -> AsySymbol:
+def _glyph_opamp(power: bool = False) -> AsySymbol:
     s = AsySymbol()
     s.pins = [(-32, 48, "+"), (-32, 80, "-"), (32, 64, "OUT")]
     s.lines += [(-32, 32, -32, 96), (-32, 32, 32, 64), (-32, 96, 32, 64),
                 (-26, 48, -18, 48), (-22, 44, -22, 52), (-26, 80, -18, 80)]
+    if power:                       # 5-pin parts (LT1007 class)
+        s.pins += [(0, 32, "V+"), (0, 96, "V-")]
+        s.lines += [(0, 32, 0, 48), (0, 96, 0, 80)]
     return s
 
 
@@ -230,23 +233,29 @@ def native_symbol(symname: str) -> AsySymbol | None:
         return _glyph_mos(pmos=False)
     if n in ("pmos", "pmos4"):
         return _glyph_mos(pmos=True)
-    if n in ("opamp", "uopamp", "opamp2", "lt1007", "lt1720"):
-        return _glyph_opamp()
+    if n in ("opamp", "uopamp"):
+        return _glyph_opamp(power=False)
+    if n in ("opamp2", "lt1007", "lt1720") or n.startswith(("lt1", "lt6",
+                                                            "ad8")):
+        return _glyph_opamp(power=True)
     return None
 
 
-# same algebra as glass.geom.orient_xy (LTspice M-variants experimental)
+# LTspice's transform convention, measured EMPIRICALLY from the corpus
+# (probe_rot.py: R90=(-y,x) with 470 wire-endpoint confirmations vs 0
+# for the alternative; Mk = mirror-after-rotate):
 _ROT = {
-    "R0": lambda x, y: (x, y), "R90": lambda x, y: (y, -x),
-    "R180": lambda x, y: (-x, -y), "R270": lambda x, y: (-y, x),
-    "M0": lambda x, y: (-x, y), "M180": lambda x, y: (x, -y),
-    "M90": lambda x, y: (y, x), "M270": lambda x, y: (-y, -x),
+    "R0": lambda x, y: (x, y), "R90": lambda x, y: (-y, x),
+    "R180": lambda x, y: (-x, -y), "R270": lambda x, y: (y, -x),
+    "M0": lambda x, y: (-x, y), "M90": lambda x, y: (y, x),
+    "M180": lambda x, y: (x, -y), "M270": lambda x, y: (-y, -x),
 }
 
-_TF = {"R0": "", "R90": " rotate(-90)", "R180": " rotate(180)",
-       "R270": " rotate(90)", "M0": " scale(-1 1)",
-       "M180": " scale(1 -1)", "M90": " rotate(-90) scale(-1 1)",
-       "M270": " rotate(-90) scale(1 -1)"}
+_TF = {"R0": "", "R90": " rotate(90)", "R180": " rotate(180)",
+       "R270": " rotate(-90)", "M0": " scale(-1 1)",
+       "M90": " scale(-1 1) rotate(90)",
+       "M180": " scale(-1 1) rotate(180)",
+       "M270": " scale(-1 1) rotate(-90)"}
 
 
 def asc_to_svg(sheet: AscSheet, asc_dir: str) -> str:

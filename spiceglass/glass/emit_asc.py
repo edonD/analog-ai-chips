@@ -20,9 +20,10 @@ from .route import Routing
 
 S = 8          # LTspice units per grid unit (1 mm)
 
-# our orientation group -> LTspice rotation names (best effort; the
-# rotations are exact, the mirrored variants are experimental)
-_ORIENT = {"R0": "R0", "R90": "R90", "R180": "R180", "R270": "R270",
+# our orientation group -> LTspice names. LTspice's R90 is the OPPOSITE
+# rotation sense from ours (measured empirically, see probe_rot.py),
+# so the rotations swap; the mirror compositions line up directly.
+_ORIENT = {"R0": "R0", "R90": "R270", "R180": "R180", "R270": "R90",
            "MX": "M0", "MY": "M180", "MX90": "M90", "MY90": "M270"}
 
 # symbol artwork in LTspice units, drawn around the origin so that the
