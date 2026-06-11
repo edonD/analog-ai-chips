@@ -293,16 +293,21 @@ def asc_to_svg(sheet: AscSheet, asc_dir: str) -> str:
         p.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"/>')
 
     # junction dots: an endpoint touching >=3 wire ends, or lying on
-    # another wire's interior (LTspice derives these too)
+    # another wire's interior. Spatially indexed — the naive scan is
+    # O(wires^2) and took 52 s at 14k wires; this is linear-ish.
     ends: dict[tuple[int, int], int] = {}
+    vmap: dict[int, list[tuple[int, int]]] = {}
+    hmap: dict[int, list[tuple[int, int]]] = {}
     for (x1, y1, x2, y2) in sheet.wires:
         ends[(x1, y1)] = ends.get((x1, y1), 0) + 1
         ends[(x2, y2)] = ends.get((x2, y2), 0) + 1
+        if x1 == x2:
+            vmap.setdefault(x1, []).append((min(y1, y2), max(y1, y2)))
+        elif y1 == y2:
+            hmap.setdefault(y1, []).append((min(x1, x2), max(x1, x2)))
     for (x, y), n in ends.items():
-        on_interior = any(
-            (a == c and a == x and min(b, d) < y < max(b, d)) or
-            (b == d and b == y and min(a, c) < x < max(a, c))
-            for (a, b, c, d) in sheet.wires)
+        on_interior = any(a < y < b for (a, b) in vmap.get(x, ())) or \
+            any(a < x < b for (a, b) in hmap.get(y, ()))
         if n >= 3 or (n >= 1 and on_interior):
             p.append(f'<circle class="dot" cx="{x}" cy="{y}" r="4"/>')
 
@@ -317,15 +322,19 @@ def asc_to_svg(sheet: AscSheet, asc_dir: str) -> str:
 
     missing: set[str] = set()
     approx: set[str] = set()
+    sym_cache: dict[str, AsySymbol | None] = {}
     for inst in sheet.insts:
-        asy_path = resolve_asy(inst.sym, asc_dir)
-        sym = None
-        if asy_path:
-            sym = parse_asy(asy_path)
+        if inst.sym in sym_cache:
+            sym = sym_cache[inst.sym]
         else:
-            sym = native_symbol(inst.sym)
-            if sym is not None:
-                approx.add(inst.sym.split("\\")[-1])
+            asy_path = resolve_asy(inst.sym, asc_dir)
+            if asy_path:
+                sym = parse_asy(asy_path)
+            else:
+                sym = native_symbol(inst.sym)
+                if sym is not None:
+                    approx.add(inst.sym.split("\\")[-1])
+            sym_cache[inst.sym] = sym
         tf = _TF.get(inst.rot, "")
         p.append(f'<g transform="translate({inst.x} {inst.y}){tf}">')
         if sym is not None:
