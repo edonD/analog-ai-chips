@@ -1,0 +1,17 @@
+plan bias_generator  from design.cir  grid 1mm
+
+# structure: what the circuit IS (correct these lines freely)
+mirror MIR1 = XM3 XM4 XM7
+core5t OTA1 = pair(XMo1 XMo2) tail(XMo5) loads(XMo3 XMo4) diode(XMo3)
+diode-link = XM1
+lateral = XMsw
+
+# narrative: regions left->right; [..] = a column,
+#            devices top->bottom (VDD..GND)
+flow
+  region "PMOS Current Mirror (gate = vbias from OTA)" MIR1
+  region "NMOS Pair (K = W2/W1 = 4)" [XM1] [XM2 XR1a XR1b]
+  region "Swapped OTA: forces V(out_n) = V(nbias)" OTA1
+  region "Dominant-Pole Compensation" [XC_comp]
+  region "Anti-Deadlock Leaker" [XM6]
+  region "RC Startup Circuit" [XC_gs XR_gs] [XMsw]

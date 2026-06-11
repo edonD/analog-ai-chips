@@ -1,16 +1,21 @@
-"""Branch-column analog placer with composite tiles.
+"""Placement: interpretation (heuristics) + realization (deterministic).
+
+place()      — the automatic path: recognize tiles, grow series columns,
+               order by the netlist narrative, then realize.
+realization  — _realize() turns an ORDERED list of objects (tiles and
+               columns) into grid coordinates. It contains no guessing;
+               glass.plan drives it from a hand-editable .plan file
+               through exactly the same code path (GlassPlan P1).
 
 Drawing conventions encoded:
 1. Rails fold away (VDD top, GND bottom — stubs, not wires).
 2. Recognized structures (mirror banks, diff pairs, 5T cores, diode
-   links) are placed as TILES whose defining wires are pre-routed
-   inside the tile — the placer moves objects, never relationships.
+   links) are placed as TILES whose defining wires are pre-routed.
 3. Remaining devices form series columns: every step must make
-   monotonic progress toward the opposite rail (separates series
-   stacks from lateral switches and pair members).
+   monotonic progress toward the opposite rail.
 4. Lateral leftovers (both channel nets internal) lie flat (R90).
-5. Columns/tiles are ordered by the netlist's own narrative order,
-   grouped by the LLM's section comments.
+5. Objects are ordered by the netlist's own narrative order, grouped
+   by the LLM's section comments (or by .plan regions).
 6. Rows anchor to rail distance so related devices align across
    columns automatically.
 
@@ -62,7 +67,52 @@ def _channel(dev: Device) -> tuple[str, str] | None:
     return dev.channel_nets()
 
 
-# ---------------------------------------------------------------- coverage
+# ---------------------------------------------------------------- analysis
+
+def levels_of(sub: Subckt, rails: dict[str, str]):
+    """Channel index + rail-distance maps (shared electrical facts)."""
+    chan_at: dict[str, list[Device]] = {}
+    for d in sub.devices:
+        ch = _channel(d)
+        if not ch:
+            continue
+        for n in ch:
+            if n is not None:
+                chan_at.setdefault(n, []).append(d)
+
+    def _bfs(rail_kind: str) -> dict[str, int]:
+        dist: dict[str, int] = {n: 0 for n, k in rails.items()
+                                if k == rail_kind}
+        frontier = list(dist)
+        while frontier:
+            nxt = []
+            for n in frontier:
+                for d in chan_at.get(n, []):
+                    ch = _channel(d)
+                    other = ch[0] if ch[1] == n else ch[1]
+                    if other is None or other in rails:
+                        continue
+                    if other not in dist or dist[other] > dist[n] + 1:
+                        dist[other] = dist[n] + 1
+                        nxt.append(other)
+            frontier = nxt
+        return dist
+
+    return chan_at, _bfs("gnd"), _bfs("vdd")
+
+
+def label_nets_of(sheet: Sheet) -> None:
+    """High-fanout nets become stubs — counting only drawn endpoints."""
+    sub = sheet.sub
+    for net in sub.nets():
+        if net in sheet.rails:
+            continue
+        terms = sub.terminals(net)
+        uncov = [1 for d, r in terms if (d.name, r) not in sheet.covered]
+        eff = len(uncov) + (1 if len(uncov) < len(terms) and uncov else 0)
+        if eff >= LABEL_FANOUT:
+            sheet.label_nets.add(net)
+
 
 def _tile_covered(t: Tile) -> set[tuple[str, str]]:
     cov: set[tuple[str, str]] = set()
@@ -85,12 +135,12 @@ def _tile_covered(t: Tile) -> set[tuple[str, str]]:
     return cov
 
 
-# ---------------------------------------------------------------- main
+# ---------------------------------------------------------------- automatic
 
 def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
-    """Algorithmic placement; `overrides` (dev -> {x,y,orient}) applies
-    human edits AFTER it — tile internal wiring re-derives from the final
-    positions, so dragged tiles keep their pre-routed relationships."""
+    """Automatic interpretation + realization; `overrides` (dev ->
+    {x,y,orient}) applies human edits AFTER it — tile wiring re-derives
+    from the final positions."""
     sheet = Sheet(sub=sub)
     sheet.rails = rails_of(sub)
     rails = sheet.rails
@@ -103,45 +153,8 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
         for m in t.devices():       # one tile = one section cluster
             m.section = t.section
 
-    # ---- channel index over ALL devices (levels are electrical facts)
-    chan_at: dict[str, list[Device]] = {}
-    for d in devices:
-        ch = _channel(d)
-        if not ch:
-            continue
-        for n in ch:
-            if n is not None:
-                chan_at.setdefault(n, []).append(d)
-
-    def _bfs(rail_kind: str) -> dict[str, int]:
-        dist: dict[str, int] = {n: 0 for n, k in rails.items() if k == rail_kind}
-        frontier = list(dist)
-        while frontier:
-            nxt = []
-            for n in frontier:
-                for d in chan_at.get(n, []):
-                    ch = _channel(d)
-                    other = ch[0] if ch[1] == n else ch[1]
-                    if other is None or other in rails:
-                        continue
-                    if other not in dist or dist[other] > dist[n] + 1:
-                        dist[other] = dist[n] + 1
-                        nxt.append(other)
-            frontier = nxt
-        return dist
-
-    level = _bfs("gnd")
-    level_vdd = _bfs("vdd")
-
-    # ---- label nets: count only endpoints that will actually be drawn
-    for net in sub.nets():
-        if net in rails:
-            continue
-        terms = sub.terminals(net)
-        uncov = [1 for d, r in terms if (d.name, r) not in sheet.covered]
-        eff = len(uncov) + (1 if len(uncov) < len(terms) and uncov else 0)
-        if eff >= LABEL_FANOUT:
-            sheet.label_nets.add(net)
+    chan_at, level, level_vdd = levels_of(sub, rails)
+    label_nets_of(sheet)
 
     # ---- series columns over the unclaimed remainder
     used: set[str] = set(claimed)
@@ -201,7 +214,8 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
             continue
         gnd_terms = [n for n in ch if n in rails and rails[n] == "gnd"]
         if gnd_terms:
-            columns.append(list(reversed(grow(d, gnd_terms[0], downward=False))))
+            columns.append(list(reversed(grow(d, gnd_terms[0],
+                                              downward=False))))
     laterals: set[str] = set()
     for d in devices:
         if d.name not in used:
@@ -212,18 +226,10 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
             columns.append([d])
             used.add(d.name)
 
-    # ---- sheet rows
-    maxlevel = max(level.values(), default=1)
-    rows = max(maxlevel + 1, max((len(c) for c in columns), default=1), 2)
-    sheet.rows = rows
     sheet.columns = columns
 
-    def row_y(row: int) -> int:
-        return MARGIN + ROW0_OFFSET + row * ROW_PITCH
-
-    # ---- order all objects (tiles + chains) by (section, line)
+    # ---- order objects by (section appearance, first line)
     sec_order = {s: i for i, s in enumerate(sub.sections)}
-
     objects: list[tuple] = [("tile", t) for t in tiles] + \
                            [("chain", c) for c in columns]
 
@@ -233,17 +239,43 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
         return (sec_order.get(first.section, len(sec_order)), first.line)
     objects.sort(key=obj_key)
 
-    def obj_width(o) -> int:
-        kind, val = o
-        if kind == "chain":
-            return COL_PITCH
-        if val.kind in ("pair", "5t"):
-            return TILE_PITCH + 14
-        if val.kind == "mirror":
-            return (len(val.members) - 1) * TILE_PITCH + 14
-        return COL_PITCH                       # diode1
+    _realize(sheet, objects, laterals, level, claimed)
 
-    # ---- chain row assignment (tiles handled in their layout)
+    # ---- human overrides (editor) — applied last, wiring follows
+    if overrides:
+        for name, o in overrides.items():
+            p = sheet.placed.get(name)
+            if p is None:
+                continue
+            p.x = int(o.get("x", p.x))
+            p.y = int(o.get("y", p.y))
+            p.orient = o.get("orient", p.orient)
+        maxx = max((p.x for p in sheet.placed.values()), default=10)
+        maxy = max((p.y for p in sheet.placed.values()), default=10)
+        sheet.width = max(sheet.width, maxx + MARGIN + 6)
+        sheet.height = max(sheet.height, maxy + MARGIN + 6)
+
+    _emit_tile_wiring(sheet)
+    return sheet
+
+
+# ---------------------------------------------------------------- realize
+
+def row_y(row: int) -> int:
+    return MARGIN + ROW0_OFFSET + row * ROW_PITCH
+
+
+def _realize(sheet: Sheet, objects: list[tuple], laterals: set[str],
+             level: dict[str, int], claimed: set[str]) -> None:
+    """Deterministic geometry from an ORDERED object list. No guessing:
+    everything order/grouping-related was decided by the caller."""
+    sub = sheet.sub
+    rails = sheet.rails
+    chains = [val for kind, val in objects if kind == "chain"]
+    maxlevel = max(level.values(), default=1)
+    rows = max(maxlevel + 1, max((len(c) for c in chains), default=1), 2)
+    sheet.rows = rows
+
     def assign_rows(col: list[Device]) -> None:
         top_i = 0
         for i, d in enumerate(col):
@@ -265,7 +297,16 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
                 p.row -= 1 if p.row > 0 else -1
             taken[p.row] = 1
 
-    # ---- lay everything left to right
+    def obj_width(o) -> int:
+        kind, val = o
+        if kind == "chain":
+            return COL_PITCH
+        if val.kind in ("pair", "5t"):
+            return TILE_PITCH + 14
+        if val.kind == "mirror":
+            return (len(val.members) - 1) * TILE_PITCH + 14
+        return COL_PITCH                       # diode1
+
     x = MARGIN
     prev_sec = None
     for ci, o in enumerate(objects):
@@ -294,7 +335,7 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
     sheet.height = MARGIN + ROW0_OFFSET + (rows - 1) * ROW_PITCH + MARGIN + 4
 
     # ---- gate orientation for chain devices: face the driver
-    for d in devices:
+    for d in sub.devices:
         if d.kind not in ("nmos", "pmos") or d.name in claimed \
            or d.name in laterals:
             continue
@@ -306,24 +347,6 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
               if o2.name != d.name and o2.name in sheet.placed]
         if xs and sum(xs) / len(xs) > p.x:
             p.orient = "MX"
-
-    # ---- human overrides (editor) — applied last, wiring follows
-    if overrides:
-        for name, o in overrides.items():
-            p = sheet.placed.get(name)
-            if p is None:
-                continue
-            p.x = int(o.get("x", p.x))
-            p.y = int(o.get("y", p.y))
-            p.orient = o.get("orient", p.orient)
-        maxx = max((p.x for p in sheet.placed.values()), default=10)
-        maxy = max((p.y for p in sheet.placed.values()), default=10)
-        sheet.width = max(sheet.width, maxx + MARGIN + 6)
-        sheet.height = max(sheet.height, maxy + MARGIN + 6)
-
-    # ---- tile internal wiring, derived from FINAL positions
-    _emit_tile_wiring(sheet)
-    return sheet
 
 
 # ---------------------------------------------------------------- tiles

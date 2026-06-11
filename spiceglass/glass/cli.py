@@ -25,18 +25,21 @@ _EDGE_CANDIDATES = [
 
 
 def _render_one(design, name: str, out_svg: str, png: bool,
-                physical: bool = False) -> bool:
+                physical: bool = False, sheet=None) -> bool:
     sub = design.subckts[name]
-    overrides = wires = None
-    sc = f"{os.path.splitext(design.path)[0]}.{name}.place.json"
-    if os.path.exists(sc):
-        import json
-        with open(sc, encoding="utf-8") as fh:
-            data = json.load(fh)
-        overrides = data.get("human")
-        wires = data.get("wires")
-        print(f"          applying human placement: {os.path.basename(sc)}")
-    sheet = place(sub, overrides)
+    wires = None
+    if sheet is None:
+        overrides = None
+        sc = f"{os.path.splitext(design.path)[0]}.{name}.place.json"
+        if os.path.exists(sc):
+            import json
+            with open(sc, encoding="utf-8") as fh:
+                data = json.load(fh)
+            overrides = data.get("human")
+            wires = data.get("wires")
+            print("          applying human placement: "
+                  f"{os.path.basename(sc)}")
+        sheet = place(sub, overrides)
     routing = route(sheet, pinned=wires)
     verdict = verify(routing)
     meta = {"path": os.path.basename(design.path),
@@ -81,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     sp = ap.add_subparsers(dest="cmd", required=True)
 
     rp = sp.add_parser("render", help="netlist -> schematic SVG")
-    rp.add_argument("file")
+    rp.add_argument("file", nargs="?", default=None)
     rp.add_argument("-o", "--out", default=None)
     rp.add_argument("--subckt", default=None)
     rp.add_argument("--all", action="store_true",
@@ -92,6 +95,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="grid pitch in millimetres (default 1.0)")
     rp.add_argument("--physical", action="store_true",
                     help="emit SVG with true physical size (mm units)")
+    rp.add_argument("--plan", default=None, metavar="PLAN",
+                    help="realize this .plan file instead of automatic "
+                         "placement (netlist from the plan header)")
 
     jp = sp.add_parser("json", help="dump the circuit database as JSON")
     jp.add_argument("file")
@@ -107,7 +113,53 @@ def main(argv: list[str] | None = None) -> int:
     scp.add_argument("file")
     scp.add_argument("--subckt", default=None)
 
+    pp = sp.add_parser("plan", help="emit the automatic interpretation "
+                                    "as an editable .plan file")
+    pp.add_argument("file")
+    pp.add_argument("--subckt", default=None)
+    pp.add_argument("-o", "--out", default=None)
+
     args = ap.parse_args(argv)
+
+    if args.cmd == "plan":
+        from .plan import plan_for
+        design = parse_file(args.file)
+        classify_design(design)
+        name = args.subckt or design.root().name
+        text = plan_for(design, name)
+        out = args.out or f"{os.path.splitext(args.file)[0]}.{name}.plan"
+        with open(out, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        print(f"plan -> {out}")
+        return 0
+
+    if args.cmd == "render" and getattr(args, "plan", None):
+        from .plan import parse_plan, realize_plan
+        with open(args.plan, encoding="utf-8") as fh:
+            plan = parse_plan(fh.read())
+        for w in plan.warnings:
+            print(f"   plan    {w}")
+        candidates = [args.file,
+                      os.path.join(os.path.dirname(os.path.abspath(args.plan)),
+                                   plan.source),
+                      plan.source]
+        netpath = next((c for c in candidates if c and os.path.exists(c)),
+                       None)
+        if netpath is None:
+            print(f"cannot find netlist '{plan.source}' — pass it explicitly:"
+                  f" glass render <netlist> --plan {args.plan}")
+            return 2
+        design = parse_file(netpath)
+        classify_design(design)
+        if args.grid:
+            from .geom import set_grid_mm
+            set_grid_mm(args.grid)
+        name = plan.name or design.root().name
+        sheet = realize_plan(design.subckts[name], plan)
+        out = args.out or os.path.splitext(args.plan)[0] + ".svg"
+        ok = _render_one(design, name, out, args.png, args.physical,
+                         sheet=sheet)
+        return 0 if ok else 1
 
     if args.cmd == "edit":
         from .serve import serve
