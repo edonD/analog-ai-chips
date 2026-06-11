@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1470" height="480" viewBox="0 0 1470 480" font-family="Segoe UI, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1550" height="480" viewBox="0 0 1550 480" data-grid-mm="1" font-family="Segoe UI, Arial, sans-serif">
 <style>
  line, polyline, path, rect, circle { stroke: #111111; stroke-width: 1.8; }
  .wire { stroke: #1b1b1b; stroke-width: 1.6; }
@@ -15,11 +15,11 @@
  .title { font-size: 16px; font-weight: 700; }
  .meta { font-size: 10px; fill: #555; }
 </style>
-<rect x="0" y="0" width="1470" height="480" fill="white" stroke="none"/>
+<rect x="0" y="0" width="1550" height="480" fill="white" stroke="none"/>
 <rect x="98" y="228" width="684" height="124" rx="10" fill="#fff3df" stroke="none" opacity="0.7"/>
-<text x="104" y="222" class="sectitle">Design Parameters</text>
+<text x="104" y="222" class="sectitle">Half-wave rectifier (behavioral)</text>
 <rect x="868" y="228" width="504" height="124" rx="10" fill="#e8f3e6" stroke="none" opacity="0.7"/>
-<text x="874" y="222" class="sectitle">Stage 2: Gm-C Low-Pass Filter</text>
+<text x="874" y="222" class="sectitle">Gm-C low-pass + leak</text>
 <line class="wire" x1="1120" y1="250" x2="1120" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1120" y1="240" x2="970" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="970" y1="240" x2="970" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="970" y1="340" x2="940" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="940" y1="340" x2="940" y2="330" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1300" y1="250" x2="1300" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1300" y1="240" x2="1120" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="330" x2="350" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="340" x2="170" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="170" y1="340" x2="170" y2="330" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="530" y1="250" x2="530" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="530" y1="240" x2="320" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="320" y1="240" x2="320" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="710" y1="250" x2="710" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="710" y1="240" x2="530" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><circle cx="320" cy="340" r="3" fill="#1b1b1b" stroke="none"/>
 <line x1="170" y1="250" x2="170" y2="262"/><line x1="161" y1="262" x2="179" y2="262" stroke-width="2"/><line x1="164" y1="266" x2="176" y2="266" stroke-width="2"/><line x1="167" y1="270" x2="173" y2="270" stroke-width="2"/><line x1="350" y1="250" x2="350" y2="262"/><line x1="341" y1="262" x2="359" y2="262" stroke-width="2"/><line x1="344" y1="266" x2="356" y2="266" stroke-width="2"/><line x1="347" y1="270" x2="353" y2="270" stroke-width="2"/><line x1="530" y1="330" x2="530" y2="342"/><line x1="521" y1="342" x2="539" y2="342" stroke-width="2"/><line x1="524" y1="346" x2="536" y2="346" stroke-width="2"/><line x1="527" y1="350" x2="533" y2="350" stroke-width="2"/><line x1="710" y1="330" x2="710" y2="342"/><line x1="701" y1="342" x2="719" y2="342" stroke-width="2"/><line x1="704" y1="346" x2="716" y2="346" stroke-width="2"/><line x1="707" y1="350" x2="713" y2="350" stroke-width="2"/><line x1="940" y1="250" x2="940" y2="262"/><line x1="931" y1="262" x2="949" y2="262" stroke-width="2"/><line x1="934" y1="266" x2="946" y2="266" stroke-width="2"/><line x1="937" y1="270" x2="943" y2="270" stroke-width="2"/><line x1="1120" y1="330" x2="1120" y2="342"/><line x1="1111" y1="342" x2="1129" y2="342" stroke-width="2"/><line x1="1114" y1="346" x2="1126" y2="346" stroke-width="2"/><line x1="1117" y1="350" x2="1123" y2="350" stroke-width="2"/><line x1="1300" y1="330" x2="1300" y2="342"/><line x1="1291" y1="342" x2="1309" y2="342" stroke-width="2"/><line x1="1294" y1="346" x2="1306" y2="346" stroke-width="2"/><line x1="1297" y1="350" x2="1303" y2="350" stroke-width="2"/><line x1="1300" y1="250" x2="1322" y2="250"/><rect x="1322" y="241" width="28" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="1336.0" y="254" text-anchor="middle" class="port">vout</text>
 <g transform="translate(170 290)" fill="none">
@@ -76,9 +76,9 @@
 </g>
 <text x="1266" y="244" class="name">R_leak</text>
 <text x="1322" y="348" class="param" text-anchor="start">100G</text>
-<line x1="20" y1="420" x2="1450" y2="420" stroke="#999" stroke-width="1"/>
+<line x1="20" y1="420" x2="1530" y2="420" stroke="#999" stroke-width="1"/>
 <text x="26" y="440" class="title">envelope_det</text>
-<text x="26" y="456" class="meta">design.cir — 7 devices — ports: vin, vcm, vout, vdd, vss — SpiceGlass — 2026-06-10</text>
-<rect x="1320" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
-<text x="1384" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
+<text x="26" y="456" class="meta">design.cir — 7 devices — ports: vin, vcm, vout, vdd, vss — grid 1 mm — sheet 155×41 mm — SpiceGlass — 2026-06-11</text>
+<rect x="1400" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
+<text x="1464" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
 </svg>
