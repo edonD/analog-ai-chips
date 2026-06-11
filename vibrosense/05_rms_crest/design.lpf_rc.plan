@@ -1,0 +1,8 @@
+plan lpf_rc  from design.cir  grid 1mm
+
+lateral = Rlpf
+
+# narrative: regions left->right; [..] = a column,
+#            devices top->bottom (VDD..GND)
+flow
+  region "" [Clpf] [Rlpf]

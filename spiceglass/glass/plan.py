@@ -299,6 +299,13 @@ def realize_plan(sub: Subckt, plan: Plan) -> Sheet:
     if dupes:
         raise ValueError("plan places twice: " + ", ".join(dupes))
 
+    # plan regions become the sheet's sections (shading + gaps)
+    seen: dict[str, None] = {}
+    for title, _ in plan.flow:
+        if title:
+            seen.setdefault(title)
+    sub.sections = list(seen)
+
     # tiles that are referenced in flow AND declared as diode-link groups
     sheet.tiles = [val for kind, val in objects if kind == "tile"]
     for t in sheet.tiles:
@@ -355,13 +362,19 @@ def plan_facts(plan: Plan) -> dict[str, dict]:
     for n in plan.diode_links:
         f(n)["group"] = "diode-link"
     for title, items in plan.flow:
+        mates: list[str] = []
+        for kind, val in items:
+            mates += group_members.get(val, [val]) if kind == "group" \
+                else list(val)
         for kind, val in items:
             if kind == "group":
                 for n in group_members.get(val, [val]):
-                    f(n)["region"] = title
+                    f(n)["region"] = frozenset(mates)
+                    f(n)["rtitle"] = title
             else:
                 for n in val:
-                    f(n)["region"] = title
+                    f(n)["region"] = frozenset(mates)
+                    f(n)["rtitle"] = title
                     f(n)["col"] = frozenset(val)
     for n, o in plan.orient.items():
         f(n)["orient"] = o
@@ -382,9 +395,10 @@ def diff_plans(auto: Plan, golden: Plan) -> tuple[str, int]:
             lines.append(f"GROUPING  {n}: auto[{a.get('group') or '-'}] -> "
                          f"golden[{g.get('group') or '-'}]")
             differing.add(n)
-        if a.get("region", "") != g.get("region", ""):
-            lines.append(f"REGION    {n}: auto[{a.get('region') or '-'}] -> "
-                         f"golden[{g.get('region') or '-'}]")
+        if a.get("region", frozenset()) != g.get("region", frozenset()):
+            lines.append(f"REGION    {n}: auto[{a.get('rtitle') or '-'}] -> "
+                         f"golden[{g.get('rtitle') or '-'}] "
+                         "(membership changed)")
             differing.add(n)
         if a.get("col", frozenset()) != g.get("col", frozenset()):
             lines.append(f"COLUMN    {n}: auto[{' '.join(sorted(a.get('col', ()))) or '-'}]"

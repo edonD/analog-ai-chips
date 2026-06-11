@@ -67,7 +67,21 @@ def recognize(sub: Subckt, rails: dict[str, str]) -> tuple[list[Tile], set[str]]
         tiles.append(t)
         claimed.update(d.name for d in t.devices())
 
-    # ---- 2. mirror banks: same kind + same gate net + same source net
+    # ---- 2. mirror banks: same kind + same gate net + same source net.
+    #         Golden-plan rule (bias_generator_full): a member whose drain
+    #         feeds an unclaimed RESISTOR chain belongs to that chain
+    #         (a bias sink under its divider), not to the bank. Caps do
+    #         NOT count — a compensation cap on a drain is normal.
+    def _drain_feeds_rc(d: Device) -> bool:
+        dn = d.net_of("d")
+        for o in sub.devices:
+            if o.name == d.name or o.name in claimed:
+                continue
+            if o.kind == "res" and o.channel_nets() \
+               and dn in o.channel_nets():
+                return True
+        return False
+
     by_key: dict[tuple, list[Device]] = {}
     for d in mos:
         if not free(d):
@@ -77,6 +91,7 @@ def recognize(sub: Subckt, rails: dict[str, str]) -> tuple[list[Tile], set[str]]
             continue
         by_key.setdefault((d.kind, g, s), []).append(d)
     for (kind, g, s), devs in by_key.items():
+        devs = [d for d in devs if not _drain_feeds_rc(d)]
         if len(devs) < 2:
             continue
         diode = next((d for d in devs if d.net_of("d") == g), None)

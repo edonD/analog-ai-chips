@@ -153,7 +153,7 @@ def parse_text(text: str, path: str = "<string>") -> Design:
                 txt = _clean_comment(run[1])
                 if txt:
                     new = txt
-            if new:
+            if new and re.search(r"\w", new):    # no symbol-only titles
                 section = new
             continue
 

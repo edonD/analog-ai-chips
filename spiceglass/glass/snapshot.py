@@ -24,6 +24,10 @@ def svg_to_png_bytes(svg_text: str, max_w: int = 1800) -> bytes | None:
     w, h = (int(m.group(1)), int(m.group(2))) if m else (1600, 1000)
     scale = min(1.0, max_w / max(w, 1))
     w, h = int(w * scale) or 1, int(h * scale) or 1
+    # the svg carries explicit px width/height — rescale them so the
+    # browser fits the drawing to the capture window instead of cropping
+    svg_text = re.sub(r'width="[\d.]+(?:mm)?" height="[\d.]+(?:mm)?"',
+                      f'width="{w}" height="{h}"', svg_text, count=1)
     with tempfile.TemporaryDirectory() as td:
         svg = os.path.join(td, "sheet.svg")
         png = os.path.join(td, "sheet.png")
@@ -33,6 +37,7 @@ def svg_to_png_bytes(svg_text: str, max_w: int = 1800) -> bytes | None:
         try:
             subprocess.run(
                 [edge, "--headless=new", "--disable-gpu",
+                 "--force-device-scale-factor=1", "--hide-scrollbars",
                  f"--screenshot={png}", f"--window-size={w},{h}",
                  "--virtual-time-budget=3000", url],
                 capture_output=True, timeout=60, check=False)

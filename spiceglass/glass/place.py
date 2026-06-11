@@ -228,16 +228,69 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
 
     sheet.columns = columns
 
-    # ---- order objects by (section appearance, first line)
     sec_order = {s: i for i, s in enumerate(sub.sections)}
+    # empty-section objects slot at their natural netlist position
+    # instead of dumping to the end (R4 fallback)
+    sec_first = {}
+    for d in devices:
+        if d.section:
+            sec_first.setdefault(d.section, d.line)
+
+    def sec_idx(section: str, line: int) -> float:
+        if section in sec_order:
+            return float(sec_order[section])
+        before = sum(1 for s, fl in sec_first.items() if fl <= line)
+        return before - 0.5
+
+    def base_key(first) -> tuple:
+        return (sec_idx(first.section, first.line), float(first.line))
+
+    # ---- golden-plan rule (rms_squarer): a lateral device slots right
+    #      after the COLUMN of its same-section channel partner
+    col_of: dict[str, list] = {}
+    for col in columns:
+        for d in col:
+            col_of[d.name] = col
+    key_override: dict[int, tuple] = {}
+    for col in columns:
+        d = col[0]
+        if len(col) != 1 or d.name not in laterals:
+            continue
+        ch = _channel(d) or ()
+        partner = next((o for o in devices
+                        if o.name != d.name and o.section == d.section
+                        and o.channel_nets()
+                        and any(n in o.channel_nets() for n in ch)), None)
+        if partner is not None and partner.name in col_of \
+           and col_of[partner.name] is not col:
+            pcol = col_of[partner.name]
+            k = base_key(pcol[0])
+            key_override[id(col)] = (k[0], k[1] + 0.5)
+
     objects: list[tuple] = [("tile", t) for t in tiles] + \
                            [("chain", c) for c in columns]
 
     def obj_key(o) -> tuple:
         kind, val = o
+        if kind == "chain" and id(val) in key_override:
+            return key_override[id(val)]
         first = val.members[0] if kind == "tile" else val[0]
-        return (sec_order.get(first.section, len(sec_order)), first.line)
+        return base_key(first)
     objects.sort(key=obj_key)
+
+    # ---- golden-plan rule (bias_generator): a section that is just one
+    #      lone capacitor merges into the preceding region (comp caps
+    #      belong with the block they compensate)
+    for i, (kind, val) in enumerate(objects):
+        if kind != "chain" or len(val) != 1 or val[0].kind != "cap" or i == 0:
+            continue
+        sec = val[0].section
+        alone = all((v.members[0] if k == "tile" else v[0]).section != sec
+                    for j, (k, v) in enumerate(objects) if j != i)
+        if alone:
+            pk, pv = objects[i - 1]
+            val[0].section = (pv.members[0] if pk == "tile"
+                              else pv[0]).section
 
     _realize(sheet, objects, laterals, level, claimed)
 
@@ -331,7 +384,7 @@ def _realize(sheet: Sheet, objects: list[tuple], laterals: set[str],
             _lay_tile(sheet, val, x + 7, rows, level, row_y, ci)
         x += w
 
-    sheet.width = x + MARGIN
+    sheet.width = x + MARGIN + 8          # +8: room for right-edge labels
     sheet.height = MARGIN + ROW0_OFFSET + (rows - 1) * ROW_PITCH + MARGIN + 4
 
     # ---- gate orientation for chain devices: face the driver

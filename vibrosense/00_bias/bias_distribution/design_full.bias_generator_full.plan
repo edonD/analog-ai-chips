@@ -1,15 +1,16 @@
-plan bias_generator  from design.cir  grid 1mm
+plan bias_generator_full  from design_full.cir  grid 1mm
 
-# structure: what the circuit IS (correct these lines freely)
-mirror MIR1 = XM3 XM4 XM7
+# structure: what the circuit IS
+mirror MIR1 = XM3 XM4 XM7 XM8
 core5t OTA1 = pair(XMo1 XMo2) tail(XMo5) loads(XMo3 XMo4) diode(XMo3)
-diode-link = XM1
-lateral = XMsw
+diode-link = XM1 XMbcn
+lateral = XMsw XRbcp
 
 # narrative: regions left->right; [..] = a column,
 #            devices top->bottom (VDD..GND)
 flow
   region "Beta-multiplier core" [XM1] [XM2 XR1a XR1b]
-  region "PMOS mirror" MIR1
+  region "PMOS mirror + cascode bias" MIR1 [XMbcn]
   region "Regulation OTA" OTA1 [XC_comp]
   region "Startup & protection" [XM6] [XC_gs XR_gs] [XMsw]
+  region "vbp / vbcp generation" [XRvbp XMvbp_sink] [XRbcp] [XMbcp_sink]

@@ -1,0 +1,9 @@
+plan rms_squarer  from design.cir  grid 1mm
+
+lateral = Riso_s Riso_r
+
+# narrative: regions left->right; [..] = a column,
+#            devices top->bottom (VDD..GND)
+flow
+  region "Signal branch" [Rsig XMs] [Riso_s]
+  region "Reference branch" [Rref XMr] [Riso_r]

@@ -1,0 +1,9 @@
+plan ota5  from design.cir  grid 1mm
+
+# structure: what the circuit IS (correct these lines freely)
+core5t OTA1 = pair(XM1 XM2) tail(XMt) loads(XM3 XM4) diode(XM3)
+
+# narrative: regions left->right; [..] = a column,
+#            devices top->bottom (VDD..GND)
+flow
+  region "" OTA1

@@ -1,0 +1,7 @@
+plan rms_crest_top  from design.cir  grid 1mm
+
+
+# narrative: regions left->right; [..] = a column,
+#            devices top->bottom (VDD..GND)
+flow
+  region "" [Xsq] [Xlpf_sig] [Xlpf_ref] [Xpeak]

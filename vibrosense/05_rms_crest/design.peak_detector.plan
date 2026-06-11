@@ -1,0 +1,9 @@
+plan peak_detector  from design.cir  grid 1mm
+
+lateral = XMdis XMrst
+
+# narrative: regions left->right; [..] = a column,
+#            devices top->bottom (VDD..GND)
+flow
+  region "Peak hold core" [Xota_pk] [XMchrg Chold]
+  region "Discharge & reset" [XMdis] [XMrst]

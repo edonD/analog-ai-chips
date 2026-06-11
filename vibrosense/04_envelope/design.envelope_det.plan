@@ -1,0 +1,7 @@
+plan envelope_det  from design.cir  grid 1mm
+
+# narrative: regions left->right; [..] = a column,
+#            devices top->bottom (VDD..GND)
+flow
+  region "Half-wave rectifier (behavioral)" [B_hw1] [B_hw2] [R_rect] [C_rect]
+  region "Gm-C low-pass + leak" [G_lpf] [C_lpf] [R_leak]
