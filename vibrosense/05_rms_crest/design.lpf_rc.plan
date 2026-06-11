@@ -1,3 +1,4 @@
+glassplan 1
 plan lpf_rc  from design.cir  grid 1mm
 
 lateral = Rlpf

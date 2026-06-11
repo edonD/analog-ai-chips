@@ -1,3 +1,4 @@
+glassplan 1
 plan rms_squarer  from design.cir  grid 1mm
 
 lateral = Riso_s Riso_r

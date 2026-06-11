@@ -50,12 +50,44 @@ def box_height(nports: int) -> int:
 TILE_PITCH = 10      # member spacing inside composite tiles, units
 
 
+# The 8-element orientation group of the square (LTspice/OpenAccess
+# convention). Pin transform and the matching SVG transform string MUST
+# stay in lockstep — router and verifier trust the pin algebra, the
+# renderers draw with the strings.
+ORIENTS = ("R0", "R90", "R180", "R270", "MX", "MY", "MX90", "MY90")
+
+ORIENT_TF = {
+    "R0": "", "R90": " rotate(-90)", "R180": " rotate(180)",
+    "R270": " rotate(90)", "MX": " scale(-1 1)", "MY": " scale(1 -1)",
+    "MX90": " rotate(-90) scale(-1 1)",
+    "MY90": " rotate(-90) scale(1 -1)",
+}
+
+ROTATED = {"R90", "R270", "MX90", "MY90"}    # width/height swap
+
+
+def orient_xy(dx: int, dy: int, orient: str) -> tuple[int, int]:
+    if orient == "R90":
+        return (dy, -dx)
+    if orient == "R180":
+        return (-dx, -dy)
+    if orient == "R270":
+        return (-dy, dx)
+    if orient == "MX":
+        return (-dx, dy)
+    if orient == "MY":
+        return (dx, -dy)
+    if orient == "MX90":
+        return (dy, dx)
+    if orient == "MY90":
+        return (-dy, -dx)
+    return (dx, dy)
+
+
 def _orient(pins: dict[str, tuple[int, int]], orient: str) -> dict:
-    if orient == "MX":      # mirror about the through-axis (x=0)
-        return {r: (-dx, dy) for r, (dx, dy) in pins.items()}
-    if orient == "R90":     # lay flat: (dx,dy) -> (dy,-dx)
-        return {r: (dy, -dx) for r, (dx, dy) in pins.items()}
-    return pins
+    if orient == "R0":
+        return pins
+    return {r: orient_xy(dx, dy, orient) for r, (dx, dy) in pins.items()}
 
 
 def pin_offsets(dev: Device, orient: str = "R0") -> dict[str, tuple[int, int]]:

@@ -43,12 +43,15 @@ class Plan:
     name: str = ""
     source: str = ""
     grid: str = "1mm"
+    version: int = 0
     groups: list[dict] = field(default_factory=list)
     diode_links: list[str] = field(default_factory=list)
     laterals: list[str] = field(default_factory=list)
     flow: list[tuple[str, list]] = field(default_factory=list)
     orient: dict[str, str] = field(default_factory=dict)
     shifts: dict[str, tuple[int, int]] = field(default_factory=dict)
+    places: dict[str, tuple[int, int]] = field(default_factory=dict)
+    wire_paths: dict[str, list] = field(default_factory=dict)
     wires: list[tuple[str, list[tuple[int, int]]]] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -57,7 +60,8 @@ class Plan:
 
 def emit_plan(sub: Subckt, sheet: Sheet) -> str:
     """Write the automatic interpretation of a PLACED sheet as a .plan."""
-    lines = [f"plan {sub.name}  from {_src_name(sheet)}  grid 1mm", ""]
+    lines = ["glassplan 1",
+             f"plan {sub.name}  from {_src_name(sheet)}  grid 1mm", ""]
 
     # ---- groups (named in x order)
     tiles = sorted(sheet.tiles,
@@ -137,17 +141,53 @@ def _src_name(sheet: Sheet) -> str:
 _TOKEN = re.compile(r'\[[^\]]*\]|"[^"]*"|\S+')
 
 
+def _strip_comment(line: str) -> str:
+    out = []
+    in_q = False
+    for ch in line:
+        if ch == '"':
+            in_q = not in_q
+        if ch == "#" and not in_q:
+            break
+        out.append(ch)
+    return "".join(out)
+
+
 def parse_plan(text: str) -> Plan:
+    """GlassPlan v1 parser (see design/glassplan-spec.md): version token,
+    inline # comments, backslash continuation, line-numbered diagnostics,
+    the 8-orientation group, place and wire-path escape hatches."""
+    from .geom import ORIENTS
     plan = Plan()
     text = text.lstrip("﻿")        # Windows editors love BOMs
-    in_flow = False
-    for raw in text.splitlines():
-        line = raw.split("#", 1)[0].rstrip()
-        if not line.strip():
+
+    logical: list[tuple[int, str]] = []
+    pending: tuple[int, str] | None = None
+    for no, raw in enumerate(text.splitlines(), 1):
+        line = _strip_comment(raw).rstrip()
+        if pending is not None:
+            line = pending[1] + " " + line.strip()
+            no = pending[0]
+            pending = None
+        if line.endswith("\\"):
+            pending = (no, line[:-1].rstrip())
             continue
+        if line.strip():
+            logical.append((no, line))
+    if pending is not None:
+        logical.append(pending)
+
+    in_flow = False
+    for no, line in logical:
         toks = _TOKEN.findall(line)
         head = toks[0].lower()
 
+        if head == "glassplan":
+            try:
+                plan.version = int(toks[1])
+            except (IndexError, ValueError):
+                plan.warnings.append(f"line {no}: bad version token")
+            continue
         if head == "plan":
             plan.name = toks[1] if len(toks) > 1 else ""
             if "from" in [t.lower() for t in toks]:
@@ -190,22 +230,53 @@ def parse_plan(text: str) -> Plan:
             plan.laterals += [t for t in toks[1:] if t != "="]
             continue
         if head == "orient" and len(toks) >= 3:
-            plan.orient[toks[1]] = toks[2].upper()
+            o = toks[2].upper()
+            if o not in ORIENTS:
+                plan.warnings.append(
+                    f"line {no}: unknown orientation '{toks[2]}' "
+                    f"(valid: {' '.join(ORIENTS)})")
+            else:
+                plan.orient[toks[1]] = o
             continue
         if head == "shift" and len(toks) >= 4:
-            plan.shifts[toks[1]] = (int(toks[2]), int(toks[3]))
+            try:
+                plan.shifts[toks[1]] = (int(toks[2]), int(toks[3]))
+            except ValueError:
+                plan.warnings.append(f"line {no}: shift needs integers")
             continue
-        if head == "wire":
-            pts = [tuple(int(v) for v in t.split(","))
-                   for t in toks[3:] if "," in t]
-            plan.wires.append((toks[1], pts))
-            plan.warnings.append(
-                f"wire hint for '{toks[1]}' parsed but not applied yet (P3)")
+        if head == "place" and len(toks) >= 4:
+            try:
+                plan.places[toks[1]] = (int(toks[2]), int(toks[3]))
+            except ValueError:
+                plan.warnings.append(f"line {no}: place needs integers")
+            continue
+        if head == "wire" and len(toks) >= 3:
+            mode = toks[2].lower()
+            pts = []
+            for t in toks[3:]:
+                if "," not in t:
+                    continue
+                try:
+                    x, y = t.split(",")
+                    pts.append([int(x), int(y)])
+                except ValueError:
+                    plan.warnings.append(f"line {no}: bad point '{t}'")
+            if mode == "path" and len(pts) >= 2:
+                plan.wire_paths.setdefault(toks[1], []).append(pts)
+            else:
+                plan.wires.append((toks[1], [tuple(p) for p in pts]))
+                plan.warnings.append(
+                    f"line {no}: wire via-hints are not applied; use "
+                    f"'wire {toks[1]} path x,y x,y ...'")
             continue
         if in_flow:
-            plan.warnings.append(f"unrecognized flow line: {line.strip()}")
+            plan.warnings.append(f"line {no}: unrecognized flow line: "
+                                 f"{line.strip()}")
         else:
-            plan.warnings.append(f"unrecognized line: {line.strip()}")
+            plan.warnings.append(f"line {no}: unrecognized line: "
+                                 f"{line.strip()}")
+    if plan.version == 0:
+        plan.warnings.append("no 'glassplan 1' version token — parsed as v0")
     return plan
 
 
@@ -325,6 +396,20 @@ def realize_plan(sub: Subckt, plan: Plan) -> Sheet:
         if name in sheet.placed:
             sheet.placed[name].x += dx
             sheet.placed[name].y += dy
+    for name, (x, y) in plan.places.items():
+        if name in sheet.placed:
+            sheet.placed[name].x = x
+            sheet.placed[name].y = y
+    if plan.places:
+        maxx = max(p.x for p in sheet.placed.values())
+        maxy = max(p.y for p in sheet.placed.values())
+        sheet.width = max(sheet.width, maxx + 14)
+        sheet.height = max(sheet.height, maxy + 14)
+
+    # full wire paths from the plan ride the same pinned-wires machinery
+    # as editor edits (validated against pins, immovable for other nets)
+    sheet.plan_wires = {net: [list(map(list, p)) for p in paths]
+                        for net, paths in plan.wire_paths.items()}
 
     _emit_tile_wiring(sheet)
     return sheet

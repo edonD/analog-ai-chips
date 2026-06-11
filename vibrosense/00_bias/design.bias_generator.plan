@@ -1,3 +1,4 @@
+glassplan 1
 plan bias_generator  from design.cir  grid 1mm
 
 # structure: what the circuit IS (correct these lines freely)

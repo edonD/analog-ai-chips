@@ -1,3 +1,4 @@
+glassplan 1
 plan rms_crest_top  from design.cir  grid 1mm
 
 

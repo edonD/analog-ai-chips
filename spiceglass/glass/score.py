@@ -54,7 +54,8 @@ def _bbox(dev, p) -> tuple[int, int, int, int]:
         h = box_height(len(dev.roles)) // 2
         return (p.x - w + 1, p.y - h + 1, p.x + w - 1, p.y + h - 1)
     y0, y1 = -3, 3
-    if p.orient == "R90":
+    from .geom import ROTATED
+    if p.orient in ROTATED:
         x0, x1, y0, y1 = y0, y1, x0, x1
     return (p.x + x0 + 1, p.y + y0 + 1, p.x + x1 - 1, p.y + y1 - 1)
 

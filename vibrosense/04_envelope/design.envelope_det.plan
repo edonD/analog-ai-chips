@@ -1,3 +1,4 @@
+glassplan 1
 plan envelope_det  from design.cir  grid 1mm
 
 # narrative: regions left->right; [..] = a column,

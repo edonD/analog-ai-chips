@@ -322,14 +322,11 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
     parts.append(render_furniture_svg(routing))
 
     # symbols + annotations
+    from .geom import ORIENT_TF
     for d in sub.devices:
         p = sheet.pos(d)
         px, py = _u(p.x), _u(p.y)
-        tf = ""
-        if p.orient == "MX":
-            tf = " scale(-1 1)"
-        elif p.orient == "R90":
-            tf = " rotate(-90)"
+        tf = ORIENT_TF.get(p.orient, "")
         parts.append(f'<g transform="translate({px:.0f} {py:.0f}){tf}" '
                      'fill="none">')
         parts.extend(_symbol_elems(d))

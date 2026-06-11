@@ -1,3 +1,4 @@
+glassplan 1
 plan peak_detector  from design.cir  grid 1mm
 
 lateral = XMdis XMrst

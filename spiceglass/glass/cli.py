@@ -40,6 +40,8 @@ def _render_one(design, name: str, out_svg: str, png: bool,
             print("          applying human placement: "
                   f"{os.path.basename(sc)}")
         sheet = place(sub, overrides)
+    else:
+        wires = getattr(sheet, "plan_wires", None)   # plan wire paths
     routing = route(sheet, pinned=wires)
     verdict = verify(routing)
     meta = {"path": os.path.basename(design.path),

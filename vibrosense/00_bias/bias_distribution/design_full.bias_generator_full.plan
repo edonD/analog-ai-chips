@@ -1,3 +1,4 @@
+glassplan 1
 plan bias_generator_full  from design_full.cir  grid 1mm
 
 # structure: what the circuit IS

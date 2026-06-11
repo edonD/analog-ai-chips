@@ -99,9 +99,12 @@ function build() {
 
   // symbols (context)
   s += `<g id="g_sym" opacity="0.5">`;
+  const TF = { R0: "", R90: " rotate(-90)", R180: " rotate(180)",
+               R270: " rotate(90)", MX: " scale(-1 1)", MY: " scale(1 -1)",
+               MX90: " rotate(-90) scale(-1 1)",
+               MY90: " rotate(-90) scale(1 -1)" };
   for (const dv of D.devices) {
-    const tf = dv.orient === "MX" ? " scale(-1 1)" :
-               (dv.orient === "R90" ? " rotate(-90)" : "");
+    const tf = TF[dv.orient] || "";
     s += `<g transform="translate(${dv.x*U} ${dv.y*U})${tf}" fill="none"
           stroke="#777">${dv.symbol.replaceAll('stroke-width','data-sw')}</g>`;
   }

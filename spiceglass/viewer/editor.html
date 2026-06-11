@@ -138,9 +138,12 @@ let selSet = new Set(), dirty = false;
 
 const snap = v => Math.round(v / U);
 
-function tfFor(o) {
-  return o === "MX" ? " scale(-1 1)" : (o === "R90" ? " rotate(-90)" : "");
-}
+const TF = { R0: "", R90: " rotate(-90)", R180: " rotate(180)",
+             R270: " rotate(90)", MX: " scale(-1 1)", MY: " scale(1 -1)",
+             MX90: " rotate(-90) scale(-1 1)",
+             MY90: " rotate(-90) scale(1 -1)" };
+function tfFor(o) { return TF[o] || ""; }
+const ROT_CYCLE = ["R0", "R90", "R180", "R270"];
 function applyTf(d) {
   d.el.setAttribute("transform", `translate(${d.x * U} ${d.y * U})`);
   d.art.setAttribute("transform", `translate(0 0)${tfFor(d.orient)}`);
@@ -467,7 +470,9 @@ window.addEventListener("keydown", ev => {
   if (ev.key === "Escape") { clearSel(); return; }
   if (!sel) return;
   if (ev.key === "r" || ev.key === "R") {
-    sel.orient = sel.orient === "R90" ? "R0" : "R90";
+    const i = ROT_CYCLE.indexOf(sel.orient);
+    sel.orient = ROT_CYCLE[(i + 1) % 4];      // non-rotation states -> R90
+    if (i === -1) sel.orient = "R90";
   } else if (ev.key === "m" || ev.key === "M") {
     sel.orient = sel.orient === "MX" ? "R0" : "MX";
   } else return;

@@ -79,8 +79,9 @@ def tile_halfdims(dev) -> tuple[int, int]:
 
 def _obstacle(dev, p) -> tuple[int, int, int, int]:
     """Inflated symbol-tile rectangle (1-unit routing buffer)."""
+    from .geom import ROTATED
     hw, hh = tile_halfdims(dev)
-    if p.orient == "R90" and dev.kind not in ("sub", "unknown"):
+    if p.orient in ROTATED and dev.kind not in ("sub", "unknown"):
         hw, hh = hh, hw
     return (p.x - hw, p.y - hh, p.x + hw, p.y + hh)
 

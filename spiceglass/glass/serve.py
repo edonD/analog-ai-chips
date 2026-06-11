@@ -81,6 +81,7 @@ class EditorState:
             classify_design(design)
             sub = design.subckts[plan.name or self.subname]
             sheet = realize_plan(sub, plan)
+            wires = getattr(sheet, "plan_wires", None)
         else:
             sub = self.design.subckts[self.subname]
             sheet = place(sub, overrides)
