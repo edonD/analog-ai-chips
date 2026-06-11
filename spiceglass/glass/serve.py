@@ -29,7 +29,10 @@ def sidecar_path(netlist_path: str, subname: str) -> str:
 
 
 class EditorState:
-    def __init__(self, path: str, subname: str | None):
+    def __init__(self, path: str, subname: str | None,
+                 plan_path: str | None = None):
+        self.plan_path = os.path.abspath(plan_path) if plan_path else None
+        self._last_payload: dict | None = None
         self.load_path(path, subname)
 
     def load_path(self, path: str, subname: str | None = None) -> None:
@@ -68,11 +71,32 @@ class EditorState:
         self.load_path(dest)
 
     def build(self, overrides, wires=None):
-        sub = self.design.subckts[self.subname]
-        sheet = place(sub, overrides)
+        if self.plan_path:
+            from .plan import parse_plan, realize_plan
+            with open(self.plan_path, encoding="utf-8") as fh:
+                text = fh.read()
+            plan = parse_plan(text)
+            # fresh netlist parse: realization mutates Device.section
+            design = parse_file(self.path)
+            classify_design(design)
+            sub = design.subckts[plan.name or self.subname]
+            sheet = realize_plan(sub, plan)
+        else:
+            sub = self.design.subckts[self.subname]
+            sheet = place(sub, overrides)
         routing = route(sheet, pinned=wires)
         verdict = verify(routing)
         return sub, sheet, routing, verdict
+
+    def plan_text(self) -> str:
+        with open(self.plan_path, encoding="utf-8") as fh:
+            return fh.read()
+
+    def plan_mtime(self) -> float:
+        try:
+            return os.path.getmtime(self.plan_path)
+        except OSError:
+            return 0.0
 
     def positions(self, overrides=None) -> dict:
         sub, sheet, _, _ = self.build(overrides)
@@ -111,6 +135,38 @@ class EditorState:
                 "warnings": routing.warnings}
 
     def payload(self, overrides, wires=None) -> dict:
+        if self.plan_path:
+            try:
+                p = self._payload(overrides, wires)
+                p["mode"] = "plan"
+                p["plan_text"] = self.plan_text()
+                p["plan_mtime"] = self.plan_mtime()
+                p["plan_error"] = ""
+                self._last_payload = p
+                return p
+            except (ValueError, KeyError) as exc:
+                # invalid plan: keep showing the last good schematic
+                base = self._last_payload or {"devices": [], "paths": {},
+                                              "pre_segs": [], "dots": [],
+                                              "pinned": [], "furniture": "",
+                                              "subckt": self.subname,
+                                              "ports": [], "subckts": [],
+                                              "tiles": [], "file": "",
+                                              "unit": UNIT, "grid_mm": 1,
+                                              "width": 60, "height": 30,
+                                              "verify": {"ok": False,
+                                                         "errors": [],
+                                                         "warnings": []},
+                                              "sidecar": ""}
+                return {**base, "mode": "plan",
+                        "plan_text": self.plan_text(),
+                        "plan_mtime": self.plan_mtime(),
+                        "plan_error": str(exc)}
+        p = self._payload(overrides, wires)
+        p["mode"] = "auto"
+        return p
+
+    def _payload(self, overrides, wires=None) -> dict:
         from .route import tile_halfdims
         sub, sheet, routing, verdict = self.build(overrides, wires)
         devs = []
@@ -183,6 +239,11 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.startswith("/api/symbols"):
             self._json(_symbol_payload())
             return
+        if self.path.startswith("/api/stat"):
+            self._json({"mode": "plan" if self.state.plan_path else "auto",
+                        "plan_mtime": self.state.plan_mtime()
+                        if self.state.plan_path else 0})
+            return
         self._json({"error": "not found"}, 404)
 
     def _page(self, name: str):
@@ -253,6 +314,11 @@ class Handler(BaseHTTPRequestHandler):
             sc = self._sidecar()
             self._json(self.state.payload(sc.get("human"), sc.get("wires")))
             return
+        if self.path == "/api/plan" and self.state.plan_path:
+            with open(self.state.plan_path, "w", encoding="utf-8") as fh:
+                fh.write(body.get("text", ""))
+            self._json(self.state.payload(None))
+            return
         self._json({"error": "not found"}, 404)
 
 
@@ -284,11 +350,14 @@ def _symbol_payload() -> dict:
     return {"unit": UNIT, "kinds": kinds}
 
 
-def serve(path: str, subname: str | None, port: int) -> None:
-    Handler.state = EditorState(path, subname)
+def serve(path: str, subname: str | None, port: int,
+          plan_path: str | None = None) -> None:
+    Handler.state = EditorState(path, subname, plan_path)
     httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"SpiceGlass editor: http://127.0.0.1:{port}/  "
-          f"({Handler.state.subname} from {os.path.basename(path)})")
-    print("Ctrl+C to stop. Save writes:",
-          sidecar_path(Handler.state.path, Handler.state.subname))
+    mode = f"PLAN MODE: {os.path.basename(plan_path)}" if plan_path else \
+        f"{Handler.state.subname} from {os.path.basename(path)}"
+    print(f"SpiceGlass editor: http://127.0.0.1:{port}/  ({mode})")
+    if plan_path:
+        print("Live: edit the .plan in any editor and save — the "
+              "schematic re-realizes automatically.")
     httpd.serve_forever()

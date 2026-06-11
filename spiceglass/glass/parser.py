@@ -98,7 +98,7 @@ def parse_file(path: str) -> Design:
 
 def parse_text(text: str, path: str = "<string>") -> Design:
     design = Design(path=path)
-    raw_lines = text.splitlines()
+    raw_lines = text.lstrip("﻿").splitlines()
 
     # ---- pass 1: join continuations, keep (first_line_no, full_line) pairs,
     #      and interleave comment lines for section tracking

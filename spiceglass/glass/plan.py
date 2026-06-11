@@ -139,6 +139,7 @@ _TOKEN = re.compile(r'\[[^\]]*\]|"[^"]*"|\S+')
 
 def parse_plan(text: str) -> Plan:
     plan = Plan()
+    text = text.lstrip("﻿")        # Windows editors love BOMs
     in_flow = False
     for raw in text.splitlines():
         line = raw.split("#", 1)[0].rstrip()
@@ -330,3 +331,73 @@ def plan_for(design: Design, subname: str) -> str:
     sheet = place(sub)
     sheet._src = design.path
     return emit_plan(sub, sheet)
+
+
+# ================================================================ diff
+
+def plan_facts(plan: Plan) -> dict[str, dict]:
+    """Per-device facts a plan asserts: group, region, column partners."""
+    facts: dict[str, dict] = {}
+
+    def f(name: str) -> dict:
+        return facts.setdefault(name, {"group": "", "region": "",
+                                       "col": frozenset(), "orient": "R0"})
+
+    group_members: dict[str, list[str]] = {}
+    for g in plan.groups:
+        if g["kind"] == "mirror":
+            mem = list(g["members"])
+        else:
+            mem = list(g["pair"]) + list(g["tail"]) + list(g["loads"])
+        group_members[g["name"]] = mem
+        for n in mem:
+            f(n)["group"] = f'{g["kind"]}:{" ".join(sorted(mem))}'
+    for n in plan.diode_links:
+        f(n)["group"] = "diode-link"
+    for title, items in plan.flow:
+        for kind, val in items:
+            if kind == "group":
+                for n in group_members.get(val, [val]):
+                    f(n)["region"] = title
+            else:
+                for n in val:
+                    f(n)["region"] = title
+                    f(n)["col"] = frozenset(val)
+    for n, o in plan.orient.items():
+        f(n)["orient"] = o
+    for n in plan.laterals:
+        f(n)["orient"] = "R90"
+    return facts
+
+
+def diff_plans(auto: Plan, golden: Plan) -> tuple[str, int]:
+    """Categorized differences: what the human changed = what the
+    interpreter should learn. Returns (report, devices_differing)."""
+    fa, fg = plan_facts(auto), plan_facts(golden)
+    lines: list[str] = []
+    differing: set[str] = set()
+    for n in sorted(set(fa) | set(fg)):
+        a, g = fa.get(n, {}), fg.get(n, {})
+        if a.get("group", "") != g.get("group", ""):
+            lines.append(f"GROUPING  {n}: auto[{a.get('group') or '-'}] -> "
+                         f"golden[{g.get('group') or '-'}]")
+            differing.add(n)
+        if a.get("region", "") != g.get("region", ""):
+            lines.append(f"REGION    {n}: auto[{a.get('region') or '-'}] -> "
+                         f"golden[{g.get('region') or '-'}]")
+            differing.add(n)
+        if a.get("col", frozenset()) != g.get("col", frozenset()):
+            lines.append(f"COLUMN    {n}: auto[{' '.join(sorted(a.get('col', ()))) or '-'}]"
+                         f" -> golden[{' '.join(sorted(g.get('col', ()))) or '-'}]")
+            differing.add(n)
+        if a.get("orient", "R0") != g.get("orient", "R0"):
+            lines.append(f"ORIENT    {n}: {a.get('orient')} -> {g.get('orient')}")
+            differing.add(n)
+    ra = [t for t, _ in auto.flow]
+    rg = [t for t, _ in golden.flow]
+    if ra != rg:
+        lines.append(f"FLOW ORDER auto[{' | '.join(ra)}]")
+        lines.append(f"           golden[{' | '.join(rg)}]")
+    if not lines:
+        lines.append("no differences — interpreter matches the golden")
+    return "\n".join(lines), len(differing)

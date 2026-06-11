@@ -119,6 +119,12 @@ def main(argv: list[str] | None = None) -> int:
     pp.add_argument("--subckt", default=None)
     pp.add_argument("-o", "--out", default=None)
 
+    dpp = sp.add_parser("diff-plan", help="diff a hand-edited golden plan "
+                        "against the automatic interpretation")
+    dpp.add_argument("golden")
+    dpp.add_argument("--file", default=None,
+                     help="netlist (default: from the plan header)")
+
     args = ap.parse_args(argv)
 
     if args.cmd == "plan":
@@ -163,13 +169,49 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "edit":
         from .serve import serve
+        plan_path = None
+        file = args.file
+        subckt = args.subckt
+        if file.lower().endswith(".plan"):
+            from .plan import parse_plan
+            with open(file, encoding="utf-8") as fh:
+                plan = parse_plan(fh.read())
+            plan_path = file
+            cands = [os.path.join(os.path.dirname(os.path.abspath(file)),
+                                  plan.source), plan.source]
+            file = next((c for c in cands if os.path.exists(c)), None)
+            if file is None:
+                print(f"cannot find netlist '{plan.source}' next to the plan")
+                return 2
+            subckt = plan.name or subckt
         if not args.no_browser:
             import threading
             import webbrowser
             threading.Timer(
                 0.8, lambda: webbrowser.open(
                     f"http://127.0.0.1:{args.port}/")).start()
-        serve(args.file, args.subckt, args.port)
+        serve(file, subckt, args.port, plan_path)
+        return 0
+
+    if args.cmd == "diff-plan":
+        from .plan import diff_plans, parse_plan, plan_for
+        with open(args.golden, encoding="utf-8") as fh:
+            golden = parse_plan(fh.read())
+        cands = [args.file,
+                 os.path.join(os.path.dirname(os.path.abspath(args.golden)),
+                              golden.source), golden.source]
+        netpath = next((c for c in cands if c and os.path.exists(c)), None)
+        if netpath is None:
+            print(f"cannot find netlist '{golden.source}'")
+            return 2
+        design = parse_file(netpath)
+        classify_design(design)
+        name = golden.name or design.root().name
+        auto = parse_plan(plan_for(design, name))
+        report, n = diff_plans(auto, golden)
+        print(report)
+        print(f"\n{n} device(s) differ — each line above is a rule the "
+              "interpreter should learn.")
         return 0
 
     if args.cmd == "score":
