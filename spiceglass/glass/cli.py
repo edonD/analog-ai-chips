@@ -127,7 +127,14 @@ def main(argv: list[str] | None = None) -> int:
     dpp.add_argument("--file", default=None,
                      help="netlist (default: from the plan header)")
 
+    sp.add_parser("gui", help="launcher window (pick file, start/stop "
+                              "server, open views)")
+
     args = ap.parse_args(argv)
+
+    if args.cmd == "gui":
+        from .gui import main as gui_main
+        return gui_main()
 
     if args.cmd == "plan":
         from .plan import plan_for
