@@ -160,18 +160,15 @@ def route(sheet: Sheet, debug: bool = False,
 
     # ---- user-pinned wire paths: validate that every pin of the net
     #      still lies on the pinned geometry, then bypass the engine
-    from .route2 import _on_seg
     valid_pinned: dict[str, list] = {}
     for net, paths in pinned.items():
         job = next((j for j in jobs if j[0] == net), None)
         if job is None:
             continue
-        segs = []
-        for path in paths:
-            for a, b in zip(path, path[1:]):
-                segs.append((a[0], a[1], b[0], b[1]))
-        if segs and all(any(_on_seg(t.x, t.y, s) for s in segs)
-                        for t in job[1]):
+        # a pin counts as connected only if it is a path VERTEX (matching
+        # the verifier: passing over a pin mid-segment is not a junction)
+        verts = {(int(p[0]), int(p[1])) for path in paths for p in path}
+        if verts and all((t.x, t.y) in verts for t in job[1]):
             valid_pinned[net] = [[list(p) for p in path] for path in paths]
         else:
             r.warnings.append(f"pinned wires for '{net}' no longer reach "

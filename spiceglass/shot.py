@@ -29,7 +29,7 @@ else:
     classify_design(design)
     sheet = place(design.root())
 
-routing = route(sheet)
+routing = route(sheet, pinned=getattr(sheet, "plan_wires", None))
 verdict = verify(routing)
 svg = render_sheet(sheet, routing, verdict, {"path": "", "date": ""})
 png = svg_to_png_bytes(svg, max_w=maxw)

@@ -1,0 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2050" height="780" viewBox="0 0 2050 780" data-grid-mm="1" font-family="Segoe UI, Arial, sans-serif">
+<style>
+ line, polyline, path, rect, circle { stroke: #111111; stroke-width: 1.8; }
+ .wire { stroke: #1b1b1b; stroke-width: 1.6; }
+ text { stroke: none; fill: #222; font-size: 11px; }
+ .name { font-weight: 600; font-size: 11px; }
+ .param { fill: #666; font-size: 9.5px; }
+ .pin { font-size: 9px; fill: #333; }
+ .sym { font-size: 11px; font-weight: 700; }
+ .boxmodel { font-size: 9.5px; fill: #555; font-style: italic; }
+ .rail { font-size: 9px; fill: #444444; font-weight: 600; }
+ .netlabel { font-size: 10.5px; fill: #a14d00; font-style: italic; }
+ .port { font-size: 10.5px; fill: #0b4ea2; font-weight: 700; }
+ .sectitle { font-size: 11px; fill: #8a7340; font-weight: 600; }
+ .title { font-size: 16px; font-weight: 700; }
+ .meta { font-size: 10px; fill: #555; }
+</style>
+<rect x="0" y="0" width="2050" height="780" fill="white" stroke="none"/>
+<rect x="98" y="228" width="324" height="404" rx="10" fill="#fff3df" stroke="none" opacity="0.7"/><text x="104" y="222" class="sectitle" stroke="none" fill="#8a7340" font-size="11" font-weight="600">Beta-multiplier core</text><rect x="488" y="88" width="344" height="124" rx="10" fill="#e8f3e6" stroke="none" opacity="0.7"/><text x="494" y="82" class="sectitle" stroke="none" fill="#8a7340" font-size="11" font-weight="600">PMOS mirror</text><rect x="878" y="228" width="424" height="404" rx="10" fill="#e6ecf7" stroke="none" opacity="0.7"/><text x="884" y="222" class="sectitle" stroke="none" fill="#8a7340" font-size="11" font-weight="600">Regulation OTA</text><rect x="1308" y="88" width="564" height="544" rx="10" fill="#f7e6ee" stroke="none" opacity="0.7"/><text x="1314" y="82" class="sectitle" stroke="none" fill="#8a7340" font-size="11" font-weight="600">Startup &amp; protection</text>
+<line class="wire" x1="140" y1="570" x2="140" y2="520" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="140" y1="520" x2="170" y2="520" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="170" y1="520" x2="170" y2="530" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="530" y1="150" x2="530" y2="200" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="630" y1="150" x2="630" y2="200" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="730" y1="150" x2="730" y2="200" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="530" y1="200" x2="730" y2="200" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="950" y1="470" x2="950" y2="490" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1050" y1="470" x2="1050" y2="490" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1000" y1="490" x2="1000" y2="530" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="950" y1="490" x2="1050" y2="490" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="950" y1="330" x2="950" y2="390" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1050" y1="330" x2="1050" y2="390" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="920" y1="290" x2="920" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1020" y1="290" x2="1020" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="920" y1="340" x2="1020" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="950" y1="340" x2="950" y2="330" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="530" x2="350" y2="470" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="390" x2="350" y2="330" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1230" y1="530" x2="1230" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1230" y1="340" x2="950" y2="340" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="660" y1="190" x2="660" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="660" y1="240" x2="350" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="350" y1="240" x2="350" y2="250" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="920" y1="430" x2="660" y2="430" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="660" y1="430" x2="660" y2="240" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1050" y1="330" x2="1050" y2="380" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1050" y1="380" x2="520" y2="380" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="520" y1="380" x2="520" y2="200" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="520" y1="200" x2="530" y2="200" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1380" y1="610" x2="1380" y2="620" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1380" y1="620" x2="1090" y2="620" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1090" y1="620" x2="1090" y2="380" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1090" y1="380" x2="1050" y2="380" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1760" y1="430" x2="1090" y2="430" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1620" y1="190" x2="1560" y2="190" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1560" y1="190" x2="1560" y2="360" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1560" y1="360" x2="1620" y2="360" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1620" y1="360" x2="1620" y2="530" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1800" y1="400" x2="1800" y2="360" stroke="#1b1b1b" stroke-width="1.6"/><line class="wire" x1="1800" y1="360" x2="1620" y2="360" stroke="#1b1b1b" stroke-width="1.6"/><circle cx="630" cy="200" r="3" fill="#1b1b1b" stroke="none"/><circle cx="1050" cy="380" r="3" fill="#1b1b1b" stroke="none"/><circle cx="1050" cy="380" r="3" fill="#1b1b1b" stroke="none"/><circle cx="1050" cy="380" r="3" fill="#1b1b1b" stroke="none"/><circle cx="1090" cy="430" r="3" fill="#1b1b1b" stroke="none"/><circle cx="1000" cy="490" r="3" fill="#1b1b1b" stroke="none"/><circle cx="1020" cy="340" r="3" fill="#1b1b1b" stroke="none"/><circle cx="1020" cy="340" r="3" fill="#1b1b1b" stroke="none"/><circle cx="950" cy="340" r="3" fill="#1b1b1b" stroke="none"/><circle cx="950" cy="340" r="3" fill="#1b1b1b" stroke="none"/><circle cx="950" cy="340" r="3" fill="#1b1b1b" stroke="none"/><circle cx="950" cy="340" r="3" fill="#1b1b1b" stroke="none"/>
+<line x1="560" y1="190" x2="582" y2="190"/><text x="586" y="194" text-anchor="start" class="netlabel">nbias</text><line x1="170" y1="530" x2="192" y2="530"/><text x="196" y="534" text-anchor="start" class="netlabel">nbias</text><line x1="320" y1="290" x2="298" y2="290"/><text x="294" y="294" text-anchor="end" class="netlabel">nbias</text><line x1="1080" y1="430" x2="1102" y2="430"/><text x="1106" y="434" text-anchor="start" class="netlabel">nbias</text><line x1="970" y1="570" x2="948" y2="570"/><text x="944" y="574" text-anchor="end" class="netlabel">nbias</text><line x1="1840" y1="430" x2="1862" y2="430"/><text x="1866" y="434" text-anchor="start" class="netlabel">nbias</text><line x1="560" y1="110" x2="560" y2="96"/><line x1="551" y1="96" x2="569" y2="96" stroke-width="2.4"/><text x="560" y="91" text-anchor="middle" class="rail">VDD</text><line x1="590" y1="150" x2="602" y2="150"/><line x1="602" y1="150" x2="602" y2="140"/><line x1="597" y1="140" x2="607" y2="140" stroke-width="2.4"/><line x1="660" y1="110" x2="660" y2="96"/><line x1="651" y1="96" x2="669" y2="96" stroke-width="2.4"/><text x="660" y="91" text-anchor="middle" class="rail">VDD</text><line x1="690" y1="150" x2="702" y2="150"/><line x1="702" y1="150" x2="702" y2="140"/><line x1="697" y1="140" x2="707" y2="140" stroke-width="2.4"/><line x1="950" y1="250" x2="950" y2="236"/><line x1="941" y1="236" x2="959" y2="236" stroke-width="2.4"/><text x="950" y="231" text-anchor="middle" class="rail">VDD</text><line x1="980" y1="290" x2="992" y2="290"/><line x1="992" y1="290" x2="992" y2="280"/><line x1="987" y1="280" x2="997" y2="280" stroke-width="2.4"/><line x1="1050" y1="250" x2="1050" y2="236"/><line x1="1041" y1="236" x2="1059" y2="236" stroke-width="2.4"/><text x="1050" y="231" text-anchor="middle" class="rail">VDD</text><line x1="1080" y1="290" x2="1092" y2="290"/><line x1="1092" y1="290" x2="1092" y2="280"/><line x1="1087" y1="280" x2="1097" y2="280" stroke-width="2.4"/><line x1="760" y1="110" x2="760" y2="96"/><line x1="751" y1="96" x2="769" y2="96" stroke-width="2.4"/><text x="760" y="91" text-anchor="middle" class="rail">VDD</text><line x1="790" y1="150" x2="802" y2="150"/><line x1="802" y1="150" x2="802" y2="140"/><line x1="797" y1="140" x2="807" y2="140" stroke-width="2.4"/><line x1="1620" y1="110" x2="1620" y2="96"/><line x1="1611" y1="96" x2="1629" y2="96" stroke-width="2.4"/><text x="1620" y="91" text-anchor="middle" class="rail">VDD</text><line x1="170" y1="610" x2="170" y2="622"/><line x1="161" y1="622" x2="179" y2="622" stroke-width="2"/><line x1="164" y1="626" x2="176" y2="626" stroke-width="2"/><line x1="167" y1="630" x2="173" y2="630" stroke-width="2"/><line x1="200" y1="570" x2="212" y2="570"/><line x1="212" y1="570" x2="212" y2="582"/><line x1="207" y1="582" x2="217" y2="582" stroke-width="2"/><line x1="209" y1="586" x2="215" y2="586" stroke-width="2"/><line x1="380" y1="290" x2="392" y2="290"/><line x1="392" y1="290" x2="392" y2="302"/><line x1="387" y1="302" x2="397" y2="302" stroke-width="2"/><line x1="389" y1="306" x2="395" y2="306" stroke-width="2"/><line x1="370" y1="430" x2="382" y2="430"/><line x1="382" y1="430" x2="382" y2="442"/><line x1="377" y1="442" x2="387" y2="442" stroke-width="2"/><line x1="379" y1="446" x2="385" y2="446" stroke-width="2"/><line x1="350" y1="610" x2="350" y2="622"/><line x1="341" y1="622" x2="359" y2="622" stroke-width="2"/><line x1="344" y1="626" x2="356" y2="626" stroke-width="2"/><line x1="347" y1="630" x2="353" y2="630" stroke-width="2"/><line x1="370" y1="570" x2="382" y2="570"/><line x1="382" y1="570" x2="382" y2="582"/><line x1="377" y1="582" x2="387" y2="582" stroke-width="2"/><line x1="379" y1="586" x2="385" y2="586" stroke-width="2"/><line x1="980" y1="430" x2="992" y2="430"/><line x1="992" y1="430" x2="992" y2="442"/><line x1="987" y1="442" x2="997" y2="442" stroke-width="2"/><line x1="989" y1="446" x2="995" y2="446" stroke-width="2"/><line x1="1020" y1="430" x2="1032" y2="430"/><line x1="1032" y1="430" x2="1032" y2="442"/><line x1="1027" y1="442" x2="1037" y2="442" stroke-width="2"/><line x1="1029" y1="446" x2="1035" y2="446" stroke-width="2"/><line x1="1000" y1="610" x2="1000" y2="622"/><line x1="991" y1="622" x2="1009" y2="622" stroke-width="2"/><line x1="994" y1="626" x2="1006" y2="626" stroke-width="2"/><line x1="997" y1="630" x2="1003" y2="630" stroke-width="2"/><line x1="1030" y1="570" x2="1042" y2="570"/><line x1="1042" y1="570" x2="1042" y2="582"/><line x1="1037" y1="582" x2="1047" y2="582" stroke-width="2"/><line x1="1039" y1="586" x2="1045" y2="586" stroke-width="2"/><line x1="1230" y1="610" x2="1230" y2="622"/><line x1="1221" y1="622" x2="1239" y2="622" stroke-width="2"/><line x1="1224" y1="626" x2="1236" y2="626" stroke-width="2"/><line x1="1227" y1="630" x2="1233" y2="630" stroke-width="2"/><line x1="1250" y1="570" x2="1262" y2="570"/><line x1="1262" y1="570" x2="1262" y2="582"/><line x1="1257" y1="582" x2="1267" y2="582" stroke-width="2"/><line x1="1259" y1="586" x2="1265" y2="586" stroke-width="2"/><line x1="1410" y1="570" x2="1422" y2="570"/><line x1="1422" y1="570" x2="1422" y2="582"/><line x1="1413" y1="582" x2="1431" y2="582" stroke-width="2"/><line x1="1416" y1="586" x2="1428" y2="586" stroke-width="2"/><line x1="1419" y1="590" x2="1425" y2="590" stroke-width="2"/><line x1="1380" y1="530" x2="1380" y2="542"/><line x1="1371" y1="542" x2="1389" y2="542" stroke-width="2"/><line x1="1374" y1="546" x2="1386" y2="546" stroke-width="2"/><line x1="1377" y1="550" x2="1383" y2="550" stroke-width="2"/><line x1="1350" y1="570" x2="1362" y2="570"/><line x1="1362" y1="570" x2="1362" y2="582"/><line x1="1357" y1="582" x2="1367" y2="582" stroke-width="2"/><line x1="1359" y1="586" x2="1365" y2="586" stroke-width="2"/><line x1="1640" y1="150" x2="1652" y2="150"/><line x1="1652" y1="150" x2="1652" y2="162"/><line x1="1647" y1="162" x2="1657" y2="162" stroke-width="2"/><line x1="1649" y1="166" x2="1655" y2="166" stroke-width="2"/><line x1="1620" y1="610" x2="1620" y2="622"/><line x1="1611" y1="622" x2="1629" y2="622" stroke-width="2"/><line x1="1614" y1="626" x2="1626" y2="626" stroke-width="2"/><line x1="1617" y1="630" x2="1623" y2="630" stroke-width="2"/><line x1="1640" y1="570" x2="1652" y2="570"/><line x1="1652" y1="570" x2="1652" y2="582"/><line x1="1647" y1="582" x2="1657" y2="582" stroke-width="2"/><line x1="1649" y1="586" x2="1655" y2="586" stroke-width="2"/><line x1="1800" y1="460" x2="1812" y2="460"/><line x1="1812" y1="460" x2="1812" y2="472"/><line x1="1807" y1="472" x2="1817" y2="472" stroke-width="2"/><line x1="1809" y1="476" x2="1815" y2="476" stroke-width="2"/><line x1="760" y1="190" x2="782" y2="190"/><rect x="782" y="181" width="56" height="18" rx="3" fill="white" stroke="#0b4ea2" stroke-width="1.4"/><text x="810.0" y="194" text-anchor="middle" class="port">iref_out</text>
+<g transform="translate(560 150)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<circle cx="-25.6" cy="0" r="4.3" fill="white" stroke-width="1.5"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M 6 0 L -2 -3.6 L -2 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="526" y="104" class="name">XM3</text>
+<text x="582" y="208" class="param" text-anchor="start">pfet_01v8  w=4  l=4</text>
+<g transform="translate(660 150)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<circle cx="-25.6" cy="0" r="4.3" fill="white" stroke-width="1.5"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M 6 0 L -2 -3.6 L -2 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="626" y="104" class="name">XM4</text>
+<text x="682" y="208" class="param" text-anchor="start">pfet_01v8  w=4  l=4</text>
+<g transform="translate(170 570)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<line x1="-30" y1="0" x2="-21" y2="0"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="136" y="524" class="name">XM1</text>
+<text x="192" y="628" class="param" text-anchor="start">nfet_01v8  w=2  l=4</text>
+<g transform="translate(350 290)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<line x1="-30" y1="0" x2="-21" y2="0"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="316" y="244" class="name">XM2</text>
+<text x="372" y="348" class="param" text-anchor="start">nfet_01v8  w=8  l=4</text>
+<g transform="translate(350 430)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-21"/>
+<line x1="0" y1="21" x2="0" y2="40"/>
+<polyline points="0,-21 8,-17.5 -8,-10.5 8,-3.5 -8,3.5 8,10.5 -8,17.5 0,21" fill="none" stroke-width="2"/>
+<line x1="0" y1="0" x2="20" y2="0" stroke-dasharray="3 2"/>
+</g>
+<text x="316" y="384" class="name">XR1a</text>
+<text x="372" y="488" class="param" text-anchor="start">res_xhigh_po  w=0.35  l=7.09</text>
+<g transform="translate(350 570)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-21"/>
+<line x1="0" y1="21" x2="0" y2="40"/>
+<polyline points="0,-21 8,-17.5 -8,-10.5 8,-3.5 -8,3.5 8,10.5 -8,17.5 0,21" fill="none" stroke-width="2"/>
+<line x1="0" y1="0" x2="20" y2="0" stroke-dasharray="3 2"/>
+</g>
+<text x="316" y="524" class="name">XR1b</text>
+<text x="372" y="628" class="param" text-anchor="start">res_iso_pw  w=0.35  l=6.56</text>
+<g transform="translate(950 430)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<line x1="-30" y1="0" x2="-21" y2="0"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="916" y="384" class="name">XMo1</text>
+<text x="972" y="488" class="param" text-anchor="start">nfet_01v8  w=1  l=4</text>
+<g transform="translate(1050 430) scale(-1 1)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<line x1="-30" y1="0" x2="-21" y2="0"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="1016" y="384" class="name">XMo2</text>
+<text x="1072" y="488" class="param" text-anchor="start">nfet_01v8  w=1  l=4</text>
+<g transform="translate(950 290)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<circle cx="-25.6" cy="0" r="4.3" fill="white" stroke-width="1.5"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M 6 0 L -2 -3.6 L -2 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="916" y="244" class="name">XMo3</text>
+<text x="972" y="348" class="param" text-anchor="start">pfet_01v8  w=2  l=4</text>
+<g transform="translate(1050 290)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<circle cx="-25.6" cy="0" r="4.3" fill="white" stroke-width="1.5"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M 6 0 L -2 -3.6 L -2 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="1016" y="244" class="name">XMo4</text>
+<text x="1072" y="348" class="param" text-anchor="start">pfet_01v8  w=2  l=4</text>
+<g transform="translate(1000 570)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<line x1="-30" y1="0" x2="-21" y2="0"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="966" y="524" class="name">XMo5</text>
+<text x="1022" y="628" class="param" text-anchor="start">nfet_01v8  w=1  l=4</text>
+<g transform="translate(1230 570)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-5"/>
+<line x1="0" y1="5" x2="0" y2="40"/>
+<line x1="-14" y1="-5" x2="14" y2="-5" stroke-width="2.6"/>
+<line x1="-14" y1="5" x2="14" y2="5" stroke-width="2.6"/>
+<line x1="0" y1="5" x2="20" y2="5" stroke-dasharray="3 2"/>
+<line x1="20" y1="5" x2="20" y2="0"/>
+</g>
+<text x="1196" y="524" class="name">XC_comp</text>
+<text x="1252" y="628" class="param" text-anchor="start">cap_mim_m3_1  w=50  l=50</text>
+<g transform="translate(760 150)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<circle cx="-25.6" cy="0" r="4.3" fill="white" stroke-width="1.5"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M 6 0 L -2 -3.6 L -2 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="726" y="104" class="name">XM7</text>
+<text x="782" y="208" class="param" text-anchor="start">pfet_01v8  w=4  l=4</text>
+<g transform="translate(1380 570) rotate(180)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<line x1="-30" y1="0" x2="-21" y2="0"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="1346" y="524" class="name">XM6</text>
+<text x="1402" y="628" class="param" text-anchor="start">nfet_01v8  w=0.5  l=0.5</text>
+<g transform="translate(1620 150)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-5"/>
+<line x1="0" y1="5" x2="0" y2="40"/>
+<line x1="-14" y1="-5" x2="14" y2="-5" stroke-width="2.6"/>
+<line x1="-14" y1="5" x2="14" y2="5" stroke-width="2.6"/>
+<line x1="0" y1="5" x2="20" y2="5" stroke-dasharray="3 2"/>
+<line x1="20" y1="5" x2="20" y2="0"/>
+</g>
+<text x="1586" y="104" class="name">XC_gs</text>
+<text x="1642" y="208" class="param" text-anchor="start">cap_mim_m3_1  w=25  l=50</text>
+<g transform="translate(1620 570)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-21"/>
+<line x1="0" y1="21" x2="0" y2="40"/>
+<polyline points="0,-21 8,-17.5 -8,-10.5 8,-3.5 -8,3.5 8,10.5 -8,17.5 0,21" fill="none" stroke-width="2"/>
+<line x1="0" y1="0" x2="20" y2="0" stroke-dasharray="3 2"/>
+</g>
+<text x="1586" y="524" class="name">XR_gs</text>
+<text x="1642" y="628" class="param" text-anchor="start">res_xhigh_po  w=0.35  l=1360</text>
+<g transform="translate(1800 430) rotate(-90) scale(-1 1)" fill="none">
+<line x1="0" y1="-40" x2="0" y2="-16"/>
+<line x1="0" y1="-16" x2="-14" y2="-16"/>
+<line x1="0" y1="40" x2="0" y2="16"/>
+<line x1="0" y1="16" x2="-14" y2="16"/>
+<line x1="-14" y1="-17" x2="-14" y2="17" stroke-width="2.6"/>
+<line x1="-21" y1="-13" x2="-21" y2="13" stroke-width="2.6"/>
+<line x1="-30" y1="0" x2="-21" y2="0"/>
+<line x1="-14" y1="0" x2="30" y2="0"/>
+<path d="M -12.5 0 L -4 -3.6 L -4 3.6 Z" fill="#111111" stroke="none"/>
+</g>
+<text x="1766" y="384" class="name">XMsw</text>
+<text x="1822" y="488" class="param" text-anchor="start">nfet_01v8  w=4  l=0.5</text>
+<line x1="20" y1="720" x2="2030" y2="720" stroke="#999" stroke-width="1"/>
+<text x="26" y="740" class="title">bias_generator</text>
+<text x="26" y="756" class="meta">design.cir — 17 devices — ports: vdd, gnd, iref_out — grid 1 mm — sheet 205×71 mm — SpiceGlass — 2026-06-11</text>
+<rect x="1900" y="14" width="128" height="30" rx="6" fill="none" stroke="#0a7d28" stroke-width="2.4"/>
+<text x="1964" y="34" text-anchor="middle" style="fill:#0a7d28;font-weight:800;font-size:14px">VERIFIED ✓</text>
+</svg>
