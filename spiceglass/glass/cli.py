@@ -154,6 +154,23 @@ def main(argv: list[str] | None = None) -> int:
         print(f"plan -> {out}")
         return 0
 
+    if args.cmd == "render" and args.file \
+            and args.file.lower().endswith(".asc"):
+        from .parse_asc import asc_to_svg, parse_asc
+        sheet = parse_asc(args.file)
+        svg = asc_to_svg(sheet, os.path.dirname(os.path.abspath(args.file)))
+        out = args.out or os.path.splitext(args.file)[0] + ".svg"
+        with open(out, "w", encoding="utf-8") as fh:
+            fh.write(svg)
+        print(f"[ASC] {os.path.basename(args.file)}: "
+              f"{len(sheet.insts)} symbols, {len(sheet.wires)} wires "
+              f"-> {out}")
+        for w in sheet.warnings:
+            print(f"   asc     {w}")
+        if args.png:
+            _to_png(out)
+        return 0
+
     if args.cmd == "render" and getattr(args, "plan", None):
         from .plan import parse_plan, realize_plan
         with open(args.plan, encoding="utf-8") as fh:
