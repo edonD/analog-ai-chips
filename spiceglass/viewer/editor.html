@@ -34,6 +34,14 @@
   #planerr { color:#ff8484; font-size:12px; padding:4px 10px;
              white-space:pre-wrap; }
   #planapply { margin:8px; }
+  #agentbox { border-top:1px solid #3a404a; padding:8px; display:flex;
+              flex-direction:column; gap:6px; }
+  #agenthead { font-size:11px; color:#8b93a0; }
+  #agentbox input { background:#16181c; color:#d8dee7; border:1px solid
+              #3a404a; border-radius:5px; padding:5px 8px; font-size:12px; }
+  #ag_log { background:#16181c; color:#9fb6a3; font:11px/1.5 Consolas,
+            monospace; margin:0; padding:8px; height:140px; overflow:auto;
+            white-space:pre-wrap; border-radius:5px; }
   #sheet { background:#ffffff; display:block; margin:14px;
            box-shadow:0 2px 14px rgba(0,0,0,.5); transform-origin:0 0; }
   #sheet line, #sheet polyline, #sheet path, #sheet rect, #sheet circle
@@ -98,6 +106,23 @@
     <textarea id="plantext" spellcheck="false"></textarea>
     <div id="planerr"></div>
     <button id="planapply">Apply &amp; save plan</button>
+    <div id="agentbox">
+      <div id="agenthead">AI AGENT — iterates on the plan with visual
+        feedback until happy</div>
+      <input id="ag_goal" placeholder="goal (optional), e.g. emphasize the feedback loop">
+      <div style="display:flex; gap:6px;">
+        <input id="ag_model" value="gpt-4o" title="model" style="flex:1">
+        <input id="ag_iters" value="6" title="max iterations" style="width:44px">
+      </div>
+      <input id="ag_key" type="password"
+             placeholder="API key (blank = OPENAI_API_KEY env)">
+      <input id="ag_url" value="https://api.openai.com/v1" title="base URL">
+      <div style="display:flex; gap:6px;">
+        <button id="ag_start" style="flex:1">▶ Run agent</button>
+        <button id="ag_stop">Stop</button>
+      </div>
+      <pre id="ag_log"></pre>
+    </div>
   </div>
   <div id="wrap"><svg id="sheet" xmlns="http://www.w3.org/2000/svg"></svg></div>
 </div>
@@ -523,13 +548,42 @@ document.getElementById("planapply").onclick = async () => {
   build(await r.json());
 };
 
-// live reload: watch the .plan file for external edits
+document.getElementById("ag_start").onclick = async () => {
+  const body = {
+    action: "start",
+    goal: document.getElementById("ag_goal").value,
+    model: document.getElementById("ag_model").value,
+    api_key: document.getElementById("ag_key").value,
+    base_url: document.getElementById("ag_url").value,
+    max_iters: +document.getElementById("ag_iters").value || 6,
+  };
+  const r = await fetch("/api/agent", { method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body) });
+  const p = await r.json();
+  if (p.error) document.getElementById("ag_log").textContent = p.error;
+};
+document.getElementById("ag_stop").onclick = () =>
+  fetch("/api/agent", { method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "stop" }) });
+
+// live reload: watch the .plan file (external edits AND the AI agent)
 setInterval(async () => {
   if (!planMode || busy) return;
   try {
     const s = await (await fetch("/api/stat")).json();
+    if (s.agent) {
+      const lg = document.getElementById("ag_log");
+      lg.textContent = s.agent.log.join("\n") +
+        (s.agent.running ? "\n…" : "");
+      lg.scrollTop = lg.scrollHeight;
+      document.getElementById("ag_start").disabled = s.agent.running;
+      document.getElementById("plantext").readOnly = s.agent.running;
+    }
     if (s.plan_mtime !== planMtime &&
-        document.activeElement !== document.getElementById("plantext")) {
+        (document.activeElement !== document.getElementById("plantext") ||
+         (s.agent && s.agent.running))) {
       build(await (await fetch("/api/sheet")).json());
     }
   } catch (e) { /* server restarting */ }

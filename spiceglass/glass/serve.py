@@ -240,9 +240,15 @@ class Handler(BaseHTTPRequestHandler):
             self._json(_symbol_payload())
             return
         if self.path.startswith("/api/stat"):
+            agent = getattr(self.state, "agent", None)
             self._json({"mode": "plan" if self.state.plan_path else "auto",
                         "plan_mtime": self.state.plan_mtime()
-                        if self.state.plan_path else 0})
+                        if self.state.plan_path else 0,
+                        "agent": {"running": agent.running,
+                                  "iter": agent.iter,
+                                  "max": agent.max_iters,
+                                  "log": agent.log[-40:]}
+                        if agent else None})
             return
         self._json({"error": "not found"}, 404)
 
@@ -318,6 +324,34 @@ class Handler(BaseHTTPRequestHandler):
             with open(self.state.plan_path, "w", encoding="utf-8") as fh:
                 fh.write(body.get("text", ""))
             self._json(self.state.payload(None))
+            return
+        if self.path == "/api/agent":
+            st = self.state
+            action = body.get("action")
+            agent = getattr(st, "agent", None)
+            if action == "start":
+                if not st.plan_path:
+                    self._json({"error": "agent needs plan mode "
+                                "(glass edit file.plan)"}, 400)
+                    return
+                if agent is not None and agent.running:
+                    self._json({"error": "agent already running"}, 400)
+                    return
+                from .agent import AgentRun
+                st.agent = AgentRun(
+                    st, body.get("goal", ""),
+                    body.get("model") or "gpt-4o",
+                    body.get("base_url") or "https://api.openai.com/v1",
+                    body.get("api_key") or "",
+                    int(body.get("max_iters") or 6))
+                st.agent.start()
+                self._json({"ok": True})
+                return
+            if action == "stop" and agent is not None:
+                agent.stop_flag = True
+                self._json({"ok": True})
+                return
+            self._json({"error": "unknown agent action"}, 400)
             return
         self._json({"error": "not found"}, 404)
 
