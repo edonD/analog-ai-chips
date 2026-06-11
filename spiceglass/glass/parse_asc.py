@@ -131,6 +131,110 @@ def resolve_asy(symname: str, asc_dir: str) -> str | None:
     return next((c for c in cands if os.path.exists(c)), None)
 
 
+# ---------------------------------------------------------------- native
+# Fallback for LTspice built-in symbols when no LTspice install exists.
+# Pin offsets derived EMPIRICALLY from a 150-schematic corpus (wire
+# endpoints inverse-transformed into symbol space); artwork is generic
+# glyphs anchored to those pins.
+
+def _glyph_2pin(kind: str, p0, p1) -> AsySymbol:
+    s = AsySymbol()
+    (x0, y0), (x1, y1) = p0, p1
+    mx, my = (x0 + x1) // 2, (y0 + y1) // 2
+    s.pins = [(x0, y0, "1"), (x1, y1, "2")]
+    if kind == "res":
+        s.lines += [(x0, y0, x0, my - 28), (x0, my + 28, x1, y1),
+                    (x0, my - 28, x0 + 8, my - 22), (x0 + 8, my - 22, x0 - 8, my - 11),
+                    (x0 - 8, my - 11, x0 + 8, my), (x0 + 8, my, x0 - 8, my + 11),
+                    (x0 - 8, my + 11, x0 + 8, my + 22), (x0 + 8, my + 22, x0, my + 28)]
+    elif kind == "cap":
+        s.lines += [(x0, y0, x0, my - 6), (x0, my + 6, x1, y1),
+                    (x0 - 16, my - 6, x0 + 16, my - 6),
+                    (x0 - 16, my + 6, x0 + 16, my + 6)]
+    elif kind == "ind":
+        s.lines += [(x0, y0, x0, my - 24), (x0, my + 24, x1, y1)]
+        for k in range(3):
+            yb = my - 24 + k * 16
+            s.lines += [(x0, yb, x0 + 10, yb + 4), (x0 + 10, yb + 4, x0 + 10, yb + 12),
+                        (x0 + 10, yb + 12, x0, yb + 16)]
+    elif kind == "dio":
+        s.lines += [(x0, y0, x0, my - 10), (x0, my + 10, x1, y1),
+                    (x0 - 12, my - 10, x0 + 12, my - 10),
+                    (x0 - 12, my - 10, x0, my + 10),
+                    (x0 + 12, my - 10, x0, my + 10),
+                    (x0 - 12, my + 10, x0 + 12, my + 10)]
+    else:  # voltage / current source
+        s.lines += [(x0, y0, x0, my - 24), (x0, my + 24, x1, y1)]
+        s.circles.append((x0 - 24, my - 24, x0 + 24, my + 24))
+        if kind == "vsrc":
+            s.lines += [(x0, my - 16, x0, my - 6), (x0 - 5, my - 11, x0 + 5, my - 11),
+                        (x0 - 5, my + 11, x0 + 5, my + 11)]
+        else:
+            s.lines += [(x0, my - 12, x0, my + 12), (x0, my - 12, x0 - 5, my - 2),
+                        (x0, my - 12, x0 + 5, my - 2)]
+    return s
+
+
+def _glyph_bjt(pnp: bool) -> AsySymbol:
+    s = AsySymbol()
+    s.pins = [(64, 0, "C"), (0, 48, "B"), (64, 96, "E")]
+    s.lines += [(0, 48, 24, 48), (24, 28, 24, 68),
+                (64, 0, 64, 24), (64, 24, 24, 42),
+                (64, 96, 64, 72), (64, 72, 24, 54)]
+    if pnp:
+        s.lines += [(34, 46, 46, 36), (34, 46, 44, 50)]
+    else:
+        s.lines += [(54, 68, 44, 56), (54, 68, 42, 66)]
+    return s
+
+
+def _glyph_mos(pmos: bool) -> AsySymbol:
+    s = AsySymbol()
+    s.pins = [(48, 0, "D"), (0, 80, "G"), (48, 96, "S")]
+    s.lines += [(0, 80, 16, 80), (16, 60, 16, 100),
+                (24, 58, 24, 102),
+                (48, 0, 48, 64), (48, 64, 24, 64),
+                (48, 96, 48, 96), (24, 96, 48, 96)]
+    if pmos:
+        s.circles.append((8, 72, 24, 88))
+    return s
+
+
+def _glyph_opamp() -> AsySymbol:
+    s = AsySymbol()
+    s.pins = [(-32, 48, "+"), (-32, 80, "-"), (32, 64, "OUT")]
+    s.lines += [(-32, 32, -32, 96), (-32, 32, 32, 64), (-32, 96, 32, 64),
+                (-26, 48, -18, 48), (-22, 44, -22, 52), (-26, 80, -18, 80)]
+    return s
+
+
+def native_symbol(symname: str) -> AsySymbol | None:
+    n = symname.split("\\")[-1].lower()
+    if n in ("res", "res2"):
+        return _glyph_2pin("res", (16, 16), (16, 96))
+    if n in ("cap", "polcap"):
+        return _glyph_2pin("cap", (16, 0), (16, 64))
+    if n in ("ind", "ind2"):
+        return _glyph_2pin("ind", (16, 16), (16, 96))
+    if n in ("diode", "schottky", "zener", "led"):
+        return _glyph_2pin("dio", (16, 0), (16, 64))
+    if n in ("voltage", "battery", "cell"):
+        return _glyph_2pin("vsrc", (0, 16), (0, 96))
+    if n in ("current", "load"):
+        return _glyph_2pin("isrc", (0, 16), (0, 96))
+    if n in ("npn", "npn2", "npn3"):
+        return _glyph_bjt(pnp=False)
+    if n in ("pnp", "pnp2"):
+        return _glyph_bjt(pnp=True)
+    if n in ("nmos", "nmos4"):
+        return _glyph_mos(pmos=False)
+    if n in ("pmos", "pmos4"):
+        return _glyph_mos(pmos=True)
+    if n in ("opamp", "uopamp", "opamp2", "lt1007", "lt1720"):
+        return _glyph_opamp()
+    return None
+
+
 # same algebra as glass.geom.orient_xy (LTspice M-variants experimental)
 _ROT = {
     "R0": lambda x, y: (x, y), "R90": lambda x, y: (y, -x),
@@ -203,12 +307,19 @@ def asc_to_svg(sheet: AscSheet, asc_dir: str) -> str:
                      f'{esc(name)}</text>')
 
     missing: set[str] = set()
+    approx: set[str] = set()
     for inst in sheet.insts:
         asy_path = resolve_asy(inst.sym, asc_dir)
-        tf = _TF.get(inst.rot, "")
-        p.append(f'<g transform="translate({inst.x} {inst.y}){tf}">')
+        sym = None
         if asy_path:
             sym = parse_asy(asy_path)
+        else:
+            sym = native_symbol(inst.sym)
+            if sym is not None:
+                approx.add(inst.sym.split("\\")[-1])
+        tf = _TF.get(inst.rot, "")
+        p.append(f'<g transform="translate({inst.x} {inst.y}){tf}">')
+        if sym is not None:
             for (a, b, c, d) in sym.lines:
                 p.append(f'<line x1="{a}" y1="{b}" x2="{c}" y2="{d}"/>')
             for (a, b, c, d) in sym.rects:
@@ -219,7 +330,7 @@ def asc_to_svg(sheet: AscSheet, asc_dir: str) -> str:
                 p.append(f'<ellipse cx="{cx}" cy="{cy}" rx="{abs(c-a)/2}" '
                          f'ry="{abs(d-b)/2}" fill="none" stroke="#1b1b1b" '
                          'stroke-width="2"/>')
-        else:
+        if sym is None:
             missing.add(inst.sym)
             p.append('<rect x="-24" y="-24" width="48" height="48" '
                      'stroke-dasharray="4 3"/>')
@@ -237,5 +348,9 @@ def asc_to_svg(sheet: AscSheet, asc_dir: str) -> str:
         p.append(f'<text x="{x}" y="{y}" class="val">{esc(txt)}</text>')
     for m in sorted(missing):
         sheet.warnings.append(f"symbol not found: {m} (dashed box)")
+    if approx:
+        sheet.warnings.append(
+            "native symbols approximated (corpus-derived pins): "
+            + ", ".join(sorted(approx)))
     p.append("</svg>")
     return "\n".join(p)
