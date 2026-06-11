@@ -25,7 +25,7 @@ _EDGE_CANDIDATES = [
 
 
 def _render_one(design, name: str, out_svg: str, png: bool,
-                physical: bool = False, sheet=None) -> bool:
+                physical: bool = False, sheet=None, asc: str = None) -> bool:
     sub = design.subckts[name]
     wires = None
     if sheet is None:
@@ -53,6 +53,9 @@ def _render_one(design, name: str, out_svg: str, png: bool,
     status = "VERIFIED" if verdict.ok else "MISMATCH"
     print(f"[{status}] {name}: {len(sub.devices)} devices, "
           f"{verdict.n_nets} nets -> {out_svg}")
+    if asc:
+        from .emit_asc import export_asc
+        print(f"          asc -> {export_asc(sheet, routing, asc)}")
     for e in verdict.errors:
         print(f"   ERROR   {e}")
     for w in verdict.warnings:
@@ -100,6 +103,9 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("--plan", default=None, metavar="PLAN",
                     help="realize this .plan file instead of automatic "
                          "placement (netlist from the plan header)")
+    rp.add_argument("--asc", default=None, metavar="ASC",
+                    help="also export an LTspice schematic (.asc + local "
+                         "sg_sym/ symbol library) — experimental")
 
     jp = sp.add_parser("json", help="dump the circuit database as JSON")
     jp.add_argument("file")
@@ -173,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
         sheet = realize_plan(design.subckts[name], plan)
         out = args.out or os.path.splitext(args.plan)[0] + ".svg"
         ok = _render_one(design, name, out, args.png, args.physical,
-                         sheet=sheet)
+                         sheet=sheet, asc=args.asc)
         return 0 if ok else 1
 
     if args.cmd == "edit":
@@ -273,7 +279,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"no such subckt '{name}'; have: {', '.join(design.order)}")
             return 2
         out = args.out or f"{base}.{name}.svg"
-        ok = _render_one(design, name, out, args.png, args.physical)
+        ok = _render_one(design, name, out, args.png, args.physical,
+                         asc=args.asc)
     return 0 if ok else 1
 
 
