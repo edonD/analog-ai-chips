@@ -76,6 +76,7 @@ class EditorState:
             with open(self.plan_path, encoding="utf-8") as fh:
                 text = fh.read()
             plan = parse_plan(text)
+            self._plan_warnings = list(plan.warnings)
             # fresh netlist parse: realization mutates Device.section
             design = parse_file(self.path)
             classify_design(design)
@@ -143,6 +144,9 @@ class EditorState:
                 p["plan_text"] = self.plan_text()
                 p["plan_mtime"] = self.plan_mtime()
                 p["plan_error"] = ""
+                p["verify"]["warnings"] = (
+                    getattr(self, "_plan_warnings", [])
+                    + p["verify"]["warnings"])
                 self._last_payload = p
                 return p
             except (ValueError, KeyError) as exc:
