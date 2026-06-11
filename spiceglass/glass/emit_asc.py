@@ -55,14 +55,46 @@ _ART["pnp"] = _ART["pmos"]
 _ART["npn"] = _ART["nmos"]
 
 
+def _custom_art(kind: str) -> list | None:
+    """Symbol-designer artwork (symbols.json) converted to LTspice
+    units — whatever you draw in /symbols ships into the .asy too.
+    Designer coords are px at 10 px/mm; LTspice gets S units/mm."""
+    from .symbols import lib
+    elems = lib().get(kind)
+    if not elems:
+        return None
+    k = S / 10.0
+    out = []
+    for e in elems:
+        if e.get("t") == "line":
+            out.append(("LINE", round(e["x1"] * k), round(e["y1"] * k),
+                        round(e["x2"] * k), round(e["y2"] * k)))
+        elif e.get("t") == "circle":
+            r = e["r"] * k
+            out.append(("CIRCLE", round(e["cx"] * k - r),
+                        round(e["cy"] * k - r),
+                        round(e["cx"] * k + r), round(e["cy"] * k + r)))
+    return out or None
+
+
 def _asy_for(kind: str, roles: list[str]) -> str:
     from .db import Device
     dev = Device(name="_", kind=kind, model="", nets=[""] * len(roles),
                  roles=list(roles))
     offs = pin_offsets(dev)
     lines = ["Version 4", "SymbolType CELL"]
-    for (x1, y1, x2, y2) in _ART.get(kind, [(-16, -16, 16, 16)]):
-        lines.append(f"LINE Normal {x1} {y1} {x2} {y2}")
+    custom = _custom_art(kind)
+    if custom:
+        for item in custom:
+            if item[0] == "LINE":
+                lines.append(f"LINE Normal {item[1]} {item[2]} "
+                             f"{item[3]} {item[4]}")
+            else:
+                lines.append(f"CIRCLE Normal {item[1]} {item[2]} "
+                             f"{item[3]} {item[4]}")
+    else:
+        for (x1, y1, x2, y2) in _ART.get(kind, [(-16, -16, 16, 16)]):
+            lines.append(f"LINE Normal {x1} {y1} {x2} {y2}")
     lines.append("WINDOW 0 28 -32 Left 2")
     for i, r in enumerate(roles, 1):
         dx, dy = offs[r]
