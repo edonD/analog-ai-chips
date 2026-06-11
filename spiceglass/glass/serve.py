@@ -167,6 +167,7 @@ class EditorState:
         return p
 
     def _payload(self, overrides, wires=None) -> dict:
+        from .render_svg import render_sections_svg
         from .route import tile_halfdims
         sub, sheet, routing, verdict = self.build(overrides, wires)
         devs = []
@@ -190,6 +191,7 @@ class EditorState:
                 "pre_segs": [list(p) for p in sheet.preroutes],
                 "dots": routing.dots,
                 "pinned": routing.pinned_nets,
+                "sections": render_sections_svg(sheet),
                 "furniture": render_furniture_svg(routing),
                 "verify": {"ok": verdict.ok, "errors": verdict.errors,
                            "warnings": (verdict.warnings + routing.warnings
@@ -278,6 +280,7 @@ class Handler(BaseHTTPRequestHandler):
                                    body.get("wires"))
             self._json({"paths": p["paths"], "pre_segs": p["pre_segs"],
                         "dots": p["dots"], "pinned": p["pinned"],
+                        "sections": p.get("sections", ""),
                         "furniture": p["furniture"], "verify": p["verify"],
                         "width": p["width"], "height": p["height"]})
             return

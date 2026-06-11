@@ -47,6 +47,8 @@
   #sheet line, #sheet polyline, #sheet path, #sheet rect, #sheet circle
     { stroke:#111; stroke-width:1.8; }
   #sheet .gdot { stroke:none !important; }
+  #sheet #secs rect { stroke:none !important; }
+  #sheet #secs text { stroke:none; }
   #sheet text { stroke:none; fill:#222; font-size:11px; }
   .name { font-weight:600; font-size:11px; }
   .param { fill:#666; font-size:9.5px; }
@@ -188,6 +190,7 @@ async function reroute() {
     paths = p.paths; preSegs = p.pre_segs; dotsArr = p.dots;
     pinned = new Set(p.pinned);
     document.getElementById("furn").innerHTML = p.furniture;
+    document.getElementById("secs").innerHTML = p.sections || "";
     drawWires();
     resize(p.width, p.height);
     setBadge(p.verify);
@@ -331,6 +334,7 @@ function build(p) {
     `<g id="gridrect"><rect width="100%" height="100%" fill="url(#dots1)"
        stroke="none"/><rect width="100%" height="100%" fill="url(#dots5)"
        stroke="none"/></g>` +
+    `<g id="secs">${p.sections || ""}</g>` +
     `<g id="wires"></g><g id="furn">${p.furniture}</g><g id="devlayer"></g>`;
   resize(p.width, p.height);
   drawWires();

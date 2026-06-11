@@ -253,6 +253,33 @@ def builtin_symbol_svg(dev: Device) -> str:
 
 # ------------------------------------------------------------ sheet
 
+def render_sections_svg(sheet: Sheet) -> str:
+    """Region shading + titles (shared by file render and the editor)."""
+    sub = sheet.sub
+    sec_bounds: dict[str, list[float]] = {}
+    for d in sub.devices:
+        p = sheet.pos(d)
+        px, py = _u(p.x), _u(p.y)
+        b = sec_bounds.setdefault(d.section or "", [px, py, px, py])
+        b[0] = min(b[0], px); b[1] = min(b[1], py)
+        b[2] = max(b[2], px); b[3] = max(b[3], py)
+    parts = []
+    si = 0
+    for sec in sub.sections:
+        if sec not in sec_bounds:
+            continue
+        x0, y0, x1, y1 = sec_bounds[sec]
+        fill = SECTION_FILLS[si % len(SECTION_FILLS)]
+        si += 1
+        parts.append(f'<rect x="{x0 - 72}" y="{y0 - 62}" '
+                     f'width="{x1 - x0 + 144}" height="{y1 - y0 + 124}" '
+                     f'rx="10" fill="{fill}" stroke="none" opacity="0.7"/>')
+        parts.append(f'<text x="{x0 - 66}" y="{y0 - 68}" class="sectitle" '
+                     'stroke="none" fill="#8a7340" font-size="11" '
+                     f'font-weight="600">{_esc(sec)}</text>')
+    return "".join(parts)
+
+
 def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
     from .geom import GRID_MM
     sub: Subckt = sheet.sub
@@ -289,25 +316,7 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
                  'fill="white" stroke="none"/>')
 
     # section shading (behind everything)
-    sec_bounds: dict[str, list[float]] = {}
-    for d in sub.devices:
-        p = sheet.pos(d)
-        px, py = _u(p.x), _u(p.y)
-        b = sec_bounds.setdefault(d.section or "", [px, py, px, py])
-        b[0] = min(b[0], px); b[1] = min(b[1], py)
-        b[2] = max(b[2], px); b[3] = max(b[3], py)
-    si = 0
-    for sec in sub.sections:
-        if sec not in sec_bounds:
-            continue
-        x0, y0, x1, y1 = sec_bounds[sec]
-        fill = SECTION_FILLS[si % len(SECTION_FILLS)]
-        si += 1
-        parts.append(f'<rect x="{x0 - 72}" y="{y0 - 62}" width="{x1 - x0 + 144}" '
-                     f'height="{y1 - y0 + 124}" rx="10" fill="{fill}" '
-                     'stroke="none" opacity="0.7"/>')
-        parts.append(f'<text x="{x0 - 66}" y="{y0 - 68}" class="sectitle">'
-                     f'{_esc(sec)}</text>')
+    parts.append(render_sections_svg(sheet))
 
     parts.append(render_wires_svg(routing))
     parts.append(render_furniture_svg(routing))
