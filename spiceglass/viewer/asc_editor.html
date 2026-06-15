@@ -32,7 +32,7 @@
        white-space:pre; overflow:auto; }
   #right{ flex:1; position:relative; background:#fff; }
   #cv{ position:absolute; inset:0; width:100%; height:100%; display:block;
-       cursor:default; touch-action:none; }
+       cursor:default; touch-action:none; outline:none; }
   #hint{ position:absolute; left:10px; bottom:8px; font-size:11px;
          color:#7a8290; background:#ffffffcc; padding:2px 7px;
          border-radius:4px; pointer-events:none; }
@@ -81,8 +81,8 @@
   <div id="left"><textarea id="ta" spellcheck="false" wrap="off"></textarea></div>
   <div class="drag" id="dragbar"></div>
   <div id="right">
-    <canvas id="cv"></canvas>
-    <div id="hint">drag to move · R/M rotate/mirror symbol · W draw wires · + Component to place · Del delete · Ctrl-Z undo · wheel zoom</div>
+    <canvas id="cv" tabindex="0"></canvas>
+    <div id="hint">drag to move · Space/R rotate · M mirror · W then drag to draw a wire · + Component to place · Del delete · Ctrl-Z undo · wheel zoom</div>
     <div id="warns"></div>
   </div>
 </div>
@@ -259,6 +259,7 @@ let drag=null;                      // active drag descriptor
 let mode="select";                  // "select" | "wire" | "place"
 let drawStart=null, drawCur=null;   // wire-draw in progress (world pts)
 let placeKind=null, placeOrient="R0", placeCur=null, placeNet=null;  // place mode
+let wireDownPt=null, wireJustStarted=false;   // wire press-drag tracking
 const W2S=(x,y)=>[x*cam.scale+cam.tx, y*cam.scale+cam.ty];
 const S2W=(x,y)=>[(x-cam.tx)/cam.scale, (y-cam.ty)/cam.scale];
 
@@ -557,6 +558,12 @@ function rotateSel(fn){
   const si=+sel.slice(1), d=scene.ast.insts[si];
   d.rot=fn(d.rot); rebuildLive(); setSymbolOrient(si,d.rot);
 }
+// rotate/mirror whichever symbol is active: the placement ghost, else
+// the current selection.
+function applyOrient(fn){
+  if(mode==="place"){ placeOrient=fn(placeOrient); render(); }
+  else rotateSel(fn);
+}
 
 // ---- placement: insert new SYMBOL / FLAG lines by clicking
 const _PFX={res:"R",cap:"C",ind:"L",diode:"D",nmos:"M",pmos:"M",npn:"Q",
@@ -579,6 +586,7 @@ function enterPlace(value){
       .catch(()=>{});
   }
   setMode("place");
+  palette.blur(); cv.focus();      // so Space/R/keys go to the canvas, not the menu
 }
 function placeAt(pt){
   const [x,y]=pt;
@@ -681,11 +689,11 @@ cv.addEventListener("pointerdown",e=>{
   const [wx,wy]=S2W(mx,my);
   // place mode: drop a new component where you click (chains until Esc)
   if(mode==="place"){ placeAt(nearestSnap(wx,wy)); return; }
-  // wire-draw mode: click to place vertices; chains from the last point.
+  // wire mode: press-drag draws one segment, or click-click chains vertices
   if(mode==="wire"){
     const pt=nearestSnap(wx,wy);
-    if(!drawStart){ drawStart=pt; drawCur=pt; }
-    else { addWires(orthoSegs(drawStart,pt)); drawStart=pt; drawCur=pt; }
+    if(!drawStart){ drawStart=pt; drawCur=pt; wireDownPt=[mx,my]; wireJustStarted=true; }
+    else { addWires(orthoSegs(drawStart,pt)); drawStart=pt; drawCur=pt; wireJustStarted=false; }
     render(); return;
   }
   const own = scene?hitOwner(wx,wy):null;
@@ -751,7 +759,19 @@ cv.addEventListener("pointermove",e=>{
 });
 cv.addEventListener("pointerup",e=>{
   cv.releasePointerCapture(e.pointerId);
-  cv.style.cursor="default";
+  const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  // wire mode: if the press was dragged, commit that segment and finish;
+  // a plain click leaves drawStart set for click-click chaining.
+  if(mode==="wire"){
+    if(drawStart && wireJustStarted && wireDownPt &&
+       Math.hypot(mx-wireDownPt[0],my-wireDownPt[1])>6){
+      const [wx,wy]=S2W(mx,my), pt=nearestSnap(wx,wy);
+      addWires(orthoSegs(drawStart,pt)); drawStart=null; drawCur=null;
+    }
+    wireJustStarted=false; cv.style.cursor="crosshair"; render(); return;
+  }
+  cv.style.cursor = mode==="place" ? "crosshair" : "default";
   if(drag && ptr && ptr.moved){
     if(drag.kind==="sym"){ const d=scene.ast.insts[drag.si];
       setSymbolPos(drag.si,d.x,d.y); }
@@ -804,8 +824,8 @@ function setMode(m){
                    palette.value=""; }
   wireBtn.style.background = m==="wire" ? "#3d7ad6" : "";
   cv.style.cursor = (m==="wire"||m==="place") ? "crosshair" : "default";
-  const msg = m==="wire" ? "wire: click to place, dbl-click/Esc to end"
-            : m==="place" ? "place: click to drop · R rotates · Esc done"
+  const msg = m==="wire" ? "wire: drag to draw a line (or click-click) · Esc to stop"
+            : m==="place" ? "place: click to drop · Space/R rotates · Esc done"
             : (dirty?"edited ·":"ready");
   setStatus(msg, m!=="select");
   render();
@@ -821,10 +841,10 @@ window.addEventListener("keydown",e=>{
   if(ctrl && k==="z" && !e.shiftKey){ e.preventDefault(); undo(); return; }
   if(ctrl && (k==="y" || (k==="z" && e.shiftKey))){ e.preventDefault(); redo(); return; }
   if(document.activeElement===ta) return;        // typing in the text pane
-  if(k==="w"){ setMode(mode==="wire"?"select":"wire"); }
-  else if(k==="r"){ if(mode==="place"){ placeOrient=rotCW(placeOrient); render(); }
-                    else rotateSel(rotCW); }
-  else if(k==="m"){ rotateSel(mirror); }
+  if(k===" "){ e.preventDefault(); applyOrient(rotCW); }   // Space = rotate 90°
+  else if(k==="w"){ setMode(mode==="wire"?"select":"wire"); }
+  else if(k==="r"){ applyOrient(rotCW); }
+  else if(k==="m"){ applyOrient(mirror); }
   else if(k==="escape"){ if(mode!=="select") setMode("select");
                          else selectOwner(null,false); }
   else if(k==="delete"||k==="backspace"){ e.preventDefault(); deleteSel(); }
