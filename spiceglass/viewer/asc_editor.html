@@ -82,7 +82,7 @@
   <div class="drag" id="dragbar"></div>
   <div id="right">
     <canvas id="cv" tabindex="0"></canvas>
-    <div id="hint">drag · Space/R rotate · M mirror · dbl-click to edit name/value/net · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
+    <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
     <div id="warns"></div>
   </div>
 </div>
@@ -254,8 +254,11 @@ function buildScene(ast, symlib){
 //============================================================ camera + render
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d",{alpha:false});
 let cam={scale:1,tx:0,ty:0}, scene=null, dpr=1;
-let sel=null;                       // selected owner id
+let selSet=new Set();               // selected owner ids (multi-select)
+let marquee=null;                   // rubber-band rect in world coords
 let drag=null;                      // active drag descriptor
+const selHas=o=>selSet.has(o);
+const selOne=()=>selSet.size===1?[...selSet][0]:null;
 let mode="select";                  // "select" | "wire" | "place"
 let drawStart=null, drawCur=null;   // wire-draw in progress (world pts)
 let placeKind=null, placeOrient="R0", placeCur=null, placeNet=null;  // place mode
@@ -396,24 +399,38 @@ function draw(){
     }
   }
 
-  // overlay: selection highlight (world coords, accent)
-  if(sel){
+  // overlay: selection highlight (world coords, accent) — every selected item
+  if(selSet.size){
     ctx.setLineDash([]); ctx.strokeStyle="#3d7ad6"; ctx.lineWidth=2/cam.scale;
-    if(sel[0]==="w"){
-      const w=scene.ast.wires[+sel.slice(1)];
-      if(w){
-        ctx.beginPath(); ctx.moveTo(w.x1,w.y1); ctx.lineTo(w.x2,w.y2);
-        ctx.stroke();
-        const hs=4.5/cam.scale; ctx.fillStyle="#fff";          // endpoint handles
-        for(const [hx,hy] of [[w.x1,w.y1],[w.x2,w.y2]]){
-          ctx.fillRect(hx-hs,hy-hs,2*hs,2*hs);
-          ctx.strokeRect(hx-hs,hy-hs,2*hs,2*hs);
-        }
+    const single=selSet.size===1;
+    for(const own of selSet){
+      if(own[0]==="w"){
+        const w=scene.ast.wires[+own.slice(1)]; if(!w)continue;
+        ctx.beginPath(); ctx.moveTo(w.x1,w.y1); ctx.lineTo(w.x2,w.y2); ctx.stroke();
+        if(single){ const hs=4.5/cam.scale; ctx.fillStyle="#fff";   // endpoint handles
+          for(const [hx,hy] of [[w.x1,w.y1],[w.x2,w.y2]]){
+            ctx.fillRect(hx-hs,hy-hs,2*hs,2*hs);
+            ctx.strokeRect(hx-hs,hy-hs,2*hs,2*hs); } }
+      }else if(own[0]==="s"){
+        const d=scene.ast.insts[+own.slice(1)];
+        if(d&&d._bbox){ const [bx,by,ex,ey]=d._bbox;
+          ctx.strokeRect(bx-3,by-3,ex-bx+6,ey-by+6); }
+      }else if(own[0]==="f"){
+        const f=scene.ast.flags[+own.slice(1)];
+        if(f) ctx.strokeRect(f.x-9,f.y-12,18,21);
+      }else if(own[0]==="t"){
+        const t=scene.ast.texts[+own.slice(1)];
+        if(t) ctx.strokeRect(t.x-2,t.y-14,8*t.txt.length+4,18);
       }
-    }else{
-      for(const i of vis){ const p=scene.P[i]; if(p.own!==sel)continue;
-        ctx.strokeRect(p.bx-2,p.by-2,(p.ex-p.bx)+4,(p.ey-p.by)+4); }
     }
+  }
+  // rubber-band marquee
+  if(marquee){
+    const x=Math.min(marquee.x0,marquee.x1), y=Math.min(marquee.y0,marquee.y1),
+          w=Math.abs(marquee.x1-marquee.x0), h=Math.abs(marquee.y1-marquee.y0);
+    ctx.setLineDash([4/cam.scale,3/cam.scale]); ctx.strokeStyle="#3d7ad6";
+    ctx.lineWidth=1/cam.scale; ctx.fillStyle="rgba(61,122,214,0.08)";
+    ctx.fillRect(x,y,w,h); ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
   }
 
   // wire-draw preview (orthogonal, dashed) + start marker
@@ -541,7 +558,7 @@ function syncFromCaret(){
 let undoStack=[], redoStack=[];
 function pushUndo(state){ undoStack.push(state);
   if(undoStack.length>100) undoStack.shift(); redoStack=[]; }
-function applyRaw(s){ raw=s; sel=null; origin="graphics"; ta.value=raw;
+function applyRaw(s){ raw=s; selSet.clear(); origin="graphics"; ta.value=raw;
   origin=null; markDirty(); reparse(); }
 function undo(){ if(!undoStack.length)return; redoStack.push(raw);
   applyRaw(undoStack.pop()); }
@@ -553,10 +570,56 @@ function rotCW(rot){ const m=rot[0]==="M", n=(parseInt(rot.slice(1),10)||0);
   return (m?"M":"R")+((n+90)%360); }
 function mirror(rot){ const m=rot[0]==="M", n=(parseInt(rot.slice(1),10)||0);
   return (m?"R":"M")+n; }
-function rotateSel(fn){
-  if(!sel||sel[0]!=="s") return;
-  const si=+sel.slice(1), d=scene.ast.insts[si];
-  d.rot=fn(d.rot); rebuildLive(); setSymbolOrient(si,d.rot);
+function rotateSel(fn){            // rotate/mirror every selected symbol at once
+  const syms=[...selSet].filter(o=>o[0]==="s");
+  if(!syms.length) return;
+  const lines=raw.split("\n");
+  for(const o of syms){ const d=scene.ast.insts[+o.slice(1)];
+    const m=lines[d.line].match(/^(\s*SYMBOL\s+\S+\s+-?\d+\s+-?\d+\s+)(\S+)(.*)$/);
+    if(m) lines[d.line]=m[1]+fn(d.rot)+m[3]; }
+  commitText(lines.join("\n"));
+}
+// move every selected entity by the same grid-snapped delta, in one undo step
+function startGroupDrag(wx,wy){
+  const items=[];
+  for(const o of selSet){
+    if(o[0]==="s"){ const d=scene.ast.insts[+o.slice(1)]; items.push({o,ox:d.x,oy:d.y}); }
+    else if(o[0]==="f"){ const f=scene.ast.flags[+o.slice(1)]; items.push({o,ox:f.x,oy:f.y}); }
+    else if(o[0]==="t"){ const t=scene.ast.texts[+o.slice(1)]; items.push({o,ox:t.x,oy:t.y}); }
+    else if(o[0]==="w"){ const w=scene.ast.wires[+o.slice(1)];
+      items.push({o,ox1:w.x1,oy1:w.y1,ox2:w.x2,oy2:w.y2}); }
+  }
+  return {kind:"group", items, wx, wy};
+}
+function commitGroup(){
+  const lines=raw.split("\n");
+  for(const o of selSet){
+    if(o[0]==="s"){ const d=scene.ast.insts[+o.slice(1)];
+      const m=lines[d.line].match(/^(\s*SYMBOL\s+\S+\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
+      if(m) lines[d.line]=m[1]+d.x+m[3]+d.y+m[5]; }
+    else if(o[0]==="w"){ const w=scene.ast.wires[+o.slice(1)];
+      const m=lines[w.line].match(/^(\s*WIRE\s+)(-?\d+)(\s+)(-?\d+)(\s+)(-?\d+)(\s+)(-?\d+)\s*$/);
+      if(m) lines[w.line]=m[1]+w.x1+m[3]+w.y1+m[5]+w.x2+m[7]+w.y2; }
+    else if(o[0]==="f"){ const f=scene.ast.flags[+o.slice(1)];
+      const m=lines[f.line].match(/^(\s*FLAG\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
+      if(m) lines[f.line]=m[1]+f.x+m[3]+f.y+m[5]; }
+    else if(o[0]==="t"){ const t=scene.ast.texts[+o.slice(1)];
+      const m=lines[t.line].match(/^(\s*TEXT\s+)(-?\d+)(\s+)(-?\d+)(\s+.*)$/);
+      if(m) lines[t.line]=m[1]+t.x+m[3]+t.y+m[5]; }
+  }
+  commitText(lines.join("\n"));
+}
+function finalizeMarquee(){
+  if(!marquee||!scene) return;
+  const x0=Math.min(marquee.x0,marquee.x1), x1=Math.max(marquee.x0,marquee.x1),
+        y0=Math.min(marquee.y0,marquee.y1), y1=Math.max(marquee.y0,marquee.y1);
+  const hit=(bx,by,ex,ey)=>!(ex<x0||bx>x1||ey<y0||by>y1);
+  scene.ast.insts.forEach((d,i)=>{ const b=d._bbox;
+    if(b&&hit(b[0],b[1],b[2],b[3])) selSet.add("s"+i); });
+  scene.ast.wires.forEach((w,i)=>{ if(hit(Math.min(w.x1,w.x2),Math.min(w.y1,w.y2),
+    Math.max(w.x1,w.x2),Math.max(w.y1,w.y2))) selSet.add("w"+i); });
+  scene.ast.flags.forEach((f,i)=>{ if(hit(f.x-2,f.y-2,f.x+2,f.y+2)) selSet.add("f"+i); });
+  scene.ast.texts.forEach((t,i)=>{ if(hit(t.x-2,t.y-14,t.x+2,t.y)) selSet.add("t"+i); });
 }
 // rotate/mirror whichever symbol is active: the placement ghost, else
 // the current selection.
@@ -568,11 +631,12 @@ function applyOrient(fn){
 // ---- placement: insert new SYMBOL / FLAG lines by clicking
 const _PFX={res:"R",cap:"C",ind:"L",diode:"D",nmos:"M",pmos:"M",npn:"Q",
             pnp:"Q",voltage:"V",current:"I",opamp:"U"};
-function autoName(name){
+function instNames(){ return scene.ast.insts.map(d=>d.attrs.InstName||""); }
+function autoName(name, names){
+  names=names||instNames();
   const base=name.split("\\").pop().toLowerCase(), p=_PFX[base]||"X";
   let mx=0; const re=new RegExp("^"+p+"(\\d+)$");
-  for(const d of scene.ast.insts){ const m=(d.attrs.InstName||"").match(re);
-    if(m) mx=Math.max(mx,+m[1]); }
+  for(const nm of names){ const m=(nm||"").match(re); if(m) mx=Math.max(mx,+m[1]); }
   return p+(mx+1);
 }
 function enterPlace(value){
@@ -648,50 +712,61 @@ function addWires(segs){
     .map(([a,b,c,d])=>`WIRE ${a} ${b} ${c} ${d}`);
   if(add.length) addLines(add);
 }
+function ownerRange(o){           // [firstLine,lastLine] of an entity
+  if(o[0]==="w") return [scene.ast.wires[+o.slice(1)].line, scene.ast.wires[+o.slice(1)].line];
+  if(o[0]==="f") return [scene.ast.flags[+o.slice(1)].line, scene.ast.flags[+o.slice(1)].line];
+  if(o[0]==="t") return [scene.ast.texts[+o.slice(1)].line, scene.ast.texts[+o.slice(1)].line];
+  const d=scene.ast.insts[+o.slice(1)]; return [d.line, d.endLine];
+}
 function deleteSel(){
-  if(!sel||!scene) return;
-  let a=-1,b=-1;
-  if(sel[0]==="w"){ a=b=scene.ast.wires[+sel.slice(1)].line; }
-  else if(sel[0]==="f"){ a=b=scene.ast.flags[+sel.slice(1)].line; }
-  else if(sel[0]==="t"){ a=b=scene.ast.texts[+sel.slice(1)].line; }
-  else if(sel[0]==="s"){ const d=scene.ast.insts[+sel.slice(1)];
-    a=d.line; b=d.endLine; }
-  if(a<0) return;
-  const lines=raw.split("\n"); lines.splice(a,b-a+1);
-  sel=null; commitText(lines.join("\n"));
+  if(!selSet.size||!scene) return;
+  const ranges=[...selSet].map(ownerRange).sort((a,b)=>b[0]-a[0]); // bottom-up
+  const lines=raw.split("\n");
+  for(const [a,b] of ranges) lines.splice(a,b-a+1);
+  selSet.clear(); commitText(lines.join("\n"));
 }
 
-// ---- copy / paste / duplicate (symbols and flags)
+// ---- copy / paste / duplicate (symbols, flags, wires — whole selection)
 let clip=null;
 function copySel(){
-  if(!sel||!scene) return;
-  const L=raw.split("\n");
-  if(sel[0]==="s"){ const d=scene.ast.insts[+sel.slice(1)];
-    clip={kind:"s", lines:L.slice(d.line,d.endLine+1)}; setStatus("copied",false); }
-  else if(sel[0]==="f"){ const f=scene.ast.flags[+sel.slice(1)];
-    clip={kind:"f", lines:[L[f.line]]}; setStatus("copied",false); }
+  if(!selSet.size||!scene) return;
+  const L=raw.split("\n"), blocks=[];
+  for(const o of selSet){
+    if(o[0]==="s"){ const d=scene.ast.insts[+o.slice(1)];
+      blocks.push({k:"s", lines:L.slice(d.line,d.endLine+1)}); }
+    else if(o[0]==="f"){ blocks.push({k:"f", lines:[L[scene.ast.flags[+o.slice(1)].line]]}); }
+    else if(o[0]==="w"){ blocks.push({k:"w", lines:[L[scene.ast.wires[+o.slice(1)].line]]}); }
+  }
+  clip=blocks; setStatus(`copied ${blocks.length}`,false);
+}
+function offsetLine(L,dx,dy){       // shift the coords of a SYMBOL/FLAG/WIRE line
+  let m;
+  if(m=L.match(/^(\s*SYMBOL\s+\S+\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/))
+    return m[1]+(+m[2]+dx)+m[3]+(+m[4]+dy)+m[5];
+  if(m=L.match(/^(\s*FLAG\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/))
+    return m[1]+(+m[2]+dx)+m[3]+(+m[4]+dy)+m[5];
+  if(m=L.match(/^(\s*WIRE\s+)(-?\d+)(\s+)(-?\d+)(\s+)(-?\d+)(\s+)(-?\d+)\s*$/))
+    return m[1]+(+m[2]+dx)+m[3]+(+m[4]+dy)+m[5]+(+m[6]+dx)+m[7]+(+m[8]+dy);
+  return L;
 }
 function pasteClip(dx=SNAP*2, dy=SNAP*2){
-  if(!clip) return;
-  let block=clip.lines.slice();
-  if(clip.kind==="s"){
-    block=block.map(L=>{ const m=L.match(
-        /^(\s*SYMBOL\s+\S+\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
-      return m ? m[1]+(+m[2]+dx)+m[3]+(+m[4]+dy)+m[5] : L; });
-    const symLine=block.find(L=>/^\s*SYMBOL\s/.test(L));
-    const nm=symLine && symLine.match(/^\s*SYMBOL\s+(\S+)/);
-    if(nm){ const nn=autoName(nm[1]); let done=false;
-      for(let i=0;i<block.length;i++){
-        if(/^\s*SYMATTR\s+InstName\s/.test(block[i])){
-          block[i]=block[i].replace(/(SYMATTR\s+InstName\s+).*/,"$1"+nn);
-          done=true; break; } }
-      if(!done) block.push(`SYMATTR InstName ${nn}`); }
-  }else{                                         // flag
-    block=block.map(L=>{ const m=L.match(
-        /^(\s*FLAG\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
-      return m ? m[1]+(+m[2]+dx)+m[3]+(+m[4]+dy)+m[5] : L; });
+  if(!clip||!clip.length) return;
+  const names=instNames(), out=[];
+  for(const b of clip){
+    const block=b.lines.map(L=>offsetLine(L,dx,dy));
+    if(b.k==="s"){
+      const sl=block.find(L=>/^\s*SYMBOL\s/.test(L));
+      const nm=sl && sl.match(/^\s*SYMBOL\s+(\S+)/);
+      if(nm){ const nn=autoName(nm[1],names); names.push(nn); let done=false;
+        for(let i=0;i<block.length;i++){
+          if(/^\s*SYMATTR\s+InstName\s/.test(block[i])){
+            block[i]=block[i].replace(/(SYMATTR\s+InstName\s+).*/,"$1"+nn);
+            done=true; break; } }
+        if(!done) block.push(`SYMATTR InstName ${nn}`); }
+    }
+    out.push(...block);
   }
-  addLines(block);
+  addLines(out);
 }
 
 // ---- double-click to edit a symbol's name/value, or rename a net
@@ -727,8 +802,12 @@ function editFlag(fi){
   commitText(lines.join("\n"));
 }
 
+function toggleSel(own){
+  if(selSet.has(own)) selSet.delete(own); else selSet.add(own);
+  render();
+}
 function selectOwner(own,scrollText){
-  sel=own; render();
+  selSet.clear(); if(own) selSet.add(own); render();
   if(scrollText && own){
     let ln=-1, len=0;
     if(own[0]==="s"){ const d=scene.ast.insts[+own.slice(1)]; ln=d.line;
@@ -764,33 +843,29 @@ cv.addEventListener("pointerdown",e=>{
   }
   const own = scene?hitOwner(wx,wy):null;
   ptr={x:e.clientX,y:e.clientY,wx,wy,moved:false};
-  // grab a selected wire's endpoint handle? (screen-space tolerance)
-  if(sel && sel[0]==="w"){
-    const w=scene.ast.wires[+sel.slice(1)];
-    if(w){
-      const [a1,b1]=W2S(w.x1,w.y1), [a2,b2]=W2S(w.x2,w.y2);
+  // Shift = multi-select: toggle an item, or rubber-band over empty space
+  if(e.shiftKey){
+    if(own){ toggleSel(own); drag=null; ptr=null; return; }
+    marquee={x0:wx,y0:wy,x1:wx,y1:wy}; drag={kind:"marquee"}; return;
+  }
+  // grab a selected wire's endpoint handle? (only when a single wire is selected)
+  const sw=selOne();
+  if(sw && sw[0]==="w"){
+    const w=scene.ast.wires[+sw.slice(1)];
+    if(w){ const [a1,b1]=W2S(w.x1,w.y1), [a2,b2]=W2S(w.x2,w.y2);
       if(Math.hypot(mx-a1,my-b1)<=9){
-        drag={kind:"wend",wi:+sel.slice(1),end:1,ox:w.x1,oy:w.y1,wx,wy};
+        drag={kind:"wend",wi:+sw.slice(1),end:1,ox:w.x1,oy:w.y1,wx,wy};
         cv.style.cursor="grabbing"; return; }
       if(Math.hypot(mx-a2,my-b2)<=9){
-        drag={kind:"wend",wi:+sel.slice(1),end:2,ox:w.x2,oy:w.y2,wx,wy};
-        cv.style.cursor="grabbing"; return; }
-    }
+        drag={kind:"wend",wi:+sw.slice(1),end:2,ox:w.x2,oy:w.y2,wx,wy};
+        cv.style.cursor="grabbing"; return; } }
   }
-  if(own && own[0]==="s"){ selectOwner(own,true);
-    const d=scene.ast.insts[+own.slice(1)];
-    drag={kind:"sym",si:+own.slice(1),ox:d.x,oy:d.y,wx,wy};
-    cv.style.cursor="grabbing";
-  }else if(own && own[0]==="w"){ selectOwner(own,true);
-    const w=scene.ast.wires[+own.slice(1)];
-    drag={kind:"wire",wi:+own.slice(1),ox1:w.x1,oy1:w.y1,ox2:w.x2,oy2:w.y2,wx,wy};
-    cv.style.cursor="grabbing";
-  }else if(own && own[0]==="f"){ selectOwner(own,true);
-    const f=scene.ast.flags[+own.slice(1)];
-    drag={kind:"flag",fi:+own.slice(1),ox:f.x,oy:f.y,wx,wy};
+  if(own){
+    if(!selHas(own)) selectOwner(own,true);    // click outside selection -> single
+    drag=startGroupDrag(wx,wy);                 // move the whole selection together
     cv.style.cursor="grabbing";
   }else{
-    if(own) selectOwner(own,true); else selectOwner(null,false);
+    selectOwner(null,false);
     drag={kind:"pan",tx:cam.tx,ty:cam.ty,sx:e.clientX,sy:e.clientY};
   }
 });
@@ -805,16 +880,19 @@ cv.addEventListener("pointermove",e=>{
     cam.tx=drag.tx+(e.clientX-drag.sx); cam.ty=drag.ty+(e.clientY-drag.sy);
     render(); return;
   }
+  if(drag.kind==="marquee"){ marquee.x1=wx; marquee.y1=wy; render(); return; }
   const dx=snap(wx-drag.wx), dy=snap(wy-drag.wy);
-  if(drag.kind==="sym"){
-    const d=scene.ast.insts[drag.si]; d.x=drag.ox+dx; d.y=drag.oy+dy;
-    rebuildLive();
-  }else if(drag.kind==="flag"){
-    const f=scene.ast.flags[drag.fi]; f.x=drag.ox+dx; f.y=drag.oy+dy;
-    rebuildLive();
-  }else if(drag.kind==="wire"){
-    const w=scene.ast.wires[drag.wi];
-    w.x1=drag.ox1+dx; w.y1=drag.oy1+dy; w.x2=drag.ox2+dx; w.y2=drag.oy2+dy;
+  if(drag.kind==="group"){
+    for(const it of drag.items){
+      if(it.o[0]==="s"){ const d=scene.ast.insts[+it.o.slice(1)];
+        d.x=it.ox+dx; d.y=it.oy+dy; }
+      else if(it.o[0]==="f"){ const f=scene.ast.flags[+it.o.slice(1)];
+        f.x=it.ox+dx; f.y=it.oy+dy; }
+      else if(it.o[0]==="t"){ const t=scene.ast.texts[+it.o.slice(1)];
+        t.x=it.ox+dx; t.y=it.oy+dy; }
+      else if(it.o[0]==="w"){ const w=scene.ast.wires[+it.o.slice(1)];
+        w.x1=it.ox1+dx; w.y1=it.oy1+dy; w.x2=it.ox2+dx; w.y2=it.oy2+dy; }
+    }
     rebuildLive();
   }else if(drag.kind==="wend"){
     const w=scene.ast.wires[drag.wi];
@@ -838,14 +916,11 @@ cv.addEventListener("pointerup",e=>{
     wireJustStarted=false; cv.style.cursor="crosshair"; render(); return;
   }
   cv.style.cursor = mode==="place" ? "crosshair" : "default";
-  if(drag && ptr && ptr.moved){
-    if(drag.kind==="sym"){ const d=scene.ast.insts[drag.si];
-      setSymbolPos(drag.si,d.x,d.y); }
-    else if(drag.kind==="flag"){ const f=scene.ast.flags[drag.fi];
-      setFlagPos(drag.fi,f.x,f.y); }
-    else if(drag.kind==="wire"||drag.kind==="wend"){
-      const w=scene.ast.wires[drag.wi];
-      setWireEnds(drag.wi,w.x1,w.y1,w.x2,w.y2); }
+  if(drag){
+    if(drag.kind==="marquee"){ finalizeMarquee(); marquee=null; render(); }
+    else if(drag.kind==="group" && ptr && ptr.moved){ commitGroup(); }
+    else if(drag.kind==="wend" && ptr && ptr.moved){
+      const w=scene.ast.wires[drag.wi]; setWireEnds(drag.wi,w.x1,w.y1,w.x2,w.y2); }
   }
   drag=null; ptr=null;
 });
@@ -980,7 +1055,7 @@ document.getElementById("fileinput").addEventListener("change",async ev=>{
 //============================================================ boot
 function applyBootstrap(data){
   raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
-  ta.value=raw; symlib=data.symbols||{}; sel=null;
+  ta.value=raw; symlib=data.symbols||{}; selSet.clear();
   const note=document.getElementById("srcnote");
   note.textContent = (data.converted && data.source)
     ? `converted from ${data.source} → ${data.file}` : "";
