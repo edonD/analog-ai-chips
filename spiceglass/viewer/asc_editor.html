@@ -82,7 +82,7 @@
   <div class="drag" id="dragbar"></div>
   <div id="right">
     <canvas id="cv" tabindex="0"></canvas>
-    <div id="hint">drag to move · Space/R rotate · M mirror · W then drag to draw a wire · + Component to place · Del delete · Ctrl-Z undo · wheel zoom</div>
+    <div id="hint">drag · Space/R rotate · M mirror · dbl-click to edit name/value/net · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
     <div id="warns"></div>
   </div>
 </div>
@@ -661,6 +661,72 @@ function deleteSel(){
   sel=null; commitText(lines.join("\n"));
 }
 
+// ---- copy / paste / duplicate (symbols and flags)
+let clip=null;
+function copySel(){
+  if(!sel||!scene) return;
+  const L=raw.split("\n");
+  if(sel[0]==="s"){ const d=scene.ast.insts[+sel.slice(1)];
+    clip={kind:"s", lines:L.slice(d.line,d.endLine+1)}; setStatus("copied",false); }
+  else if(sel[0]==="f"){ const f=scene.ast.flags[+sel.slice(1)];
+    clip={kind:"f", lines:[L[f.line]]}; setStatus("copied",false); }
+}
+function pasteClip(dx=SNAP*2, dy=SNAP*2){
+  if(!clip) return;
+  let block=clip.lines.slice();
+  if(clip.kind==="s"){
+    block=block.map(L=>{ const m=L.match(
+        /^(\s*SYMBOL\s+\S+\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
+      return m ? m[1]+(+m[2]+dx)+m[3]+(+m[4]+dy)+m[5] : L; });
+    const symLine=block.find(L=>/^\s*SYMBOL\s/.test(L));
+    const nm=symLine && symLine.match(/^\s*SYMBOL\s+(\S+)/);
+    if(nm){ const nn=autoName(nm[1]); let done=false;
+      for(let i=0;i<block.length;i++){
+        if(/^\s*SYMATTR\s+InstName\s/.test(block[i])){
+          block[i]=block[i].replace(/(SYMATTR\s+InstName\s+).*/,"$1"+nn);
+          done=true; break; } }
+      if(!done) block.push(`SYMATTR InstName ${nn}`); }
+  }else{                                         // flag
+    block=block.map(L=>{ const m=L.match(
+        /^(\s*FLAG\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
+      return m ? m[1]+(+m[2]+dx)+m[3]+(+m[4]+dy)+m[5] : L; });
+  }
+  addLines(block);
+}
+
+// ---- double-click to edit a symbol's name/value, or rename a net
+function editSymbol(si){
+  const d=scene.ast.insts[si];
+  const nm=prompt("Instance name:", d.attrs.InstName||autoName(d.sym));
+  if(nm===null) return;
+  const val=prompt("Value / model (blank = none):", d.attrs.Value||"");
+  if(val===null) return;
+  const lines=raw.split("\n");
+  const block=lines.slice(d.line,d.endLine+1).filter(L=>{
+    const t=L.trim().split(/\s+/);
+    return !(t[0]==="SYMATTR" && (t[1]==="InstName"||t[1]==="Value")); });
+  if(nm.trim()) block.push(`SYMATTR InstName ${nm.trim()}`);
+  if(val.trim()) block.push(`SYMATTR Value ${val.trim()}`);
+  lines.splice(d.line, d.endLine-d.line+1, ...block);
+  commitText(lines.join("\n"));
+}
+function editFlag(fi){
+  const f=scene.ast.flags[fi];
+  const nv=prompt("Net name (0 = ground):", f.name);
+  if(nv===null || !nv.trim()) return;
+  const nn=nv.trim();
+  const same=scene.ast.flags.filter(g=>g.name===f.name);
+  const targets=(same.length>1 &&
+      confirm(`Rename all ${same.length} "${f.name}" labels to "${nn}"?`+
+              `\n(Cancel = just this one)`)) ? same : [f];
+  const lines=raw.split("\n");
+  for(const g of targets){
+    const m=lines[g.line].match(/^(\s*FLAG\s+-?\d+\s+-?\d+\s+)(\S+)(.*)$/);
+    if(m) lines[g.line]=m[1]+nn+m[3];
+  }
+  commitText(lines.join("\n"));
+}
+
 function selectOwner(own,scrollText){
   sel=own; render();
   if(scrollText && own){
@@ -783,8 +849,16 @@ cv.addEventListener("pointerup",e=>{
   }
   drag=null; ptr=null;
 });
-// double-click / right-click ends the current wire chain
-cv.addEventListener("dblclick",()=>{ if(mode==="wire"){ drawStart=null; render(); } });
+// double-click: end a wire chain, or edit the entity under the cursor
+cv.addEventListener("dblclick",e=>{
+  if(mode==="wire"){ drawStart=null; render(); return; }
+  if(mode!=="select"||!scene) return;
+  const r=cv.getBoundingClientRect();
+  const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
+  const own=hitOwner(wx,wy);
+  if(own&&own[0]==="s") editSymbol(+own.slice(1));
+  else if(own&&own[0]==="f") editFlag(+own.slice(1));
+});
 cv.addEventListener("contextmenu",e=>{ if(mode==="wire"){
   e.preventDefault(); drawStart=null; render(); } });
 // live rebuild during drag (cheap: same scene rebuild, culled draw)
@@ -841,6 +915,9 @@ window.addEventListener("keydown",e=>{
   if(ctrl && k==="z" && !e.shiftKey){ e.preventDefault(); undo(); return; }
   if(ctrl && (k==="y" || (k==="z" && e.shiftKey))){ e.preventDefault(); redo(); return; }
   if(document.activeElement===ta) return;        // typing in the text pane
+  if(ctrl && k==="c"){ e.preventDefault(); copySel(); return; }
+  if(ctrl && k==="v"){ e.preventDefault(); pasteClip(); return; }
+  if(ctrl && k==="d"){ e.preventDefault(); copySel(); pasteClip(); return; }
   if(k===" "){ e.preventDefault(); applyOrient(rotCW); }   // Space = rotate 90°
   else if(k==="w"){ setMode(mode==="wire"?"select":"wire"); }
   else if(k==="r"){ applyOrient(rotCW); }
