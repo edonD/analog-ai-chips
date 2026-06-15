@@ -18,6 +18,9 @@
           padding:5px 10px; font-size:12px; cursor:pointer; }
   button:hover{ background:#4a515d; }
   #status{ font-size:12px; color:#9fb6a3; min-width:120px; text-align:right; }
+  #files{ background:#16181c; color:#d8dee7; border:1px solid #3a3f48;
+          border-radius:5px; padding:4px 6px; font-size:12px; max-width:340px; }
+  #srcnote{ font-size:11px; color:#caa23a; }
   #wrap{ display:flex; height:calc(100% - 37px); }
   #left{ width:42%; min-width:240px; display:flex; flex-direction:column;
          border-right:1px solid #11131699; }
@@ -40,8 +43,14 @@
 </head>
 <body>
 <div id="bar">
-  <b>SpiceGlass</b><span>·</span><span id="fname">.asc</span>
+  <b>SpiceGlass</b>
+  <select id="files" title="open a file from the repo"></select>
+  <button id="upload">Upload…</button>
+  <input id="fileinput" type="file" accept=".asc,.cir,.spice,.sp,.plan" hidden>
+  <span id="srcnote"></span>
   <span class="sp"></span>
+  <a href="/symbols" target="_blank" style="color:#9fb6a3;font-size:12px;
+     text-decoration:none;margin-right:6px">Symbols ↗</a>
   <button id="fit">Fit ⤢</button>
   <button id="save">Save (Ctrl-S)</button>
   <span id="status">ready</span>
@@ -541,15 +550,60 @@ window.addEventListener("keydown",e=>{
   bar.addEventListener("pointerup",e=>{down=false;});
 })();
 
+//============================================================ files
+const filesSel=document.getElementById("files");
+async function loadFileList(current){
+  try{
+    const d=await (await fetch("/api/files")).json();
+    filesSel.innerHTML="<option value=''>— open a file —</option>"+
+      (d.files||[]).map(f=>`<option value="${f.replace(/"/g,'&quot;')}"`+
+        (f===current?" selected":"")+`>${f}</option>`).join("");
+  }catch(e){}
+}
+filesSel.addEventListener("change",()=>{
+  if(filesSel.value) openPath(filesSel.value);
+});
+async function openPath(path){
+  setStatus("opening…",false);
+  try{
+    const d=await (await fetch("/api/open",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({path})})).json();
+    if(d.error){ setStatus(d.error,true); return; }
+    applyBootstrap(d);
+  }catch(e){ setStatus("open failed",true); }
+}
+document.getElementById("upload").onclick=()=>document.getElementById("fileinput").click();
+document.getElementById("fileinput").addEventListener("change",async ev=>{
+  const f=ev.target.files[0]; if(!f) return;
+  const content=await f.text();
+  setStatus("uploading…",false);
+  try{
+    const d=await (await fetch("/api/upload",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:f.name,content})})).json();
+    if(d.error){ setStatus(d.error,true); return; }
+    applyBootstrap(d); loadFileList();
+  }catch(e){ setStatus("upload failed",true); }
+  ev.target.value="";
+});
+
 //============================================================ boot
+function applyBootstrap(data){
+  raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
+  ta.value=raw; symlib=data.symbols||{}; sel=null;
+  const note=document.getElementById("srcnote");
+  note.textContent = (data.converted && data.source)
+    ? `converted from ${data.source} → ${data.file}` : "";
+  scene=buildScene(parseAsc(raw),symlib);
+  resize(); fit(); showWarnings(scene.ast);
+  setStatus(data.file?"ready":"no file — pick one",false);
+}
 window.addEventListener("resize",resize);
 async function boot(){
-  const r=await fetch("/api/asc"); const data=await r.json();
-  document.getElementById("fname").textContent=data.file;
-  raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
-  ta.value=raw; symlib=data.symbols||{};
-  scene=buildScene(parseAsc(raw),symlib);
-  resize(); fit(); showWarnings(scene.ast); setStatus("ready",false);
+  const data=await (await fetch("/api/asc")).json();
+  applyBootstrap(data);
+  loadFileList(data.rel);
 }
 boot();
 </script>

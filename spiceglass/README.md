@@ -36,17 +36,27 @@ Status: **M0 complete** (program.md has the full M0–M5 roadmap).
   during M0 bring-up this caught a real router short (stacked subckt-box
   pins) that was invisible to the eye.
 
-## Interactive editor
+## Interactive editor (the web app)
 
-`python -m glass edit design.cir` — browser editor with: device dragging
-(R rotate / M mirror), **draggable wire segments** (grab any middle
-segment; double-click a wire to add a jog; hand-edited nets are pinned,
-drawn blue, persisted in the sidecar and respected by the router), grid
-dots, live re-route + re-verify on every drop, an `/algo` page that
-visualizes the routing pipeline (visibility graph, A* replay, nudging),
-and a `/symbols` page — a pixel-style half-unit-grid symbol designer
-(pins fixed by the grid contract, artwork yours; saved to symbols.json
-and used by every renderer).
+`python -m glass edit` — one browser app. **`.asc` (LTspice's format) is
+the hub**: a text pane and a Canvas2D schematic that **edit each other
+interchangeably** — type a line and the drawing updates; drag a symbol or
+wire and exactly that line rewrites itself (cursor kept, one undo step).
+The text buffer is the single source of truth (see
+`../research/asc-web-renderer.md`); the renderer keeps a retained
+world-space display list with viewport culling, so pan/zoom stays smooth
+into the thousands of symbols.
+
+Open a `.cir`/`.spice`/`.plan` and it is **converted to `.asc`**
+(place → route → emit) next to the source, then edited like any other
+sheet — the deterministic placement/routing engine is the converter.
+Pick files from the in-app dropdown or **Upload…**; `Ctrl-S` saves the
+`.asc` to disk. A `/symbols` page — a pixel-style half-unit-grid symbol
+designer (pins fixed by the grid contract, artwork yours; saved to
+symbols.json and used by every renderer) — rounds it out.
+
+`python -m glass edit design.cir` opens straight into a converted sheet;
+double-click `SpiceGlass.bat` to launch with the in-app file picker.
 
 ## Usage
 

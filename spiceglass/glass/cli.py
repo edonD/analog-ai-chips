@@ -110,9 +110,10 @@ def main(argv: list[str] | None = None) -> int:
     jp = sp.add_parser("json", help="dump the circuit database as JSON")
     jp.add_argument("file")
 
-    ep = sp.add_parser("edit", help="interactive editor in the browser")
-    ep.add_argument("file")
-    ep.add_argument("--subckt", default=None)
+    ep = sp.add_parser("edit", help="the web app: .asc editor (a .cir/.plan "
+                                    "is converted to .asc on open)")
+    ep.add_argument("file", nargs="?", default=None,
+                    help="optional; omit to start with the in-app file picker")
     ep.add_argument("--port", type=int, default=8137)
     ep.add_argument("--no-browser", action="store_true")
 
@@ -133,14 +134,7 @@ def main(argv: list[str] | None = None) -> int:
     dpp.add_argument("--file", default=None,
                      help="netlist (default: from the plan header)")
 
-    sp.add_parser("gui", help="launcher window (pick file, start/stop "
-                              "server, open views)")
-
     args = ap.parse_args(argv)
-
-    if args.cmd == "gui":
-        from .gui import main as gui_main
-        return gui_main()
 
     if args.cmd == "plan":
         from .plan import plan_for
@@ -199,41 +193,15 @@ def main(argv: list[str] | None = None) -> int:
                          sheet=sheet, asc=args.asc)
         return 0 if ok else 1
 
-    if args.cmd == "edit" and args.file.lower().endswith(".asc"):
-        from .serve_asc import serve_asc
-        if not args.no_browser:
-            import threading
-            import webbrowser
-            threading.Timer(
-                0.8, lambda: webbrowser.open(
-                    f"http://127.0.0.1:{args.port}/")).start()
-        serve_asc(args.file, args.port)
-        return 0
-
     if args.cmd == "edit":
-        from .serve import serve
-        plan_path = None
-        file = args.file
-        subckt = args.subckt
-        if file.lower().endswith(".plan"):
-            from .plan import parse_plan
-            with open(file, encoding="utf-8") as fh:
-                plan = parse_plan(fh.read())
-            plan_path = file
-            cands = [os.path.join(os.path.dirname(os.path.abspath(file)),
-                                  plan.source), plan.source]
-            file = next((c for c in cands if os.path.exists(c)), None)
-            if file is None:
-                print(f"cannot find netlist '{plan.source}' next to the plan")
-                return 2
-            subckt = plan.name or subckt
+        from .serve_asc import serve
         if not args.no_browser:
             import threading
             import webbrowser
             threading.Timer(
                 0.8, lambda: webbrowser.open(
                     f"http://127.0.0.1:{args.port}/")).start()
-        serve(file, subckt, args.port, plan_path)
+        serve(args.file, args.port)
         return 0
 
     if args.cmd == "diff-plan":
