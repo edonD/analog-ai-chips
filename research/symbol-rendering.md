@@ -61,8 +61,18 @@ specialized parts (Gain block, NE555, SR flip-flop, transmission line,
 optocoupler) left as honest dashed boxes rather than drawn with guessed
 pins.
 
+## Importer — built (`glass/asc/import_sym.py`)
+A `.kicad_sym` (S-expr) and xschem `.sym` (line-oriented) parser converts
+real libraries to our AsySymbol and writes faithful `.asy` into an import
+dir the resolver searches. Verified against the real KiCad `Device`
+library (571 symbols: R/C/L-with-arc-coils, diodes, BJT/MOSFET with
+envelopes) and xschem `devices/`. Coordinate maps: KiCad mm × 16/1.27,
+Y negated; xschem × 1.6; pins land on our 16-unit grid. 3-point KiCad
+arcs → bbox+markers (CCW-passes-mid). The user imports their own files
+(never bundled); `uploads/imported_sym/` is gitignored. The UI exposes it
+as **Import lib…** + the imported symbols in the **+ Component** palette.
+
 ## Future (when wanted)
-- A `.kicad_sym` / xschem `.sym` importer (parsers are simple; reuse
-  KiCanvas's MIT tokenizer technique) → open real KiCad/PDK libraries,
-  keeping their CC-BY-SA / Apache attribution as a separate data package.
+- Multi-unit explode (e.g. dual op-amps → unit 1 / unit 2 as separate
+  symbols) and KiCad alternate body styles; carry pin electrical type.
 - Carry pin names + SpiceOrder through to netlisting and name-aware DRC.

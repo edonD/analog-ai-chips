@@ -22,6 +22,10 @@ _LT_SYM_DIRS = [
     os.path.expandvars(r"%USERPROFILE%\Documents\LTspiceXVII\lib\sym"),
 ]
 
+# directories of imported symbols (KiCad/xschem converted to .asy); the
+# server sets this. Searched before the LTspice dirs.
+EXTRA_SYM_DIRS: list[str] = []
+
 
 @dataclass
 class AscInstance:
@@ -125,8 +129,9 @@ def parse_asy(path: str) -> AsySymbol:
 
 def resolve_asy(symname: str, asc_dir: str) -> str | None:
     rel = symname.replace("\\", os.sep) + ".asy"
-    cands = [os.path.join(asc_dir, rel)]
     base = os.path.basename(rel)
+    cands = [os.path.join(asc_dir, rel)]
+    cands += [os.path.join(d, base) for d in EXTRA_SYM_DIRS]   # imported libs
     cands += [os.path.join(d, rel) for d in _LT_SYM_DIRS]
     cands += [os.path.join(d, base) for d in _LT_SYM_DIRS]
     return next((c for c in cands if os.path.exists(c)), None)

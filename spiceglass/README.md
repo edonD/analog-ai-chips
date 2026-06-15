@@ -68,7 +68,15 @@ dangling wires, duplicate instance names, overlapping symbols — and lists
 the problems; click one to jump to it (a red ring marks each on the
 canvas). Connectivity is read straight from the geometry (a point is
 connected if it meets a wire end, a wire's interior, a flag, or another
-pin), so the check works on any sheet, hand-drawn or converted. A `/symbols` page — a pixel-style half-unit-grid symbol
+pin), so the check works on any sheet, hand-drawn or converted.
+
+**Import lib…** brings in real symbol libraries — a KiCad `.kicad_sym`
+(hundreds of symbols at once) or an xschem `.sym` — converting each to a
+faithful `.asy` (correct pins so wires land; arcs/curves preserved) that
+then resolves and places like any built-in part. This opens the whole
+KiCad/PDK ecosystem inside SpiceGlass. Imported symbols are the user's
+own files, converted on demand (never bundled): mind KiCad's CC-BY-SA and
+xschem's GPL/Apache terms when sharing the results. A `/symbols` page — a pixel-style half-unit-grid symbol
 designer (pins fixed by the grid contract, artwork yours; saved to
 symbols.json and used by every renderer) — rounds it out.
 

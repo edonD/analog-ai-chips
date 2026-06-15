@@ -79,6 +79,8 @@
     <option value="gnd">GND</option>
     <option value="label">Net label…</option>
   </select>
+  <button id="importbtn" title="import a KiCad .kicad_sym or xschem .sym library">Import lib…</button>
+  <input id="libinput" type="file" accept=".kicad_sym,.sym" hidden>
   <button id="wirebtn" title="draw wires (W) — click to place, dbl-click to end">+ Wire</button>
   <button id="undobtn" title="undo (Ctrl-Z)">↶</button>
   <button id="redobtn" title="redo (Ctrl-Y)">↷</button>
@@ -1156,6 +1158,38 @@ document.getElementById("fileinput").addEventListener("change",async ev=>{
   ev.target.value="";
 });
 
+// ---- import KiCad (.kicad_sym) / xschem (.sym) symbol libraries
+document.getElementById("importbtn").onclick=()=>
+  document.getElementById("libinput").click();
+document.getElementById("libinput").addEventListener("change",async ev=>{
+  const f=ev.target.files[0]; if(!f) return;
+  setStatus("importing "+f.name+"…",false);
+  try{
+    const content=await f.text();
+    const d=await (await fetch("/api/import",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:f.name,content})})).json();
+    if(d.error){ setStatus(d.error,true); }
+    else { setStatus(`imported ${d.count} symbol(s) — pick from + Component`,false);
+           refreshLibrary(); }
+  }catch(e){ setStatus("import failed",true); }
+  ev.target.value="";
+});
+async function refreshLibrary(){
+  try{
+    const d=await (await fetch("/api/library")).json();
+    const pal=document.getElementById("palette");
+    const old=pal.querySelector("#impgroup"); if(old) old.remove();
+    if(d.imported && d.imported.length){
+      const g=document.createElement("optgroup"); g.id="impgroup";
+      g.label=`Imported (${d.imported.length})`;
+      for(const n of d.imported){ const o=document.createElement("option");
+        o.value=n; o.textContent=n; g.appendChild(o); }
+      pal.appendChild(g);
+    }
+  }catch(e){}
+}
+
 //============================================================ boot
 function applyBootstrap(data){
   raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
@@ -1172,6 +1206,7 @@ async function boot(){
   const data=await (await fetch("/api/asc")).json();
   applyBootstrap(data);
   loadFileList(data.rel);
+  refreshLibrary();
 }
 boot();
 </script>

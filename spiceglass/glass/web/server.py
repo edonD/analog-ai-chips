@@ -110,6 +110,40 @@ def _register_top(design) -> None:
         design.order.append("(top)")
 
 
+IMPORT_DIR = os.path.normpath(os.path.join(
+    os.path.dirname(__file__), "..", "..", "uploads", "imported_sym"))
+
+_BUILTIN_PALETTE = ["res", "cap", "ind", "diode", "nmos", "pmos", "npn",
+                    "pnp", "njf", "pjf", "voltage", "current", "bv", "bi",
+                    "e", "g", "sw", "opamp", "opamp2"]
+
+
+def import_library(name: str, content: str) -> dict:
+    """Convert an uploaded KiCad .kicad_sym or xschem .sym to .asy files
+    in IMPORT_DIR (so they resolve like any symbol). Returns the names."""
+    from ..asc.import_sym import asy_text, import_text
+    fmt = "kicad" if name.lower().endswith(".kicad_sym") else "xschem"
+    syms = import_text(content, fmt)
+    os.makedirs(IMPORT_DIR, exist_ok=True)
+    written = []
+    for sname, sym in syms.items():
+        base = (os.path.splitext(os.path.basename(name))[0]
+                if fmt == "xschem" else sname)
+        safe = "".join(c for c in base if c.isalnum() or c in "_-+.") or "sym"
+        with open(os.path.join(IMPORT_DIR, safe + ".asy"), "w",
+                  encoding="utf-8") as fh:
+            fh.write(asy_text(sym, safe))
+        written.append(safe)
+    return {"imported": sorted(written), "count": len(written), "format": fmt}
+
+
+def list_imported() -> list[str]:
+    if not os.path.isdir(IMPORT_DIR):
+        return []
+    return sorted(os.path.splitext(f)[0] for f in os.listdir(IMPORT_DIR)
+                  if f.lower().endswith(".asy"))
+
+
 def discover() -> list[str]:
     """Repo files worth one click: schematics, netlists, plans."""
     out: list[str] = []
@@ -254,6 +288,9 @@ class Handler(BaseHTTPRequestHandler):
             q = parse_qs(url.query)
             names = [n for n in q.get("names", [""])[0].split(",") if n]
             return self._json(self.state.lib(names))
+        if url.path == "/api/library":
+            return self._json({"imported": list_imported(),
+                               "builtin": _BUILTIN_PALETTE})
         self._json({"error": "not found"}, 404)
 
     def do_POST(self):
@@ -288,6 +325,14 @@ class Handler(BaseHTTPRequestHandler):
                 from ..engine.symbols import save
                 return self._json({"saved": save(body["kind"],
                                                  body.get("elems"))})
+            if url.path == "/api/import":
+                try:
+                    return self._json(import_library(
+                        body.get("name", "lib.kicad_sym"),
+                        body.get("content", "")))
+                except Exception as exc:
+                    return self._json(
+                        {"error": f"import failed: {exc}"}, 400)
             self._json({"error": "not found"}, 404)
         except Exception as exc:               # never drop the connection
             try:
@@ -307,6 +352,10 @@ def _port_free(port: int) -> bool:
 
 
 def serve(path: str | None, port: int, open_browser: bool = True) -> None:
+    from ..asc import parse as _parse
+    os.makedirs(IMPORT_DIR, exist_ok=True)
+    if IMPORT_DIR not in _parse.EXTRA_SYM_DIRS:        # imported libs resolve
+        _parse.EXTRA_SYM_DIRS.append(IMPORT_DIR)
     Handler.state = AppState(path)
     httpd = None
     for p in range(port, port + 25):       # busy port? just take the next one
