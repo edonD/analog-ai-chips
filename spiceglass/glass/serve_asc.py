@@ -296,14 +296,48 @@ class Handler(BaseHTTPRequestHandler):
                 pass
 
 
-def serve(path: str | None, port: int) -> None:
+def _port_free(port: int) -> bool:
+    """True if nothing is already serving on the port. We probe with a
+    connect because on Windows SO_REUSEADDR lets a second bind silently
+    hijack a live port, so bind-failure alone is not reliable."""
+    import socket
+    with socket.socket() as s:
+        s.settimeout(0.2)
+        return s.connect_ex(("127.0.0.1", port)) != 0
+
+
+def serve(path: str | None, port: int, open_browser: bool = True) -> None:
     Handler.state = AppState(path)
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    httpd = None
+    for p in range(port, port + 25):       # busy port? just take the next one
+        if not _port_free(p):
+            continue
+        try:
+            httpd = ThreadingHTTPServer(("127.0.0.1", p), Handler)
+            port = p
+            break
+        except OSError:
+            continue
+    if httpd is None:
+        print(f"SpiceGlass: no free port near {port} — close other copies "
+              "and try again.")
+        return
+    url = f"http://127.0.0.1:{port}/"
     where = os.path.basename(path) if path else "no file — pick one in the app"
-    print(f"SpiceGlass: http://127.0.0.1:{port}/  ({where})")
-    print("Edit the text or drag in the canvas — they stay in sync. "
-          "Open/upload files in the app · Ctrl-S saves · /symbols designer.")
-    httpd.serve_forever()
+    print()
+    print(f"  SpiceGlass is running at  {url}   ({where})")
+    print("  Edit the text or drag in the canvas — they stay in sync.")
+    print("  Open/upload files in the app · Ctrl-S saves · /symbols designer.")
+    print("  Keep this window open while you work; close it to stop.")
+    print()
+    if open_browser:
+        import threading
+        import webbrowser
+        threading.Timer(0.9, lambda: webbrowser.open(url)).start()
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\n  SpiceGlass stopped.")
 
 
 # legacy alias (older callers used serve_asc)

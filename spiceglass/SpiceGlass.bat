@@ -1,7 +1,23 @@
 @echo off
-rem SpiceGlass — double-click to open the web app (starts the server,
-rem then opens your browser at the in-app file picker).
+title SpiceGlass  -  close this window to stop
+rem Double-click to launch SpiceGlass (starts the server, opens the browser).
+rem Closing this window stops it.
+
 cd /d "%~dp0"
-start "" pythonw -m glass edit --no-browser
-timeout /t 2 /nobreak >nul
-start "" http://127.0.0.1:8137/
+
+set "PY=python"
+where python >nul 2>nul || set "PY=py"
+where %PY% >nul 2>nul || (
+  echo.
+  echo   Python was not found. Install Python 3.10+ from
+  echo   https://www.python.org/downloads/  (tick "Add to PATH").
+  echo.
+  pause
+  exit /b 1
+)
+
+%PY% -m glass edit
+
+echo.
+echo   SpiceGlass stopped.
+pause

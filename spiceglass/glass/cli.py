@@ -195,13 +195,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "edit":
         from .serve_asc import serve
-        if not args.no_browser:
-            import threading
-            import webbrowser
-            threading.Timer(
-                0.8, lambda: webbrowser.open(
-                    f"http://127.0.0.1:{args.port}/")).start()
-        serve(args.file, args.port)
+        serve(args.file, args.port, open_browser=not args.no_browser)
         return 0
 
     if args.cmd == "diff-plan":
