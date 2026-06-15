@@ -199,8 +199,11 @@ function buildScene(ast, symlib){
           bx:tx.x,by:tx.y-14,ex:tx.x+8*tx.txt.length,ey:tx.y,own:"t"+ti});
   });
 
-  // connector dots: wire junctions (3-way / T) AND every pin or named
-  // node that meets a wire — so a component-to-wire connection is visible.
+  // connector dots: only TRUE junctions (LTspice convention) — 3+ wire
+  // ends meeting, or a wire passing through a point. A pin/node counts as
+  // one connection, so it dots when >=2 wire ends also land there (pin +
+  // 2 wires = a tee) or a wire runs through it; a plain leaf pin->wire
+  // connection is NOT dotted. Node-probe rings mark named nets regardless.
   const dotSet=new Set();
   const onInterior=(x,y)=>(vmap[x]||[]).some(([a,b])=>a<y&&y<b)||
                           (hmap[y]||[]).some(([a,b])=>a<x&&x<b);
@@ -209,9 +212,9 @@ function buildScene(ast, symlib){
   for(const k in deg){ const [x,y]=k.split(",").map(Number);
     if(deg[k]>=3 || (deg[k]>=1 && onInterior(x,y))) addDot(x,y); }
   for(const [x,y] of pinPts)
-    if((deg[key(x,y)]||0)>=1 || onInterior(x,y)) addDot(x,y);
+    if((deg[key(x,y)]||0)>=2 || onInterior(x,y)) addDot(x,y);
   for(const [x,y] of nodePts)
-    if((deg[key(x,y)]||0)>=1 || onInterior(x,y)) addDot(x,y);
+    if((deg[key(x,y)]||0)>=2 || onInterior(x,y)) addDot(x,y);
 
   // spatial grid
   const grid=new Map();
