@@ -1,21 +1,28 @@
 @echo off
 title SpiceGlass  -  close this window to stop
-rem Double-click to launch SpiceGlass (starts the server, opens the browser).
-rem Closing this window stops it.
+rem Double-click to launch SpiceGlass. Starts the local server and opens
+rem your browser. Close this window to stop it.
 
 cd /d "%~dp0"
 
-set "PY=python"
-where python >nul 2>nul || set "PY=py"
-where %PY% >nul 2>nul || (
-  echo.
-  echo   Python was not found. Install Python 3.10+ from
-  echo   https://www.python.org/downloads/  (tick "Add to PATH").
-  echo.
-  pause
-  exit /b 1
-)
+rem find a Python: prefer the py launcher, then plain python
+set "PY="
+where py >nul 2>nul
+if not errorlevel 1 set "PY=py"
+if defined PY goto run
+where python >nul 2>nul
+if not errorlevel 1 set "PY=python"
+if defined PY goto run
 
+echo.
+echo   Python was not found on this PC.
+echo   Install Python 3.10+ from https://www.python.org/downloads/
+echo   and tick "Add python.exe to PATH" during setup.
+echo.
+pause
+exit /b 1
+
+:run
 %PY% -m glass edit
 
 echo.
