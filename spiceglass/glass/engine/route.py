@@ -15,7 +15,7 @@ import re
 from dataclasses import dataclass, field
 
 from .db import Subckt
-from .geom import BOX_W, box_height, pin_pos
+from ..geom import BOX_W, box_height, pin_pos
 from .place import Sheet
 from .route2 import Router2
 
@@ -79,7 +79,7 @@ def tile_halfdims(dev) -> tuple[int, int]:
 
 def _obstacle(dev, p) -> tuple[int, int, int, int]:
     """Inflated symbol-tile rectangle (1-unit routing buffer)."""
-    from .geom import ROTATED
+    from ..geom import ROTATED
     hw, hh = tile_halfdims(dev)
     if p.orient in ROTATED and dev.kind not in ("sub", "unknown"):
         hw, hh = hh, hw

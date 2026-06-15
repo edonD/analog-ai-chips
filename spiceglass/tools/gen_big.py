@@ -35,7 +35,7 @@ for ty in range(NY):
                 out.append(ln)
 open("big.asc", "w", encoding="utf-8").write("\n".join(out))
 
-from glass.parse_asc import asc_to_svg, parse_asc
+from glass.asc.parse import asc_to_svg, parse_asc
 
 t0 = time.perf_counter()
 sheet = parse_asc("big.asc")

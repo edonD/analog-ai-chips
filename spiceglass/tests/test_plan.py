@@ -9,10 +9,10 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from glass import load                                  # noqa: E402
-from glass.place import place                           # noqa: E402
-from glass.plan import parse_plan, plan_for, realize_plan  # noqa: E402
-from glass.route import route                           # noqa: E402
-from glass.verify import verify                         # noqa: E402
+from glass.engine.place import place                           # noqa: E402
+from glass.engine.plan import parse_plan, plan_for, realize_plan  # noqa: E402
+from glass.engine.route import route                           # noqa: E402
+from glass.engine.verify import verify                         # noqa: E402
 
 REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 NETLISTS = [

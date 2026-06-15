@@ -157,7 +157,7 @@ def parse_plan(text: str) -> Plan:
     """GlassPlan v1 parser (see design/glassplan-spec.md): version token,
     inline # comments, backslash continuation, line-numbered diagnostics,
     the 8-orientation group, place and wire-path escape hatches."""
-    from .geom import ORIENTS
+    from ..geom import ORIENTS
     plan = Plan()
     text = text.lstrip("﻿")        # Windows editors love BOMs
 

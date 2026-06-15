@@ -3,14 +3,14 @@ visual review.  usage: python shot.py <plan|cir> [out.png] [maxw]"""
 import sys
 
 sys.path.insert(0, ".")
-from glass.classify import classify_design
-from glass.parser import parse_file
-from glass.place import place
-from glass.plan import parse_plan, realize_plan
-from glass.render_svg import render_sheet
-from glass.route import route
-from glass.snapshot import svg_to_png_bytes
-from glass.verify import verify
+from glass.engine.classify import classify_design
+from glass.engine.parser import parse_file
+from glass.engine.place import place
+from glass.engine.plan import parse_plan, realize_plan
+from glass.engine.render_svg import render_sheet
+from glass.engine.route import route
+from snapshot import svg_to_png_bytes
+from glass.engine.verify import verify
 import os
 
 src = sys.argv[1]

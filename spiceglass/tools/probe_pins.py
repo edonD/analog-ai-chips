@@ -6,7 +6,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, ".")
-from glass.parse_asc import parse_asc
+from glass.asc.parse import parse_asc
 
 INV = {
     "R0": lambda x, y: (x, y), "R90": lambda x, y: (-y, x),

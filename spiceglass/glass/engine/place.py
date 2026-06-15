@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 
 from .classify import rails_of
 from .db import Device, Subckt
-from .geom import (COL_PITCH, MARGIN, ROW0_OFFSET, ROW_PITCH, SECTION_GAP,
+from ..geom import (COL_PITCH, MARGIN, ROW0_OFFSET, ROW_PITCH, SECTION_GAP,
                    TILE_PITCH)
 from .recognize import Tile, recognize
 
@@ -452,7 +452,7 @@ def _emit_tile_wiring(sheet: Sheet) -> None:
     """Pre-route tile internals from CURRENT member positions (orient-
     and drag-aware). Every segment starts/ends exactly on a pin, so the
     round-trip verifier checks tile internals like any other wire."""
-    from .geom import pin_pos
+    from ..geom import pin_pos
     pre = sheet.preroutes
     pre.clear()
     sheet.taps.clear()

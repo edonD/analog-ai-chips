@@ -11,12 +11,12 @@ import os
 import subprocess
 import sys
 
-from .classify import classify_design
-from .parser import parse_file
-from .place import place
-from .render_svg import render_sheet
-from .route import route
-from .verify import verify
+from .engine.classify import classify_design
+from .engine.parser import parse_file
+from .engine.place import place
+from .engine.render_svg import render_sheet
+from .engine.route import route
+from .engine.verify import verify
 
 _EDGE_CANDIDATES = [
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -54,7 +54,7 @@ def _render_one(design, name: str, out_svg: str, png: bool,
     print(f"[{status}] {name}: {len(sub.devices)} devices, "
           f"{verdict.n_nets} nets -> {out_svg}")
     if asc:
-        from .emit_asc import export_asc
+        from .asc.emit import export_asc
         print(f"          asc -> {export_asc(sheet, routing, asc)}")
     for e in verdict.errors:
         print(f"   ERROR   {e}")
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.cmd == "plan":
-        from .plan import plan_for
+        from .engine.plan import plan_for
         design = parse_file(args.file)
         classify_design(design)
         name = args.subckt or design.root().name
@@ -150,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "render" and args.file \
             and args.file.lower().endswith(".asc"):
-        from .parse_asc import asc_to_svg, parse_asc
+        from .asc.parse import asc_to_svg, parse_asc
         sheet = parse_asc(args.file)
         svg = asc_to_svg(sheet, os.path.dirname(os.path.abspath(args.file)))
         out = args.out or os.path.splitext(args.file)[0] + ".svg"
@@ -166,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "render" and getattr(args, "plan", None):
-        from .plan import parse_plan, realize_plan
+        from .engine.plan import parse_plan, realize_plan
         with open(args.plan, encoding="utf-8") as fh:
             plan = parse_plan(fh.read())
         for w in plan.warnings:
@@ -194,12 +194,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if ok else 1
 
     if args.cmd == "edit":
-        from .serve_asc import serve
+        from .web.server import serve
         serve(args.file, args.port, open_browser=not args.no_browser)
         return 0
 
     if args.cmd == "diff-plan":
-        from .plan import diff_plans, parse_plan, plan_for
+        from .engine.plan import diff_plans, parse_plan, plan_for
         with open(args.golden, encoding="utf-8") as fh:
             golden = parse_plan(fh.read())
         cands = [args.file,
@@ -221,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "score":
         import json
-        from .score import score
+        from .engine.score import score
         design = parse_file(args.file)
         classify_design(design)
         name = args.subckt or design.root().name

@@ -11,7 +11,7 @@ import html
 
 from .classify import short_model
 from .db import Device, Subckt
-from .geom import BOX_PIN_DY, BOX_W, UNIT, box_height, pin_offsets
+from ..geom import BOX_PIN_DY, BOX_W, UNIT, box_height, pin_offsets
 from .place import Sheet
 from .route import Routing, Stub
 
@@ -281,7 +281,7 @@ def render_sections_svg(sheet: Sheet) -> str:
 
 
 def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
-    from .geom import GRID_MM
+    from ..geom import GRID_MM
     sub: Subckt = sheet.sub
     W, H = _u(sheet.width), _u(sheet.height) + 70
     if meta.get("physical"):
@@ -322,7 +322,7 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
     parts.append(render_furniture_svg(routing))
 
     # symbols + annotations
-    from .geom import ORIENT_TF
+    from ..geom import ORIENT_TF
     for d in sub.devices:
         p = sheet.pos(d)
         px, py = _u(p.x), _u(p.y)
@@ -344,7 +344,7 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
                  'stroke="#999" stroke-width="1"/>')
     parts.append(f'<text x="26" y="{y0 + 6}" class="title">{_esc(sub.name)}</text>')
     nd = len(sub.devices)
-    from .geom import GRID_MM
+    from ..geom import GRID_MM
     parts.append(f'<text x="26" y="{y0 + 22}" class="meta">'
                  f'{_esc(meta.get("path", ""))} — {nd} devices — '
                  f'ports: {_esc(", ".join(sub.ports))} — '

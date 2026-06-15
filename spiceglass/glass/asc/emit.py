@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import os
 
-from .db import Subckt
-from .geom import pin_offsets
-from .place import Sheet
-from .route import Routing
+from ..engine.db import Subckt
+from ..geom import pin_offsets
+from ..engine.place import Sheet
+from ..engine.route import Routing
 
 S = 8          # LTspice units per grid unit (1 mm)
 
@@ -60,7 +60,7 @@ def _custom_art(kind: str) -> list | None:
     """Symbol-designer artwork (symbols.json) converted to LTspice
     units — whatever you draw in /symbols ships into the .asy too.
     Designer coords are px at 10 px/mm; LTspice gets S units/mm."""
-    from .symbols import lib
+    from ..engine.symbols import lib
     elems = lib().get(kind)
     if not elems:
         return None
@@ -79,7 +79,7 @@ def _custom_art(kind: str) -> list | None:
 
 
 def _asy_for(kind: str, roles: list[str]) -> str:
-    from .db import Device
+    from ..engine.db import Device
     dev = Device(name="_", kind=kind, model="", nets=[""] * len(roles),
                  roles=list(roles))
     offs = pin_offsets(dev)
@@ -131,7 +131,7 @@ def export_asc(sheet: Sheet, routing: Routing, out_path: str) -> str:
         kind = d.kind if d.kind in _ART else None
         if kind is None:           # subckt boxes etc: flag pins, skip body
             for role, net in zip(d.roles, d.nets):
-                from .geom import pin_pos
+                from ..geom import pin_pos
                 x, y = pin_pos(d, role, p.x, p.y, p.orient)
                 lines.append(f"FLAG {x * S} {y * S} "
                              f"{'0' if net in sheet.rails and sheet.rails[net] == 'gnd' else net}")

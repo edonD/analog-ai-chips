@@ -71,6 +71,34 @@ python -m unittest discover -s tests               # golden regression
 
 Zero dependencies — Python 3.10+ stdlib only.
 
+## Code layout
+
+Three layers, cleanly separated (web → asc → engine), with a shared
+grid/orientation module at the top:
+
+```
+glass/
+  cli.py            command-line entry (render / edit / plan / score / …)
+  geom.py           grid + 8-orientation algebra (shared)
+  asc/              the LTspice .asc format — the hub
+    parse.py        read .asc/.asy + render to SVG
+    emit.py         write .asc (+ local sg_sym/ symbol library)
+  web/
+    server.py       the one web app: serves the editor, resolves symbols,
+                    lists/opens/uploads files, converts netlists, saves
+  engine/           netlist → placed & routed sheet (the converter)
+    parser db classify recognize   parse + model the circuit
+    place route route2 ovg verify   place, route, check
+    plan render_svg symbols score    plan IR, SVG, symbols, metrics
+viewer/             browser front-end (asc_editor.html, symbols.html)
+tools/              dev helpers (gen_big, probe_*, shot, snapshot)
+tests/  design/     golden tests; design notes
+```
+
+Dependencies point downward only: `web` uses `asc` + `engine`, `asc/emit`
+uses `engine`, everything may use `geom`. The browser owns the
+interactive editor; Python is the local server + converter.
+
 ## Examples (all auto-generated, all verified)
 
 | Sheet | Source |

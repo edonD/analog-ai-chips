@@ -6,7 +6,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, ".")
-from glass.parse_asc import parse_asc
+from glass.asc.parse import parse_asc
 
 BASE = {
     "res": [(16, 16), (16, 96)],

@@ -19,11 +19,11 @@ import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from .geom import UNIT
-from .parse_asc import native_symbol, parse_asc, parse_asy, resolve_asy
+from ..geom import UNIT
+from ..asc.parse import native_symbol, parse_asc, parse_asy, resolve_asy
 
-REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
-VIEWER = os.path.join(os.path.dirname(__file__), "..", "viewer")
+REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+VIEWER = os.path.join(os.path.dirname(__file__), "..", "..", "viewer")
 
 
 def symbol_json(symname: str, asc_dir: str) -> dict | None:
@@ -62,16 +62,16 @@ def convert_to_asc(path: str) -> str:
     """Netlist/plan → LTspice .asc (+ a local sg_sym/ library) written
     next to the source. Returns the .asc path. The placement/routing
     engine is the converter; the .asc it emits is what you edit."""
-    from .classify import classify_design
-    from .emit_asc import export_asc
-    from .parser import parse_file
-    from .place import place
-    from .route import route
+    from ..engine.classify import classify_design
+    from ..asc.emit import export_asc
+    from ..engine.parser import parse_file
+    from ..engine.place import place
+    from ..engine.route import route
 
     low = path.lower()
     base = os.path.splitext(path)[0]
     if low.endswith(".plan"):
-        from .plan import parse_plan, realize_plan
+        from ..engine.plan import parse_plan, realize_plan
         with open(path, encoding="utf-8") as fh:
             plan = parse_plan(fh.read())
         cands = [os.path.join(os.path.dirname(os.path.abspath(path)),
@@ -104,7 +104,7 @@ def _register_top(design) -> None:
     """Testbench files keep devices outside any .subckt — expose them as
     a synthetic '(top)' sheet so they can be converted too."""
     if design.top_devices and "(top)" not in design.subckts:
-        from .db import Subckt
+        from ..engine.db import Subckt
         top = Subckt(name="(top)", ports=[], devices=design.top_devices)
         design.subckts["(top)"] = top
         design.order.append("(top)")
@@ -143,7 +143,7 @@ class AppState:
     def text(self) -> str:
         if not self.path:
             return ""
-        from .parse_asc import _read_text
+        from ..asc.parse import _read_text
         return _read_text(self.path)
 
     def lib(self, names: list[str]) -> dict:
@@ -173,7 +173,7 @@ class AppState:
         return self.bootstrap()
 
     def upload(self, name: str, content: str) -> dict:
-        updir = os.path.join(os.path.dirname(__file__), "..", "uploads")
+        updir = os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
         os.makedirs(updir, exist_ok=True)
         dest = os.path.join(updir, os.path.basename(name) or "upload.asc")
         with open(dest, "w", encoding="utf-8") as fh:
@@ -198,10 +198,10 @@ _KIND_ROLES = {
 
 
 def _symbol_payload() -> dict:
-    from .db import Device
-    from .geom import pin_offsets
-    from .render_svg import builtin_symbol_svg
-    from .symbols import lib
+    from ..engine.db import Device
+    from ..geom import pin_offsets
+    from ..engine.render_svg import builtin_symbol_svg
+    from ..engine.symbols import lib
     custom = lib()
     kinds = {}
     for kind, roles in _KIND_ROLES.items():
@@ -285,7 +285,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(
                         {"error": f"could not load: {exc}"}, 400)
             if url.path == "/api/symbol":
-                from .symbols import save
+                from ..engine.symbols import save
                 return self._json({"saved": save(body["kind"],
                                                  body.get("elems"))})
             self._json({"error": "not found"}, 404)

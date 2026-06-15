@@ -1,7 +1,7 @@
 """SpiceGlass — open SpiceVision for the AI design era (M0)."""
-from .classify import classify_design
-from .db import Design, Device, Subckt
-from .parser import parse_file, parse_text
+from .engine.classify import classify_design
+from .engine.db import Design, Device, Subckt
+from .engine.parser import parse_file, parse_text
 
 __version__ = "0.1.0"
 

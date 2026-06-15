@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .geom import BOX_W, box_height, pin_offsets
+from ..geom import BOX_W, box_height, pin_offsets
 from .place import Sheet
 from .route import Routing, Seg
 
@@ -54,14 +54,14 @@ def _bbox(dev, p) -> tuple[int, int, int, int]:
         h = box_height(len(dev.roles)) // 2
         return (p.x - w + 1, p.y - h + 1, p.x + w - 1, p.y + h - 1)
     y0, y1 = -3, 3
-    from .geom import ROTATED
+    from ..geom import ROTATED
     if p.orient in ROTATED:
         x0, x1, y0, y1 = y0, y1, x0, x1
     return (p.x + x0 + 1, p.y + y0 + 1, p.x + x1 - 1, p.y + y1 - 1)
 
 
 def score(sheet: Sheet, routing: Routing) -> Score:
-    from .geom import GRID_MM
+    from ..geom import GRID_MM
     sc = Score()
     segs = routing.segments
     sc.segments = len(segs)

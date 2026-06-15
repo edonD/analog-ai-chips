@@ -15,7 +15,7 @@ exploits that exactness.
 """
 from __future__ import annotations
 
-from .db import Device
+from .engine.db import Device
 
 UNIT = 10            # px per grid unit (screen render scale only)
 

@@ -102,5 +102,6 @@ Rationale:
 | Loop/cursor safety | origin-tagged edits; line-granular patches keep the cursor put |
 | Selection bridge | node id ⇄ source line; click either pane highlights the other |
 
-Implemented in `glass/serve_asc.py` (server + symbol JSON) and
-`viewer/asc_editor.html` (renderer + editor); launched by `glass edit file.asc`.
+Implemented in `glass/web/server.py` (server + symbol JSON), the
+`glass/asc/` format layer (parse/emit) and the `glass/engine/` converter,
+with the front-end in `viewer/asc_editor.html`; launched by `glass edit`.
