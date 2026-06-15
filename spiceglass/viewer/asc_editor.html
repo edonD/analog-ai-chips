@@ -20,6 +20,8 @@
   #status{ font-size:12px; color:#9fb6a3; min-width:120px; text-align:right; }
   #files{ background:#16181c; color:#d8dee7; border:1px solid #3a3f48;
           border-radius:5px; padding:4px 6px; font-size:12px; max-width:340px; }
+  #palette{ background:#3d434d; color:var(--ink); border:0; border-radius:5px;
+            padding:5px 8px; font-size:12px; }
   #srcnote{ font-size:11px; color:#caa23a; }
   #wrap{ display:flex; height:calc(100% - 37px); }
   #left{ width:42%; min-width:240px; display:flex; flex-direction:column;
@@ -49,7 +51,25 @@
   <input id="fileinput" type="file" accept=".asc,.cir,.spice,.sp,.plan" hidden>
   <span id="srcnote"></span>
   <span class="sp"></span>
+  <select id="palette" title="place a component (click on canvas; R rotates)">
+    <option value="">+ Component ▾</option>
+    <option value="res">Resistor</option>
+    <option value="cap">Capacitor</option>
+    <option value="ind">Inductor</option>
+    <option value="diode">Diode</option>
+    <option value="nmos">NMOS</option>
+    <option value="pmos">PMOS</option>
+    <option value="npn">NPN</option>
+    <option value="pnp">PNP</option>
+    <option value="voltage">Voltage src</option>
+    <option value="current">Current src</option>
+    <option value="opamp">Op-amp</option>
+    <option value="gnd">GND</option>
+    <option value="label">Net label…</option>
+  </select>
   <button id="wirebtn" title="draw wires (W) — click to place, dbl-click to end">+ Wire</button>
+  <button id="undobtn" title="undo (Ctrl-Z)">↶</button>
+  <button id="redobtn" title="redo (Ctrl-Y)">↷</button>
   <button id="delbtn" title="delete selected (Del)">Delete</button>
   <a href="/symbols" target="_blank" style="color:#9fb6a3;font-size:12px;
      text-decoration:none;margin:0 6px">Symbols ↗</a>
@@ -62,7 +82,7 @@
   <div class="drag" id="dragbar"></div>
   <div id="right">
     <canvas id="cv"></canvas>
-    <div id="hint">drag symbol/wire · drag endpoints of a selected wire · W = draw wires · Del = delete · wheel = zoom · drag empty = pan</div>
+    <div id="hint">drag to move · R/M rotate/mirror symbol · W draw wires · + Component to place · Del delete · Ctrl-Z undo · wheel zoom</div>
     <div id="warns"></div>
   </div>
 </div>
@@ -236,8 +256,9 @@ const cv=document.getElementById("cv"), ctx=cv.getContext("2d",{alpha:false});
 let cam={scale:1,tx:0,ty:0}, scene=null, dpr=1;
 let sel=null;                       // selected owner id
 let drag=null;                      // active drag descriptor
-let mode="select";                  // "select" | "wire"
+let mode="select";                  // "select" | "wire" | "place"
 let drawStart=null, drawCur=null;   // wire-draw in progress (world pts)
+let placeKind=null, placeOrient="R0", placeCur=null, placeNet=null;  // place mode
 const W2S=(x,y)=>[x*cam.scale+cam.tx, y*cam.scale+cam.ty];
 const S2W=(x,y)=>[(x-cam.tx)/cam.scale, (y-cam.ty)/cam.scale];
 
@@ -404,6 +425,33 @@ function draw(){
     ctx.fillStyle="#3d7ad6"; ctx.beginPath();
     ctx.arc(drawStart[0],drawStart[1],4/cam.scale,0,Math.PI*2); ctx.fill();
   }
+
+  // place-mode ghost (component following the cursor, R rotates)
+  if(mode==="place" && placeCur){
+    const [px,py]=placeCur;
+    ctx.save(); ctx.globalAlpha=0.65; ctx.strokeStyle="#3d7ad6";
+    ctx.fillStyle="#3d7ad6"; ctx.lineWidth=1.7/cam.scale;
+    if(placeKind==="gnd"){
+      ctx.beginPath(); ctx.moveTo(px-10,py+2); ctx.lineTo(px+10,py+2);
+      ctx.lineTo(px,py+12); ctx.closePath(); ctx.fill();
+    }else if(placeKind==="label"){
+      ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); ctx.stroke();
+    }else{
+      const sym=symlib[placeKind], rot=ROT[placeOrient]||ROT.R0;
+      if(sym){
+        ctx.beginPath();
+        for(const [a,b,c,d] of sym.lines){ const [x1,y1]=rot(a,b),[x2,y2]=rot(c,d);
+          ctx.moveTo(px+x1,py+y1); ctx.lineTo(px+x2,py+y2); }
+        ctx.stroke();
+        for(const [a,b,c,d] of (sym.circles||[])){ const [x1,y1]=rot(a,b),[x2,y2]=rot(c,d);
+          const cx=(x1+x2)/2,cy=(y1+y2)/2,rx=Math.abs(x2-x1)/2,ry=Math.abs(y2-y1)/2;
+          ctx.beginPath(); ctx.ellipse(px+cx,py+cy,rx,ry,0,0,Math.PI*2); ctx.stroke(); }
+      }else{ ctx.strokeRect(px-24,py-24,48,48); }
+    }
+    ctx.fillStyle="#3d7ad6"; ctx.beginPath();
+    ctx.arc(px,py,3/cam.scale,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
 }
 
 //============================================================ hit-testing
@@ -467,8 +515,10 @@ function showWarnings(ast){
     box.appendChild(d); }
 }
 
-let reparseTimer=null;
+let reparseTimer=null, typingTimer=null;
 ta.addEventListener("input",()=>{
+  if(!typingTimer) pushUndo(raw);           // snapshot pre-burst text once
+  clearTimeout(typingTimer); typingTimer=setTimeout(()=>{typingTimer=null;},700);
   raw=ta.value; markDirty();
   clearTimeout(reparseTimer);
   reparseTimer=setTimeout(reparse,120);     // debounce text -> graphics
@@ -484,8 +534,63 @@ function syncFromCaret(){
   if(d){ const idx=scene.ast.insts.indexOf(d); selectOwner("s"+idx,false); }
 }
 
+// ---- undo / redo: one unified history of .asc text snapshots, capturing
+// graphical edits AND typing (programmatic value-sets wipe the textarea's
+// native history, so we own it). pushUndo() records the pre-change state.
+let undoStack=[], redoStack=[];
+function pushUndo(state){ undoStack.push(state);
+  if(undoStack.length>100) undoStack.shift(); redoStack=[]; }
+function applyRaw(s){ raw=s; sel=null; origin="graphics"; ta.value=raw;
+  origin=null; markDirty(); reparse(); }
+function undo(){ if(!undoStack.length)return; redoStack.push(raw);
+  applyRaw(undoStack.pop()); }
+function redo(){ if(!redoStack.length)return; undoStack.push(raw);
+  applyRaw(redoStack.pop()); }
+
+// ---- orientation algebra (LTspice R0..R270 / M0..M270)
+function rotCW(rot){ const m=rot[0]==="M", n=(parseInt(rot.slice(1),10)||0);
+  return (m?"M":"R")+((n+90)%360); }
+function mirror(rot){ const m=rot[0]==="M", n=(parseInt(rot.slice(1),10)||0);
+  return (m?"R":"M")+n; }
+function rotateSel(fn){
+  if(!sel||sel[0]!=="s") return;
+  const si=+sel.slice(1), d=scene.ast.insts[si];
+  d.rot=fn(d.rot); rebuildLive(); setSymbolOrient(si,d.rot);
+}
+
+// ---- placement: insert new SYMBOL / FLAG lines by clicking
+const _PFX={res:"R",cap:"C",ind:"L",diode:"D",nmos:"M",pmos:"M",npn:"Q",
+            pnp:"Q",voltage:"V",current:"I",opamp:"U"};
+function autoName(name){
+  const base=name.split("\\").pop().toLowerCase(), p=_PFX[base]||"X";
+  let mx=0; const re=new RegExp("^"+p+"(\\d+)$");
+  for(const d of scene.ast.insts){ const m=(d.attrs.InstName||"").match(re);
+    if(m) mx=Math.max(mx,+m[1]); }
+  return p+(mx+1);
+}
+function enterPlace(value){
+  if(value==="label"){ const net=prompt("Net name (e.g. VDD, OUT):");
+    if(!net){ setMode("select"); return; } placeNet=net.trim(); placeKind="label"; }
+  else { placeKind=value; placeNet=null; }
+  placeOrient="R0";
+  if(placeKind!=="gnd" && placeKind!=="label" && !(placeKind in symlib)){
+    fetch("/api/symlib?names="+encodeURIComponent(placeKind))
+      .then(r=>r.json()).then(d=>{ Object.assign(symlib,d); render(); })
+      .catch(()=>{});
+  }
+  setMode("place");
+}
+function placeAt(pt){
+  const [x,y]=pt;
+  if(placeKind==="gnd") addLines([`FLAG ${x} ${y} 0`]);
+  else if(placeKind==="label") addLines([`FLAG ${x} ${y} ${placeNet}`]);
+  else addLines([`SYMBOL ${placeKind} ${x} ${y} ${placeOrient}`,
+                 `SYMATTR InstName ${autoName(placeKind)}`]);
+}
+
 // graphics -> text: replace exactly the changed line(s), keep everything else
 function patchLine(idx, newText){
+  pushUndo(raw);
   const ls=lineStarts(raw);
   const start=ls[idx], end=(idx+1<ls.length?ls[idx+1]-1:raw.length);
   raw=raw.slice(0,start)+newText+raw.slice(end);
@@ -513,17 +618,27 @@ function setFlagPos(fi,x,y){
   if(!t) return;
   patchLine(f.line, t[1]+x+t[3]+y+t[5]);
 }
+function setSymbolOrient(si,rot){
+  const d=scene.ast.insts[si];
+  const t=raw.split(/\r?\n/)[d.line]
+    .match(/^(\s*SYMBOL\s+\S+\s+-?\d+\s+-?\d+\s+)(\S+)(.*)$/);
+  if(!t) return;
+  patchLine(d.line, t[1]+rot+t[3]);
+}
 // structural edits (add/remove lines): full re-parse from the text, which
 // stays the source of truth. Origin-tagged so the textarea listener no-ops.
 function commitText(newRaw){
+  pushUndo(raw);
   raw=newRaw; origin="graphics"; ta.value=raw; origin=null;
   markDirty(); reparse();
 }
+function addLines(arr){
+  commitText(raw + (raw.endsWith("\n")?"":"\n") + arr.join("\n") + "\n");
+}
 function addWires(segs){
   const add=segs.filter(([a,b,c,d])=>a!==c||b!==d)
-    .map(([a,b,c,d])=>`WIRE ${a} ${b} ${c} ${d}`).join("\n");
-  if(!add) return;
-  commitText(raw + (raw.endsWith("\n")?"":"\n") + add + "\n");
+    .map(([a,b,c,d])=>`WIRE ${a} ${b} ${c} ${d}`);
+  if(add.length) addLines(add);
 }
 function deleteSel(){
   if(!sel||!scene) return;
@@ -564,6 +679,8 @@ cv.addEventListener("pointerdown",e=>{
   const r=cv.getBoundingClientRect();
   const mx=e.clientX-r.left, my=e.clientY-r.top;
   const [wx,wy]=S2W(mx,my);
+  // place mode: drop a new component where you click (chains until Esc)
+  if(mode==="place"){ placeAt(nearestSnap(wx,wy)); return; }
   // wire-draw mode: click to place vertices; chains from the last point.
   if(mode==="wire"){
     const pt=nearestSnap(wx,wy);
@@ -606,6 +723,7 @@ cv.addEventListener("pointerdown",e=>{
 cv.addEventListener("pointermove",e=>{
   const r=cv.getBoundingClientRect();
   const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
+  if(mode==="place"){ placeCur=nearestSnap(wx,wy); render(); return; }
   if(mode==="wire"){ drawCur=nearestSnap(wx,wy); if(drawStart) render(); return; }
   if(!drag){ if(scene) cv.style.cursor=hitOwner(wx,wy)?"grab":"default"; return; }
   ptr.moved=true;
@@ -679,22 +797,35 @@ async function save(){
 document.getElementById("save").onclick=save;
 document.getElementById("fit").onclick=fit;
 const wireBtn=document.getElementById("wirebtn");
+const palette=document.getElementById("palette");
 function setMode(m){
   mode=m; drawStart=null; drawCur=null;
+  if(m!=="place"){ placeKind=null; placeCur=null; placeNet=null;
+                   palette.value=""; }
   wireBtn.style.background = m==="wire" ? "#3d7ad6" : "";
-  cv.style.cursor = m==="wire" ? "crosshair" : "default";
-  setStatus(m==="wire" ? "wire: click to place, dbl-click/Esc to end"
-                       : (dirty?"edited ·":"ready"), m==="wire");
+  cv.style.cursor = (m==="wire"||m==="place") ? "crosshair" : "default";
+  const msg = m==="wire" ? "wire: click to place, dbl-click/Esc to end"
+            : m==="place" ? "place: click to drop · R rotates · Esc done"
+            : (dirty?"edited ·":"ready");
+  setStatus(msg, m!=="select");
   render();
 }
 wireBtn.onclick=()=>setMode(mode==="wire"?"select":"wire");
 document.getElementById("delbtn").onclick=deleteSel;
+document.getElementById("undobtn").onclick=undo;
+document.getElementById("redobtn").onclick=redo;
+palette.addEventListener("change",()=>{ if(palette.value) enterPlace(palette.value); });
 window.addEventListener("keydown",e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){ e.preventDefault(); save(); return; }
+  const ctrl=e.ctrlKey||e.metaKey, k=e.key.toLowerCase();
+  if(ctrl && k==="s"){ e.preventDefault(); save(); return; }
+  if(ctrl && k==="z" && !e.shiftKey){ e.preventDefault(); undo(); return; }
+  if(ctrl && (k==="y" || (k==="z" && e.shiftKey))){ e.preventDefault(); redo(); return; }
   if(document.activeElement===ta) return;        // typing in the text pane
-  const k=e.key.toLowerCase();
   if(k==="w"){ setMode(mode==="wire"?"select":"wire"); }
-  else if(k==="escape"){ if(mode==="wire") setMode("select");
+  else if(k==="r"){ if(mode==="place"){ placeOrient=rotCW(placeOrient); render(); }
+                    else rotateSel(rotCW); }
+  else if(k==="m"){ rotateSel(mirror); }
+  else if(k==="escape"){ if(mode!=="select") setMode("select");
                          else selectOwner(null,false); }
   else if(k==="delete"||k==="backspace"){ e.preventDefault(); deleteSel(); }
 });

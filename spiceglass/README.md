@@ -51,7 +51,14 @@ Open a `.cir`/`.spice`/`.plan` and it is **converted to `.asc`**
 (place → route → emit) next to the source, then edited like any other
 sheet — the deterministic placement/routing engine is the converter.
 Pick files from the in-app dropdown or **Upload…**; `Ctrl-S` saves the
-`.asc` to disk. A `/symbols` page — a pixel-style half-unit-grid symbol
+`.asc` to disk.
+
+Editing is full schematic-capture: drag symbols/wires (endpoints too),
+**R / M** to rotate / mirror, **+ Component** to drop new parts, GND and
+net labels by clicking, **+ Wire** to draw orthogonal nets that snap to
+pins, **Del** to remove, and **Ctrl-Z / Ctrl-Y** undo/redo across both
+the canvas and the text pane. Every edit is a minimal patch on the
+`.asc` text, which stays the single source of truth. A `/symbols` page — a pixel-style half-unit-grid symbol
 designer (pins fixed by the grid contract, artwork yours; saved to
 symbols.json and used by every renderer) — rounds it out.
 
