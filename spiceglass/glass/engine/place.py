@@ -430,21 +430,27 @@ def _lay_tile(sheet: Sheet, t: Tile, x0: int, rows: int,
     elif t.kind in ("pair", "5t"):
         m1, m2 = t.members
         snet = m1.net_of("s")
+        # a PMOS pair has its source UP and drain DOWN (opposite an NMOS
+        # pair), so its tail sits ABOVE and its loads BELOW — otherwise the
+        # source rail and the drain->load wires cross (the SHORT we hit).
+        pmos_pair = m1.kind == "pmos"
         prow = rows - 1 - level.get(snet, 1)
-        prow = max(prow, 1 if t.kind == "5t" else 0)
+        prow = max(prow, 1 if (t.kind == "5t" or pmos_pair) else 0)
         py = row_y(prow)
         x1, x2 = x0, x0 + TILE_PITCH
         sheet.placed[m1.name] = Placed(dev=m1, col=ci, row=prow, x=x1, y=py)
         sheet.placed[m2.name] = Placed(dev=m2, col=ci, row=prow, x=x2, y=py,
                                        orient="MX")
+        trow = prow - 1 if pmos_pair else prow + 1   # tail on the source side
+        lrow = prow + 1 if pmos_pair else prow - 1   # loads on the drain side
         if t.tail is not None:
             sheet.placed[t.tail.name] = Placed(
-                dev=t.tail, col=ci, row=prow + 1,
-                x=x0 + TILE_PITCH // 2, y=row_y(prow + 1))
+                dev=t.tail, col=ci, row=trow,
+                x=x0 + TILE_PITCH // 2, y=row_y(trow))
         if t.kind == "5t":
-            ly = row_y(prow - 1)
+            ly = row_y(lrow)
             for ld, lx in zip(t.loads, (x1, x2)):
-                sheet.placed[ld.name] = Placed(dev=ld, col=ci, row=prow - 1,
+                sheet.placed[ld.name] = Placed(dev=ld, col=ci, row=lrow,
                                                x=lx, y=ly)
 
     elif t.kind == "diode1":
