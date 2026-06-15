@@ -145,9 +145,13 @@ def export_asc(sheet: Sheet, routing: Routing, out_path: str) -> str:
         rot = _ORIENT.get(p.orient, "R0")
         lines.append(f"SYMBOL sg_sym\\\\{sym} {p.x * S} {p.y * S} {rot}")
         lines.append(f"SYMATTR InstName {d.name}")
-        val = d.model or d.params.get("value", "")
-        wl = " ".join(f"{k}={v}" for k, v in d.params.items()
-                      if k in ("w", "l", "m"))
+        # de-cluttered value: strip the PDK prefix (sky130_fd_pr__…) and
+        # drop the default m=1, so long model strings don't overlap.
+        from ..engine.classify import short_model
+        val = short_model(d) or d.params.get("value", "")
+        wl = " ".join(f"{k}={d.params[k]}" for k in ("w", "l", "m")
+                      if k in d.params and not (k == "m"
+                                                and str(d.params[k]) == "1"))
         if val or wl:
             lines.append(f"SYMATTR Value {(val + ' ' + wl).strip()}")
     lines.append(f"TEXT {8 * S} {(sheet.height + 2) * S} Left 2 "

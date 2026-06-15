@@ -24,6 +24,7 @@ import itertools
 import math
 
 W_CROSS, W_BREAK, W_HPWL = 1000, 50, 1     # crossings dominate the scalar
+W_SYM = 20                                 # reward symmetric matched objects
 
 
 def _devs(o):
@@ -44,6 +45,14 @@ def _section(o):
     return d.section or ""
 
 
+def _sig(o):
+    """Structural signature: two objects with the same signature are
+    'matched' and look best placed symmetrically (mirror about centre)."""
+    kind, val = o
+    devs = val.members if kind == "tile" else val
+    return (kind,) + tuple(sorted(d.kind for d in devs))
+
+
 def _nets(o, rails, label_nets):
     nets = set()
     for d in _devs(o):
@@ -53,8 +62,8 @@ def _nets(o, rails, label_nets):
     return nets
 
 
-def cost(order, onets, osec):
-    """(crossings, hpwl, section_breaks) for a left-to-right ordering."""
+def cost(order, onets, osec, osig=None):
+    """(crossings, hpwl, section_breaks, symmetry) for a left-to-right order."""
     pos: dict[str, list[int]] = {}
     for i, o in enumerate(order):
         for n in onets[id(o)]:
@@ -74,12 +83,24 @@ def cost(order, onets, osec):
         if s != prev and s in seen:
             breaks += 1
         seen.add(s); prev = s
-    return {"crossings": cr, "hpwl": hpwl, "section_breaks": breaks}
+    sym = 0
+    if osig:
+        n = len(order)
+        bysig: dict = {}
+        for i, o in enumerate(order):
+            bysig.setdefault(osig[id(o)], set()).add(i)
+        for places in bysig.values():
+            if len(places) > 1:
+                for p in places:
+                    if p < n - 1 - p and (n - 1 - p) in places:
+                        sym += 1               # matched objects mirror centre
+    return {"crossings": cr, "hpwl": hpwl, "section_breaks": breaks,
+            "symmetry": sym}
 
 
 def _scalar(c):
     return W_CROSS * c["crossings"] + W_BREAK * c["section_breaks"] \
-        + W_HPWL * c["hpwl"]
+        + W_HPWL * c["hpwl"] - W_SYM * c.get("symmetry", 0)
 
 
 def optimize_candidates(objects, rails, label_nets, k=8):
@@ -91,13 +112,14 @@ def optimize_candidates(objects, rails, label_nets, k=8):
         return [list(objects)]
     onets = {id(o): _nets(o, rails, label_nets) for o in objects}
     osec = {id(o): _section(o) for o in objects}
+    osig = {id(o): _sig(o) for o in objects}
     if n <= 7:
-        scored = [(_scalar(cost(p, onets, osec)), i, list(p))
+        scored = [(_scalar(cost(p, onets, osec, osig)), i, list(p))
                   for i, p in enumerate(itertools.permutations(objects))]
         scored.sort(key=lambda t: (t[0], t[1]))
         return [p for _, _, p in scored[:k]]
     # greedy relocation, recording each improving order (best last)
-    best, bests = list(objects), _scalar(cost(objects, onets, osec))
+    best, bests = list(objects), _scalar(cost(objects, onets, osec, osig))
     chain = [list(best)]
     improved = True
     while improved:
@@ -107,7 +129,7 @@ def optimize_candidates(objects, rails, label_nets, k=8):
                 if i == j:
                     continue
                 cand = best[:]; o = cand.pop(i); cand.insert(j, o)
-                s = _scalar(cost(cand, onets, osec))
+                s = _scalar(cost(cand, onets, osec, osig))
                 if s < bests:
                     best, bests = cand, s; chain.append(list(best))
                     improved = True; break
@@ -124,6 +146,7 @@ def optimize_order(objects, rails, label_nets, trace=None):
         return list(objects)
     onets = {id(o): _nets(o, rails, label_nets) for o in objects}
     osec = {id(o): _section(o) for o in objects}
+    osig = {id(o): _sig(o) for o in objects}
     idx = {id(o): i for i, o in enumerate(objects)}
 
     def order_idx(order):
@@ -134,7 +157,7 @@ def optimize_order(objects, rails, label_nets, trace=None):
             trace.append(m)
 
     seed = list(objects)
-    sc = cost(seed, onets, osec)
+    sc = cost(seed, onets, osec, osig)
     log("objects (left->right seed):")
     for i, o in enumerate(objects):
         nets = sorted(onets[id(o)])
@@ -148,7 +171,7 @@ def optimize_order(objects, rails, label_nets, trace=None):
         total = math.factorial(n)
         log(f"search: exhaustive over {total} orderings of {n} objects")
         for perm in itertools.permutations(objects):
-            c = cost(perm, onets, osec); s = _scalar(c)
+            c = cost(perm, onets, osec, osig); s = _scalar(c)
             if s < bests:
                 best, bestc, bests = list(perm), c, s
                 log(f"  improve -> {order_idx(best)}  "
@@ -164,7 +187,7 @@ def optimize_order(objects, rails, label_nets, trace=None):
                     if i == j:
                         continue
                     cand = best[:]; o = cand.pop(i); cand.insert(j, o)
-                    c = cost(cand, onets, osec); s = _scalar(c)
+                    c = cost(cand, onets, osec, osig); s = _scalar(c)
                     if s < bests:
                         best, bestc, bests = cand, c, s
                         improved = True
