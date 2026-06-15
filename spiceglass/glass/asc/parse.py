@@ -8,6 +8,7 @@ foreign files are experimental.
 """
 from __future__ import annotations
 
+import math
 import os
 import re
 from dataclasses import dataclass, field
@@ -131,151 +132,34 @@ def resolve_asy(symname: str, asc_dir: str) -> str | None:
     return next((c for c in cands if os.path.exists(c)), None)
 
 
+def _arc_path(x1, y1, x2, y2, xs, ys, xe, ye) -> str:
+    """LTspice ARC -> SVG path. Ellipse = bbox (x1,y1)-(x2,y2); (xs,ys)/
+    (xe,ye) are angle markers; drawn CCW in y-down screen space."""
+    cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+    rx, ry = abs(x2 - x1) / 2, abs(y2 - y1) / 2
+    if rx < 0.5 or ry < 0.5:
+        return ""
+    ts = math.atan2((ys - cy) / ry, (xs - cx) / rx)
+    te = math.atan2((ye - cy) / ry, (xe - cx) / rx)
+    sweep = te - ts
+    while sweep <= 0:
+        sweep += 2 * math.pi
+    sx, sy = cx + rx * math.cos(ts), cy + ry * math.sin(ts)
+    ex, ey = cx + rx * math.cos(te), cy + ry * math.sin(te)
+    large = 1 if sweep > math.pi else 0
+    return (f"M {sx:.2f} {sy:.2f} A {rx:.2f} {ry:.2f} 0 {large} 1 "
+            f"{ex:.2f} {ey:.2f}")
+
+
 # ---------------------------------------------------------------- native
-# Fallback for LTspice built-in symbols when no LTspice install exists.
-# Pin offsets derived EMPIRICALLY from a 150-schematic corpus (wire
-# endpoints inverse-transformed into symbol space); artwork is generic
-# glyphs anchored to those pins.
-
-def _glyph_2pin(kind: str, p0, p1) -> AsySymbol:
-    s = AsySymbol()
-    (x0, y0), (x1, y1) = p0, p1
-    mx, my = (x0 + x1) // 2, (y0 + y1) // 2
-    s.pins = [(x0, y0, "1"), (x1, y1, "2")]
-    if kind == "res":
-        s.lines += [(x0, y0, x0, my - 28), (x0, my + 28, x1, y1),
-                    (x0, my - 28, x0 + 8, my - 22), (x0 + 8, my - 22, x0 - 8, my - 11),
-                    (x0 - 8, my - 11, x0 + 8, my), (x0 + 8, my, x0 - 8, my + 11),
-                    (x0 - 8, my + 11, x0 + 8, my + 22), (x0 + 8, my + 22, x0, my + 28)]
-    elif kind == "cap":
-        s.lines += [(x0, y0, x0, my - 6), (x0, my + 6, x1, y1),
-                    (x0 - 16, my - 6, x0 + 16, my - 6),
-                    (x0 - 16, my + 6, x0 + 16, my + 6)]
-    elif kind == "ind":
-        s.lines += [(x0, y0, x0, my - 24), (x0, my + 24, x1, y1)]
-        for k in range(3):
-            yb = my - 24 + k * 16
-            s.lines += [(x0, yb, x0 + 10, yb + 4), (x0 + 10, yb + 4, x0 + 10, yb + 12),
-                        (x0 + 10, yb + 12, x0, yb + 16)]
-    elif kind == "dio":
-        s.lines += [(x0, y0, x0, my - 10), (x0, my + 10, x1, y1),
-                    (x0 - 12, my - 10, x0 + 12, my - 10),
-                    (x0 - 12, my - 10, x0, my + 10),
-                    (x0 + 12, my - 10, x0, my + 10),
-                    (x0 - 12, my + 10, x0 + 12, my + 10)]
-    else:  # voltage / current source
-        s.lines += [(x0, y0, x0, my - 24), (x0, my + 24, x1, y1)]
-        s.circles.append((x0 - 24, my - 24, x0 + 24, my + 24))
-        if kind == "vsrc":
-            s.lines += [(x0, my - 16, x0, my - 6), (x0 - 5, my - 11, x0 + 5, my - 11),
-                        (x0 - 5, my + 11, x0 + 5, my + 11)]
-        else:
-            s.lines += [(x0, my - 12, x0, my + 12), (x0, my - 12, x0 - 5, my - 2),
-                        (x0, my - 12, x0 + 5, my - 2)]
-    return s
-
-
-def _glyph_bjt(pnp: bool) -> AsySymbol:
-    s = AsySymbol()
-    s.pins = [(64, 0, "C"), (0, 48, "B"), (64, 96, "E")]
-    s.lines += [(0, 48, 24, 48), (24, 28, 24, 68),
-                (64, 0, 64, 24), (64, 24, 24, 42),
-                (64, 96, 64, 72), (64, 72, 24, 54)]
-    if pnp:
-        s.lines += [(34, 46, 46, 36), (34, 46, 44, 50)]
-    else:
-        s.lines += [(54, 68, 44, 56), (54, 68, 42, 66)]
-    return s
-
-
-def _glyph_mos(pmos: bool) -> AsySymbol:
-    s = AsySymbol()
-    s.pins = [(48, 0, "D"), (0, 80, "G"), (48, 96, "S")]
-    s.lines += [(0, 80, 16, 80), (16, 60, 16, 100),
-                (24, 58, 24, 102),
-                (48, 0, 48, 64), (48, 64, 24, 64),
-                (48, 96, 48, 96), (24, 96, 48, 96)]
-    if pmos:
-        s.circles.append((8, 72, 24, 88))
-    return s
-
-
-def _glyph_opamp(power: bool = False) -> AsySymbol:
-    s = AsySymbol()
-    s.pins = [(-32, 48, "+"), (-32, 80, "-"), (32, 64, "OUT")]
-    s.lines += [(-32, 32, -32, 96), (-32, 32, 32, 64), (-32, 96, 32, 64),
-                (-26, 48, -18, 48), (-22, 44, -22, 52), (-26, 80, -18, 80)]
-    if power:                       # 5-pin parts (LT1007 class)
-        s.pins += [(0, 32, "V+"), (0, 96, "V-")]
-        s.lines += [(0, 32, 0, 48), (0, 96, 0, 80)]
-    return s
-
-
-def _glyph_sw(p0, p1) -> AsySymbol:
-    """SPST switch (pins measured from the corpus: (0,16),(0,96))."""
-    s = AsySymbol()
-    (x0, y0), (x1, y1) = p0, p1
-    s.lines += [(x0, y0, x0, y0 + 24), (x0, y1, x0, y1 - 24),   # terminal stubs
-                (x0, y0 + 24, x0 + 16, y1 - 28)]               # open blade
-    s.circles += [(x0 - 2, y0 + 22, x0 + 2, y0 + 26),          # pivot dots
-                  (x0 - 2, y1 - 26, x0 + 2, y1 - 22)]
-    s.pins = [(x0, y0, "1"), (x1, y1, "2")]
-    return s
-
-
-def _glyph_bsrc(kind: str, p0, p1) -> AsySymbol:
-    """Behavioral source (B-source): a diamond, like LTspice's bv/bi."""
-    s = AsySymbol()
-    (x0, y0), (x1, y1) = p0, p1
-    mx, my = (x0 + x1) // 2, (y0 + y1) // 2
-    r = 24
-    s.lines += [(x0, y0, mx, my - r), (mx, my + r, x1, y1),     # stubs
-                (mx, my - r, mx + r, my), (mx + r, my, mx, my + r),
-                (mx, my + r, mx - r, my), (mx - r, my, mx, my - r)]
-    if kind == "v":                       # + / - marks
-        s.lines += [(mx - 6, my - 8, mx + 6, my - 8), (mx, my - 14, mx, my - 2),
-                    (mx - 6, my + 9, mx + 6, my + 9)]
-    else:                                 # current arrow
-        s.lines += [(mx, my - 11, mx, my + 11), (mx, my + 11, mx - 4, my + 3),
-                    (mx, my + 11, mx + 4, my + 3)]
-    s.pins = [(x0, y0, "1"), (x1, y1, "2")]
-    return s
-
+# Fallback when no .asy file resolves: a faithful clean-room library on
+# LTspice's published pin coordinates (asc/symlib.py).
 
 def native_symbol(symname: str) -> AsySymbol | None:
-    n = symname.split("\\")[-1].lower()
-    if n in ("res", "res2"):
-        return _glyph_2pin("res", (16, 16), (16, 96))
-    if n in ("cap", "polcap"):
-        return _glyph_2pin("cap", (16, 0), (16, 64))
-    if n in ("ind", "ind2"):
-        return _glyph_2pin("ind", (16, 16), (16, 96))
-    if n in ("diode", "schottky", "zener", "led"):
-        return _glyph_2pin("dio", (16, 0), (16, 64))
-    if n in ("voltage", "battery", "cell"):
-        return _glyph_2pin("vsrc", (0, 16), (0, 96))
-    if n in ("current", "load"):
-        return _glyph_2pin("isrc", (0, 16), (0, 96))
-    if n in ("sw", "sw2", "csw"):               # switches (corpus: ×25)
-        return _glyph_sw((0, 16), (0, 96))
-    if n in ("bv", "b"):                         # behavioral voltage source
-        return _glyph_bsrc("v", (0, 16), (0, 96))
-    if n in ("bi", "bi2"):                       # behavioral current source
-        return _glyph_bsrc("i", (0, 16), (0, 96))
-    if n in ("npn", "npn2", "npn3"):
-        return _glyph_bjt(pnp=False)
-    if n in ("pnp", "pnp2"):
-        return _glyph_bjt(pnp=True)
-    if n in ("nmos", "nmos4"):
-        return _glyph_mos(pmos=False)
-    if n in ("pmos", "pmos4"):
-        return _glyph_mos(pmos=True)
-    if n in ("opamp", "uopamp"):
-        return _glyph_opamp(power=False)
-    if n in ("opamp2", "lt1007", "lt1720") or n.startswith(("lt1", "lt6",
-                                                            "ad8")):
-        return _glyph_opamp(power=True)
-    return None
+    """Faithful built-in fallback when no .asy file is found — clean-room
+    artwork on LTspice's published pin coordinates (see asc/symlib.py)."""
+    from .symlib import lookup
+    return lookup(symname)
 
 
 # LTspice's transform convention, measured EMPIRICALLY from the corpus
@@ -385,6 +269,11 @@ def asc_to_svg(sheet: AscSheet, asc_dir: str) -> str:
                 p.append(f'<ellipse cx="{cx}" cy="{cy}" rx="{abs(c-a)/2}" '
                          f'ry="{abs(d-b)/2}" fill="none" stroke="#1b1b1b" '
                          'stroke-width="2"/>')
+            for arc in sym.arcs:
+                d_ = _arc_path(*arc[:8])
+                if d_:
+                    p.append(f'<path d="{d_}" fill="none" stroke="#1b1b1b" '
+                             'stroke-width="2"/>')
         if sym is None:
             missing.add(inst.sym)
             p.append('<rect x="-24" y="-24" width="48" height="48" '

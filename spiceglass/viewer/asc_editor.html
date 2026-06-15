@@ -212,6 +212,16 @@ function buildScene(ast, symlib){
         grow(cx-rx,cy-ry);grow(cx+rx,cy+ry);
         push({t:"ell",cx,cy,rx,ry,bx:cx-rx,by:cy-ry,ex:cx+rx,ey:cy+ry,own});
       }
+      for(const ar of (sym.arcs||[])){
+        const [a,b,c,e,xs,ys,xe,ye]=ar;
+        const [X1,Y1]=tf(a,b),[X2,Y2]=tf(c,e),
+              [XS,YS]=tf(xs,ys),[XE,YE]=tf(xe,ye);
+        const cx=(X1+X2)/2,cy=(Y1+Y2)/2,
+              rx=Math.abs(X2-X1)/2,ry=Math.abs(Y2-Y1)/2;
+        grow(cx-rx,cy-ry); grow(cx+rx,cy+ry);
+        push({t:"arc",cx,cy,rx,ry,xs:XS,ys:YS,xe:XE,ye:YE,
+              bx:cx-rx,by:cy-ry,ex:cx+rx,ey:cy+ry,own});
+      }
       for(const pn of (sym.pins||[])){ const [wx,wy]=tf(pn[0],pn[1]);
         pinPts.push([wx,wy]); }
       if(bx>ex){ bx=d.x-24;by=d.y-24;ex=d.x+24;ey=d.y+24; }
@@ -369,11 +379,17 @@ function draw(){
   ctx.beginPath();
   for(const i of vis){ const p=scene.P[i]; if(p.t==="miss") ctx.rect(p.x,p.y,p.w,p.h); }
   ctx.stroke(); ctx.restore();
-  // ellipses
+  // ellipses + arcs
   ctx.beginPath();
   for(const i of vis){ const p=scene.P[i];
     if(p.t==="ell"){ ctx.moveTo(p.cx+p.rx,p.cy);
-      ctx.ellipse(p.cx,p.cy,p.rx,p.ry,0,0,Math.PI*2); } }
+      ctx.ellipse(p.cx,p.cy,p.rx,p.ry,0,0,Math.PI*2); }
+    else if(p.t==="arc" && p.rx>=0.5 && p.ry>=0.5){
+      const ts=Math.atan2((p.ys-p.cy)/p.ry,(p.xs-p.cx)/p.rx);
+      let te=Math.atan2((p.ye-p.cy)/p.ry,(p.xe-p.cx)/p.rx);
+      let sw=te-ts; while(sw<=0) sw+=2*Math.PI;
+      ctx.moveTo(p.cx+p.rx*Math.cos(ts), p.cy+p.ry*Math.sin(ts));
+      ctx.ellipse(p.cx,p.cy,p.rx,p.ry,0,ts,ts+sw,false); } }
   ctx.stroke();
 
   // pass 2: junction dots + ground symbols (filled)
