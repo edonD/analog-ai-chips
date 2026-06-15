@@ -211,6 +211,37 @@ def _glyph_opamp(power: bool = False) -> AsySymbol:
     return s
 
 
+def _glyph_sw(p0, p1) -> AsySymbol:
+    """SPST switch (pins measured from the corpus: (0,16),(0,96))."""
+    s = AsySymbol()
+    (x0, y0), (x1, y1) = p0, p1
+    s.lines += [(x0, y0, x0, y0 + 24), (x0, y1, x0, y1 - 24),   # terminal stubs
+                (x0, y0 + 24, x0 + 16, y1 - 28)]               # open blade
+    s.circles += [(x0 - 2, y0 + 22, x0 + 2, y0 + 26),          # pivot dots
+                  (x0 - 2, y1 - 26, x0 + 2, y1 - 22)]
+    s.pins = [(x0, y0, "1"), (x1, y1, "2")]
+    return s
+
+
+def _glyph_bsrc(kind: str, p0, p1) -> AsySymbol:
+    """Behavioral source (B-source): a diamond, like LTspice's bv/bi."""
+    s = AsySymbol()
+    (x0, y0), (x1, y1) = p0, p1
+    mx, my = (x0 + x1) // 2, (y0 + y1) // 2
+    r = 24
+    s.lines += [(x0, y0, mx, my - r), (mx, my + r, x1, y1),     # stubs
+                (mx, my - r, mx + r, my), (mx + r, my, mx, my + r),
+                (mx, my + r, mx - r, my), (mx - r, my, mx, my - r)]
+    if kind == "v":                       # + / - marks
+        s.lines += [(mx - 6, my - 8, mx + 6, my - 8), (mx, my - 14, mx, my - 2),
+                    (mx - 6, my + 9, mx + 6, my + 9)]
+    else:                                 # current arrow
+        s.lines += [(mx, my - 11, mx, my + 11), (mx, my + 11, mx - 4, my + 3),
+                    (mx, my + 11, mx + 4, my + 3)]
+    s.pins = [(x0, y0, "1"), (x1, y1, "2")]
+    return s
+
+
 def native_symbol(symname: str) -> AsySymbol | None:
     n = symname.split("\\")[-1].lower()
     if n in ("res", "res2"):
@@ -225,6 +256,12 @@ def native_symbol(symname: str) -> AsySymbol | None:
         return _glyph_2pin("vsrc", (0, 16), (0, 96))
     if n in ("current", "load"):
         return _glyph_2pin("isrc", (0, 16), (0, 96))
+    if n in ("sw", "sw2", "csw"):               # switches (corpus: ×25)
+        return _glyph_sw((0, 16), (0, 96))
+    if n in ("bv", "b"):                         # behavioral voltage source
+        return _glyph_bsrc("v", (0, 16), (0, 96))
+    if n in ("bi", "bi2"):                       # behavioral current source
+        return _glyph_bsrc("i", (0, 16), (0, 96))
     if n in ("npn", "npn2", "npn3"):
         return _glyph_bjt(pnp=False)
     if n in ("pnp", "pnp2"):
