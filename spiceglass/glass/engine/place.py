@@ -137,10 +137,13 @@ def _tile_covered(t: Tile) -> set[tuple[str, str]]:
 
 # ---------------------------------------------------------------- automatic
 
-def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
+def place(sub: Subckt, overrides: dict[str, dict] | None = None,
+          optimize: bool = False, trace: list | None = None) -> Sheet:
     """Automatic interpretation + realization; `overrides` (dev ->
     {x,y,orient}) applies human edits AFTER it — tile wiring re-derives
-    from the final positions."""
+    from the final positions. When `optimize` is set, the left-to-right
+    object order is searched to minimise crossings (see engine.optimize);
+    pass a `trace` list to capture the optimisation's decisions."""
     sheet = Sheet(sub=sub)
     sheet.rails = rails_of(sub)
     rails = sheet.rails
@@ -291,6 +294,11 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None) -> Sheet:
             pk, pv = objects[i - 1]
             val[0].section = (pv.members[0] if pk == "tile"
                               else pv[0]).section
+
+    if optimize:
+        from .optimize import optimize_order
+        objects = optimize_order(objects, sheet.rails, sheet.label_nets,
+                                 trace)
 
     _realize(sheet, objects, laterals, level, claimed)
 

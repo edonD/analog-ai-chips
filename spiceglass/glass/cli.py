@@ -122,6 +122,13 @@ def main(argv: list[str] | None = None) -> int:
     scp.add_argument("file")
     scp.add_argument("--subckt", default=None)
 
+    op = sp.add_parser("optimize", help="show the placement optimizer: seed "
+                       "vs crossing-minimised layout + full decision trace")
+    op.add_argument("file")
+    op.add_argument("--subckt", default=None)
+    op.add_argument("-o", "--out", default=None, metavar="BASE")
+    op.add_argument("--png", action="store_true")
+
     pp = sp.add_parser("plan", help="emit the automatic interpretation "
                                     "as an editable .plan file")
     pp.add_argument("file")
@@ -244,6 +251,51 @@ def main(argv: list[str] | None = None) -> int:
                   f"crossings{human.crossings - algo.crossings:+d}  "
                   f"through{human.through - algo.through:+d}")
         return 0
+    if args.cmd == "optimize":
+        from .engine.score import score
+        design = parse_file(args.file)
+        classify_design(design)
+        name = args.subckt or design.root().name
+        if name not in design.subckts:
+            print(f"no such subckt '{name}'; have: {', '.join(design.order)}")
+            return 2
+        sub = design.subckts[name]
+        base = args.out or f"{os.path.splitext(args.file)[0]}.{name}"
+
+        def run(opt, tr=None):
+            sheet = place(sub, optimize=opt, trace=tr)
+            routing = route(sheet)
+            return sheet, routing, verify(routing), score(sheet, routing)
+
+        seed_sheet, seed_r, seed_v, seed_sc = run(False)
+        tr: list = []
+        opt_sheet, opt_r, opt_v, opt_sc = run(True, tr)
+
+        bar = "=" * 68
+        print(bar)
+        print(f"PLACEMENT OPTIMIZER — {name}  ({len(sub.devices)} devices)")
+        print(bar)
+        for line in tr:
+            print(line)
+        print("-" * 68)
+        print("routed result (REAL score, after A* routing + verify):")
+        print(f"  seed : {seed_sc.row()}  verified={seed_v.ok}")
+        print(f"  opt  : {opt_sc.row()}  verified={opt_v.ok}")
+        print(f"  delta: crossings {opt_sc.crossings - seed_sc.crossings:+d}  "
+              f"bends {opt_sc.bends - seed_sc.bends:+d}  "
+              f"len {opt_sc.wirelength - seed_sc.wirelength:+d} mm")
+        meta = {"path": os.path.basename(design.path),
+                "date": _dt.date.today().isoformat(), "physical": False}
+        for tag, sh, r, v in (("seed", seed_sheet, seed_r, seed_v),
+                              ("optimized", opt_sheet, opt_r, opt_v)):
+            out = f"{base}.{tag}.svg"
+            with open(out, "w", encoding="utf-8") as fh:
+                fh.write(render_sheet(sh, r, v, meta))
+            print(f"  {tag:10} -> {out}")
+            if args.png:
+                _to_png(out)
+        return 0 if opt_v.ok else 1
+
     design = parse_file(args.file)
     classify_design(design)
     for w in design.warnings:

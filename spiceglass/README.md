@@ -91,6 +91,9 @@ python -m glass render ..\vibrosense\00_bias\design.cir -o out.svg
 python -m glass render design.cir --all            # every subckt in the file
 python -m glass render design.cir --subckt ota5 --png   # PNG via headless Edge
 python -m glass json design.cir                    # circuit DB as JSON
+python -m glass optimize design.cir                # placement optimizer:
+#   prints the full decision trace (seed -> each move -> winner), the real
+#   routed score before/after, and writes <base>.seed.svg / .optimized.svg
 python -m unittest discover -s tests               # golden regression
 ```
 
