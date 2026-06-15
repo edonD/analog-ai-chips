@@ -27,8 +27,11 @@ _SKY130 = [
     ("sky130_fd_pr__npn", "npn", ["c", "b", "e", "s"]),
 ]
 
-_VDD_RE = re.compile(r"^[adp]?v(dd|cc|dda|ddio|ddd|pwr)\w*$", re.I)
-_GND_RE = re.compile(r"^([adp]?(gnd|vss)\w*|0)$", re.I)
+# supply prefixes: a/d/p (analog/digital/peripheral) + b/s (battery/bulk,
+# switched/shifted) — covers local domains like bvdd, svdd that must still
+# fold to rail stubs rather than route as ordinary nets.
+_VDD_RE = re.compile(r"^[adpbs]?v(dd|cc|dda|ddio|ddd|pwr)\w*$", re.I)
+_GND_RE = re.compile(r"^([adpbs]?(gnd|vss)\w*|0)$", re.I)
 
 
 def classify_design(design: Design) -> None:
