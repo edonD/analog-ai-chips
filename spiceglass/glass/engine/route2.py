@@ -58,6 +58,8 @@ def _heur(x: int, y: int, axis: int, goals: list[tuple[int, int]]) -> int:
 
 
 OCCUPIED = 40       # soft cost for riding a line another net already uses
+VERTEX = 200        # soft cost for landing a corner/end on a foreign net's
+                    # vertex (a true touch = short; pure crossings are free)
 
 
 def _astar(g: OVG, starts: list[tuple[int, int | None]], goal_ids: set[int],
@@ -95,6 +97,8 @@ def _astar(g: OVG, starts: list[tuple[int, int | None]], goal_ids: set[int],
             ng = gc + step + (0 if eaxis == ax else BEND)
             if occ is not None and occ.foreign(eaxis, x, y, nx, ny, net):
                 ng += OCCUPIED
+            if occ is not None and occ.vertex_foreign(nx, ny, net):
+                ng += VERTEX            # don't put our corner on their wire
             nkey = (nb, eaxis)
             if nkey in best and best[nkey] <= ng:
                 continue
@@ -109,6 +113,7 @@ class _Occupancy:
 
     def __init__(self):
         self.lines: dict[tuple[int, int], list[tuple[int, int, str]]] = {}
+        self.vpts: dict[tuple[int, int], set[str]] = {}   # corner/end points
 
     def add_seg(self, x1, y1, x2, y2, net):
         if x1 == x2 and y1 != y2:
@@ -117,6 +122,11 @@ class _Occupancy:
         elif y1 == y2 and x1 != x2:
             self.lines.setdefault((H, y1), []).append(
                 (min(x1, x2), max(x1, x2), net))
+        self.vpts.setdefault((x1, y1), set()).add(net)
+        self.vpts.setdefault((x2, y2), set()).add(net)
+
+    def vertex_foreign(self, x, y, net) -> bool:
+        return any(n != net for n in self.vpts.get((x, y), ()))
 
     def add_path(self, path, net):
         for a, b in zip(path, path[1:]):
