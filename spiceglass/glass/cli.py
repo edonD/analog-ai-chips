@@ -199,6 +199,17 @@ def main(argv: list[str] | None = None) -> int:
                          sheet=sheet, asc=args.asc)
         return 0 if ok else 1
 
+    if args.cmd == "edit" and args.file.lower().endswith(".asc"):
+        from .serve_asc import serve_asc
+        if not args.no_browser:
+            import threading
+            import webbrowser
+            threading.Timer(
+                0.8, lambda: webbrowser.open(
+                    f"http://127.0.0.1:{args.port}/")).start()
+        serve_asc(args.file, args.port)
+        return 0
+
     if args.cmd == "edit":
         from .serve import serve
         plan_path = None

@@ -73,7 +73,7 @@ class Launcher:
         mid = ttk.Frame(self.root)
         mid.pack(fill="both", expand=False, padx=10)
         ttk.Label(mid, text="Discovered (double-click: .plan/.cir = select "
-                            "for server, .asc = render & view now):")\
+                            "for server, .asc = open live editor):")\
             .pack(anchor="w")
         self.listbox = tk.Listbox(mid, height=8, bg="#16181c", fg="#d8dee7",
                                   selectbackground="#3d5a86",
@@ -115,7 +115,7 @@ class Launcher:
         if f:
             self.file_var.set(f)
             if f.lower().endswith(".asc"):
-                self.render_asc(f)
+                self.open_asc(f)
 
     def pick(self, _ev) -> None:
         sel = self.listbox.curselection()
@@ -124,21 +124,28 @@ class Launcher:
         f = os.path.join(REPO, self.listbox.get(sel[0]))
         self.file_var.set(f)
         if f.lower().endswith(".asc"):
-            self.render_asc(f)          # one double-click per corpus file
+            self.open_asc(f)            # double-click .asc -> live editor
 
-    def render_asc(self, file: str) -> None:
-        """Render an LTspice sheet to SVG and open it in the browser."""
-        outdir = os.path.join(os.path.expandvars("%TEMP%"),
-                              "spiceglass_view")
-        os.makedirs(outdir, exist_ok=True)
-        out = os.path.join(
-            outdir, os.path.splitext(os.path.basename(file))[0] + ".svg")
-        r = subprocess.run([sys.executable, "-m", "glass", "render",
-                            file, "-o", out],
-                           cwd=PKG_DIR, capture_output=True, text=True)
-        self.say((r.stdout or "") + (r.stderr or ""))
-        if r.returncode == 0 and os.path.exists(out):
-            webbrowser.open("file:///" + out.replace("\\", "/"))
+    def open_asc(self, file: str) -> None:
+        """Launch the live .asc editor server and open it in the browser.
+
+        Interchangeable text + graphics: edit either, both stay in sync."""
+        port = int(self.port_var.get() or 8137)
+        if self.proc is not None and self.proc.poll() is None:
+            self.stop()
+        if port_busy(port):
+            self.say(f"port {port} busy — opening browser\n")
+            self.open("/")
+            return
+        self.proc = subprocess.Popen(
+            [sys.executable, "-m", "glass", "edit", file,
+             "--port", str(port), "--no-browser"],
+            cwd=PKG_DIR, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, creationflags=getattr(subprocess,
+                                             "CREATE_NO_WINDOW", 0))
+        threading.Thread(target=self._pump, daemon=True).start()
+        self.status.configure(text=f"running :{port} (.asc)")
+        self.root.after(1200, lambda: self.open("/"))
 
     def say(self, msg: str) -> None:
         self.log.configure(state="normal")
@@ -156,7 +163,7 @@ class Launcher:
             self.say(f"not found: {file}\n")
             return
         if file.lower().endswith(".asc"):
-            self.render_asc(file)       # .asc is render-and-view, no server
+            self.open_asc(file)         # .asc -> live editor server
             return
         if self.proc is not None and self.proc.poll() is None:
             self.say("already running — Stop first\n")

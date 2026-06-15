@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpiceGlass — .asc editor</title>
+<style>
+  :root{ --bg:#23262b; --panel:#16181c; --ink:#dde1e8; --line:#1b1b1b;
+         --accent:#3d7ad6; --warn:#caa23a; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; font-family:"Segoe UI",Arial,sans-serif;
+             background:var(--bg); color:var(--ink); overflow:hidden; }
+  #bar{ display:flex; align-items:center; gap:10px; padding:6px 10px;
+        background:#2b2f36; border-bottom:1px solid #11131699; font-size:13px; }
+  #bar b{ font-weight:600; }
+  #bar .sp{ flex:1; }
+  button{ background:#3d434d; color:var(--ink); border:0; border-radius:5px;
+          padding:5px 10px; font-size:12px; cursor:pointer; }
+  button:hover{ background:#4a515d; }
+  #status{ font-size:12px; color:#9fb6a3; min-width:120px; text-align:right; }
+  #wrap{ display:flex; height:calc(100% - 37px); }
+  #left{ width:42%; min-width:240px; display:flex; flex-direction:column;
+         border-right:1px solid #11131699; }
+  #ta{ flex:1; width:100%; resize:none; border:0; outline:none;
+       background:var(--panel); color:#d8dee7; padding:10px 12px;
+       font:13px/1.45 Consolas,"Cascadia Mono",monospace; tab-size:4;
+       white-space:pre; overflow:auto; }
+  #right{ flex:1; position:relative; background:#fff; }
+  #cv{ position:absolute; inset:0; width:100%; height:100%; display:block;
+       cursor:default; touch-action:none; }
+  #hint{ position:absolute; left:10px; bottom:8px; font-size:11px;
+         color:#7a8290; background:#ffffffcc; padding:2px 7px;
+         border-radius:4px; pointer-events:none; }
+  #warns{ position:absolute; right:8px; top:8px; max-width:46%;
+          font-size:11px; color:#7a5; }
+  #warns div{ background:#fff8e6; color:#7a5a10; border:1px solid #e7d28a;
+              border-radius:4px; padding:2px 7px; margin-bottom:3px; }
+  .drag{ width:5px; cursor:col-resize; background:#0d0e10; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <b>SpiceGlass</b><span>·</span><span id="fname">.asc</span>
+  <span class="sp"></span>
+  <button id="fit">Fit ⤢</button>
+  <button id="save">Save (Ctrl-S)</button>
+  <span id="status">ready</span>
+</div>
+<div id="wrap">
+  <div id="left"><textarea id="ta" spellcheck="false" wrap="off"></textarea></div>
+  <div class="drag" id="dragbar"></div>
+  <div id="right">
+    <canvas id="cv"></canvas>
+    <div id="hint">drag symbol/wire · wheel = zoom · drag empty = pan · click = select</div>
+    <div id="warns"></div>
+  </div>
+</div>
+<script>
+"use strict";
+//============================================================ geometry
+// LTspice transform convention, measured empirically (see parse_asc.py).
+const ROT = {
+  R0:(x,y)=>[x,y],   R90:(x,y)=>[-y,x],  R180:(x,y)=>[-x,-y], R270:(x,y)=>[y,-x],
+  M0:(x,y)=>[-x,y],  M90:(x,y)=>[y,x],   M180:(x,y)=>[x,-y],  M270:(x,y)=>[-y,-x],
+};
+const SNAP = 16;                 // LTspice placement grid
+const snap = v => Math.round(v/SNAP)*SNAP;
+
+//============================================================ .asc parser
+// Line-oriented: every entity is a contiguous line range. The AST is a
+// derived index over the text lines (text is the source of truth).
+function parseAsc(text){
+  const lines = text.split(/\r?\n/);
+  const a = { w:880, h:680, wires:[], flags:[], insts:[], texts:[], lines };
+  let pend = null;
+  for(let i=0;i<lines.length;i++){
+    const t = lines[i].trim().split(/\s+/);
+    if(!t[0]) continue;
+    const h = t[0].toUpperCase();
+    try{
+      if(h==="SHEET" && t.length>=4){ a.w=+t[2]; a.h=+t[3]; }
+      else if(h==="WIRE" && t.length>=5){
+        a.wires.push({x1:+t[1],y1:+t[2],x2:+t[3],y2:+t[4],line:i}); }
+      else if(h==="FLAG" && t.length>=4){
+        a.flags.push({x:+t[1],y:+t[2],name:t[3],line:i}); }
+      else if(h==="SYMBOL" && t.length>=5){
+        pend = {sym:t[1].replace(/\\\\/g,"\\"),x:+t[2],y:+t[3],
+                rot:t[4].toUpperCase(),attrs:{},line:i,endLine:i,
+                attrLines:{}};
+        a.insts.push(pend); }
+      else if(h==="SYMATTR" && t.length>=3 && pend){
+        pend.attrs[t[1]] = t.slice(2).join(" ");
+        pend.attrLines[t[1]] = i; pend.endLine=i; }
+      else if(h==="TEXT" && t.length>=5){
+        const m = lines[i].match(/TEXT\s+(-?\d+)\s+(-?\d+)\s+\S+\s+\S+\s+(.*)/);
+        if(m) a.texts.push({x:+m[1],y:+m[2],
+                            txt:m[3].replace(/^[!;]+/,""),line:i}); }
+    }catch(e){ /* tolerate malformed lines */ }
+  }
+  return a;
+}
+
+//============================================================ display list
+// Flat world-space primitives + a uniform-grid spatial index for culling
+// and hit-testing. Built once per parse; the camera never touches it.
+const CELL = 256;
+function buildScene(ast, symlib){
+  const P = [];                       // primitives
+  const push = (p)=>{ P.push(p); };
+  // wires
+  ast.wires.forEach((w,wi)=>{
+    push({t:"seg",x1:w.x1,y1:w.y1,x2:w.x2,y2:w.y2,
+          bx:Math.min(w.x1,w.x2),by:Math.min(w.y1,w.y2),
+          ex:Math.max(w.x1,w.x2),ey:Math.max(w.y1,w.y2),own:"w"+wi});
+  });
+  // junction dots: endpoint of degree>=3, or sitting on another wire's body
+  const deg={}, vmap={}, hmap={};
+  const key=(x,y)=>x+","+y;
+  for(const w of ast.wires){
+    deg[key(w.x1,w.y1)]=(deg[key(w.x1,w.y1)]||0)+1;
+    deg[key(w.x2,w.y2)]=(deg[key(w.x2,w.y2)]||0)+1;
+    if(w.x1===w.x2)(vmap[w.x1]=vmap[w.x1]||[]).push([Math.min(w.y1,w.y2),Math.max(w.y1,w.y2)]);
+    else if(w.y1===w.y2)(hmap[w.y1]=hmap[w.y1]||[]).push([Math.min(w.x1,w.x2),Math.max(w.x1,w.x2)]);
+  }
+  for(const k in deg){
+    const [x,y]=k.split(",").map(Number);
+    const onV=(vmap[x]||[]).some(([a,b])=>a<y&&y<b);
+    const onH=(hmap[y]||[]).some(([a,b])=>a<x&&x<b);
+    if(deg[k]>=3 || (deg[k]>=1 && (onV||onH)))
+      push({t:"dot",x,y,bx:x-4,by:y-4,ex:x+4,ey:y+4,own:null});
+  }
+  // flags
+  ast.flags.forEach((f,fi)=>{
+    if(f.name==="0")
+      push({t:"gnd",x:f.x,y:f.y,bx:f.x-12,by:f.y,ex:f.x+12,ey:f.y+14,own:"f"+fi});
+    else
+      push({t:"label",x:f.x+4,y:f.y-4,text:f.name,cls:"flag",
+            bx:f.x,by:f.y-18,ex:f.x+9*f.name.length,ey:f.y,own:"f"+fi});
+  });
+  // symbols
+  ast.insts.forEach((d,si)=>{
+    const rot = ROT[d.rot]||ROT.R0;
+    const tf = (x,y)=>{ const [a,b]=rot(x,y); return [a+d.x,b+d.y]; };
+    const sym = symlib[d.sym];
+    let bx=d.x-24,by=d.y-24,ex=d.x+24,ey=d.y+24;   // default placeholder box
+    const own="s"+si;
+    const grow=(x,y)=>{ bx=Math.min(bx,x);by=Math.min(by,y);ex=Math.max(ex,x);ey=Math.max(ey,y); };
+    if(sym){
+      bx=by=1e9; ex=ey=-1e9;
+      for(const [a,b,c,e] of sym.lines){
+        const [x1,y1]=tf(a,b),[x2,y2]=tf(c,e);
+        grow(x1,y1);grow(x2,y2);
+        push({t:"seg",x1,y1,x2,y2,bx:Math.min(x1,x2),by:Math.min(y1,y2),
+              ex:Math.max(x1,x2),ey:Math.max(y1,y2),own});
+      }
+      for(const [a,b,c,e] of sym.rects){
+        const [x1,y1]=tf(a,b),[x2,y2]=tf(c,e);
+        const rx=Math.min(x1,x2),ry=Math.min(y1,y2),
+              rw=Math.abs(x2-x1),rh=Math.abs(y2-y1);
+        grow(rx,ry);grow(rx+rw,ry+rh);
+        push({t:"rect",x:rx,y:ry,w:rw,h:rh,bx:rx,by:ry,ex:rx+rw,ey:ry+rh,own});
+      }
+      for(const [a,b,c,e] of sym.circles){
+        const [x1,y1]=tf(a,b),[x2,y2]=tf(c,e);
+        const cx=(x1+x2)/2,cy=(y1+y2)/2,
+              rx=Math.abs(x2-x1)/2,ry=Math.abs(y2-y1)/2;
+        grow(cx-rx,cy-ry);grow(cx+rx,cy+ry);
+        push({t:"ell",cx,cy,rx,ry,bx:cx-rx,by:cy-ry,ex:cx+rx,ey:cy+ry,own});
+      }
+      if(bx>ex){ bx=d.x-24;by=d.y-24;ex=d.x+24;ey=d.y+24; }
+    }else{
+      push({t:"miss",x:d.x-24,y:d.y-24,w:48,h:48,
+            bx:d.x-24,by:d.y-24,ex:d.x+24,ey:d.y+24,own});
+    }
+    d._bbox=[bx,by,ex,ey];
+    // instance labels
+    const nm=d.attrs.InstName, val=d.attrs.Value;
+    if(nm) push({t:"label",x:ex+6,y:by+14,text:nm,cls:"nm",
+                 bx:ex+6,by:by,ex:ex+6+9*nm.length,ey:by+16,own});
+    if(val) push({t:"label",x:ex+6,y:by+30,text:val,cls:"val",
+                 bx:ex+6,by:by+16,ex:ex+6+8*val.length,ey:by+32,own});
+  });
+  // free text
+  ast.texts.forEach((tx,ti)=>{
+    push({t:"label",x:tx.x,y:tx.y,text:tx.txt,cls:"val",
+          bx:tx.x,by:tx.y-14,ex:tx.x+8*tx.txt.length,ey:tx.y,own:"t"+ti});
+  });
+
+  // spatial grid
+  const grid=new Map();
+  const cellKey=(cx,cy)=>cx*73856093 ^ cy*19349663;
+  for(let i=0;i<P.length;i++){
+    const p=P[i];
+    const c0=Math.floor(p.bx/CELL),c1=Math.floor(p.ex/CELL),
+          r0=Math.floor(p.by/CELL),r1=Math.floor(p.ey/CELL);
+    for(let cx=c0;cx<=c1;cx++)for(let cy=r0;cy<=r1;cy++){
+      const k=cellKey(cx,cy);
+      let arr=grid.get(k); if(!arr){arr=[];grid.set(k,arr);} arr.push(i);
+    }
+  }
+  return {P,grid,cellKey,ast};
+}
+
+//============================================================ camera + render
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d",{alpha:false});
+let cam={scale:1,tx:0,ty:0}, scene=null, dpr=1;
+let sel=null;                       // selected owner id
+let drag=null;                      // active drag descriptor
+const W2S=(x,y)=>[x*cam.scale+cam.tx, y*cam.scale+cam.ty];
+const S2W=(x,y)=>[(x-cam.tx)/cam.scale, (y-cam.ty)/cam.scale];
+
+function resize(){
+  dpr=window.devicePixelRatio||1;
+  const r=cv.getBoundingClientRect();
+  cv.width=Math.max(1,Math.round(r.width*dpr));
+  cv.height=Math.max(1,Math.round(r.height*dpr));
+  render();
+}
+function cssSize(){ const r=cv.getBoundingClientRect(); return [r.width,r.height]; }
+
+function fit(){
+  if(!scene||!scene.P.length) return;
+  let bx=1e9,by=1e9,ex=-1e9,ey=-1e9;
+  for(const p of scene.P){bx=Math.min(bx,p.bx);by=Math.min(by,p.by);
+                          ex=Math.max(ex,p.ex);ey=Math.max(ey,p.ey);}
+  const [W,H]=cssSize(), m=40;
+  const s=Math.min((W-2*m)/Math.max(1,ex-bx),(H-2*m)/Math.max(1,ey-by));
+  cam.scale=Math.min(s,4);
+  cam.tx=W/2-(bx+ex)/2*cam.scale;
+  cam.ty=H/2-(by+ey)/2*cam.scale;
+  render();
+}
+
+let rafPending=false;
+function render(){
+  if(rafPending) return; rafPending=true;
+  requestAnimationFrame(()=>{ rafPending=false; draw(); });
+}
+
+function draw(){
+  const [W,H]=cssSize();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,cv.width,cv.height);
+  if(!scene){ return; }
+  // world->device matrix (pan/zoom + HiDPI). Only thing that changes per frame.
+  ctx.setTransform(cam.scale*dpr,0,0,cam.scale*dpr,cam.tx*dpr,cam.ty*dpr);
+
+  // visible world rect (+margin) for culling
+  const [wl,wt]=S2W(0,0), [wr,wb]=S2W(W,H);
+  const vl=wl-CELL,vt=wt-CELL,vr=wr+CELL,vb=wb+CELL;
+  const lw=1.6/cam.scale;
+  const fsize=13;                                 // world units, LOD below
+  const showText=fsize*cam.scale>6.5;
+
+  // cull: gather unique visible primitive indices via the grid
+  const vis=[]; const seen=draw._seen||(draw._seen=new Int32Array(0));
+  if(seen.length<scene.P.length) draw._seen=new Int32Array(scene.P.length);
+  const S=draw._seen; const fid=(draw._fid=(draw._fid||0)+1);
+  const c0=Math.floor(vl/CELL),c1=Math.floor(vr/CELL),
+        r0=Math.floor(vt/CELL),r1=Math.floor(vb/CELL);
+  for(let cx=c0;cx<=c1;cx++)for(let cy=r0;cy<=r1;cy++){
+    const arr=scene.grid.get(scene.cellKey(cx,cy)); if(!arr)continue;
+    for(const i of arr){ if(S[i]===fid)continue; S[i]=fid; vis.push(i); }
+  }
+
+  // pass 1: all strokes (wires + symbol bodies + rects) batched in one path
+  ctx.strokeStyle="#1b1b1b"; ctx.lineWidth=lw;
+  ctx.lineCap="round"; ctx.lineJoin="round";
+  ctx.beginPath();
+  for(const i of vis){
+    const p=scene.P[i];
+    if(p.t==="seg"){ ctx.moveTo(p.x1,p.y1); ctx.lineTo(p.x2,p.y2); }
+    else if(p.t==="rect"){ ctx.rect(p.x,p.y,p.w,p.h); }
+  }
+  ctx.stroke();
+  // dashed placeholder boxes for missing symbols
+  ctx.save(); ctx.setLineDash([5/cam.scale,4/cam.scale]);
+  ctx.beginPath();
+  for(const i of vis){ const p=scene.P[i]; if(p.t==="miss") ctx.rect(p.x,p.y,p.w,p.h); }
+  ctx.stroke(); ctx.restore();
+  // ellipses
+  ctx.beginPath();
+  for(const i of vis){ const p=scene.P[i];
+    if(p.t==="ell"){ ctx.moveTo(p.cx+p.rx,p.cy);
+      ctx.ellipse(p.cx,p.cy,p.rx,p.ry,0,0,Math.PI*2); } }
+  ctx.stroke();
+
+  // pass 2: junction dots + ground symbols (filled)
+  ctx.fillStyle="#1b1b1b";
+  const dotR=Math.max(3.2,2.6/cam.scale);   // ~world-fixed, never sub-pixel
+  for(const i of vis){ const p=scene.P[i];
+    if(p.t==="dot"){ ctx.beginPath();
+      ctx.arc(p.x,p.y,dotR,0,Math.PI*2); ctx.fill(); } }
+  for(const i of vis){ const p=scene.P[i];
+    if(p.t==="gnd"){
+      ctx.beginPath(); ctx.moveTo(p.x-10,p.y+2); ctx.lineTo(p.x+10,p.y+2);
+      ctx.lineTo(p.x,p.y+12); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle="#1b1b1b"; ctx.lineWidth=lw;
+      ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x,p.y+2); ctx.stroke(); } }
+
+  // pass 3: text (LOD-gated)
+  if(showText){
+    ctx.textBaseline="alphabetic";
+    for(const i of vis){ const p=scene.P[i]; if(p.t!=="label")continue;
+      if(p.cls==="flag"){ ctx.fillStyle="#0b4ea2"; ctx.font="600 "+fsize+"px Segoe UI,Arial"; }
+      else if(p.cls==="nm"){ ctx.fillStyle="#222"; ctx.font="600 "+fsize+"px Segoe UI,Arial"; }
+      else { ctx.fillStyle="#666"; ctx.font=(fsize-1)+"px Segoe UI,Arial"; }
+      ctx.fillText(p.text,p.x,p.y);
+    }
+  }
+
+  // overlay: selection highlight (drawn in world coords, accent)
+  if(sel){
+    ctx.strokeStyle="#3d7ad6"; ctx.lineWidth=2/cam.scale;
+    ctx.setLineDash([]);
+    for(const i of vis){ const p=scene.P[i]; if(p.own!==sel)continue;
+      ctx.strokeRect(p.bx-2,p.by-2,(p.ex-p.bx)+4,(p.ey-p.by)+4); }
+  }
+}
+
+//============================================================ hit-testing
+function hitOwner(wx,wy){
+  // broad-phase: candidate prims in the cursor cell and neighbours
+  const tol=6/cam.scale;
+  let best=null, bestArea=1e18;
+  const cx=Math.floor(wx/CELL),cy=Math.floor(wy/CELL);
+  const cand=new Set();
+  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+    const arr=scene.grid.get(scene.cellKey(cx+dx,cy+dy)); if(!arr)continue;
+    for(const i of arr) cand.add(i);
+  }
+  // prefer symbols (own starts with s/f/t) by bbox containment, smallest area
+  for(const i of cand){ const p=scene.P[i]; if(!p.own)continue;
+    if(p.own[0]==="w")continue;
+    if(wx>=p.bx-tol&&wx<=p.ex+tol&&wy>=p.by-tol&&wy<=p.ey+tol){
+      const area=(p.ex-p.bx)*(p.ey-p.by);
+      if(area<bestArea){bestArea=area;best=p.own;}
+    }
+  }
+  if(best) return best;
+  // else wires: nearest segment within tolerance
+  for(const i of cand){ const p=scene.P[i]; if(p.t!=="seg"||!p.own||p.own[0]!=="w")continue;
+    if(distSeg(wx,wy,p.x1,p.y1,p.x2,p.y2)<=tol) return p.own; }
+  return null;
+}
+function distSeg(px,py,x1,y1,x2,y2){
+  const dx=x2-x1,dy=y2-y1, l2=dx*dx+dy*dy;
+  let t=l2?((px-x1)*dx+(py-y1)*dy)/l2:0; t=Math.max(0,Math.min(1,t));
+  const cx=x1+t*dx,cy=y1+t*dy; return Math.hypot(px-cx,py-cy);
+}
+
+//============================================================ text <-> graphics
+const ta=document.getElementById("ta");
+let raw="", symlib={}, dirty=false, origin=null;
+const lineStarts=(text)=>{ const s=[0]; for(let i=0;i<text.length;i++)
+  if(text[i]==="\n")s.push(i+1); return s; };
+
+async function reparse(){
+  const ast=parseAsc(raw);
+  // fetch any symbol geometry we don't have yet
+  const need=[...new Set(ast.insts.map(d=>d.sym))].filter(n=>!(n in symlib));
+  if(need.length){
+    try{
+      const r=await fetch("/api/symlib",{method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({names:need})});
+      Object.assign(symlib, await r.json());
+    }catch(e){ for(const n of need) symlib[n]=symlib[n]||null; }
+  }
+  scene=buildScene(ast,symlib);
+  showWarnings(ast);
+  render();
+}
+function showWarnings(ast){
+  const box=document.getElementById("warns"); box.innerHTML="";
+  const miss=[...new Set(ast.insts.filter(d=>!symlib[d.sym]).map(d=>d.sym))];
+  if(miss.length){ const d=document.createElement("div");
+    d.textContent="symbol not found: "+miss.join(", ")+" (dashed box)";
+    box.appendChild(d); }
+}
+
+let reparseTimer=null;
+ta.addEventListener("input",()=>{
+  raw=ta.value; markDirty();
+  clearTimeout(reparseTimer);
+  reparseTimer=setTimeout(reparse,120);     // debounce text -> graphics
+});
+// text caret -> highlight matching symbol on canvas
+ta.addEventListener("keyup",syncFromCaret);
+ta.addEventListener("click",syncFromCaret);
+function syncFromCaret(){
+  if(!scene) return;
+  const pos=ta.selectionStart, ls=lineStarts(raw);
+  let ln=0; for(let i=0;i<ls.length;i++){ if(ls[i]<=pos)ln=i; else break; }
+  const d=scene.ast.insts.find(d=>ln>=d.line&&ln<=d.endLine);
+  if(d){ const idx=scene.ast.insts.indexOf(d); selectOwner("s"+idx,false); }
+}
+
+// graphics -> text: replace exactly the changed line(s), keep everything else
+function patchLine(idx, newText){
+  const ls=lineStarts(raw);
+  const start=ls[idx], end=(idx+1<ls.length?ls[idx+1]-1:raw.length);
+  raw=raw.slice(0,start)+newText+raw.slice(end);
+  const top=ta.scrollTop, ss=ta.selectionStart, se=ta.selectionEnd;
+  origin="graphics"; ta.value=raw; origin=null;
+  ta.scrollTop=top;
+  try{ ta.setSelectionRange(ss,se); }catch(e){}
+  markDirty();
+}
+function setSymbolPos(si,x,y){
+  const d=scene.ast.insts[si];
+  const t=raw.split(/\r?\n/)[d.line].match(/^(\s*SYMBOL\s+\S+\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
+  if(!t) return;
+  patchLine(d.line, t[1]+x+t[3]+y+t[5]);
+}
+function setWireEnds(wi,x1,y1,x2,y2){
+  const w=scene.ast.wires[wi];
+  const t=raw.split(/\r?\n/)[w.line].match(/^(\s*WIRE\s+)(-?\d+)(\s+)(-?\d+)(\s+)(-?\d+)(\s+)(-?\d+)\s*$/);
+  if(!t) return;
+  patchLine(w.line, t[1]+x1+t[3]+y1+t[5]+x2+t[7]+y2);
+}
+
+function selectOwner(own,scrollText){
+  sel=own; render();
+  if(scrollText && own){
+    let ln=-1, len=0;
+    if(own[0]==="s"){ const d=scene.ast.insts[+own.slice(1)]; ln=d.line;
+      len=d.endLine-d.line; }
+    else if(own[0]==="w"){ ln=scene.ast.wires[+own.slice(1)].line; }
+    else if(own[0]==="f"){ ln=scene.ast.flags[+own.slice(1)].line; }
+    else if(own[0]==="t"){ ln=scene.ast.texts[+own.slice(1)].line; }
+    if(ln>=0){ const ls=lineStarts(raw);
+      const a=ls[ln], b=(ln+len+1<ls.length?ls[ln+len+1]-1:raw.length);
+      ta.focus(); ta.setSelectionRange(a,b);
+      // scroll the line into view
+      const lh=parseFloat(getComputedStyle(ta).lineHeight)||18;
+      ta.scrollTop=Math.max(0,(ln-3)*lh);
+    }
+  }
+}
+
+//============================================================ pointer input
+let ptr=null;
+cv.addEventListener("pointerdown",e=>{
+  cv.setPointerCapture(e.pointerId);
+  const r=cv.getBoundingClientRect();
+  const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
+  const own = scene?hitOwner(wx,wy):null;
+  ptr={x:e.clientX,y:e.clientY,wx,wy,moved:false};
+  if(own && (own[0]==="s"||own[0]==="w")){
+    selectOwner(own,true);
+    if(own[0]==="s"){ const d=scene.ast.insts[+own.slice(1)];
+      drag={kind:"sym",si:+own.slice(1),ox:d.x,oy:d.y,wx,wy}; }
+    else { const w=scene.ast.wires[+own.slice(1)];
+      drag={kind:"wire",wi:+own.slice(1),
+            ox1:w.x1,oy1:w.y1,ox2:w.x2,oy2:w.y2,wx,wy}; }
+    cv.style.cursor="grabbing";
+  }else{
+    if(own) selectOwner(own,true); else selectOwner(null,false);
+    drag={kind:"pan",tx:cam.tx,ty:cam.ty,sx:e.clientX,sy:e.clientY};
+  }
+});
+cv.addEventListener("pointermove",e=>{
+  if(!drag) {  // hover cursor feedback
+    if(scene){ const r=cv.getBoundingClientRect();
+      const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
+      cv.style.cursor=hitOwner(wx,wy)?"grab":"default"; }
+    return;
+  }
+  ptr.moved=true;
+  if(drag.kind==="pan"){
+    cam.tx=drag.tx+(e.clientX-drag.sx); cam.ty=drag.ty+(e.clientY-drag.sy);
+    render(); return;
+  }
+  const r=cv.getBoundingClientRect();
+  const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
+  const dx=snap(wx-drag.wx), dy=snap(wy-drag.wy);
+  if(drag.kind==="sym"){
+    const d=scene.ast.insts[drag.si]; d.x=drag.ox+dx; d.y=drag.oy+dy;
+    rebuildLive();
+  }else if(drag.kind==="wire"){
+    const w=scene.ast.wires[drag.wi];
+    w.x1=drag.ox1+dx; w.y1=drag.oy1+dy; w.x2=drag.ox2+dx; w.y2=drag.oy2+dy;
+    rebuildLive();
+  }
+});
+cv.addEventListener("pointerup",e=>{
+  cv.releasePointerCapture(e.pointerId);
+  cv.style.cursor="default";
+  if(drag){
+    if(drag.kind==="sym" && ptr.moved){
+      const d=scene.ast.insts[drag.si]; setSymbolPos(drag.si,d.x,d.y); }
+    else if(drag.kind==="wire" && ptr.moved){
+      const w=scene.ast.wires[drag.wi];
+      setWireEnds(drag.wi,w.x1,w.y1,w.x2,w.y2); }
+  }
+  drag=null; ptr=null;
+});
+// live rebuild during drag (cheap: same scene rebuild, culled draw)
+function rebuildLive(){ scene=buildScene(scene.ast,symlib); render(); }
+
+cv.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  const [wx,wy]=S2W(mx,my);
+  const f=Math.exp(-e.deltaY*0.0015);
+  cam.scale=Math.max(0.02,Math.min(40,cam.scale*f));
+  cam.tx=mx-wx*cam.scale; cam.ty=my-wy*cam.scale;
+  render();
+},{passive:false});
+
+//============================================================ save / status
+function markDirty(){ dirty=true; setStatus("edited ·",true); }
+function setStatus(s,warn){ const el=document.getElementById("status");
+  el.textContent=s; el.style.color=warn?"#caa23a":"#9fb6a3"; }
+async function save(){
+  try{
+    const r=await fetch("/api/save",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text:raw})});
+    if(r.ok){ dirty=false; setStatus("saved ✓",false); }
+    else setStatus("save failed",true);
+  }catch(e){ setStatus("save failed",true); }
+}
+document.getElementById("save").onclick=save;
+document.getElementById("fit").onclick=fit;
+window.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){ e.preventDefault(); save(); }
+});
+
+//============================================================ resizable split
+(function(){
+  const bar=document.getElementById("dragbar"), left=document.getElementById("left");
+  let down=false;
+  bar.addEventListener("pointerdown",e=>{down=true;bar.setPointerCapture(e.pointerId);});
+  bar.addEventListener("pointermove",e=>{ if(!down)return;
+    const w=document.getElementById("wrap").getBoundingClientRect();
+    const px=Math.max(200,Math.min(w.width-200,e.clientX-w.left));
+    left.style.width=px+"px"; resize(); });
+  bar.addEventListener("pointerup",e=>{down=false;});
+})();
+
+//============================================================ boot
+window.addEventListener("resize",resize);
+async function boot(){
+  const r=await fetch("/api/asc"); const data=await r.json();
+  document.getElementById("fname").textContent=data.file;
+  raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
+  ta.value=raw; symlib=data.symbols||{};
+  scene=buildScene(parseAsc(raw),symlib);
+  resize(); fit(); showWarnings(scene.ast); setStatus("ready",false);
+}
+boot();
+</script>
+</body>
+</html>
