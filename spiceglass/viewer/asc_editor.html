@@ -49,8 +49,10 @@
   <input id="fileinput" type="file" accept=".asc,.cir,.spice,.sp,.plan" hidden>
   <span id="srcnote"></span>
   <span class="sp"></span>
+  <button id="wirebtn" title="draw wires (W) — click to place, dbl-click to end">+ Wire</button>
+  <button id="delbtn" title="delete selected (Del)">Delete</button>
   <a href="/symbols" target="_blank" style="color:#9fb6a3;font-size:12px;
-     text-decoration:none;margin-right:6px">Symbols ↗</a>
+     text-decoration:none;margin:0 6px">Symbols ↗</a>
   <button id="fit">Fit ⤢</button>
   <button id="save">Save (Ctrl-S)</button>
   <span id="status">ready</span>
@@ -60,7 +62,7 @@
   <div class="drag" id="dragbar"></div>
   <div id="right">
     <canvas id="cv"></canvas>
-    <div id="hint">drag symbol/wire · wheel = zoom · drag empty = pan · click = select</div>
+    <div id="hint">drag symbol/wire · drag endpoints of a selected wire · W = draw wires · Del = delete · wheel = zoom · drag empty = pan</div>
     <div id="warns"></div>
   </div>
 </div>
@@ -122,29 +124,29 @@ function buildScene(ast, symlib){
           bx:Math.min(w.x1,w.x2),by:Math.min(w.y1,w.y2),
           ex:Math.max(w.x1,w.x2),ey:Math.max(w.y1,w.y2),own:"w"+wi});
   });
-  // junction dots: endpoint of degree>=3, or sitting on another wire's body
-  const deg={}, vmap={}, hmap={};
+  // connection analysis (dots emitted at the end, once pins are known)
+  const deg={}, vmap={}, hmap={}, ends=[], pinPts=[], nodePts=[];
   const key=(x,y)=>x+","+y;
   for(const w of ast.wires){
     deg[key(w.x1,w.y1)]=(deg[key(w.x1,w.y1)]||0)+1;
     deg[key(w.x2,w.y2)]=(deg[key(w.x2,w.y2)]||0)+1;
+    ends.push([w.x1,w.y1],[w.x2,w.y2]);
     if(w.x1===w.x2)(vmap[w.x1]=vmap[w.x1]||[]).push([Math.min(w.y1,w.y2),Math.max(w.y1,w.y2)]);
     else if(w.y1===w.y2)(hmap[w.y1]=hmap[w.y1]||[]).push([Math.min(w.x1,w.x2),Math.max(w.x1,w.x2)]);
   }
-  for(const k in deg){
-    const [x,y]=k.split(",").map(Number);
-    const onV=(vmap[x]||[]).some(([a,b])=>a<y&&y<b);
-    const onH=(hmap[y]||[]).some(([a,b])=>a<x&&x<b);
-    if(deg[k]>=3 || (deg[k]>=1 && (onV||onH)))
-      push({t:"dot",x,y,bx:x-4,by:y-4,ex:x+4,ey:y+4,own:null});
-  }
-  // flags
+  // flags: gnd symbol, or a named-node probe (a ring marking the node point)
   ast.flags.forEach((f,fi)=>{
-    if(f.name==="0")
-      push({t:"gnd",x:f.x,y:f.y,bx:f.x-12,by:f.y,ex:f.x+12,ey:f.y+14,own:"f"+fi});
-    else
-      push({t:"label",x:f.x+4,y:f.y-4,text:f.name,cls:"flag",
-            bx:f.x,by:f.y-18,ex:f.x+9*f.name.length,ey:f.y,own:"f"+fi});
+    const own="f"+fi;
+    if(f.name==="0"){
+      push({t:"gnd",x:f.x,y:f.y,bx:f.x-12,by:f.y,ex:f.x+12,ey:f.y+14,own});
+    }else{
+      const power=/^(vdd|vcc|vee|vss|vbat|vpwr|vgnd|v\+|v-|avdd|dvdd)/i
+                    .test(f.name);
+      push({t:"node",x:f.x,y:f.y,power,bx:f.x-9,by:f.y-12,ex:f.x+9,ey:f.y+9,own});
+      push({t:"label",x:f.x+11,y:f.y-6,text:f.name,cls:"flag",
+            bx:f.x+11,by:f.y-18,ex:f.x+11+9*f.name.length,ey:f.y,own});
+      nodePts.push([f.x,f.y]);
+    }
   });
   // symbols
   ast.insts.forEach((d,si)=>{
@@ -176,6 +178,8 @@ function buildScene(ast, symlib){
         grow(cx-rx,cy-ry);grow(cx+rx,cy+ry);
         push({t:"ell",cx,cy,rx,ry,bx:cx-rx,by:cy-ry,ex:cx+rx,ey:cy+ry,own});
       }
+      for(const pn of (sym.pins||[])){ const [wx,wy]=tf(pn[0],pn[1]);
+        pinPts.push([wx,wy]); }
       if(bx>ex){ bx=d.x-24;by=d.y-24;ex=d.x+24;ey=d.y+24; }
     }else{
       push({t:"miss",x:d.x-24,y:d.y-24,w:48,h:48,
@@ -195,6 +199,20 @@ function buildScene(ast, symlib){
           bx:tx.x,by:tx.y-14,ex:tx.x+8*tx.txt.length,ey:tx.y,own:"t"+ti});
   });
 
+  // connector dots: wire junctions (3-way / T) AND every pin or named
+  // node that meets a wire — so a component-to-wire connection is visible.
+  const dotSet=new Set();
+  const onInterior=(x,y)=>(vmap[x]||[]).some(([a,b])=>a<y&&y<b)||
+                          (hmap[y]||[]).some(([a,b])=>a<x&&x<b);
+  const addDot=(x,y)=>{ const k=key(x,y); if(dotSet.has(k))return;
+    dotSet.add(k); push({t:"dot",x,y,bx:x-4,by:y-4,ex:x+4,ey:y+4,own:null}); };
+  for(const k in deg){ const [x,y]=k.split(",").map(Number);
+    if(deg[k]>=3 || (deg[k]>=1 && onInterior(x,y))) addDot(x,y); }
+  for(const [x,y] of pinPts)
+    if((deg[key(x,y)]||0)>=1 || onInterior(x,y)) addDot(x,y);
+  for(const [x,y] of nodePts)
+    if((deg[key(x,y)]||0)>=1 || onInterior(x,y)) addDot(x,y);
+
   // spatial grid
   const grid=new Map();
   const cellKey=(cx,cy)=>cx*73856093 ^ cy*19349663;
@@ -207,7 +225,7 @@ function buildScene(ast, symlib){
       let arr=grid.get(k); if(!arr){arr=[];grid.set(k,arr);} arr.push(i);
     }
   }
-  return {P,grid,cellKey,ast};
+  return {P,grid,cellKey,ast,pins:pinPts,ends};
 }
 
 //============================================================ camera + render
@@ -215,8 +233,30 @@ const cv=document.getElementById("cv"), ctx=cv.getContext("2d",{alpha:false});
 let cam={scale:1,tx:0,ty:0}, scene=null, dpr=1;
 let sel=null;                       // selected owner id
 let drag=null;                      // active drag descriptor
+let mode="select";                  // "select" | "wire"
+let drawStart=null, drawCur=null;   // wire-draw in progress (world pts)
 const W2S=(x,y)=>[x*cam.scale+cam.tx, y*cam.scale+cam.ty];
 const S2W=(x,y)=>[(x-cam.tx)/cam.scale, (y-cam.ty)/cam.scale];
+
+// orthogonal segments from a→b (horizontal then vertical); used for both
+// the live wire-draw preview and the committed WIRE lines.
+function orthoSegs(a,b){
+  const [x0,y0]=a,[x1,y1]=b;
+  if(x0===x1||y0===y1) return [[x0,y0,x1,y1]];
+  return [[x0,y0,x1,y0],[x1,y0,x1,y1]];
+}
+// snap a world point to the nearest pin / wire endpoint, else to the grid —
+// so hand-drawn wires land exactly on connection points.
+function nearestSnap(wx,wy){
+  const tol=10/cam.scale; let best=null, bd=tol;
+  if(scene){
+    for(const [x,y] of scene.pins){ const d=Math.hypot(wx-x,wy-y);
+      if(d<bd){bd=d;best=[x,y];} }
+    for(const [x,y] of scene.ends){ const d=Math.hypot(wx-x,wy-y);
+      if(d<bd){bd=d;best=[x,y];} }
+  }
+  return best||[snap(wx),snap(wy)];
+}
 
 function resize(){
   dpr=window.devicePixelRatio||1;
@@ -307,6 +347,19 @@ function draw(){
       ctx.strokeStyle="#1b1b1b"; ctx.lineWidth=lw;
       ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x,p.y+2); ctx.stroke(); } }
 
+  // node probes: a ring marking the actual node point of a named net,
+  // plus a small bar for power rails (vdd/vcc/…) — the node, not just text.
+  ctx.strokeStyle="#0b4ea2"; ctx.lineWidth=1.7/cam.scale;
+  ctx.fillStyle="#0b4ea2";
+  for(const i of vis){ const p=scene.P[i]; if(p.t!=="node")continue;
+    ctx.beginPath(); ctx.arc(p.x,p.y,4.5,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(p.x,p.y,1.3,0,Math.PI*2); ctx.fill();
+    if(p.power){
+      ctx.beginPath(); ctx.moveTo(p.x,p.y-4.5); ctx.lineTo(p.x,p.y-10);
+      ctx.moveTo(p.x-7,p.y-10); ctx.lineTo(p.x+7,p.y-10); ctx.stroke();
+    }
+  }
+
   // pass 3: text (LOD-gated)
   if(showText){
     ctx.textBaseline="alphabetic";
@@ -318,12 +371,35 @@ function draw(){
     }
   }
 
-  // overlay: selection highlight (drawn in world coords, accent)
+  // overlay: selection highlight (world coords, accent)
   if(sel){
-    ctx.strokeStyle="#3d7ad6"; ctx.lineWidth=2/cam.scale;
-    ctx.setLineDash([]);
-    for(const i of vis){ const p=scene.P[i]; if(p.own!==sel)continue;
-      ctx.strokeRect(p.bx-2,p.by-2,(p.ex-p.bx)+4,(p.ey-p.by)+4); }
+    ctx.setLineDash([]); ctx.strokeStyle="#3d7ad6"; ctx.lineWidth=2/cam.scale;
+    if(sel[0]==="w"){
+      const w=scene.ast.wires[+sel.slice(1)];
+      if(w){
+        ctx.beginPath(); ctx.moveTo(w.x1,w.y1); ctx.lineTo(w.x2,w.y2);
+        ctx.stroke();
+        const hs=4.5/cam.scale; ctx.fillStyle="#fff";          // endpoint handles
+        for(const [hx,hy] of [[w.x1,w.y1],[w.x2,w.y2]]){
+          ctx.fillRect(hx-hs,hy-hs,2*hs,2*hs);
+          ctx.strokeRect(hx-hs,hy-hs,2*hs,2*hs);
+        }
+      }
+    }else{
+      for(const i of vis){ const p=scene.P[i]; if(p.own!==sel)continue;
+        ctx.strokeRect(p.bx-2,p.by-2,(p.ex-p.bx)+4,(p.ey-p.by)+4); }
+    }
+  }
+
+  // wire-draw preview (orthogonal, dashed) + start marker
+  if(mode==="wire" && drawStart && drawCur){
+    ctx.setLineDash([6/cam.scale,4/cam.scale]);
+    ctx.strokeStyle="#3d7ad6"; ctx.lineWidth=1.7/cam.scale; ctx.beginPath();
+    for(const [a,b,c,d2] of orthoSegs(drawStart,drawCur)){
+      ctx.moveTo(a,b); ctx.lineTo(c,d2); }
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle="#3d7ad6"; ctx.beginPath();
+    ctx.arc(drawStart[0],drawStart[1],4/cam.scale,0,Math.PI*2); ctx.fill();
   }
 }
 
@@ -428,6 +504,36 @@ function setWireEnds(wi,x1,y1,x2,y2){
   if(!t) return;
   patchLine(w.line, t[1]+x1+t[3]+y1+t[5]+x2+t[7]+y2);
 }
+function setFlagPos(fi,x,y){
+  const f=scene.ast.flags[fi];
+  const t=raw.split(/\r?\n/)[f.line].match(/^(\s*FLAG\s+)(-?\d+)(\s+)(-?\d+)(\s+\S+.*)$/);
+  if(!t) return;
+  patchLine(f.line, t[1]+x+t[3]+y+t[5]);
+}
+// structural edits (add/remove lines): full re-parse from the text, which
+// stays the source of truth. Origin-tagged so the textarea listener no-ops.
+function commitText(newRaw){
+  raw=newRaw; origin="graphics"; ta.value=raw; origin=null;
+  markDirty(); reparse();
+}
+function addWires(segs){
+  const add=segs.filter(([a,b,c,d])=>a!==c||b!==d)
+    .map(([a,b,c,d])=>`WIRE ${a} ${b} ${c} ${d}`).join("\n");
+  if(!add) return;
+  commitText(raw + (raw.endsWith("\n")?"":"\n") + add + "\n");
+}
+function deleteSel(){
+  if(!sel||!scene) return;
+  let a=-1,b=-1;
+  if(sel[0]==="w"){ a=b=scene.ast.wires[+sel.slice(1)].line; }
+  else if(sel[0]==="f"){ a=b=scene.ast.flags[+sel.slice(1)].line; }
+  else if(sel[0]==="t"){ a=b=scene.ast.texts[+sel.slice(1)].line; }
+  else if(sel[0]==="s"){ const d=scene.ast.insts[+sel.slice(1)];
+    a=d.line; b=d.endLine; }
+  if(a<0) return;
+  const lines=raw.split("\n"); lines.splice(a,b-a+1);
+  sel=null; commitText(lines.join("\n"));
+}
 
 function selectOwner(own,scrollText){
   sel=own; render();
@@ -453,16 +559,41 @@ let ptr=null;
 cv.addEventListener("pointerdown",e=>{
   cv.setPointerCapture(e.pointerId);
   const r=cv.getBoundingClientRect();
-  const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  const [wx,wy]=S2W(mx,my);
+  // wire-draw mode: click to place vertices; chains from the last point.
+  if(mode==="wire"){
+    const pt=nearestSnap(wx,wy);
+    if(!drawStart){ drawStart=pt; drawCur=pt; }
+    else { addWires(orthoSegs(drawStart,pt)); drawStart=pt; drawCur=pt; }
+    render(); return;
+  }
   const own = scene?hitOwner(wx,wy):null;
   ptr={x:e.clientX,y:e.clientY,wx,wy,moved:false};
-  if(own && (own[0]==="s"||own[0]==="w")){
-    selectOwner(own,true);
-    if(own[0]==="s"){ const d=scene.ast.insts[+own.slice(1)];
-      drag={kind:"sym",si:+own.slice(1),ox:d.x,oy:d.y,wx,wy}; }
-    else { const w=scene.ast.wires[+own.slice(1)];
-      drag={kind:"wire",wi:+own.slice(1),
-            ox1:w.x1,oy1:w.y1,ox2:w.x2,oy2:w.y2,wx,wy}; }
+  // grab a selected wire's endpoint handle? (screen-space tolerance)
+  if(sel && sel[0]==="w"){
+    const w=scene.ast.wires[+sel.slice(1)];
+    if(w){
+      const [a1,b1]=W2S(w.x1,w.y1), [a2,b2]=W2S(w.x2,w.y2);
+      if(Math.hypot(mx-a1,my-b1)<=9){
+        drag={kind:"wend",wi:+sel.slice(1),end:1,ox:w.x1,oy:w.y1,wx,wy};
+        cv.style.cursor="grabbing"; return; }
+      if(Math.hypot(mx-a2,my-b2)<=9){
+        drag={kind:"wend",wi:+sel.slice(1),end:2,ox:w.x2,oy:w.y2,wx,wy};
+        cv.style.cursor="grabbing"; return; }
+    }
+  }
+  if(own && own[0]==="s"){ selectOwner(own,true);
+    const d=scene.ast.insts[+own.slice(1)];
+    drag={kind:"sym",si:+own.slice(1),ox:d.x,oy:d.y,wx,wy};
+    cv.style.cursor="grabbing";
+  }else if(own && own[0]==="w"){ selectOwner(own,true);
+    const w=scene.ast.wires[+own.slice(1)];
+    drag={kind:"wire",wi:+own.slice(1),ox1:w.x1,oy1:w.y1,ox2:w.x2,oy2:w.y2,wx,wy};
+    cv.style.cursor="grabbing";
+  }else if(own && own[0]==="f"){ selectOwner(own,true);
+    const f=scene.ast.flags[+own.slice(1)];
+    drag={kind:"flag",fi:+own.slice(1),ox:f.x,oy:f.y,wx,wy};
     cv.style.cursor="grabbing";
   }else{
     if(own) selectOwner(own,true); else selectOwner(null,false);
@@ -470,41 +601,51 @@ cv.addEventListener("pointerdown",e=>{
   }
 });
 cv.addEventListener("pointermove",e=>{
-  if(!drag) {  // hover cursor feedback
-    if(scene){ const r=cv.getBoundingClientRect();
-      const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
-      cv.style.cursor=hitOwner(wx,wy)?"grab":"default"; }
-    return;
-  }
+  const r=cv.getBoundingClientRect();
+  const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
+  if(mode==="wire"){ drawCur=nearestSnap(wx,wy); if(drawStart) render(); return; }
+  if(!drag){ if(scene) cv.style.cursor=hitOwner(wx,wy)?"grab":"default"; return; }
   ptr.moved=true;
   if(drag.kind==="pan"){
     cam.tx=drag.tx+(e.clientX-drag.sx); cam.ty=drag.ty+(e.clientY-drag.sy);
     render(); return;
   }
-  const r=cv.getBoundingClientRect();
-  const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
   const dx=snap(wx-drag.wx), dy=snap(wy-drag.wy);
   if(drag.kind==="sym"){
     const d=scene.ast.insts[drag.si]; d.x=drag.ox+dx; d.y=drag.oy+dy;
     rebuildLive();
+  }else if(drag.kind==="flag"){
+    const f=scene.ast.flags[drag.fi]; f.x=drag.ox+dx; f.y=drag.oy+dy;
+    rebuildLive();
   }else if(drag.kind==="wire"){
     const w=scene.ast.wires[drag.wi];
     w.x1=drag.ox1+dx; w.y1=drag.oy1+dy; w.x2=drag.ox2+dx; w.y2=drag.oy2+dy;
+    rebuildLive();
+  }else if(drag.kind==="wend"){
+    const w=scene.ast.wires[drag.wi];
+    if(drag.end===1){ w.x1=drag.ox+dx; w.y1=drag.oy+dy; }
+    else { w.x2=drag.ox+dx; w.y2=drag.oy+dy; }
     rebuildLive();
   }
 });
 cv.addEventListener("pointerup",e=>{
   cv.releasePointerCapture(e.pointerId);
   cv.style.cursor="default";
-  if(drag){
-    if(drag.kind==="sym" && ptr.moved){
-      const d=scene.ast.insts[drag.si]; setSymbolPos(drag.si,d.x,d.y); }
-    else if(drag.kind==="wire" && ptr.moved){
+  if(drag && ptr && ptr.moved){
+    if(drag.kind==="sym"){ const d=scene.ast.insts[drag.si];
+      setSymbolPos(drag.si,d.x,d.y); }
+    else if(drag.kind==="flag"){ const f=scene.ast.flags[drag.fi];
+      setFlagPos(drag.fi,f.x,f.y); }
+    else if(drag.kind==="wire"||drag.kind==="wend"){
       const w=scene.ast.wires[drag.wi];
       setWireEnds(drag.wi,w.x1,w.y1,w.x2,w.y2); }
   }
   drag=null; ptr=null;
 });
+// double-click / right-click ends the current wire chain
+cv.addEventListener("dblclick",()=>{ if(mode==="wire"){ drawStart=null; render(); } });
+cv.addEventListener("contextmenu",e=>{ if(mode==="wire"){
+  e.preventDefault(); drawStart=null; render(); } });
 // live rebuild during drag (cheap: same scene rebuild, culled draw)
 function rebuildLive(){ scene=buildScene(scene.ast,symlib); render(); }
 
@@ -534,8 +675,25 @@ async function save(){
 }
 document.getElementById("save").onclick=save;
 document.getElementById("fit").onclick=fit;
+const wireBtn=document.getElementById("wirebtn");
+function setMode(m){
+  mode=m; drawStart=null; drawCur=null;
+  wireBtn.style.background = m==="wire" ? "#3d7ad6" : "";
+  cv.style.cursor = m==="wire" ? "crosshair" : "default";
+  setStatus(m==="wire" ? "wire: click to place, dbl-click/Esc to end"
+                       : (dirty?"edited ·":"ready"), m==="wire");
+  render();
+}
+wireBtn.onclick=()=>setMode(mode==="wire"?"select":"wire");
+document.getElementById("delbtn").onclick=deleteSel;
 window.addEventListener("keydown",e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){ e.preventDefault(); save(); }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){ e.preventDefault(); save(); return; }
+  if(document.activeElement===ta) return;        // typing in the text pane
+  const k=e.key.toLowerCase();
+  if(k==="w"){ setMode(mode==="wire"?"select":"wire"); }
+  else if(k==="escape"){ if(mode==="wire") setMode("select");
+                         else selectOwner(null,false); }
+  else if(k==="delete"||k==="backspace"){ e.preventDefault(); deleteSel(); }
 });
 
 //============================================================ resizable split
