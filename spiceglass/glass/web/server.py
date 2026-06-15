@@ -94,10 +94,39 @@ def convert_to_asc(path: str) -> str:
         name = design.root().name
         if name not in design.subckts and design.order:
             name = design.order[-1]
-        sheet = place(design.subckts[name])
-        routing = route(sheet)
-        out = f"{base}.{name}.asc"
+        sub = design.subckts[name]
+        sheet, routing, note = _best_placement(sub)
+        out = export_asc(sheet, routing, f"{base}.{name}.asc")
+        if note:                   # transparency: record what the optimizer did
+            with open(out, "a", encoding="utf-8") as fh:
+                fh.write(f"TEXT 64 {(sheet.height + 4) * 8} Left 1 ;{note}\n")
+        return out
     return export_asc(sheet, routing, out)
+
+
+def _best_placement(sub):
+    """Verify-gated optimization: use the crossing-minimised layout only
+    if it still verifies (correctness never regresses); else keep the
+    deterministic seed. Returns (sheet, routing, note)."""
+    from ..engine.place import place
+    from ..engine.route import route
+    from ..engine.score import score
+    from ..engine.verify import verify
+
+    seed = place(sub); seed_r = route(seed)
+    s0 = score(seed, seed_r)
+    opt = place(sub, optimize=True); opt_r = route(opt)
+    s1 = score(opt, opt_r)
+    seed_ok = verify(seed_r).ok
+    if verify(opt_r).ok or not seed_ok:
+        if s1.crossings < s0.crossings or s1.wirelength < s0.wirelength:
+            note = (f"auto-arranged: crossings {s0.crossings}->{s1.crossings}, "
+                    f"wirelength {s0.wirelength}->{s1.wirelength}mm "
+                    f"(SpiceGlass optimizer)")
+        else:
+            note = ""
+        return opt, opt_r, note
+    return seed, seed_r, "auto-placed (optimization skipped: would not verify)"
 
 
 def _register_top(design) -> None:
