@@ -36,10 +36,22 @@
   #hint{ position:absolute; left:10px; bottom:8px; font-size:11px;
          color:#7a8290; background:#ffffffcc; padding:2px 7px;
          border-radius:4px; pointer-events:none; }
-  #warns{ position:absolute; right:8px; top:8px; max-width:46%;
+  #warns{ position:absolute; left:10px; top:8px; max-width:46%;
           font-size:11px; color:#7a5; }
   #warns div{ background:#fff8e6; color:#7a5a10; border:1px solid #e7d28a;
               border-radius:4px; padding:2px 7px; margin-bottom:3px; }
+  #drc{ position:absolute; right:8px; top:8px; width:300px; max-width:46%;
+        max-height:70%; overflow:auto; font-size:11px;
+        box-shadow:0 2px 10px #0003; border-radius:6px; display:none; }
+  #drc .hd{ background:#23262b; color:#dde1e8; padding:5px 9px;
+            border-radius:6px 6px 0 0; font-weight:600; display:flex; }
+  #drc .hd .x{ margin-left:auto; cursor:pointer; opacity:.7; }
+  #drc .it{ background:#fff; border:1px solid #e6c9c9; border-top:0;
+            color:#a23; padding:4px 9px; cursor:pointer; }
+  #drc .it:hover{ background:#fff2f2; }
+  #drc .it b{ color:#7a1520; }
+  #drc .ok{ background:#eef8ee; color:#2a7a45; border:1px solid #bfe3bf;
+            border-radius:0 0 6px 6px; padding:5px 9px; }
   .drag{ width:5px; cursor:col-resize; background:#0d0e10; }
 </style>
 </head>
@@ -71,6 +83,7 @@
   <button id="undobtn" title="undo (Ctrl-Z)">↶</button>
   <button id="redobtn" title="redo (Ctrl-Y)">↷</button>
   <button id="delbtn" title="delete selected (Del)">Delete</button>
+  <button id="checkbtn" title="check the schematic (DRC)">✓ Check</button>
   <a href="/symbols" target="_blank" style="color:#9fb6a3;font-size:12px;
      text-decoration:none;margin:0 6px">Symbols ↗</a>
   <button id="fit">Fit ⤢</button>
@@ -84,6 +97,7 @@
     <canvas id="cv" tabindex="0"></canvas>
     <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
     <div id="warns"></div>
+    <div id="drc"></div>
   </div>
 </div>
 <script>
@@ -470,6 +484,14 @@ function draw(){
     ctx.arc(px,py,3/cam.scale,0,Math.PI*2); ctx.fill();
     ctx.restore();
   }
+
+  // DRC markers: red rings at flagged problem points
+  if(drcMarks.length){
+    ctx.save(); ctx.strokeStyle="#d83a3a"; ctx.lineWidth=2.5/cam.scale;
+    for(const [x,y] of drcMarks){
+      ctx.beginPath(); ctx.arc(x,y,9,0,Math.PI*2); ctx.stroke(); }
+    ctx.restore();
+  }
 }
 
 //============================================================ hit-testing
@@ -522,6 +544,7 @@ async function reparse(){
     }catch(e){ for(const n of need) symlib[n]=symlib[n]||null; }
   }
   scene=buildScene(ast,symlib);
+  if(drcMarks.length){ drcMarks=[]; closeDRC(); }   // geometry changed; stale
   showWarnings(ast);
   render();
 }
@@ -939,6 +962,70 @@ cv.addEventListener("contextmenu",e=>{ if(mode==="wire"){
 // live rebuild during drag (cheap: same scene rebuild, culled draw)
 function rebuildLive(){ scene=buildScene(scene.ast,symlib); render(); }
 
+//============================================================ DRC checks
+// Electrical-rule checks computed from the sheet geometry: a pin/wire is
+// connected if its point coincides with a wire end, a wire's interior, a
+// flag, or another pin (abutment).
+let drcMarks=[];
+function drcCheck(){
+  if(!scene) return [];
+  const ast=scene.ast, K=(x,y)=>x+","+y, issues=[];
+  const endDeg={}, vmap={}, hmap={};
+  for(const w of ast.wires){
+    endDeg[K(w.x1,w.y1)]=(endDeg[K(w.x1,w.y1)]||0)+1;
+    endDeg[K(w.x2,w.y2)]=(endDeg[K(w.x2,w.y2)]||0)+1;
+    if(w.x1===w.x2)(vmap[w.x1]=vmap[w.x1]||[]).push([Math.min(w.y1,w.y2),Math.max(w.y1,w.y2)]);
+    else if(w.y1===w.y2)(hmap[w.y1]=hmap[w.y1]||[]).push([Math.min(w.x1,w.x2),Math.max(w.x1,w.x2)]);
+  }
+  const onInt=(x,y)=>(vmap[x]||[]).some(([a,b])=>a<y&&y<b)||
+                     (hmap[y]||[]).some(([a,b])=>a<x&&x<b);
+  const flagAt=new Set(ast.flags.map(f=>K(f.x,f.y)));
+  const pinAt={}, pins=[];
+  ast.insts.forEach((d,si)=>{ const sym=symlib[d.sym]; if(!sym)return;
+    const rot=ROT[d.rot]||ROT.R0;
+    for(const pn of (sym.pins||[])){ const [px,py]=rot(pn[0],pn[1]);
+      const x=px+d.x, y=py+d.y; pins.push({si,x,y}); pinAt[K(x,y)]=(pinAt[K(x,y)]||0)+1; } });
+  const connected=(x,y,k)=>(endDeg[k]||0)>=1 || onInt(x,y) || flagAt.has(k);
+  for(const p of pins){ const k=K(p.x,p.y);
+    if(!(connected(p.x,p.y,k) || (pinAt[k]||0)>=2))
+      issues.push({x:p.x,y:p.y,own:"s"+p.si,
+        text:`<b>floating pin</b> — ${ast.insts[p.si].attrs.InstName||"?"}`}); }
+  const seenEnd=new Set();
+  for(const w of ast.wires) for(const [x,y] of [[w.x1,w.y1],[w.x2,w.y2]]){ const k=K(x,y);
+    if((endDeg[k]||0)>=2 || onInt(x,y) || flagAt.has(k) || (pinAt[k]||0)>=1) continue;
+    if(seenEnd.has(k)) continue; seenEnd.add(k);
+    issues.push({x,y,text:"<b>dangling wire</b> — end connects to nothing"}); }
+  const nameSeen={}; ast.insts.forEach((d,si)=>{ const n=d.attrs.InstName; if(!n)return;
+    if(n in nameSeen) issues.push({x:d.x,y:d.y,own:"s"+si,text:`<b>duplicate name</b> — ${n}`});
+    else nameSeen[n]=1; });
+  const posSeen={}; ast.insts.forEach((d,si)=>{ const k=K(d.x,d.y);
+    if(k in posSeen) issues.push({x:d.x,y:d.y,own:"s"+si,text:"<b>overlap</b> — two symbols here"});
+    else posSeen[k]=1; });
+  return issues;
+}
+function runDRC(){
+  const issues=drcCheck(); drcMarks=issues.map(i=>[i.x,i.y]);
+  const box=document.getElementById("drc"); box.style.display="block";
+  let html=`<div class="hd">DRC — ${issues.length} issue`+
+    `${issues.length===1?"":"s"}<span class="x" id="drcx">✕</span></div>`;
+  html += issues.length
+    ? issues.map((i,n)=>`<div class="it" data-n="${n}">${i.text}</div>`).join("")
+    : `<div class="ok">✓ no problems found</div>`;
+  box.innerHTML=html;
+  box.querySelector("#drcx").onclick=closeDRC;
+  box.querySelectorAll(".it").forEach(el=>el.onclick=()=>{
+    const i=issues[+el.dataset.n]; focusAt(i.x,i.y);
+    if(i.own) selectOwner(i.own,false); });
+  render();
+  setStatus(issues.length?`${issues.length} DRC issue(s)`:"DRC clean ✓",
+            issues.length>0);
+}
+function closeDRC(){ drcMarks=[]; const b=document.getElementById("drc");
+  b.style.display="none"; b.innerHTML=""; render(); }
+function focusAt(x,y){ const [W,H]=cssSize();
+  cam.scale=Math.max(cam.scale,1.2);
+  cam.tx=W/2-x*cam.scale; cam.ty=H/2-y*cam.scale; render(); }
+
 cv.addEventListener("wheel",e=>{
   e.preventDefault();
   const r=cv.getBoundingClientRect();
@@ -981,6 +1068,7 @@ function setMode(m){
 }
 wireBtn.onclick=()=>setMode(mode==="wire"?"select":"wire");
 document.getElementById("delbtn").onclick=deleteSel;
+document.getElementById("checkbtn").onclick=runDRC;
 document.getElementById("undobtn").onclick=undo;
 document.getElementById("redobtn").onclick=redo;
 palette.addEventListener("change",()=>{ if(palette.value) enterPlace(palette.value); });

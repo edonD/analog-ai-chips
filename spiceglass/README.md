@@ -61,7 +61,14 @@ nets that snap to pins, **double-click** to edit a name/value/net,
 multi-select and move/rotate/delete a group, **Del** to remove, and
 **Ctrl-Z / Ctrl-Y** undo/redo across both the canvas and the text pane.
 Every edit is a minimal patch on the `.asc` text, which stays the single
-source of truth. A `/symbols` page — a pixel-style half-unit-grid symbol
+source of truth.
+
+**✓ Check** runs a design-rule check on the open sheet — floating pins,
+dangling wires, duplicate instance names, overlapping symbols — and lists
+the problems; click one to jump to it (a red ring marks each on the
+canvas). Connectivity is read straight from the geometry (a point is
+connected if it meets a wire end, a wire's interior, a flag, or another
+pin), so the check works on any sheet, hand-drawn or converted. A `/symbols` page — a pixel-style half-unit-grid symbol
 designer (pins fixed by the grid contract, artwork yours; saved to
 symbols.json and used by every renderer) — rounds it out.
 
