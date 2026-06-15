@@ -82,6 +82,40 @@ def _scalar(c):
         + W_HPWL * c["hpwl"]
 
 
+def optimize_candidates(objects, rails, label_nets, k=8):
+    """Ranked list (best proxy-cost first) of up to k distinct orderings —
+    so a caller can route+verify each and keep the best that actually
+    verifies (the proxy-best occasionally routes to a short)."""
+    n = len(objects)
+    if n < 2:
+        return [list(objects)]
+    onets = {id(o): _nets(o, rails, label_nets) for o in objects}
+    osec = {id(o): _section(o) for o in objects}
+    if n <= 7:
+        scored = [(_scalar(cost(p, onets, osec)), i, list(p))
+                  for i, p in enumerate(itertools.permutations(objects))]
+        scored.sort(key=lambda t: (t[0], t[1]))
+        return [p for _, _, p in scored[:k]]
+    # greedy relocation, recording each improving order (best last)
+    best, bests = list(objects), _scalar(cost(objects, onets, osec))
+    chain = [list(best)]
+    improved = True
+    while improved:
+        improved = False
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    continue
+                cand = best[:]; o = cand.pop(i); cand.insert(j, o)
+                s = _scalar(cost(cand, onets, osec))
+                if s < bests:
+                    best, bests = cand, s; chain.append(list(best))
+                    improved = True; break
+            if improved:
+                break
+    return list(reversed(chain))[:k]
+
+
 def optimize_order(objects, rails, label_nets, trace=None):
     """Return a reordered copy of `objects` with fewer crossings. Appends
     a human-readable decision log to `trace` (a list of strings)."""

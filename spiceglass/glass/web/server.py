@@ -104,10 +104,10 @@ def convert_to_asc(path: str) -> str:
     return export_asc(sheet, routing, out)
 
 
-def _best_placement(sub):
-    """Verify-gated optimization: use the crossing-minimised layout only
-    if it still verifies (correctness never regresses); else keep the
-    deterministic seed. Returns (sheet, routing, note)."""
+def _best_placement(sub, max_rank: int = 6):
+    """Verify-gated optimization: try the optimizer's top-ranked orderings
+    and keep the best one that BOTH verifies and beats the seed; never
+    trade correctness for looks. Returns (sheet, routing, note)."""
     from ..engine.place import place
     from ..engine.route import route
     from ..engine.score import score
@@ -115,18 +115,29 @@ def _best_placement(sub):
 
     seed = place(sub); seed_r = route(seed)
     s0 = score(seed, seed_r)
-    opt = place(sub, optimize=True); opt_r = route(opt)
-    s1 = score(opt, opt_r)
     seed_ok = verify(seed_r).ok
-    if verify(opt_r).ok or not seed_ok:
-        if s1.crossings < s0.crossings or s1.wirelength < s0.wirelength:
-            note = (f"auto-arranged: crossings {s0.crossings}->{s1.crossings}, "
-                    f"wirelength {s0.wirelength}->{s1.wirelength}mm "
+
+    seen, chosen = set(), None
+    for k in range(max_rank):
+        sh = place(sub, optimize=True, opt_rank=k)
+        sig = tuple((d.name, sh.pos(d).x, sh.pos(d).y) for d in sub.devices)
+        if sig in seen:          # ranks exhausted (same order repeats)
+            break
+        seen.add(sig)
+        r = route(sh)
+        if not verify(r).ok:
+            continue
+        sc = score(sh, r)
+        if sc.crossings < s0.crossings or sc.wirelength < s0.wirelength:
+            note = (f"auto-arranged: crossings {s0.crossings}->{sc.crossings}, "
+                    f"wirelength {s0.wirelength}->{sc.wirelength}mm "
                     f"(SpiceGlass optimizer)")
-        else:
-            note = ""
-        return opt, opt_r, note
-    return seed, seed_r, "auto-placed (optimization skipped: would not verify)"
+            return sh, r, note          # best-first: first improvement wins
+        chosen = chosen or (sh, r)      # verifies but no better; remember
+    if seed_ok:
+        return seed, seed_r, ""
+    return (chosen or (seed, seed_r)) + \
+        ("auto-placed (optimization could not verify)",)
 
 
 def _register_top(design) -> None:
