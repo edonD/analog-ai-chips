@@ -60,6 +60,8 @@ def _heur(x: int, y: int, axis: int, goals: list[tuple[int, int]]) -> int:
 OCCUPIED = 40       # soft cost for riding a line another net already uses
 VERTEX = 200        # soft cost for landing a corner/end on a foreign net's
                     # vertex (a true touch = short; pure crossings are free)
+TURN_FOREIGN = 300  # soft cost for BENDING on a foreign net's body (the
+                    # corner would touch it) — cross it straight instead
 
 
 def _astar(g: OVG, starts: list[tuple[int, int | None]], goal_ids: set[int],
@@ -95,10 +97,13 @@ def _astar(g: OVG, starts: list[tuple[int, int | None]], goal_ids: set[int],
             nx, ny = g.coords[nb]
             step = abs(nx - x) + abs(ny - y)
             ng = gc + step + (0 if eaxis == ax else BEND)
-            if occ is not None and occ.foreign(eaxis, x, y, nx, ny, net):
-                ng += OCCUPIED
-            if occ is not None and occ.vertex_foreign(nx, ny, net):
-                ng += VERTEX            # don't put our corner on their wire
+            if occ is not None:
+                if occ.foreign(eaxis, x, y, nx, ny, net):
+                    ng += OCCUPIED
+                if occ.vertex_foreign(nx, ny, net):
+                    ng += VERTEX        # don't put our corner on their vertex
+                if eaxis != ax and occ.point_on_foreign(x, y, net):
+                    ng += TURN_FOREIGN  # don't bend on their wire body
             nkey = (nb, eaxis)
             if nkey in best and best[nkey] <= ng:
                 continue
@@ -127,6 +132,17 @@ class _Occupancy:
 
     def vertex_foreign(self, x, y, net) -> bool:
         return any(n != net for n in self.vpts.get((x, y), ()))
+
+    def point_on_foreign(self, x, y, net) -> bool:
+        """Is (x,y) anywhere on another net's wire (interior or end)?
+        Turning here would put our corner on their body — a short."""
+        for (a, b, n) in self.lines.get((H, y), ()):
+            if n != net and a <= x <= b:
+                return True
+        for (a, b, n) in self.lines.get((V, x), ()):
+            if n != net and a <= y <= b:
+                return True
+        return False
 
     def add_path(self, path, net):
         for a, b in zip(path, path[1:]):
@@ -354,7 +370,10 @@ class Router2:
                 for off in OFFSETS if seg is not None else (0,):
                     if off and self._blocked(axis, coord + off, lo, hi):
                         continue
-                    clash = any(n2 != net and hi > a and lo < b
+                    # touching (shared endpoint) counts as a clash: two
+                    # DIFFERENT nets meeting at a point is a short, not a
+                    # junction — separate them onto distinct tracks.
+                    clash = any(n2 != net and hi >= a and lo <= b
                                 for (a, b, n2) in taken.get(off, ()))
                     if not clash:
                         taken.setdefault(off, []).append((lo, hi, net))
