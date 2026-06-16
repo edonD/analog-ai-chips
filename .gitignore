@@ -12,3 +12,6 @@ spiceglass/uploads/
 *.seed.png
 *.optimized.svg
 *.optimized.png
+# bulk procedurally-generated benchmark corpora (regenerate via tools/gen_netlists.py)
+spiceglass/benchmark/gen1000/
+spiceglass/benchmark/gen[0-9]*/
