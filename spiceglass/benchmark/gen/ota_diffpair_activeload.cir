@@ -1,0 +1,17 @@
+** Simple Differential Pair with Active Load
+** PMOS input pair, NMOS current-mirror active load, resistor-degenerated tail
+.subckt ota_diffpair_activeload inp inn out vdd gnd vbias
+
+** ===== Tail =====
+M1 tail vbias td vdd pmos W=60u L=1u
+Rdeg td vdd 1k
+
+** ===== Differential Pair =====
+M2 m1  inp tail vdd pmos W=30u L=0.5u
+M3 out inn tail vdd pmos W=30u L=0.5u
+
+** ===== Active Load (Mirror) =====
+M4 m1  m1 gnd gnd nmos W=15u L=0.5u
+M5 out m1 gnd gnd nmos W=15u L=0.5u
+
+.ends ota_diffpair_activeload

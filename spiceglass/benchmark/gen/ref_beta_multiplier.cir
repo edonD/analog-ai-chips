@@ -1,0 +1,21 @@
+** Beta-multiplier (constant-gm) bias generator with degeneration resistor
+.subckt ref_beta_multiplier vdd gnd vbiasn vbiasp
+
+** ===== PMOS Mirror (top) =====
+* Equal-size PMOS mirror forces both branches to carry equal current
+M0 nl vbiasp vdd vdd pmos W=20u L=1u
+M1 nr vbiasp vdd vdd pmos W=20u L=1u
+
+** ===== NMOS Core (bottom, ratioed) =====
+* M2 is 1x, M3 is Kx (8x); the resistor sets gm of M2 -> constant-gm
+M2 nl nr gnd  gnd nmos W=5u  L=1u
+M3 nr nr nrs  gnd nmos W=40u L=1u
+R0 nrs gnd 3k
+
+** ===== Bias Taps =====
+* vbiasp diode-connects the left PMOS; vbiasn taps the NMOS gate
+M4 vbiasp nl vdd vdd pmos W=20u L=1u
+R1 vbiasp nl 1
+R2 vbiasn nr 1
+
+.ends ref_beta_multiplier

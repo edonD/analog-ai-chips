@@ -1,0 +1,26 @@
+.subckt ldo_capless vin vout vref gnd
+** Output-capacitor-less LDO with internal Miller + buffer for fast transient
+** ===== Bias Generator =====
+Rbias   vin nb 150k
+Mbd     nb nb gnd gnd nmos W=3u L=1u
+Mbtail  ntail nb gnd gnd nmos W=12u L=1u
+** ===== Error Amplifier (NMOS input pair, PMOS mirror) =====
+Mpl1    n1 n1 vin vin pmos W=24u L=0.5u
+Mpl2    ea_out n1 vin vin pmos W=24u L=0.5u
+Min1    n1 vref ntail gnd nmos W=16u L=0.5u
+Min2    ea_out vfb ntail gnd nmos W=16u L=0.5u
+** ===== Buffer Stage (source follower drives big gate) =====
+Mbufp   vg ea_out vin vin pmos W=40u L=0.5u
+Mbufn   vg nb gnd gnd nmos W=8u L=1u
+** ===== Pass Device =====
+Mpass   vout vg vin vin pmos W=3000u L=0.35u
+** ===== Miller Compensation (capless stability) =====
+Cm1     ea_out vout 1.5p
+Cm2     vg vout 1p
+** ===== Feedback Divider =====
+Rfb1    vout vfb 500k
+Rfb2    vfb gnd 250k
+** ===== Light On-Chip Load =====
+Cpar    vout gnd 100f
+Rload   vout gnd 50k
+.ends ldo_capless

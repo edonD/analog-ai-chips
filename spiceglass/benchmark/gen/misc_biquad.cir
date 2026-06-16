@@ -1,0 +1,25 @@
+** Sallen-Key-style biquad low-pass built from a transconductor unity buffer
+** RC network sets the complex pole pair; OTA provides the gain/feedback
+.subckt misc_biquad vin vout vbias vdd gnd
+
+** ===== Input RC network (Sallen-Key) =====
+R1 vin n1 10k
+R2 n1 np 10k
+C1 n1 vout 22p
+C2 np gnd 22p
+
+** ===== Transconductor (unity-gain buffer) =====
+M1 od np tail gnd nmos W=24u L=0.5u
+M2 od vout tail gnd nmos W=24u L=0.5u
+M3 tail vbias gnd gnd nmos W=48u L=1u
+
+** ===== Active load =====
+M4 ol od vdd vdd pmos W=48u L=0.5u
+M5 od od vdd vdd pmos W=48u L=0.5u
+
+** ===== Output stage =====
+M6 vout ol vdd vdd pmos W=36u L=0.5u
+M7 vout vbias gnd gnd nmos W=18u L=1u
+C3 ol vout 1p
+
+.ends misc_biquad

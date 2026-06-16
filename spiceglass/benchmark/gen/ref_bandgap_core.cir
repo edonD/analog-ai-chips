@@ -1,0 +1,31 @@
+** Bandgap reference core: PTAT + CTAT summed via BJTs and resistors
+.subckt ref_bandgap_core vdd gnd vbg
+
+** ===== PMOS Current Mirror =====
+* Three matched PMOS deliver equal currents to the two BJT branches and output
+M0 na vbiasp vdd vdd pmos W=24u L=1u
+M1 nb vbiasp vdd vdd pmos W=24u L=1u
+M2 vbiasp vbiasp vdd vdd pmos W=24u L=1u
+
+** ===== Amplifier (forces na = nb) =====
+* Simple 5T OTA sensing na/nb, driving the PMOS gate vbiasp
+M3 nd na  ntail gnd nmos W=8u L=1u
+M4 ne nb  ntail gnd nmos W=8u L=1u
+M5 ntail vbn gnd gnd nmos W=8u L=1u
+M6 nd nd  vdd  vdd pmos W=8u L=1u
+M7 ne nd  vdd  vdd pmos W=8u L=1u
+R5 vbiasp ne 1
+M8 vbn vbn gnd gnd nmos W=8u L=1u
+R6 vbn ntail 1
+
+** ===== PTAT / CTAT Branches =====
+* Q1 unit BJT; Q2 is 8x area -> dVbe across R0 generates PTAT current
+Q1 na  na  gnd npn
+R0 nb  nx  2k
+Q2 nx  nx  gnd npn
+* Output branch sums VBE (CTAT) and PTAT drop for ~1.2V bandgap
+Q3 vbg vbg gnd npn
+R1 vbiasp_out vbg 12k
+R2 vbg gnd 60k
+
+.ends ref_bandgap_core

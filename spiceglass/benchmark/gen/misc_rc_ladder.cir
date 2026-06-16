@@ -1,0 +1,21 @@
+** Multi-stage passive RC low-pass then high-pass ladder
+** Two cascaded RC low-pass sections followed by two RC high-pass sections
+.subckt misc_rc_ladder vin vout gnd
+
+** ===== Stage 1: RC low-pass =====
+R1 vin lp1 1k
+C1 lp1 gnd 159p
+
+** ===== Stage 2: RC low-pass =====
+R2 lp1 lp2 1k
+C2 lp2 gnd 159p
+
+** ===== Stage 3: RC high-pass =====
+C3 lp2 hp1 100n
+R3 hp1 gnd 1.6k
+
+** ===== Stage 4: RC high-pass =====
+C4 hp1 vout 100n
+R4 vout gnd 1.6k
+
+.ends misc_rc_ladder

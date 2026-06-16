@@ -1,0 +1,17 @@
+** Wilson current mirror (improved/4-transistor variant) with NMOS
+.subckt ref_wilson vdd gnd iref iout iout2
+
+** ===== Reference Branch =====
+* M1/M2 form the bottom mirror pair, M3 provides feedback, M4 balances Vds
+M1 n1   n2   gnd  gnd nmos W=10u L=1u
+M2 iout n2   gnd  gnd nmos W=10u L=1u
+M3 n2   iref n1   gnd nmos W=10u L=1u
+* M4 (improved Wilson) equalizes drain voltages of M1 and M2
+M4 iref iref n3   gnd nmos W=10u L=1u
+M5 n3   n2   gnd  gnd nmos W=10u L=1u
+
+** ===== Output Mirror Tap =====
+* Mirror the Wilson output current into a second copy via shared gate n2
+M6 iout2 n2 gnd gnd nmos W=10u L=1u
+
+.ends ref_wilson

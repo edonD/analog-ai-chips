@@ -1,0 +1,24 @@
+.subckt ldo_softstart vin en vref_out ss gnd
+** Soft-start / enable control: ramps reference via charged cap, gates bias
+** ===== Enable Buffer =====
+Menp    en_b en vin vin pmos W=6u L=0.5u
+Menn    en_b en gnd gnd nmos W=3u L=0.5u
+Menp2   en_i en_b vin vin pmos W=6u L=0.5u
+Menn2   en_i en_b gnd gnd nmos W=3u L=0.5u
+** ===== Soft-Start Charge (current source into ramp cap) =====
+Rsrc    vin pbias 100k
+Mssp    pbias pbias vin vin pmos W=10u L=1u
+Mssmir  iss pbias vin vin pmos W=10u L=1u
+Mssgate iss en_i icharge gnd nmos W=4u L=1u
+Css     ss gnd 50p
+Mchg    ss icharge gnd gnd nmos W=2u L=2u
+** ===== Discharge on Disable =====
+Mdis    ss en gnd gnd nmos W=8u L=0.5u
+** ===== Reference Follower (clamps vref_out to min(ss, vref)) =====
+Rrtail  vin rt 120k
+Mfp1    f1 ss rt vin pmos W=16u L=0.5u
+Mfp2    vref_out vref_out rt vin pmos W=16u L=0.5u
+Mfl1    f1 f1 gnd gnd nmos W=8u L=0.5u
+Mfl2    vref_out f1 gnd gnd nmos W=8u L=0.5u
+Crefo   vref_out gnd 2p
+.ends ldo_softstart

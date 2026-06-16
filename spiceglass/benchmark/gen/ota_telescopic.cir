@@ -1,0 +1,24 @@
+** Telescopic Cascode OTA (single-ended)
+** NMOS input pair, NMOS cascodes, PMOS cascode mirror load, NMOS tail
+.subckt ota_telescopic inp inn out vdd gnd vbn vbcn vbcp vbias
+
+** ===== Differential Pair =====
+M1 a1 inp tail gnd nmos W=30u L=0.5u
+M2 a2 inn tail gnd nmos W=30u L=0.5u
+
+** ===== NMOS Cascodes =====
+M3 b1 vbcn a1 gnd nmos W=30u L=0.5u
+M4 out vbcn a2 gnd nmos W=30u L=0.5u
+
+** ===== PMOS Cascode Load =====
+M5 b1  vbcp c1  vdd pmos W=60u L=0.6u
+M6 out vbcp c2  vdd pmos W=60u L=0.6u
+
+** ===== PMOS Mirror Top =====
+M7 c1 b1 vdd vdd pmos W=60u L=0.6u
+M8 c2 b1 vdd vdd pmos W=60u L=0.6u
+
+** ===== Tail =====
+M9 tail vbias gnd gnd nmos W=80u L=1u
+
+.ends ota_telescopic

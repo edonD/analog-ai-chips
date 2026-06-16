@@ -1,0 +1,25 @@
+.subckt ldo_ea_pass vin vout vref en gnd
+** Classic LDO: 5T error amplifier + PMOS pass device + feedback divider
+** ===== Bias / Tail Current =====
+MbiasN  ntail en gnd gnd nmos W=4u L=1u
+Rbias   vin nbias 200k
+MbiasD  nbias nbias gnd gnd nmos W=2u L=1u
+MmirN   ntail nbias gnd gnd nmos W=8u L=1u
+** ===== Error Amplifier (PMOS input pair, NMOS mirror load) =====
+Mip     n1 vref ntail vin pmos W=20u L=0.5u
+Min     ea_out vfb ntail vin pmos W=20u L=0.5u
+Mml1    n1 n1 gnd gnd nmos W=10u L=0.5u
+Mml2    ea_out n1 gnd gnd nmos W=10u L=0.5u
+** ===== Pass Device =====
+Mpass   vout ea_out vin vin pmos W=4000u L=0.35u
+** ===== Compensation =====
+Cmill   ea_out vout 5p
+Rz      ea_out nz 50k
+Cz      nz vout 2p
+** ===== Feedback Divider =====
+Rfb1    vout vfb 400k
+Rfb2    vfb gnd 200k
+** ===== Output Load / Cap =====
+Cout    vout gnd 1u
+Rload   vout gnd 100k
+.ends ldo_ea_pass

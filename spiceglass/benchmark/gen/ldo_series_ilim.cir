@@ -1,0 +1,24 @@
+.subckt ldo_series_ilim vin vout vref gnd
+** Series-pass regulator with foldback current limit and sense resistor
+** ===== Error Amplifier =====
+Rtail   vin ntail 100k
+Mip     n1 vref ntail vin pmos W=20u L=0.5u
+Min     ea_out vfb ntail vin pmos W=20u L=0.5u
+Mml1    n1 n1 gnd gnd nmos W=10u L=0.5u
+Mml2    ea_out n1 gnd gnd nmos W=10u L=0.5u
+** ===== Pass Device with Sense Resistor =====
+Mpass   vsns ea_out vin vin pmos W=5000u L=0.35u
+Rsense  vsns vout 0.2
+** ===== Current Limit (sense voltage steals gate drive) =====
+Qilim   ea_out ilim vin pnp
+Rils    vin ilim 5k
+Rils2   ilim vsns 50k
+Cilf    ilim vsns 1p
+** ===== Feedback Divider =====
+Rfb1    vout vfb 300k
+Rfb2    vfb gnd 150k
+** ===== Compensation / Output =====
+Cc      ea_out vout 4p
+Cout    vout gnd 2.2u
+Rload   vout gnd 20k
+.ends ldo_series_ilim

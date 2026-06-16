@@ -1,0 +1,14 @@
+.subckt cmp_schmitt in out vdd gnd
+** Classic 6-transistor CMOS Schmitt trigger + output inverter
+** ===== PMOS Stack =====
+Mp1 np in vdd vdd pmos W=6u L=0.18u
+Mp2 sch in np vdd pmos W=6u L=0.18u
+Mpf np sch vdd vdd pmos W=3u L=0.18u
+** ===== NMOS Stack =====
+Mn1 nn in gnd gnd nmos W=3u L=0.18u
+Mn2 sch in nn gnd nmos W=3u L=0.18u
+Mnf nn sch gnd gnd nmos W=2u L=0.18u
+** ===== Output Inverter =====
+Mop out sch vdd vdd pmos W=8u L=0.18u
+Mon out sch gnd gnd nmos W=4u L=0.18u
+.ends cmp_schmitt

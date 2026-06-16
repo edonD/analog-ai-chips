@@ -1,0 +1,20 @@
+** Cascode NMOS current mirror: improved output resistance, 2 cascoded outputs
+.subckt ref_cascode_mirror vdd gnd iref iout1 iout2
+
+** ===== Reference Branch =====
+* Diode-connected stack generates both the mirror gate (vbiasn) and cascode gate (vcasc)
+M0 vcasc vcasc iref gnd nmos W=6u L=0.5u
+M1 iref  vbiasn gnd  gnd nmos W=6u L=0.5u
+* vbiasn taken at the lower diode node, vcasc one diode above
+R0 vcasc vbiasn 1
+M2 vbiasn vbiasn gnd gnd nmos W=6u L=0.5u
+
+** ===== Cascode Output 1 =====
+M3 n1     vbiasn gnd  gnd nmos W=6u L=0.5u
+M4 iout1  vcasc  n1   gnd nmos W=6u L=0.5u
+
+** ===== Cascode Output 2 =====
+M5 n2     vbiasn gnd  gnd nmos W=12u L=0.5u
+M6 iout2  vcasc  n2   gnd nmos W=12u L=0.5u
+
+.ends ref_cascode_mirror

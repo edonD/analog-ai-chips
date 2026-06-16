@@ -1,0 +1,24 @@
+** RMS-to-DC squarer core: translinear squaring cell + averaging filter
+** Differential input multiplied by itself via MOS square-law pair, then averaged
+.subckt misc_rms_squarer vinp vinn vout vbias vdd gnd
+
+** ===== Squaring core (square-law differential pair) =====
+M1 sqp vinp src gnd nmos W=30u L=0.6u
+M2 sqn vinn src gnd nmos W=30u L=0.6u
+M3 src vbias gnd gnd nmos W=60u L=1u
+
+** ===== Folding / current combine =====
+M4 sqp sqp vdd vdd pmos W=50u L=0.6u
+M5 sqsum sqp vdd vdd pmos W=50u L=0.6u
+M6 sqn sqn vdd vdd pmos W=50u L=0.6u
+M7 sqsum sqn vdd vdd pmos W=50u L=0.6u
+
+** ===== Current-to-voltage =====
+R1 sqsum vout 20k
+M8 vout vbias gnd gnd nmos W=20u L=1u
+
+** ===== Averaging filter (mean-square) =====
+C1 vout gnd 100n
+R2 vout gnd 200k
+
+.ends misc_rms_squarer

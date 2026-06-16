@@ -1,0 +1,24 @@
+** Wide-swing cascode bias generator: produces vbiasn (NMOS) and vbcasc gates
+.subckt ref_wideswing_bias vdd gnd iref vbiasn vbcascn vbiasp vbcascp
+
+** ===== NMOS Wide-Swing Reference =====
+* Diode device sized 1/4 (W/4) to set cascode gate one extra Vov above
+M0 vbiasn vbiasn gnd   gnd nmos W=10u L=1u
+M1 nd     vbiasn gnd   gnd nmos W=10u L=1u
+M2 vbcascn nd    nd    gnd nmos W=2.5u L=1u
+M3 vbcascn vbcascn nm  gnd nmos W=10u L=1u
+M4 nm     vbiasn gnd   gnd nmos W=10u L=1u
+
+** ===== PMOS Wide-Swing Reference =====
+M5 vbiasp vbiasp vdd   vdd pmos W=30u L=1u
+M6 pd     vbiasp vdd   vdd pmos W=30u L=1u
+M7 vbcascp pd    pd    vdd pmos W=7.5u L=1u
+M8 vbcascp vbcascp pmd vdd pmos W=30u L=1u
+M9 pmd    vbiasp vdd   vdd pmos W=30u L=1u
+
+** ===== Reference Current Injection =====
+* iref pulls the NMOS diode; mirror M10 sets the PMOS side current
+M10 vbiasp vbiasn gnd gnd nmos W=10u L=1u
+M11 iref   vbiasn gnd gnd nmos W=10u L=1u
+
+.ends ref_wideswing_bias

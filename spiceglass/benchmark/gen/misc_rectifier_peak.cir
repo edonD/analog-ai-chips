@@ -1,0 +1,22 @@
+** Full-wave diode bridge rectifier feeding a peak detector / envelope hold
+** Diode bridge rectifies differential input; series diode charges hold cap
+.subckt misc_rectifier_peak vinp vinn vout gnd
+
+** ===== Full-wave bridge =====
+D1 vinp rect diode
+D2 vinn rect diode
+D3 gnd vinp diode
+D4 gnd vinn diode
+
+** ===== Smoothing filter =====
+R1 rect rsm 200
+C1 rsm gnd 1u
+
+** ===== Peak detector =====
+D5 rsm vout diode
+C2 vout gnd 470n
+
+** ===== Bleed / discharge =====
+R2 vout gnd 100k
+
+.ends misc_rectifier_peak

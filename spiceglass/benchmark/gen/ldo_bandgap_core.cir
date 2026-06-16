@@ -1,0 +1,29 @@
+.subckt ldo_bandgap_core vin vref vout gnd
+** Bandgap-referenced LDO: BJT bandgap core feeds amp + PMOS pass
+** ===== Bandgap Core (PTAT via BJT pair + ratioed resistor) =====
+Mbgp1   na nc vin vin pmos W=30u L=1u
+Mbgp2   nb nc vin vin pmos W=30u L=1u
+Mbgcas  nc nc vin vin pmos W=30u L=1u
+Q1      na na gnd npn
+Q2      nb nx gnd npn
+Rptat   nx ne 2k
+Q2b     ne ne gnd npn
+Rbg1    na vref 12k
+Rbg2    vref gnd 8k
+Cbg     vref gnd 10p
+** ===== Error Amplifier =====
+Rtail   vin nt 120k
+Mea_ip  m1 vref nt vin pmos W=18u L=0.5u
+Mea_in  ea_out vfb nt vin pmos W=18u L=0.5u
+Mea_l1  m1 m1 gnd gnd nmos W=9u L=0.5u
+Mea_l2  ea_out m1 gnd gnd nmos W=9u L=0.5u
+** ===== Pass Device =====
+Mpass   vout ea_out vin vin pmos W=3500u L=0.35u
+** ===== Feedback Divider =====
+Rfb1    vout vfb 250k
+Rfb2    vfb gnd 250k
+** ===== Output =====
+Cc      ea_out vout 3p
+Cout    vout gnd 1u
+Rload   vout gnd 40k
+.ends ldo_bandgap_core

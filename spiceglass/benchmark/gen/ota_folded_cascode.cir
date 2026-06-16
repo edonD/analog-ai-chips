@@ -1,0 +1,26 @@
+** Folded-Cascode OTA (single-ended)
+** NMOS input pair, PMOS folding, NMOS cascode mirror at output
+.subckt ota_folded_cascode inp inn out vdd gnd vbias vbp vbcp vbcn vbn
+
+** ===== Tail =====
+M1 tail vbias gnd gnd nmos W=80u L=1u
+
+** ===== Differential Pair =====
+M2 f1 inp tail gnd nmos W=40u L=0.5u
+M3 f2 inn tail gnd nmos W=40u L=0.5u
+
+** ===== PMOS Folding Sources =====
+M4 f1 vbp vdd vdd pmos W=80u L=1u
+M5 f2 vbp vdd vdd pmos W=80u L=1u
+
+** ===== PMOS Cascodes =====
+M6 p1  vbcp f1 vdd pmos W=60u L=0.6u
+M7 out vbcp f2 vdd pmos W=60u L=0.6u
+
+** ===== NMOS Cascode Mirror =====
+M8 p1  vbcn n1 gnd nmos W=40u L=0.6u
+M9 out vbcn n2 gnd nmos W=40u L=0.6u
+M10 n1 p1 gnd gnd nmos W=40u L=0.6u
+M11 n2 p1 gnd gnd nmos W=40u L=0.6u
+
+.ends ota_folded_cascode

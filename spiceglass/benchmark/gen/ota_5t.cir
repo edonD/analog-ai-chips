@@ -1,0 +1,16 @@
+** 5-Transistor OTA (single-ended output)
+** NMOS input pair, PMOS mirror load, NMOS tail current source
+.subckt ota_5t inp inn out vdd gnd vbias
+
+** ===== Differential Pair =====
+M1 d1  inp tail gnd nmos W=20u L=0.5u
+M2 out inn tail gnd nmos W=20u L=0.5u
+
+** ===== Mirror Load =====
+M3 d1  d1  vdd vdd pmos W=40u L=1u
+M4 out d1  vdd vdd pmos W=40u L=1u
+
+** ===== Tail =====
+M5 tail vbias gnd gnd nmos W=40u L=1u
+
+.ends ota_5t
