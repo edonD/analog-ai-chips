@@ -88,6 +88,10 @@ def levels_of(sub: Subckt, rails: dict[str, str]):
             nxt = []
             for n in frontier:
                 for d in chan_at.get(n, []):
+                    # capacitors are AC loads, not DC level-setting paths —
+                    # a cap to a rail must not collapse a node's stack level
+                    if d.kind == "cap":
+                        continue
                     ch = _channel(d)
                     other = ch[0] if ch[1] == n else ch[1]
                     if other is None or other in rails:
