@@ -534,6 +534,11 @@ def _emit_tile_wiring(sheet: Sheet) -> None:
                     pre.append((tdx, busy, tdx, tdy, snet))
             if min(xs) != max(xs):
                 pre.append((min(xs), busy, max(xs), busy, snet))
+            # a tail-less pair whose shared source is a SIGNAL node (e.g. a
+            # mixer's switching quad) must route that source out to the rest
+            # of the net — expose the rail as a tap, like a mirror gate rail.
+            if t.tail is None and snet not in sheet.rails:
+                sheet.taps.append((snet, min(xs), busy, "L"))
             if t.kind == "5t":
                 for ld, pm in zip(t.loads, t.members):
                     dnet = ld.net_of("d")
