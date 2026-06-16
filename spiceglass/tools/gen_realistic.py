@@ -522,6 +522,188 @@ def r2r_dac(r):
             lines + [f"Rt node{n} out 2k"])
 
 
+def lna_cascode(r):
+    w, l = W(r), L(r)
+    return ("lna_cascode", "rfin out vdd gnd vbias vbc", [
+        "** ===== Input Match =====",
+        f"Lg rfin g {Cv(r)}", f"Rb vbias g {Rv(r)}",
+        "** ===== Cascode Gain =====",
+        f"M1 mid g s gnd nmos W={w} L={l}",
+        f"Ls s gnd {Cv(r)}",
+        f"M2 out vbc mid gnd nmos W={w} L={l}",
+        "** ===== Output Tank =====",
+        f"Ld vdd out {Cv(r)}", f"Ct out gnd {Cv(r)}"])
+
+
+def lna_common_source(r):
+    w, l = W(r), L(r)
+    return ("lna_common_source", "rfin out vdd gnd vbias", [
+        f"Lg rfin g {Cv(r)}", f"Rb vbias g {Rv(r)}",
+        f"M1 out g s gnd nmos W={w} L={l}",
+        f"Ls s gnd {Cv(r)}",
+        f"Ld vdd out {Cv(r)}", f"Ct out gnd {Cv(r)}"])
+
+
+def pa_cascode(r):
+    l = L(r); wp = f"{r.choice([40, 80, 120])}u"
+    return ("pa_cascode", "rfin out vdd gnd vbias vbc", [
+        f"Cin rfin g {Cv(r)}", f"Rb vbias g {Rv(r)}",
+        f"M1 mid g gnd gnd nmos W={wp} L={l}",
+        f"M2 out vbc mid gnd nmos W={wp} L={l}",
+        f"Lchoke vdd out {Cv(r)}",
+        f"Cout out load {Cv(r)}", f"Rload load gnd {Rv(r)}"])
+
+
+def flash_adc(r):
+    k = r.choice([2, 3]); l = L(r)
+    nodes = ["vdd"] + [f"t{i}" for i in range(1, k + 1)] + ["gnd"]
+    lines = ["** ===== Reference Ladder ====="]
+    for i in range(k + 1):
+        lines.append(f"Rl{i} {nodes[i]} {nodes[i+1]} {Rv(r)}")
+    outs = []
+    for i in range(1, k + 1):
+        lines += [f"** ===== Comparator {i} =====",
+                  f"M{i}1 o{i} vin s{i} gnd nmos W={W(r)} L={l}",
+                  f"M{i}2 r{i} t{i} s{i} gnd nmos W={W(r)} L={l}",
+                  f"M{i}t s{i} vbn gnd gnd nmos W={W(r)} L={l}",
+                  f"M{i}3 o{i} r{i} vdd vdd pmos W={W(r)} L={l}",
+                  f"M{i}4 r{i} r{i} vdd vdd pmos W={W(r)} L={l}"]
+        outs.append(f"o{i}")
+    return ("flash_adc", "vin vbn vdd gnd " + " ".join(outs), lines)
+
+
+def current_steering_dac(r):
+    k = r.choice([2, 3, 4]); l = L(r)
+    lines = ["** ===== Bias Mirror =====",
+             f"Mref iref iref gnd gnd nmos W={W(r)} L={l}"]
+    for i in range(k):
+        lines += [f"** ===== Cell {i} =====",
+                  f"Ms{i} c{i} iref gnd gnd nmos W={W(r)} L={l}",
+                  f"Mp{i} outp d{i} c{i} gnd nmos W={W(r)} L={l}",
+                  f"Mn{i} outn b{i} c{i} gnd nmos W={W(r)} L={l}"]
+    bits = " ".join(f"d{i} b{i}" for i in range(k))
+    return ("current_steering_dac", f"iref outp outn vdd gnd {bits}",
+            lines + [f"Rlp vdd outp {Rv(r)}", f"Rln vdd outn {Rv(r)}"])
+
+
+def ds_integrator(r):
+    w, l = W(r), L(r)
+    return ("ds_integrator", "inp inn out vdd gnd vbn", [
+        "** ===== gm Stage =====",
+        f"M1 d1 inp tail gnd nmos W={w} L={l}",
+        f"M2 out inn tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 out d1 vdd vdd pmos W={w} L={l}",
+        "** ===== Integrating Cap =====",
+        f"Cint out inn {Cv(r)}"])
+
+
+def sc_integrator(r):
+    w, l = W(r), L(r)
+    return ("sc_integrator", "in out p1 p2 vdd gnd vbn", [
+        "** ===== Sampling Network =====",
+        f"Ms1 in p1 x gnd nmos W={w} L={l}",
+        f"Ms2 x p2 gnd gnd nmos W={w} L={l}",
+        f"Cs x y {Cv(r)}",
+        f"Ms3 y p2 gnd gnd nmos W={w} L={l}",
+        f"Ms4 y p1 sumn gnd nmos W={w} L={l}",
+        "** ===== Integrator OTA =====",
+        f"M1 d1 sumn tail gnd nmos W={w} L={l}",
+        f"M2 out gnd tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 out d1 vdd vdd pmos W={w} L={l}",
+        f"Cfb out sumn {Cv(r)}"])
+
+
+def ldo(r):
+    w, l = W(r), L(r)
+    return ("ldo", "vref vdd vout gnd vbn", [
+        "** ===== Error Amp (5T) =====",
+        f"M1 d1 vref tail gnd nmos W={w} L={l}",
+        f"M2 eo fb tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 eo d1 vdd vdd pmos W={w} L={l}",
+        "** ===== Pass Device =====",
+        f"Mp vout eo vdd vdd pmos W={r.choice([40, 80])}u L={l}",
+        "** ===== Feedback Divider =====",
+        f"Rf1 vout fb {Rv(r)}", f"Rf2 fb gnd {Rv(r)}",
+        f"Cl vout gnd {Cv(r)}"])
+
+
+def bandgap_startup(r):
+    return ("bandgap_startup", "vdd gnd vbg", [
+        "** ===== Startup =====",
+        f"Rsu vdd nstart {Rv(r)}",
+        f"Msu nbias nstart vdd vdd pmos W={W(r)} L={L(r)}",
+        "** ===== Bandgap Core =====",
+        f"M1 nbias nbias vdd vdd pmos W={W(r)} L={L(r)}",
+        f"M2 c2 nbias vdd vdd pmos W={W(r)} L={L(r)}",
+        "Q1 nbias b1 gnd npn", "Q2 c2 b1 e2 npn",
+        f"R1 e2 gnd {Rv(r)}", f"R2 c2 b1 {Rv(r)}",
+        f"M3 vbg nbias vdd vdd pmos W={W(r)} L={L(r)}",
+        f"R3 vbg gnd {Rv(r)}"])
+
+
+def buck_power_stage(r):
+    l = L(r); wp = f"{r.choice([80, 160])}u"
+    return ("buck_power_stage", "hin lin sw vdd gnd", [
+        f"Mhs sw hin vdd vdd pmos W={wp} L={l}",
+        f"Mls sw lin gnd gnd nmos W={wp} L={l}",
+        f"Lout sw vout {Cv(r)}", f"Cout vout gnd {Cv(r)}",
+        f"Rload vout gnd {Rv(r)}"])
+
+
+def opamp_3stage(r):
+    w, l = W(r), L(r)
+    return ("opamp_3stage", "inp inn out vdd gnd vbn", [
+        "** ===== Stage 1: 5T OTA =====",
+        f"M1 d1 inp tail gnd nmos W={w} L={l}",
+        f"M2 d2 inn tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 d2 d1 vdd vdd pmos W={w} L={l}",
+        "** ===== Stage 2: CS =====",
+        f"M6 o2 d2 vdd vdd pmos W={w} L={l}",
+        f"M7 o2 vbn gnd gnd nmos W={w} L={l}",
+        "** ===== Stage 3: Output =====",
+        f"M8 out o2 vdd vdd pmos W={w} L={l}",
+        f"M9 out vbn gnd gnd nmos W={w} L={l}",
+        f"Cc1 o2 d2 {Cv(r)}", f"Cc2 out o2 {Cv(r)}"])
+
+
+def gm_c_biquad(r):
+    w, l = W(r), L(r)
+
+    def gm(tag, ip, inn, o, t):
+        return [f"M{tag}1 {o} {ip} {t} gnd nmos W={w} L={l}",
+                f"M{tag}2 dx{tag} {inn} {t} gnd nmos W={w} L={l}",
+                f"M{tag}t {t} vbn gnd gnd nmos W={w} L={l}",
+                f"M{tag}3 {o} dx{tag} vdd vdd pmos W={w} L={l}",
+                f"M{tag}4 dx{tag} dx{tag} vdd vdd pmos W={w} L={l}"]
+    lines = ["** ===== gm1 ====="] + gm("a", "in", "x1", "x1", "ta")
+    lines += ["** ===== gm2 ====="] + gm("b", "x1", "out", "out", "tb")
+    lines += [f"C1 x1 gnd {Cv(r)}", f"C2 out gnd {Cv(r)}"]
+    return ("gm_c_biquad", "in out vdd gnd vbn", lines)
+
+
+def sar_cap_array(r):
+    k = r.choice([3, 4]); l = L(r)
+    lines = ["** ===== Binary Cap Array ====="]
+    for i in range(k):
+        lines.append(f"C{i} top b{i} {Cv(r)}")
+    lines += ["** ===== Comparator =====",
+              f"Mc1 o top s gnd nmos W={W(r)} L={l}",
+              f"Mc2 ob vcm s gnd nmos W={W(r)} L={l}",
+              f"Mct s vbn gnd gnd nmos W={W(r)} L={l}",
+              f"Mc3 o o vdd vdd pmos W={W(r)} L={l}",
+              f"Mc4 ob o vdd vdd pmos W={W(r)} L={l}"]
+    bits = " ".join(f"b{i}" for i in range(k))
+    return ("sar_cap_array", f"o ob vcm vbn vdd gnd {bits}", lines)
+
+
 TEMPLATES = [ota_5t, ota_two_stage, ota_telescopic, ota_folded_cascode,
              mirror_bank, cascode_mirror, wilson_mirror, beta_multiplier,
              comparator, inverter_chain, level_shifter, nand2,
@@ -533,7 +715,11 @@ TEMPLATES = [ota_5t, ota_two_stage, ota_telescopic, ota_folded_cascode,
              hysteresis_comparator, ring_oscillator, gilbert_cell, lc_vco,
              gate_driver, hbridge_leg, charge_pump, nor2, transmission_gate,
              schmitt, esd_clamp, peak_detector, sample_hold, voltage_doubler,
-             rc_ladder3, r2r_dac]
+             rc_ladder3, r2r_dac,
+             lna_cascode, lna_common_source, pa_cascode, flash_adc,
+             current_steering_dac, ds_integrator, sc_integrator, ldo,
+             bandgap_startup, buck_power_stage, opamp_3stage, gm_c_biquad,
+             sar_cap_array]
 
 
 def main():
