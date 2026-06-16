@@ -704,6 +704,258 @@ def sar_cap_array(r):
     return ("sar_cap_array", f"o ob vcm vbn vdd gnd {bits}", lines)
 
 
+def current_mirror_ota(r):
+    w, l = W(r), L(r)
+    return ("current_mirror_ota", "inp inn out vdd gnd vbn", [
+        "** ===== Input Pair =====",
+        f"M1 d1 inp tail gnd nmos W={w} L={l}",
+        f"M2 d2 inn tail gnd nmos W={w} L={l}",
+        f"M9 tail vbn gnd gnd nmos W={w} L={l}",
+        "** ===== Diode Loads =====",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 d2 d2 vdd vdd pmos W={w} L={l}",
+        "** ===== Output Mirrors =====",
+        f"M5 o1 d1 vdd vdd pmos W={w} L={l}",
+        f"M6 out d2 vdd vdd pmos W={w} L={l}",
+        f"M7 o1 o1 gnd gnd nmos W={w} L={l}",
+        f"M8 out o1 gnd gnd nmos W={w} L={l}"])
+
+
+def rail_to_rail_input(r):
+    w, l = W(r), L(r)
+    return ("rail_to_rail_input", "inp inn outp outn vdd gnd vbn vbp", [
+        "** ===== NMOS Pair =====",
+        f"M1 outp inp tn gnd nmos W={w} L={l}",
+        f"M2 outn inn tn gnd nmos W={w} L={l}",
+        f"Mtn tn vbn gnd gnd nmos W={w} L={l}",
+        "** ===== PMOS Pair =====",
+        f"M3 outp inp tp vdd pmos W={w} L={l}",
+        f"M4 outn inn tp vdd pmos W={w} L={l}",
+        f"Mtp tp vbp vdd vdd pmos W={w} L={l}",
+        f"R1 vdd outp {Rv(r)}", f"R2 vdd outn {Rv(r)}"])
+
+
+def gain_boosted_cascode(r):
+    w, l = W(r), L(r)
+    return ("gain_boosted_cascode", "in out vdd gnd vbn vbp vbref", [
+        "** ===== Main Cascode =====",
+        f"M1 s in gnd gnd nmos W={w} L={l}",
+        f"M2 out g s gnd nmos W={w} L={l}",
+        "** ===== Boost Amp (drives cascode gate) =====",
+        f"M3 g s tb gnd nmos W={w} L={l}",
+        f"M4 gd vbref tb gnd nmos W={w} L={l}",
+        f"Mtb tb vbn gnd gnd nmos W={w} L={l}",
+        f"M5 g gd vdd vdd pmos W={w} L={l}",
+        f"M6 gd gd vdd vdd pmos W={w} L={l}",
+        "** ===== Load =====",
+        f"M7 out vbp vdd vdd pmos W={W(r)} L={l}"])
+
+
+def tia(r):
+    w, l = W(r), L(r)
+    return ("tia", "in out vdd gnd vbn", [
+        "** ===== Inverting Gain =====",
+        f"M1 out in gnd gnd nmos W={w} L={l}",
+        f"M2 out vbn vdd vdd pmos W={W(r)} L={l}",
+        "** ===== Feedback =====",
+        f"Rf in out {Rv(r)}", f"Cf in out {Cv(r)}"])
+
+
+def sallen_key_lp(r):
+    w, l = W(r), L(r)
+    return ("sallen_key_lp", "in out vdd gnd vbn", [
+        "** ===== RC Network =====",
+        f"R1 in n1 {Rv(r)}", f"R2 n1 np {Rv(r)}",
+        f"C1 n1 out {Cv(r)}", f"C2 np gnd {Cv(r)}",
+        "** ===== Unity Buffer (5T OTA) =====",
+        f"M1 d1 np tail gnd nmos W={w} L={l}",
+        f"M2 out out tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 out d1 vdd vdd pmos W={w} L={l}"])
+
+
+def mfb_filter(r):
+    w, l = W(r), L(r)
+    return ("mfb_filter", "in out vcm vdd gnd vbn", [
+        "** ===== Multiple-Feedback Network =====",
+        f"R1 in s {Rv(r)}", f"R2 s out {Rv(r)}",
+        f"C1 s gnd {Cv(r)}", f"C2 in s {Cv(r)}",
+        "** ===== Inverting OTA =====",
+        f"M1 out s tail gnd nmos W={w} L={l}",
+        f"M2 d2 vcm tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 out out vdd vdd pmos W={w} L={l}",
+        f"M4 d2 out vdd vdd pmos W={w} L={l}"])
+
+
+def wien_bridge_osc(r):
+    w, l = W(r), L(r)
+    return ("wien_bridge_osc", "out vdd gnd vbn", [
+        "** ===== Wien Network =====",
+        f"R1 out p {Rv(r)}", f"C1 out p {Cv(r)}",
+        f"R2 p gnd {Rv(r)}", f"C2 p gnd {Cv(r)}",
+        f"R3 out n {Rv(r)}", f"R4 n gnd {Rv(r)}",
+        "** ===== Amp =====",
+        f"M1 d1 p tail gnd nmos W={w} L={l}",
+        f"M2 out n tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 out d1 vdd vdd pmos W={w} L={l}"])
+
+
+def colpitts_oscillator(r):
+    w, l = W(r), L(r)
+    return ("colpitts_oscillator", "out vdd gnd vbn", [
+        f"L1 vdd out {Cv(r)}",
+        f"C1 out tap {Cv(r)}", f"C2 tap gnd {Cv(r)}",
+        f"M1 out tap s gnd nmos W={w} L={l}",
+        f"Ms s vbn gnd gnd nmos W={w} L={l}",
+        f"Rb vdd out {Rv(r)}"])
+
+
+def pierce_oscillator(r):
+    w, l = W(r), L(r)
+    return ("pierce_oscillator", "outp vdd gnd", [
+        "** ===== Inverter Amp =====",
+        f"M1 outp inp vdd vdd pmos W={w} L={l}",
+        f"M2 outp inp gnd gnd nmos W={w} L={l}",
+        f"Rf inp outp {Rv(r)}",
+        "** ===== Crystal + Load Caps =====",
+        f"Lx inp m {Cv(r)}", f"Cx m outp {Cv(r)}",
+        f"Ci inp gnd {Cv(r)}", f"Co outp gnd {Cv(r)}"])
+
+
+def relaxation_oscillator(r):
+    w, l = W(r), L(r)
+    return ("relaxation_oscillator", "out vdd gnd vbn", [
+        "** ===== Comparator =====",
+        f"M1 d1 cap tail gnd nmos W={w} L={l}",
+        f"M2 out ref tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 out d1 vdd vdd pmos W={w} L={l}",
+        "** ===== RC + Hysteresis Divider =====",
+        f"Rc out cap {Rv(r)}", f"Cc cap gnd {Cv(r)}",
+        f"R1 out ref {Rv(r)}", f"R2 ref gnd {Rv(r)}"])
+
+
+def boost_power_stage(r):
+    l = L(r); wp = f"{r.choice([80, 160])}u"
+    return ("boost_power_stage", "sw_ctrl vin vout gnd", [
+        f"Lb vin sw {Cv(r)}",
+        f"Msw sw sw_ctrl gnd gnd nmos W={wp} L={l}",
+        "Dout sw vout diode",
+        f"Cout vout gnd {Cv(r)}", f"Rload vout gnd {Rv(r)}"])
+
+
+def push_pull_driver(r):
+    l = L(r); wp = f"{r.choice([40, 80])}u"
+    return ("push_pull_driver", "in out vdd gnd", [
+        "** ===== Predriver =====",
+        f"M1 hb in vdd vdd pmos W={W(r)} L={l}",
+        f"M2 lb in gnd gnd nmos W={W(r)} L={l}",
+        "** ===== Output Stage =====",
+        f"Mp out hb vdd vdd pmos W={wp} L={l}",
+        f"Mn out lb gnd gnd nmos W={wp} L={l}"])
+
+
+def lvds_driver(r):
+    w, l = W(r), L(r)
+    return ("lvds_driver", "inp inn outp outn vdd gnd vbn vbp", [
+        f"Mtp t vbp vdd vdd pmos W={w} L={l}",
+        f"M1 outp inp t vdd pmos W={w} L={l}",
+        f"M2 outn inn t vdd pmos W={w} L={l}",
+        f"M3 outp inn b gnd nmos W={w} L={l}",
+        f"M4 outn inp b gnd nmos W={w} L={l}",
+        f"Mtn b vbn gnd gnd nmos W={w} L={l}",
+        f"Rterm outp outn {Rv(r)}"])
+
+
+def open_drain_output(r):
+    l = L(r); w = W(r)
+    return ("open_drain_output", "in pad vdd gnd", [
+        f"M1 g in vdd vdd pmos W={w} L={l}",
+        f"M2 g in gnd gnd nmos W={w} L={l}",
+        f"Mout pad g gnd gnd nmos W={r.choice([40, 80])}u L={l}",
+        f"Rpu vdd pad {Rv(r)}"])
+
+
+def power_on_reset(r):
+    w, l = W(r), L(r)
+    return ("power_on_reset", "rst vdd gnd", [
+        f"R1 vdd n {Rv(r)}", f"C1 n gnd {Cv(r)}",
+        "** ===== Threshold Inverter =====",
+        f"M1 rst n vdd vdd pmos W={w} L={l}",
+        f"M2 rst n gnd gnd nmos W={w} L={l}"])
+
+
+def window_comparator(r):
+    w, l = W(r), L(r); lines = []
+    for tag, ref in (("h", "vrefh"), ("l", "vrefl")):
+        lines += [f"** ===== Comparator {tag} =====",
+                  f"M{tag}1 o{tag} vin s{tag} gnd nmos W={w} L={l}",
+                  f"M{tag}2 r{tag} {ref} s{tag} gnd nmos W={w} L={l}",
+                  f"M{tag}t s{tag} vbn gnd gnd nmos W={w} L={l}",
+                  f"M{tag}3 o{tag} r{tag} vdd vdd pmos W={w} L={l}",
+                  f"M{tag}4 r{tag} r{tag} vdd vdd pmos W={w} L={l}"]
+    return ("window_comparator",
+            "vin vrefh vrefl oh ol vdd gnd vbn", lines)
+
+
+def temp_sensor_ptat(r):
+    return ("temp_sensor_ptat", "vdd gnd vptat", [
+        f"M1 c1 c1 vdd vdd pmos W={W(r)} L={L(r)}",
+        f"M2 vptat c1 vdd vdd pmos W={W(r)} L={L(r)}",
+        "Q1 c1 b gnd npn", "Q2 vptat b e2 npn",
+        f"Re e2 gnd {Rv(r)}", f"Rb vptat b {Rv(r)}"])
+
+
+def current_conveyor(r):
+    w, l = W(r), L(r)
+    return ("current_conveyor_ccii", "y x z vdd gnd vbn vbp", [
+        "** ===== Y->X Buffer =====",
+        f"M1 d1 y tail gnd nmos W={w} L={l}",
+        f"M2 d2 x tail gnd nmos W={w} L={l}",
+        f"M5 tail vbn gnd gnd nmos W={w} L={l}",
+        f"M3 d1 d1 vdd vdd pmos W={w} L={l}",
+        f"M4 d2 d1 vdd vdd pmos W={w} L={l}",
+        "** ===== X Output =====",
+        f"M6 x d2 vdd vdd pmos W={w} L={l}",
+        f"M7 x vbn gnd gnd nmos W={w} L={l}",
+        "** ===== Z Current Copy =====",
+        f"M8 z d2 vdd vdd pmos W={w} L={l}",
+        f"M9 z vbn gnd gnd nmos W={w} L={l}"])
+
+
+def r_string_dac(r):
+    k = r.choice([4, 6]); l = L(r)
+    nodes = ["vdd"] + [f"t{i}" for i in range(1, k)] + ["gnd"]
+    lines = ["** ===== Resistor String ====="]
+    for i in range(k):
+        lines.append(f"Rs{i} {nodes[i]} {nodes[i+1]} {Rv(r)}")
+    sels = []
+    for i in range(1, k):
+        lines.append(f"Msw{i} t{i} sel{i} out gnd nmos W={W(r)} L={l}")
+        sels.append(f"sel{i}")
+    return ("r_string_dac", "out vdd gnd " + " ".join(sels), lines)
+
+
+def diff_lna(r):
+    w, l = W(r), L(r)
+    return ("diff_lna", "rfp rfn outp outn vdd gnd vbias vbc", [
+        "** ===== Input Match =====",
+        f"Lgp rfp gp {Cv(r)}", f"Lgn rfn gn {Cv(r)}",
+        f"Rbp vbias gp {Rv(r)}", f"Rbn vbias gn {Rv(r)}",
+        "** ===== Cascode Pair =====",
+        f"M1 mp gp sp gnd nmos W={w} L={l}",
+        f"M2 mn gn sn gnd nmos W={w} L={l}",
+        f"Lsp sp gnd {Cv(r)}", f"Lsn sn gnd {Cv(r)}",
+        f"M3 outp vbc mp gnd nmos W={w} L={l}",
+        f"M4 outn vbc mn gnd nmos W={w} L={l}",
+        f"Ldp vdd outp {Cv(r)}", f"Ldn vdd outn {Cv(r)}"])
+
+
 TEMPLATES = [ota_5t, ota_two_stage, ota_telescopic, ota_folded_cascode,
              mirror_bank, cascode_mirror, wilson_mirror, beta_multiplier,
              comparator, inverter_chain, level_shifter, nand2,
@@ -719,7 +971,13 @@ TEMPLATES = [ota_5t, ota_two_stage, ota_telescopic, ota_folded_cascode,
              lna_cascode, lna_common_source, pa_cascode, flash_adc,
              current_steering_dac, ds_integrator, sc_integrator, ldo,
              bandgap_startup, buck_power_stage, opamp_3stage, gm_c_biquad,
-             sar_cap_array]
+             sar_cap_array,
+             current_mirror_ota, rail_to_rail_input, gain_boosted_cascode,
+             tia, sallen_key_lp, mfb_filter, wien_bridge_osc,
+             colpitts_oscillator, pierce_oscillator, relaxation_oscillator,
+             boost_power_stage, push_pull_driver, lvds_driver,
+             open_drain_output, power_on_reset, window_comparator,
+             temp_sensor_ptat, current_conveyor, r_string_dac, diff_lna]
 
 
 def main():
