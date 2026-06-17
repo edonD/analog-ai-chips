@@ -111,12 +111,16 @@ def main():
     ap.add_argument("--core-only", action="store_true")
     ap.add_argument("--optimize", action="store_true",
                     help="use the verify-gated optimizer (slower)")
+    ap.add_argument("--wild-floor", type=int, default=None, metavar="N",
+                    help="fail if fewer than N wild decks verify "
+                         "(real-netlist regression guard; needs Spice64)")
     args = ap.parse_args()
 
     t0 = time.time()
     co, cc, cm = scan(CORE, args.optimize)
     report("CORE (must verify)", co, cc, cm, show_mismatches=True)
     wild_bad = 0
+    wo = None
     if not args.core_only:
         wo, wc, wm = scan(WILD, args.optimize)
         report("WILD (ngspice examples — informational)", wo, wc, wm,
@@ -128,6 +132,15 @@ def main():
     if core_bad:
         print(f"FAIL: {core_bad} CORE sheet(s) regressed")
         return 1
+    # real-netlist regression guard: WILD verify count must not drop
+    if args.wild_floor is not None and wo is not None:
+        total = wo["verified"] + wo["mismatch"] + wo["crash"]
+        if total and wo["verified"] < args.wild_floor:
+            print(f"FAIL: WILD verified {wo['verified']} < floor "
+                  f"{args.wild_floor} (real-netlist regression)")
+            return 1
+        if total:
+            print(f"WILD floor OK: {wo['verified']} >= {args.wild_floor}")
     if wild_bad:
         print(f"note: {wild_bad} wild crash(es) — parser robustness gap")
     print("CORE clean.")

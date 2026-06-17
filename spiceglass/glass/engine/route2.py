@@ -387,6 +387,85 @@ class Router2:
                         f"nudge: could not separate '{net}' on "
                         f"{'V' if axis == V else 'H'}{coord}")
         res.warnings.extend(sorted(unresolved))
+        self._jog_terminals(res, existing)
+
+    def _jog_terminals(self, res, existing) -> None:
+        """Last resort for shorts the offset pass can't fix: a TERMINAL
+        segment (one end pinned) stuck on a foreign net's track. Jog it —
+        a short perpendicular stub at the pin, then run the rest on a free
+        track. Only fires where an overlap STILL exists, so passing sheets
+        are never touched. Jogs are deferred and applied high-index-first so
+        path-index references stay valid."""
+        def seglines():
+            lines: dict[tuple[int, int], list] = {}
+            for net, segs in existing.items():
+                for (x1, y1, x2, y2) in segs:
+                    if x1 == x2:
+                        lines.setdefault((V, x1), []).append(
+                            (min(y1, y2), max(y1, y2), net, None))
+                    elif y1 == y2:
+                        lines.setdefault((H, y1), []).append(
+                            (min(x1, x2), max(x1, x2), net, None))
+            for net, paths in res.paths.items():
+                for path in paths or []:
+                    n = len(path)
+                    for k in range(n - 1):
+                        (x1, y1), (x2, y2) = path[k], path[k + 1]
+                        term = (k == 0 or k == n - 2)
+                        ref = (path, k, term) if term else None
+                        if x1 == x2 and y1 != y2:
+                            lines.setdefault((V, x1), []).append(
+                                (min(y1, y2), max(y1, y2), net, ref))
+                        elif y1 == y2 and x1 != x2:
+                            lines.setdefault((H, y1), []).append(
+                                (min(x1, x2), max(x1, x2), net, ref))
+            return lines
+
+        lines = seglines()
+        jogs = []                                  # (path, k, axis, coord, off)
+        for (axis, coord), items in list(lines.items()):
+            for i, (lo, hi, net, ref) in enumerate(items):
+                if ref is None:
+                    continue
+                # does this terminal still overlap a different net here?
+                clash = any(n2 != net and hi >= a and lo <= b
+                            for (a, b, n2, _) in items)
+                if not clash:
+                    continue
+                # find a free track to jog onto
+                for off in OFFSETS:
+                    if off == 0 or self._blocked(axis, coord + off, lo, hi):
+                        continue
+                    other = lines.get((axis, coord + off), [])
+                    if any(n2 != net and hi >= a and lo <= b
+                           for (a, b, n2, _) in other):
+                        continue
+                    jogs.append((ref[0], ref[1], axis, coord, off))
+                    other_list = lines.setdefault((axis, coord + off), [])
+                    other_list.append((lo, hi, net, None))
+                    break
+
+        # apply deferred, deepest index first per path so inserts don't
+        # invalidate earlier-index jogs on the same path
+        for path, k, axis, coord, off in sorted(
+                jogs, key=lambda j: (id(j[0]), -j[1])):
+            n = len(path)
+            if k == 0:                              # pin is path[0]
+                px, py = path[0]
+                if axis == H:
+                    path[1][1] = coord + off
+                    path.insert(1, [px, coord + off])
+                else:
+                    path[1][0] = coord + off
+                    path.insert(1, [coord + off, py])
+            else:                                   # pin is path[-1]
+                px, py = path[-1]
+                if axis == H:
+                    path[-2][1] = coord + off
+                    path.insert(n - 1, [px, coord + off])
+                else:
+                    path[-2][0] = coord + off
+                    path.insert(n - 1, [coord + off, py])
 
     @staticmethod
     def _shift(res, net, seg, coord, lo, hi, off) -> None:
