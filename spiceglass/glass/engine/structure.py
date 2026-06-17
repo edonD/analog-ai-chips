@@ -127,3 +127,14 @@ def recognize_structures(sub: Subckt, rails: dict | None = None) -> list[dict]:
 def structure_kinds(sub: Subckt, rails: dict | None = None) -> list[str]:
     """Sorted unique structure kinds present (a compact recognition label)."""
     return sorted({s["kind"] for s in recognize_structures(sub, rails)})
+
+
+def device_structure_map(sub: Subckt, rails: dict | None = None) -> dict:
+    """device name -> structure-group label (first structure it belongs to).
+    A placement hint: devices sharing a label want to stay together."""
+    out: dict[str, str] = {}
+    for i, s in enumerate(recognize_structures(sub, rails)):
+        label = f"{s['kind']}#{i}"
+        for dn in s["devices"]:
+            out.setdefault(dn, label)        # first/most-specific wins
+    return out

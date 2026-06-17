@@ -274,7 +274,10 @@ def _best_placement(sub, max_rank: int = 6):
         if not verify(r).ok:
             continue
         sc = score(sh, r)
-        if sc.crossings < s0.crossings or sc.wirelength < s0.wirelength:
+        # crossings dominate readability — never trade them for wirelength
+        if (sc.crossings < s0.crossings
+                or (sc.crossings == s0.crossings
+                    and sc.wirelength < s0.wirelength)):
             note = (f"auto-arranged: crossings {s0.crossings}->{sc.crossings}, "
                     f"wirelength {s0.wirelength}->{sc.wirelength}mm "
                     f"(SpiceGlass optimizer)")

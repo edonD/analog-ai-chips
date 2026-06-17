@@ -301,14 +301,17 @@ def place(sub: Subckt, overrides: dict[str, dict] | None = None,
                               else pv[0]).section
 
     if optimize:
+        from .structure import device_structure_map
+        dev_struct = device_structure_map(sub, rails)   # recognition hint
         if trace is not None:
             from .optimize import optimize_order
             objects = optimize_order(objects, sheet.rails, sheet.label_nets,
-                                     trace)
+                                     trace, dev_struct=dev_struct)
         else:
             from .optimize import optimize_candidates
             cands = optimize_candidates(objects, sheet.rails,
-                                        sheet.label_nets)
+                                        sheet.label_nets,
+                                        dev_struct=dev_struct)
             objects = cands[min(opt_rank, len(cands) - 1)]
 
     _realize(sheet, objects, laterals, level, claimed)
