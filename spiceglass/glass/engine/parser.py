@@ -149,6 +149,94 @@ def _strip_inline(s: str) -> str:
     return s[:cut].rstrip()
 
 
+import ast as _ast                                            # noqa: E402
+import operator as _opr                                       # noqa: E402
+
+_SUFFIX = {"t": 1e12, "g": 1e9, "meg": 1e6, "k": 1e3, "mil": 25.4e-6,
+           "m": 1e-3, "u": 1e-6, "n": 1e-9, "p": 1e-12, "f": 1e-15}
+_BINOPS = {_ast.Add: _opr.add, _ast.Sub: _opr.sub, _ast.Mult: _opr.mul,
+           _ast.Div: _opr.truediv, _ast.Pow: _opr.pow}
+_UNOPS = {_ast.USub: _opr.neg, _ast.UAdd: _opr.pos}
+_NUM_SUF = re.compile(r'(?<![\w.])(\d+\.?\d*(?:e[-+]?\d+)?)'
+                      r'(t|g|meg|mil|k|m|u|n|p|f)\b', re.I)
+_PLAIN = re.compile(r'^[-+]?\d+\.?\d*(?:e[-+]?\d+)?'
+                    r'(?:t|g|meg|mil|k|m|u|n|p|f)?$', re.I)
+
+
+def _spice_floats(expr: str) -> str:
+    return _NUM_SUF.sub(
+        lambda m: repr(float(m.group(1)) * _SUFFIX[m.group(2).lower()]), expr)
+
+
+def _eval_expr(expr: str, vals: dict[str, float]) -> float:
+    """Safe arithmetic eval of a SPICE param expression (no code exec):
+    numbers w/ SI suffixes, + - * / ** ( ), and references to resolved
+    params. Raises on anything else (caller leaves it verbatim)."""
+    tree = _ast.parse(_spice_floats(expr.strip().strip("'\"{} ")), mode="eval")
+
+    def ev(node):
+        if isinstance(node, _ast.Expression):
+            return ev(node.body)
+        if isinstance(node, _ast.Constant):
+            return float(node.value)
+        if isinstance(node, _ast.BinOp) and type(node.op) in _BINOPS:
+            return _BINOPS[type(node.op)](ev(node.left), ev(node.right))
+        if isinstance(node, _ast.UnaryOp) and type(node.op) in _UNOPS:
+            return _UNOPS[type(node.op)](ev(node.operand))
+        if isinstance(node, _ast.Name):
+            return vals[node.id.lower()]
+        raise ValueError("unsupported expression")
+    return ev(tree.body)
+
+
+def _fmt_eng(x: float) -> str:
+    if x == 0:
+        return "0"
+    for suf, mul in (("t", 1e12), ("g", 1e9), ("meg", 1e6), ("k", 1e3),
+                     ("", 1.0), ("m", 1e-3), ("u", 1e-6), ("n", 1e-9),
+                     ("p", 1e-12), ("f", 1e-15)):
+        if abs(x) >= mul:
+            return f"{x / mul:.4g}{suf}"
+    return f"{x:.4g}"
+
+
+def _resolve_params(raw: dict[str, str]) -> dict[str, float]:
+    vals: dict[str, float] = {}
+    for _ in range(12):                       # fixpoint over inter-param refs
+        progress = False
+        for k, e in raw.items():
+            try:
+                v = _eval_expr(e, vals)
+            except Exception:
+                continue
+            if vals.get(k.lower()) != v:
+                vals[k.lower()] = v
+                progress = True
+        if not progress:
+            break
+    return vals
+
+
+def _eval_device_params(design: "Design") -> None:
+    """Evaluate parameter EXPRESSIONS on devices to numbers (plain numeric
+    values are left untouched; unresolved expressions stay verbatim)."""
+    vals = _resolve_params(design.params)
+
+    def fix(dev):
+        for k, v in list(dev.params.items()):
+            if not isinstance(v, str) or _PLAIN.match(v):
+                continue
+            try:
+                dev.params[k] = _fmt_eng(_eval_expr(v, vals))
+            except Exception:
+                pass                          # leave verbatim, no crash
+    for sub in design.subckts.values():
+        for d in sub.devices:
+            fix(d)
+    for d in design.top_devices:
+        fix(d)
+
+
 def _split_params(tokens: list[str]) -> tuple[list[str], dict[str, str]]:
     """Separate positional tokens from key=value parameters, tolerating
     spaces around '=' (common in foundry/HSPICE decks, e.g. `W= 1u`,
@@ -298,6 +386,10 @@ def parse_text(text: str, path: str = "<string>") -> Design:
                 continue
             if head == ".end":
                 break
+            if head == ".param":
+                _, prm = _split_params(toks[1:])
+                design.params.update(prm)
+                continue
             if head in _IGNORED_DOTS:
                 continue
             design.warnings.append(f"line {no}: unhandled card: {line[:60]}")
@@ -317,6 +409,7 @@ def parse_text(text: str, path: str = "<string>") -> Design:
             if d.section:
                 seen.setdefault(d.section)
         sub.sections = list(seen)
+    _eval_device_params(design)          # resolve .param expressions to numbers
     return design
 
 

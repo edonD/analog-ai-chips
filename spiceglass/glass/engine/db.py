@@ -78,6 +78,7 @@ class Design:
     order: list[str] = field(default_factory=list)      # definition order
     top_devices: list[Device] = field(default_factory=list)  # devices outside any .subckt
     warnings: list[str] = field(default_factory=list)
+    params: dict[str, str] = field(default_factory=dict)  # .param name -> raw expr
 
     def root(self) -> Subckt:
         """Default sheet: the subckt not instantiated by any other (last if tie)."""
