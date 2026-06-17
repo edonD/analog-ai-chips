@@ -19,3 +19,5 @@ spiceglass/benchmark/real/
 spiceglass/benchmark/hier/
 spiceglass/examples/sg_sym/
 spiceglass/examples/*.*.asc
+spiceglass/_srv.log
+spiceglass/sg_sym/
