@@ -67,9 +67,13 @@ def _read_text(path: str) -> str:
 
 
 def parse_asc(path: str) -> AscSheet:
+    return parse_asc_text(_read_text(path))
+
+
+def parse_asc_text(text: str) -> AscSheet:
     sheet = AscSheet()
     pending: AscInstance | None = None
-    for no, line in enumerate(_read_text(path).splitlines(), 1):
+    for no, line in enumerate(text.splitlines(), 1):
         t = line.split()
         if not t:
             continue

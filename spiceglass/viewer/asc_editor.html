@@ -312,6 +312,7 @@ function buildScene(ast, symlib){
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d",{alpha:false});
 let cam={scale:1,tx:0,ty:0}, scene=null, dpr=1;
 let cursorW=null, hoverOwner=null;  // schematic-editor crosshair + hover
+let hilite=null, hiliteName=null, hilitePorts=[], pendingHilite=null; // net hl
 let selSet=new Set();               // selected owner ids (multi-select)
 let marquee=null;                   // rubber-band rect in world coords
 let drag=null;                      // active drag descriptor
@@ -478,6 +479,29 @@ function draw(){
     }
   }
 
+  // net highlight: bold colour on the whole electrical net (wires + flags
+  // + the block pins it reaches), same level and after following hierarchy
+  if(hilite || hiliteName!==null){
+    ctx.save(); ctx.strokeStyle="#e8821e"; ctx.fillStyle="#e8821e";
+    ctx.lineCap="round"; ctx.lineWidth=3/cam.scale; ctx.beginPath();
+    for(const s of (hilite||[])){ ctx.moveTo(s[0],s[1]); ctx.lineTo(s[2],s[3]); }
+    ctx.stroke();
+    if(hiliteName!==null){ ctx.lineWidth=2/cam.scale;
+      for(const f of scene.ast.flags){ if(f.name!==hiliteName)continue;
+        ctx.beginPath(); ctx.arc(f.x,f.y,6/cam.scale,0,Math.PI*2); ctx.stroke(); } }
+    if(hilitePorts.length){
+      const byName={}; scene.ast.insts.forEach(d=>{
+        if(d.attrs.InstName) byName[d.attrs.InstName]=d; });
+      for(const [inm,pn] of hilitePorts){ const d=byName[inm]; if(!d)continue;
+        const sym=symlib[d.sym]; if(!sym)continue; const rot=ROT[d.rot]||ROT.R0;
+        for(const p of (sym.pins||[])){ if(p[2]!==pn)continue;
+          const [a,b]=rot(p[0],p[1]);
+          ctx.beginPath(); ctx.arc(a+d.x,b+d.y,4.5/cam.scale,0,Math.PI*2);
+          ctx.fill(); } }
+    }
+    ctx.restore();
+  }
+
   // hover highlight: faint outline of the symbol under the cursor
   if(hoverOwner && hoverOwner[0]==="s" && !selSet.has(hoverOwner)){
     const d=scene.ast.insts[+hoverOwner.slice(1)];
@@ -585,6 +609,7 @@ function draw(){
 function updateHud(){
   const el=document.getElementById("hud"); if(!el) return;
   let s="";
+  if(hiliteName) s+=`net ${hiliteName}   `;
   if(cursorW) s+=`x ${(cursorW[0]/8).toFixed(1)}  y ${(cursorW[1]/8).toFixed(1)} mm   `;
   s+=`zoom ${Math.round(cam.scale*100)}%   grid 1 mm`;
   el.textContent=s;
@@ -962,6 +987,7 @@ cv.addEventListener("pointerdown",e=>{
   }
   const own = scene?hitOwner(wx,wy):null;
   ptr={x:e.clientX,y:e.clientY,wx,wy,moved:false};
+  if(scene && !e.shiftKey) highlightAt(wx,wy);   // light up the net under the click
   // Shift = multi-select: toggle an item, or rubber-band over empty space
   if(e.shiftKey){
     if(own){ toggleSel(own); drag=null; ptr=null; return; }
@@ -1054,7 +1080,8 @@ cv.addEventListener("dblclick",e=>{
   if(own&&own[0]==="s"){
     const inst=scene.ast.insts[+own.slice(1)];
     if(inst && inst.sym && inst.sym.indexOf("sg_blk_")>=0){   // a block box
-      descendBlock(inst.attrs.Value || inst.sym.split("sg_blk_")[1]);
+      descendBlock(inst.attrs.Value || inst.sym.split("sg_blk_")[1],
+                   inst.attrs.InstName);
       return;
     }
     editSymbol(+own.slice(1));
@@ -1297,8 +1324,11 @@ function updateCrumb(){
     ev.preventDefault(); navTo(+a.dataset.i); });
 }
 
-async function descendBlock(name){
+async function descendBlock(name,instName){
   if(!name) return;
+  // if a highlighted net enters this block, follow it into the child
+  const carry = hiliteName && instName
+    ? (hilitePorts.find(p=>p[0]===instName)||[])[1] : null;
   const frame={name:curName,file:curFile,text:ta.value,
                cam:{...cam},symlib};
   setStatus("opening "+name+"…",false);
@@ -1308,12 +1338,15 @@ async function descendBlock(name){
       body:JSON.stringify({name})})).json();
     if(d.error){ setStatus(d.error,true); return; }
     navStack.push(frame);
+    clearHilite(); pendingHilite=carry;
     _descending=true; applyBootstrap(d); _descending=false;
     updateCrumb();
+    if(pendingHilite){ highlightName(pendingHilite); pendingHilite=null; }
   }catch(e){ setStatus("open block failed",true); }
 }
 
 function restoreFrame(f){
+  clearHilite();
   raw=f.text; origin="graphics"; ta.value=raw; origin=null;
   symlib=f.symlib||symlib; selSet.clear();
   curName=f.name; curFile=f.file;
@@ -1333,12 +1366,30 @@ async function navTo(j){
 }
 function navBack(){ if(navStack.length) navTo(navStack.length-1); }
 
+//============================================================ net highlight
+function setHilite(d){
+  if(!d || (!d.segments.length && !d.name && !(d.ports||[]).length)){
+    hilite=null; hiliteName=null; hilitePorts=[]; render(); return; }
+  hilite=d.segments||[]; hiliteName=d.name||null; hilitePorts=d.ports||[];
+  render();
+}
+function clearHilite(){ hilite=null; hiliteName=null; hilitePorts=[]; pendingHilite=null; }
+function _netReq(body,then){
+  fetch("/api/net",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(Object.assign({text:ta.value},body))})
+    .then(r=>r.json()).then(then).catch(()=>{});
+}
+// highlight the net under a clicked world point (clears if none)
+function highlightAt(wx,wy){ _netReq({x:Math.round(wx),y:Math.round(wy)},setHilite); }
+// highlight a net by name (used when following a net into a child block)
+function highlightName(name){ _netReq({name},setHilite); }
+
 //============================================================ boot
 function applyBootstrap(data){
   raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
   ta.value=raw; symlib=data.symbols||{}; selSet.clear();
   curName=data.subckt||null; curFile=data.file||null;
-  if(!_descending){ navStack=[]; updateCrumb(); }
+  if(!_descending){ navStack=[]; clearHilite(); updateCrumb(); }
   const note=document.getElementById("srcnote");
   note.textContent = (data.converted && data.source)
     ? `converted from ${data.source} → ${data.file}` : "";

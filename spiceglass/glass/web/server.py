@@ -130,6 +130,93 @@ def convert_subckt(srcpath: str, name: str) -> str:
     return out
 
 
+_ROT = {"R0": lambda x, y: (x, y), "R90": lambda x, y: (-y, x),
+        "R180": lambda x, y: (-x, -y), "R270": lambda x, y: (y, -x),
+        "M0": lambda x, y: (-x, y), "M90": lambda x, y: (y, x),
+        "M180": lambda x, y: (x, -y), "M270": lambda x, y: (-y, -x)}
+
+
+def _on_seg(x, y, w) -> bool:
+    x1, y1, x2, y2 = w
+    if x1 == x2:
+        return x == x1 and min(y1, y2) <= y <= max(y1, y2)
+    if y1 == y2:
+        return y == y1 and min(x1, x2) <= x <= max(x1, x2)
+    return False
+
+
+def net_at(text: str, asc_dir: str, x: int | None = None,
+           y: int | None = None, name: str | None = None) -> dict:
+    """Electrical net of a clicked point (or named net) from .asc geometry,
+    using the SAME union-find as the round-trip verifier: wire endpoints,
+    T-joins (endpoint on a segment body), and same-name flags. Returns the
+    net's segments, its name, and the (instance, pin) it reaches on any
+    block box — the hook for following a net across the hierarchy."""
+    from ..asc.parse import parse_asc_text
+    sheet = parse_asc_text(text)
+    wires = sheet.wires
+
+    class UF:
+        def __init__(s): s.p = {}
+        def find(s, a):
+            s.p.setdefault(a, a)
+            while s.p[a] != a:
+                s.p[a] = s.p[s.p[a]]; a = s.p[a]
+            return a
+        def union(s, a, b): s.p[s.find(a)] = s.find(b)
+
+    uf = UF()
+    K = lambda px, py: f"{int(px)},{int(py)}"          # noqa: E731
+    for (x1, y1, x2, y2) in wires:
+        uf.union(K(x1, y1), K(x2, y2))
+    ends = {(w[0], w[1]) for w in wires} | {(w[2], w[3]) for w in wires}
+    for (ex, ey) in ends:                              # T-joins
+        for w in wires:
+            if _on_seg(ex, ey, w):
+                uf.union(K(ex, ey), K(w[0], w[1]))
+    for (fx, fy, nm) in sheet.flags:                   # labels / rails
+        uf.union(K(fx, fy), "NET:" + nm)
+
+    # block-box pins → (instance, pin) for hierarchy following
+    blkpins = []          # (worldx, worldy, instName, pinName)
+    for inst in sheet.insts:
+        if "sg_blk_" not in (inst.sym or ""):
+            continue
+        sj = symbol_json(inst.sym, asc_dir)
+        rot = _ROT.get(inst.rot, _ROT["R0"])
+        nm = inst.attrs.get("InstName", "")
+        for pin in (sj or {}).get("pins", []):
+            tx, ty = rot(pin[0], pin[1])
+            blkpins.append((inst.x + tx, inst.y + ty, nm, pin[2]))
+
+    if name is not None:
+        root = uf.find("NET:" + name)
+    elif x is not None and y is not None:
+        key = K(x, y)
+        if key not in uf.p:                            # snap to nearest geom
+            hit = next((w for w in wires if _on_seg(x, y, w)), None)
+            if hit:
+                key = K(hit[0], hit[1])
+            else:
+                near = min(((abs(fx - x) + abs(fy - y), K(fx, fy))
+                            for (fx, fy, _) in sheet.flags), default=None)
+                if not near or near[0] > 8:
+                    return {"segments": [], "name": None, "ports": []}
+                key = near[1]
+        root = uf.find(key)
+    else:
+        return {"segments": [], "name": None, "ports": []}
+
+    segs = [[w[0], w[1], w[2], w[3]] for w in wires
+            if uf.find(K(w[0], w[1])) == root]
+    nm = next((n[4:] for n in uf.p if n.startswith("NET:")
+               and uf.find(n) == root), None)
+    ports = sorted({(i, p) for (px, py, i, p) in blkpins
+                    if uf.find(K(px, py)) == root})
+    return {"segments": segs, "name": nm,
+            "ports": [[i, p] for i, p in ports]}
+
+
 def _best_placement(sub, max_rank: int = 6):
     """Verify-gated optimization: try the optimizer's top-ranked orderings
     and keep the best one that BOTH verifies and beats the seed; never
@@ -451,6 +538,12 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as exc:
                     return self._json(
                         {"error": f"could not open: {exc}"}, 400)
+            if url.path == "/api/net":
+                txt = body.get("text") or self.state.text()
+                return self._json(net_at(
+                    txt, self.state.dir(),
+                    x=body.get("x"), y=body.get("y"),
+                    name=body.get("name")))
             if url.path == "/api/descend":
                 try:
                     return self._json(self.state.descend(
