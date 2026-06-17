@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 
 from ..engine.db import Subckt
-from ..geom import pin_offsets
+from ..geom import pin_offsets, BOX_W, box_height
 from ..engine.place import Sheet
 from ..engine.route import Routing
 
@@ -105,6 +105,30 @@ def _asy_for(kind: str, roles: list[str]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _safe_sym(name: str) -> str:
+    return "".join(c if c.isalnum() else "_" for c in name) or "box"
+
+
+def _box_asy(dev) -> str:
+    """A block-instance box symbol (.asy): rectangle bounding the pins,
+    pins on the left/right edges at pin_offsets, model name as the value.
+    Same scale convention as primitive symbols (pins at offset * S)."""
+    offs = pin_offsets(dev, "R0")
+    hw, hh = (BOX_W // 2) * S, (box_height(len(dev.roles)) // 2) * S
+    out = ["Version 4", "SymbolType CELL",
+           f"LINE Normal {-hw} {-hh} {hw} {-hh}",
+           f"LINE Normal {hw} {-hh} {hw} {hh}",
+           f"LINE Normal {hw} {hh} {-hw} {hh}",
+           f"LINE Normal {-hw} {hh} {-hw} {-hh}",
+           f"WINDOW 0 0 {-hh - 4} Center 2",
+           f"WINDOW 3 0 {hh + 4} Center 2"]
+    for i, r in enumerate(dev.roles, 1):
+        dx, dy = offs[r]
+        out += [f"PIN {dx * S} {dy * S} NONE 8",
+                f"PINATTR PinName {r}", f"PINATTR SpiceOrder {i}"]
+    return "\n".join(out) + "\n"
+
+
 def export_asc(sheet: Sheet, routing: Routing, out_path: str) -> str:
     """Write .asc + local sg_sym/*.asy library. Returns the .asc path."""
     sub: Subckt = sheet.sub
@@ -129,7 +153,23 @@ def export_asc(sheet: Sheet, routing: Routing, out_path: str) -> str:
     for d in sub.devices:
         p = sheet.pos(d)
         kind = d.kind if d.kind in _ART else None
-        if kind is None:           # subckt boxes etc: flag pins, skip body
+        if kind is None:           # block instance / unknown multi-pin device
+            # draw it as a box symbol (one .asy per block model) AND keep a
+            # net-label flag on each pin, so the editor shows the block body
+            # while connectivity stays exactly as before.
+            if len(d.roles) >= 2:
+                bsym = "sg_blk_" + _safe_sym(d.model or f"box{len(d.roles)}")
+                if bsym not in written:
+                    with open(os.path.join(symdir, bsym + ".asy"), "w",
+                              encoding="utf-8") as fh:
+                        fh.write(_box_asy(d))
+                    written.add(bsym)
+                rot = _ORIENT.get(p.orient, "R0")
+                lines.append(f"SYMBOL sg_sym\\\\{bsym} {p.x * S} "
+                             f"{p.y * S} {rot}")
+                lines.append(f"SYMATTR InstName {d.name}")
+                if d.model:
+                    lines.append(f"SYMATTR Value {d.model}")
             for role, net in zip(d.roles, d.nets):
                 from ..geom import pin_pos
                 x, y = pin_pos(d, role, p.x, p.y, p.orient)
