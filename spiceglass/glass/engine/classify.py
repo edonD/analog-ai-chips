@@ -122,3 +122,36 @@ def short_model(dev: Device) -> str:
     if not m and "value" in dev.params:
         return dev.params["value"]
     return m
+
+
+# sizing params shown on a device symbol, in display order. m/nf/mult are
+# multiplicity-style and dropped when at their default of 1.
+_SIZE_PARAMS = (("w", "w"), ("l", "l"), ("nf", "nf"),
+                ("m", "m"), ("mult", "mult"))
+_DEFAULT_ONE = {"m", "nf", "mult"}
+
+
+def device_value(dev: Device) -> str:
+    """The faithful one-line symbol annotation used by EVERY renderer (.asc
+    emit, SVG, editor) so they always agree: compact model name + sizing
+    params (w/l/nf/m/mult) in a stable order, unit-default multiplicities
+    (=1) dropped, behavioural expression appended. A passive given only by
+    a value (R/C/L with no model) shows just that value."""
+    bits: list[str] = []
+    if dev.kind in ("res", "cap", "ind") and not dev.model \
+            and "value" in dev.params:
+        bits.append(str(dev.params["value"]))
+    else:
+        sm = short_model(dev)
+        if sm:
+            bits.append(sm)
+        for key, label in _SIZE_PARAMS:
+            if key not in dev.params:
+                continue
+            val = str(dev.params[key])
+            if key in _DEFAULT_ONE and val in ("1", "1.0"):
+                continue
+            bits.append(f"{label}={val}")
+    if dev.expr:
+        bits.append(dev.expr if len(dev.expr) <= 28 else dev.expr[:25] + "…")
+    return " ".join(bits)

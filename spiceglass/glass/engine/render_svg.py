@@ -365,16 +365,5 @@ def render_sheet(sheet: Sheet, routing: Routing, verdict, meta: dict) -> str:
 
 
 def _annotation(dev: Device) -> str:
-    bits = []
-    sm = short_model(dev)
-    if sm:
-        bits.append(sm)
-    for k in ("w", "l", "m"):
-        if k in dev.params:
-            bits.append(f"{k}={dev.params[k]}")
-    if dev.kind in ("res", "cap", "ind") and "value" in dev.params and not dev.model:
-        bits = [dev.params["value"]]
-    if dev.expr:
-        ex = dev.expr if len(dev.expr) <= 28 else dev.expr[:25] + "…"
-        bits.append(ex)
-    return "  ".join(bits)
+    from .classify import device_value
+    return device_value(dev)
