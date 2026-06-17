@@ -37,6 +37,12 @@
   #right{ flex:1; position:relative; background:#fbfcfe; }
   #cv{ position:absolute; inset:0; width:100%; height:100%; display:block;
        cursor:crosshair; touch-action:none; outline:none; }
+  #oplegend{ position:absolute; left:10px; top:8px; font-size:11px;
+        background:#ffffffe8; border:1px solid #d8dee6; border-radius:5px;
+        padding:5px 9px; display:none; box-shadow:0 1px 6px #0002; }
+  #oplegend b{ font-weight:600; }
+  #oplegend span{ display:inline-block; width:10px; height:10px;
+        border-radius:2px; margin:0 3px -1px 8px; }
   #hud{ position:absolute; right:10px; bottom:8px; font-size:11px;
         color:#5b6675; background:#ffffffd0; border:1px solid #e2e6ec;
         padding:2px 8px; border-radius:4px; pointer-events:none;
@@ -95,6 +101,7 @@
   <button id="redobtn" title="redo (Ctrl-Y)">↷</button>
   <button id="delbtn" title="delete selected (Del)">Delete</button>
   <button id="checkbtn" title="check the schematic (DRC)">✓ Check</button>
+  <button id="opbtn" title="operating-point back-annotation — node voltages + transistor regions (needs a simulatable .cir)">⚡ OP</button>
   <a href="/symbols" target="_blank" style="color:#9fb6a3;font-size:12px;
      text-decoration:none;margin:0 6px">Symbols ↗</a>
   <button id="fit">Fit ⤢</button>
@@ -108,6 +115,7 @@
     <canvas id="cv" tabindex="0"></canvas>
     <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · dbl-click a block = open it · Esc = up a level · Ctrl+click = highlight net (toggle) · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
     <div id="warns"></div>
+    <div id="oplegend"></div>
     <div id="hud"></div>
     <div id="drc"></div>
   </div>
@@ -477,6 +485,22 @@ function draw(){
       else { ctx.fillStyle="#666"; ctx.font=(fsize-1)+"px Segoe UI,Arial"; }
       ctx.fillText(p.text,p.x,p.y);
     }
+  }
+
+  // OP back-annotation: tint each MOSFET by region + node voltages on labels
+  if(opData){
+    scene.ast.insts.forEach(d=>{ const r=opData.mos[d.attrs.InstName]; if(!r)return;
+      const bb=d._bbox; if(!bb)return; const [bx,by,ex,ey]=bb;
+      ctx.fillStyle=OP_FILL[r.region]||"rgba(120,120,120,0.15)";
+      ctx.fillRect(bx-2,by-2,ex-bx+4,ey-by+4);
+      ctx.strokeStyle=OP_EDGE[r.region]||"#888"; ctx.lineWidth=1.6/cam.scale;
+      ctx.strokeRect(bx-2,by-2,ex-bx+4,ey-by+4); });
+    if(showText){ ctx.fillStyle="#0a7a3a";
+      ctx.font="600 "+(fsize-1)+"px Segoe UI,Arial";
+      for(const f of scene.ast.flags){
+        const v = f.name==="0" ? 0 : opData.nodes[f.name.toLowerCase()];
+        if(v===undefined) continue;
+        ctx.fillText(v.toFixed(2)+"V", f.x+11, f.y+8); } }
   }
 
   // net highlight: bold colour on the whole electrical net (wires + flags
@@ -1206,6 +1230,7 @@ function setMode(m){
 wireBtn.onclick=()=>setMode(mode==="wire"?"select":"wire");
 document.getElementById("delbtn").onclick=deleteSel;
 document.getElementById("checkbtn").onclick=runDRC;
+document.getElementById("opbtn").onclick=runOp;
 document.getElementById("undobtn").onclick=undo;
 document.getElementById("redobtn").onclick=redo;
 palette.addEventListener("change",()=>{ if(palette.value) enterPlace(palette.value); });
@@ -1400,10 +1425,39 @@ function toggleHiliteAt(wx,wy){
 function highlightName(name){ _netReq({name}, d=>{ hiliteKey=_netKey(d);
   setHilite(d); }); }
 
+//============================================================ OP back-annotation
+let opData=null;
+const OP_FILL={sat:"rgba(40,160,80,0.18)",triode:"rgba(225,150,30,0.22)",
+               off:"rgba(215,55,55,0.22)"};
+const OP_EDGE={sat:"#28a050",triode:"#e1962a",off:"#d33838"};
+function setOpLegend(on){
+  const el=document.getElementById("oplegend"); if(!el)return;
+  el.style.display=on?"block":"none";
+  if(on) el.innerHTML="<b>OP @ DC</b> — node V + region: "+
+    "<span style='background:#28a050'></span>sat"+
+    "<span style='background:#e1962a'></span>triode"+
+    "<span style='background:#d33838'></span>off";
+}
+async function runOp(){
+  if(opData){ opData=null; setOpLegend(false); setStatus("OP off",false);
+    render(); return; }
+  setStatus("running ngspice…",false);
+  try{
+    const d=await (await fetch("/api/op")).json();
+    if(!d.ok){ opData=null; setOpLegend(false);
+      setStatus("OP: "+(d.error||"failed"),true); render(); return; }
+    opData=d; setOpLegend(true);
+    setStatus(`OP: ${Object.keys(d.nodes).length} nodes, `+
+              `${Object.keys(d.mos).length} FETs`,false);
+    render();
+  }catch(e){ setStatus("OP failed",true); }
+}
+
 //============================================================ boot
 function applyBootstrap(data){
   raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
   ta.value=raw; symlib=data.symbols||{}; selSet.clear();
+  opData=null; setOpLegend(false);              // OP overlay is per-sheet
   curName=data.subckt||null; curFile=data.file||null;
   if(!_descending){ navStack=[]; clearHilite(); updateCrumb(); }
   const note=document.getElementById("srcnote");

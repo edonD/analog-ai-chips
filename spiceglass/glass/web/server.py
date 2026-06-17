@@ -406,6 +406,18 @@ class AppState:
         self.set_file(path)
         return self.bootstrap()
 
+    def op(self) -> dict:
+        """Operating-point back-annotation of the open netlist (the original
+        simulatable .cir, not the derived .asc)."""
+        from ..engine.op import run_op
+        from ..asc.parse import _read_text
+        src = self.root_src or self.src
+        if not src or src.lower().endswith(".asc"):
+            return {"ok": False, "error": "open a simulatable netlist "
+                    "(.cir with models + sources) to back-annotate"}
+        r = run_op(_read_text(src))
+        return {"ok": r.ok, "error": r.error, "nodes": r.nodes, "mos": r.mos}
+
     def descend(self, name: str) -> dict:
         """Open a child subckt's sheet (block-instance navigation). The
         hierarchy root (root_src) defines every subckt, so descent works
@@ -507,6 +519,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(self.state.bootstrap())
         if url.path == "/api/files":
             return self._json({"files": discover()})
+        if url.path == "/api/op":
+            return self._json(self.state.op())
         if url.path == "/api/symbols":
             return self._json(_symbol_payload())
         if url.path == "/api/symlib":

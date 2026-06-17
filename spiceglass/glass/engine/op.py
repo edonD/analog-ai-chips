@@ -26,6 +26,13 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 I_OFF = 1e-9        # |Id| below this ⇒ the device is OFF
 _NUM = r"[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?"
 
+# ngspice's predefined constant vectors — `print all` lists THESE (and only
+# these) when the operating point failed/empty, so they must never be read
+# as node voltages, and their presence with no real nodes signals failure.
+_CONSTS = frozenset((
+    "false", "true", "boltz", "c", "e", "echarge", "i", "kelvin", "no",
+    "pi", "planck", "yes", "temper", "vt", "hertz", "time"))
+
 
 @dataclass
 class OpResult:
@@ -129,7 +136,8 @@ def run_op(text: str, timeout: int = 30) -> OpResult:
                 float(m.group(3))
             continue
         m = re.match(rf"([A-Za-z][\w.:]*)\s*=\s*({_NUM})\s*$", ln.strip())
-        if m and "#" not in m.group(1) and not m.group(1).endswith("branch"):
+        if m and "#" not in m.group(1) and not m.group(1).endswith("branch") \
+                and m.group(1).lower() not in _CONSTS:
             res.nodes[m.group(1).lower()] = float(m.group(2))
 
     for name in mos:
@@ -149,7 +157,8 @@ def run_op(text: str, timeout: int = 30) -> OpResult:
         elif "no simulations run" in low:
             res.error = "no operating point produced"
         else:
-            res.error = "ngspice produced no node voltages"
+            res.error = ("no operating point — deck needs models + sources "
+                         "to be simulatable (a bare .subckt can't be biased)")
         res.ok = False
         return res
     res.ok = True

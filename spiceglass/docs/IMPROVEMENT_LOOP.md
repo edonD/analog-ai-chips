@@ -180,7 +180,7 @@ ADVERSARIAL: <what was attempted to break it, and the outcome>
 |-------------|--------|-------------|-----------------|
 | 1. Hierarchy navigation | 🟡 awaiting manual UX sign-off | 8/9 (N4 needs browser confirm) | `<pending>` |
 | 2. Net highlighting | 🟡 awaiting manual UX sign-off | H1/H3/H6 automated PASS; H4/H5/live need browser confirm | `<pending>` |
-| 3. OP back-annotation | ⬜ not started | 0/8 | — |
+| 3. OP back-annotation | 🟡 awaiting manual UX sign-off | O1-O5 automated PASS (regress_op); engine+CLI+overlay done; O6 met on simulatable decks, non-sim fail gracefully; editor overlay needs browser confirm | `e3be5ff` + overlay |
 | 4. Search / find | ⬜ not started | 0/5 | — |
 
 Legend: ⬜ not started · 🟡 in progress · ✅ done (all gates green, signed off).
