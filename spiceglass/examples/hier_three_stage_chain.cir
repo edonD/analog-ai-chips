@@ -1,0 +1,33 @@
+** three_stage_chain (hierarchical system)
+.subckt three_stage_chain_00017 inp inn aout vdd gnd vbias vbn vbp
+Xs1 inp inn m1 vdd gnd vbias ota_5t_s1
+Xs2 m1 m2 vdd gnd vbias common_source_s2
+Xs3 m2 aout vdd gnd vbn vbp class_ab_output_s3
+.ends
+.subckt ota_5t_s1 inp inn out vdd gnd vbias
+** ===== Input Pair =====
+M1 d1  inp tail gnd nmos W=6u L=1u
+M2 out inn tail gnd nmos W=6u L=1u
+** ===== Mirror Load =====
+M3 d1  d1 vdd vdd pmos W=6u L=1u
+M4 out d1 vdd vdd pmos W=6u L=1u
+** ===== Tail =====
+M5 tail vbias gnd gnd nmos W=1u L=1u
+.ends
+.subckt common_source_s2 in out vdd gnd vbias
+** ===== Gain Device =====
+M1 out in gnd gnd nmos W=40u L=1u
+** ===== Current-source Load =====
+M2 out vbias vdd vdd pmos W=4u L=1u
+.ends
+.subckt class_ab_output_s3 in out vdd gnd vbn vbp
+** ===== Bias =====
+M1 gp vbp vdd vdd pmos W=4u L=1u
+M2 gn vbn gnd gnd nmos W=4u L=1u
+** ===== Driver =====
+M3 gp in vdd vdd pmos W=4u L=1u
+M4 gn in gnd gnd nmos W=4u L=1u
+** ===== Output =====
+M5 out gp vdd vdd pmos W=32u L=1u
+M6 out gn gnd gnd nmos W=32u L=1u
+.ends

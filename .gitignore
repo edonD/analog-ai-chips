@@ -17,3 +17,5 @@ spiceglass/benchmark/gen1000/
 spiceglass/benchmark/gen[0-9]*/
 spiceglass/benchmark/real/
 spiceglass/benchmark/hier/
+spiceglass/examples/sg_sym/
+spiceglass/examples/*.*.asc

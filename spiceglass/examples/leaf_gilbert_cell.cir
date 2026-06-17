@@ -1,0 +1,14 @@
+** gilbert_cell (realistic template variant)
+.subckt gilbert_cell_0001 lop lon rfp rfn outp outn vdd gnd vbn
+M0 tail vbn gnd gnd nmos W=10u L=0.35u
+** ===== RF Pair =====
+M1 a rfp tail gnd nmos W=8u L=0.35u
+M2 b rfn tail gnd nmos W=8u L=0.35u
+** ===== LO Quad =====
+M3 outp lop a gnd nmos W=8u L=0.35u
+M4 outn lon a gnd nmos W=8u L=0.35u
+M5 outp lon b gnd nmos W=8u L=0.35u
+M6 outn lop b gnd nmos W=8u L=0.35u
+R1 vdd outp 50k
+R2 vdd outn 2k
+.ends gilbert_cell_0001

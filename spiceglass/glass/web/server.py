@@ -184,17 +184,34 @@ def list_imported() -> list[str]:
                   if f.lower().endswith(".asy"))
 
 
+_DIR_CAP = 20       # max netlists listed per directory — generated
+                    # benchmark corpora hold thousands of .cir; listing them
+                    # all makes the file dropdown unusably slow.
+
+
 def discover() -> list[str]:
-    """Repo files worth one click: schematics, netlists, plans."""
-    out: list[str] = []
-    skip = {"node_modules", "pepties", "uploads", "sg_sym", "testdata"}
+    """Repo files worth one click: schematics, netlists, plans. Each
+    directory contributes at most _DIR_CAP netlists so a bulk generated
+    corpus (benchmark/real, benchmark/hier, ...) can't flood the picker."""
+    skip = {"node_modules", "pepties", "uploads", "sg_sym", "testdata",
+            "benchmark",    # 1000s of generated test netlists
+            "Spice64"}      # vendored ngspice example corpus (stress only)
+                            # curated samples live in examples/
+    by_dir: dict[str, list[str]] = {}
     for root, dirs, files in os.walk(REPO):
-        dirs[:] = [d for d in dirs if not d.startswith((".", "__"))
-                   and d not in skip]
+        dirs[:] = [d for d in dirs
+                   if not d.startswith((".", "__", "tmp"))
+                   and d not in skip and not d.endswith("_results")]
         for f in files:
-            if f.endswith((".asc", ".plan")) or \
-               f.endswith((".cir", ".spice", ".sp")):
-                out.append(os.path.relpath(os.path.join(root, f), REPO))
+            if f.endswith((".asc", ".plan", ".cir", ".spice", ".sp")):
+                by_dir.setdefault(root, []).append(
+                    os.path.relpath(os.path.join(root, f), REPO))
+    out: list[str] = []
+    for paths in by_dir.values():
+        # keep .asc/.plan first, then a capped sample of netlists
+        paths.sort(key=lambda p: (not p.endswith(".asc"),
+                                  not p.endswith(".plan"), p.lower()))
+        out.extend(paths[:_DIR_CAP])
     return sorted(out, key=lambda p: (not p.endswith(".asc"),
                                       not p.endswith(".plan"), p.lower()))
 

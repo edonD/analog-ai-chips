@@ -1,0 +1,39 @@
+** sensor_chain (hierarchical system)
+.subckt sensor_chain_00001 pin vref dout vdd gnd vbn vbias
+Xtia pin s1 vdd gnd vbn tia_tia
+Xflt s1 s2 vdd gnd vbn sallen_key_lp_flt
+Xcmp s2 vref dout vdd gnd vbias comparator_cmp
+.ends
+.subckt tia_tia in out vdd gnd vbn
+** ===== Inverting Gain =====
+M1 out in gnd gnd nmos W=8u L=2u
+M2 out vbn vdd vdd pmos W=4u L=2u
+** ===== Feedback =====
+Rf in out 2k
+Cf in out 250f
+.ends
+.subckt sallen_key_lp_flt in out vdd gnd vbn
+** ===== RC Network =====
+R1 in n1 20k
+R2 n1 np 100k
+C1 n1 out 10p
+C2 np gnd 500f
+** ===== Unity Buffer (5T OTA) =====
+M1 d1 np tail gnd nmos W=1u L=0.35u
+M2 out out tail gnd nmos W=1u L=0.35u
+M5 tail vbn gnd gnd nmos W=1u L=0.35u
+M3 d1 d1 vdd vdd pmos W=1u L=0.35u
+M4 out d1 vdd vdd pmos W=1u L=0.35u
+.ends
+.subckt comparator_cmp inp inn out vdd gnd vbias
+** ===== Input Pair =====
+M1 d1 inp tail gnd nmos W=2u L=0.18u
+M2 d2 inn tail gnd nmos W=2u L=0.18u
+M5 tail vbias gnd gnd nmos W=2u L=0.18u
+** ===== Mirror Load =====
+M3 d1 d1 vdd vdd pmos W=2u L=0.18u
+M4 d2 d1 vdd vdd pmos W=2u L=0.18u
+** ===== Output Inverter =====
+M6 out d2 vdd vdd pmos W=2u L=0.18u
+M7 out d2 gnd gnd nmos W=32u L=0.18u
+.ends

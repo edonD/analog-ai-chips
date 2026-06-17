@@ -1,0 +1,15 @@
+** ldo (realistic template variant)
+.subckt ldo_0001 vref vdd vout gnd vbn
+** ===== Error Amp (5T) =====
+M1 d1 vref tail gnd nmos W=4u L=0.5u
+M2 eo fb tail gnd nmos W=4u L=0.5u
+M5 tail vbn gnd gnd nmos W=4u L=0.5u
+M3 d1 d1 vdd vdd pmos W=4u L=0.5u
+M4 eo d1 vdd vdd pmos W=4u L=0.5u
+** ===== Pass Device =====
+Mp vout eo vdd vdd pmos W=40u L=0.5u
+** ===== Feedback Divider =====
+Rf1 vout fb 50k
+Rf2 fb gnd 100k
+Cl vout gnd 100f
+.ends ldo_0001

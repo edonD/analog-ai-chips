@@ -1,0 +1,13 @@
+** bandgap_core (realistic template variant)
+.subckt bandgap_core_0001 vdd gnd vbg
+** ===== PTAT BJT Branches =====
+Q1 vc1 vc1 gnd npn
+Q2 vc2 vc2 ne npn
+R1 ne gnd 5k
+** ===== Amp + Mirror =====
+M1 vc1 vc1 vdd vdd pmos W=6u L=0.35u
+M2 vc2 vc1 vdd vdd pmos W=40u L=2u
+M3 vbg vc1 vdd vdd pmos W=32u L=0.35u
+R2 vbg vbg2 10k
+Q3 vbg2 vbg2 gnd npn
+.ends bandgap_core_0001

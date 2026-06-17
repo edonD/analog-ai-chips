@@ -1,0 +1,18 @@
+** ota_folded_cascode (realistic template variant)
+.subckt ota_folded_cascode_0001 inp inn out vdd gnd vbp vbpc vbnc
+** ===== Input Pair (PMOS) =====
+M1 fa inp tail vdd pmos W=8u L=0.35u
+M2 fb inn tail vdd pmos W=8u L=0.35u
+M3 tail vbp vdd vdd pmos W=10u L=0.35u
+** ===== Folding Current Sources =====
+M4 fa vbp vdd vdd pmos W=8u L=0.35u
+M5 fb vbp vdd vdd pmos W=8u L=0.35u
+** ===== PMOS Cascodes =====
+M6 c   vbpc fa vdd pmos W=8u L=0.35u
+M7 out vbpc fb vdd pmos W=8u L=0.35u
+** ===== NMOS Cascode Mirror =====
+M8 c   vbnc na gnd nmos W=8u L=0.35u
+M9 out vbnc nb gnd nmos W=8u L=0.35u
+M10 na c gnd gnd nmos W=8u L=0.35u
+M11 nb c gnd gnd nmos W=8u L=0.35u
+.ends ota_folded_cascode_0001

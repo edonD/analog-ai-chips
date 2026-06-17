@@ -1,0 +1,15 @@
+** ota_telescopic (realistic template variant)
+.subckt ota_telescopic_0001 inp inn out vdd gnd vbn vbc vbp vbpc
+** ===== Input Pair =====
+M1 a inp tail gnd nmos W=10u L=1u
+M2 b inn tail gnd nmos W=10u L=1u
+M9 tail vbn gnd gnd nmos W=8u L=1u
+** ===== NMOS Cascodes =====
+M3 c vbc a gnd nmos W=10u L=1u
+M4 out vbc b gnd nmos W=10u L=1u
+** ===== PMOS Cascode Load =====
+M5 c vbpc d vdd pmos W=10u L=1u
+M6 out vbpc e vdd pmos W=10u L=1u
+M7 d vbp vdd vdd pmos W=10u L=1u
+M8 e vbp vdd vdd pmos W=10u L=1u
+.ends ota_telescopic_0001
