@@ -21,6 +21,10 @@ from .ovg import H, V, OVG, build_ovg
 
 BEND = 10
 OFFSETS = (0, 1, -1, 2, -2, 3, -3)
+# terminal-jog reaches wider (more tracks) and runs a few passes, since a
+# freed track can let another stuck terminal jog (3+ nets on one line)
+_JOG_OFFSETS = (1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8)
+_JOG_PASSES = 4
 
 
 @dataclass
@@ -421,51 +425,52 @@ class Router2:
                                 (min(x1, x2), max(x1, x2), net, ref))
             return lines
 
-        lines = seglines()
-        jogs = []                                  # (path, k, axis, coord, off)
-        for (axis, coord), items in list(lines.items()):
-            for i, (lo, hi, net, ref) in enumerate(items):
-                if ref is None:
-                    continue
-                # does this terminal still overlap a different net here?
-                clash = any(n2 != net and hi >= a and lo <= b
-                            for (a, b, n2, _) in items)
-                if not clash:
-                    continue
-                # find a free track to jog onto
-                for off in OFFSETS:
-                    if off == 0 or self._blocked(axis, coord + off, lo, hi):
+        # iterate: a jog can free a track that lets a stuck neighbour jog
+        # too (3+ nets converging on one line). Each pass rebuilds geometry.
+        for _pass in range(_JOG_PASSES):
+            lines = seglines()
+            jogs = []                              # (path, k, axis, coord, off)
+            for (axis, coord), items in list(lines.items()):
+                for (lo, hi, net, ref) in items:
+                    if ref is None:
                         continue
-                    other = lines.get((axis, coord + off), [])
-                    if any(n2 != net and hi >= a and lo <= b
-                           for (a, b, n2, _) in other):
-                        continue
-                    jogs.append((ref[0], ref[1], axis, coord, off))
-                    other_list = lines.setdefault((axis, coord + off), [])
-                    other_list.append((lo, hi, net, None))
-                    break
-
-        # apply deferred, deepest index first per path so inserts don't
-        # invalidate earlier-index jogs on the same path
-        for path, k, axis, coord, off in sorted(
-                jogs, key=lambda j: (id(j[0]), -j[1])):
-            n = len(path)
-            if k == 0:                              # pin is path[0]
-                px, py = path[0]
-                if axis == H:
-                    path[1][1] = coord + off
-                    path.insert(1, [px, coord + off])
-                else:
-                    path[1][0] = coord + off
-                    path.insert(1, [coord + off, py])
-            else:                                   # pin is path[-1]
-                px, py = path[-1]
-                if axis == H:
-                    path[-2][1] = coord + off
-                    path.insert(n - 1, [px, coord + off])
-                else:
-                    path[-2][0] = coord + off
-                    path.insert(n - 1, [coord + off, py])
+                    if not any(n2 != net and hi >= a and lo <= b
+                               for (a, b, n2, _) in items):
+                        continue                   # no live clash here
+                    for off in _JOG_OFFSETS:       # wider than the nudge
+                        if self._blocked(axis, coord + off, lo, hi):
+                            continue
+                        other = lines.get((axis, coord + off), [])
+                        if any(n2 != net and hi >= a and lo <= b
+                               for (a, b, n2, _) in other):
+                            continue
+                        jogs.append((ref[0], ref[1], axis, coord, off))
+                        lines.setdefault((axis, coord + off), []).append(
+                            (lo, hi, net, None))
+                        break
+            if not jogs:
+                break
+            # apply deepest index first per path so inserts don't invalidate
+            # earlier-index jogs on the same path
+            for path, k, axis, coord, off in sorted(
+                    jogs, key=lambda j: (id(j[0]), -j[1])):
+                n = len(path)
+                if k == 0:                          # pin is path[0]
+                    px, py = path[0]
+                    if axis == H:
+                        path[1][1] = coord + off
+                        path.insert(1, [px, coord + off])
+                    else:
+                        path[1][0] = coord + off
+                        path.insert(1, [coord + off, py])
+                else:                               # pin is path[-1]
+                    px, py = path[-1]
+                    if axis == H:
+                        path[-2][1] = coord + off
+                        path.insert(n - 1, [px, coord + off])
+                    else:
+                        path[-2][0] = coord + off
+                        path.insert(n - 1, [coord + off, py])
 
     @staticmethod
     def _shift(res, net, seg, coord, lo, hi, off) -> None:
