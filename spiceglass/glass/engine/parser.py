@@ -81,14 +81,32 @@ def _strip_inline(s: str) -> str:
 
 
 def _split_params(tokens: list[str]) -> tuple[list[str], dict[str, str]]:
-    """Separate positional tokens from key=value parameters."""
-    pos, params = [], {}
-    for t in tokens:
-        if "=" in t and not t.startswith(("'", "{")):
+    """Separate positional tokens from key=value parameters, tolerating
+    spaces around '=' (common in foundry/HSPICE decks, e.g. `W= 1u`,
+    `W = 1u`, `W =1u`) — otherwise the value gets misread as a node."""
+    pos, params, i, n = [], {}, 0, len(tokens)
+    while i < n:
+        t = tokens[i]
+        if t.startswith(("'", "{")):
+            pos.append(t)
+            i += 1
+        elif "=" in t:                         # 'k=v' or 'k=' (+ next token)
             k, _, v = t.partition("=")
+            if v == "" and i + 1 < n:
+                v = tokens[i + 1]
+                i += 1
             params[k.lower()] = v
+            i += 1
+        elif i + 1 < n and tokens[i + 1].startswith("="):   # 'k' '=v' / '=' 'v'
+            rest = tokens[i + 1][1:]
+            if rest == "" and i + 2 < n:
+                rest = tokens[i + 2]
+                i += 1
+            params[t.lower()] = rest
+            i += 2
         else:
             pos.append(t)
+            i += 1
     return pos, params
 
 

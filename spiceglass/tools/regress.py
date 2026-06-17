@@ -23,6 +23,13 @@ import sys
 import time
 from collections import Counter
 
+# real netlists carry non-ASCII (µ, —, …); never let the Windows console
+# codec crash the guard mid-report
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, ValueError):
+    pass
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 ".."))
 
