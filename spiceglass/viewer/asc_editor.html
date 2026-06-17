@@ -617,23 +617,25 @@ function updateHud(){
 
 //============================================================ hit-testing
 function hitOwner(wx,wy){
-  // broad-phase: candidate prims in the cursor cell and neighbours
   const tol=6/cam.scale;
   let best=null, bestArea=1e18;
+  const consider=(own,bx,by,ex,ey)=>{
+    if(wx>=bx-tol&&wx<=ex+tol&&wy>=by-tol&&wy<=ey+tol){
+      const a=(ex-bx)*(ey-by); if(a<bestArea){bestArea=a;best=own;} }
+  };
+  // symbols: clickable anywhere inside the WHOLE instance box, not just on
+  // its lines — smallest enclosing symbol wins (a part over a big block)
+  scene.ast.insts.forEach((d,si)=>{ if(d._bbox) consider("s"+si,...d._bbox); });
+  // flags + free text: their own primitive bbox (from the cell grid)
   const cx=Math.floor(wx/CELL),cy=Math.floor(wy/CELL);
   const cand=new Set();
   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
     const arr=scene.grid.get(scene.cellKey(cx+dx,cy+dy)); if(!arr)continue;
     for(const i of arr) cand.add(i);
   }
-  // prefer symbols (own starts with s/f/t) by bbox containment, smallest area
-  for(const i of cand){ const p=scene.P[i]; if(!p.own)continue;
-    if(p.own[0]==="w")continue;
-    if(wx>=p.bx-tol&&wx<=p.ex+tol&&wy>=p.by-tol&&wy<=p.ey+tol){
-      const area=(p.ex-p.bx)*(p.ey-p.by);
-      if(area<bestArea){bestArea=area;best=p.own;}
-    }
-  }
+  for(const i of cand){ const p=scene.P[i];
+    if(p.own&&(p.own[0]==="f"||p.own[0]==="t"))
+      consider(p.own,p.bx,p.by,p.ex,p.ey); }
   if(best) return best;
   // else wires: nearest segment within tolerance
   for(const i of cand){ const p=scene.P[i]; if(p.t!=="seg"||!p.own||p.own[0]!=="w")continue;
