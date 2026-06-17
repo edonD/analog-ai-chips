@@ -11,9 +11,78 @@ are never silently dropped (program.md rule: no silent drops).
 """
 from __future__ import annotations
 
+import os
 import re
 
 from .db import Design, Device, Subckt
+
+# .include "f" / .inc f   and   .lib "f" section
+_INC_RE = re.compile(r'^\s*\.inc(?:lude)?\s+(.+?)\s*$', re.I)
+_LIB_RE = re.compile(r'^\s*\.lib\s+(\S+)\s+(\S+)\s*$', re.I)
+_MAX_INC_BYTES = 8_000_000
+_MAX_INC_DEPTH = 25
+
+
+def _lib_section(text: str, section: str) -> str:
+    """Extract a `.lib <section> … .endl` block (ngspice corner libs)."""
+    out, grab = [], False
+    for ln in text.splitlines():
+        s = ln.strip().lower()
+        if s.startswith(".lib ") and s.split()[1:2] == [section.lower()]:
+            grab = True
+            continue
+        if grab and s.startswith(".endl"):
+            break
+        if grab:
+            out.append(ln)
+    return "\n".join(out)
+
+
+def _expand_includes(text, basedir, seen=None, depth=0):
+    """Splice .include/.inc files (and .lib sections) inline so multi-file
+    decks parse completely. Resolves relative to `basedir`; guards cycles,
+    depth, and size; missing files become a warning, never a crash."""
+    if seen is None:
+        seen = set()
+    out, warnings = [], []
+    if depth > _MAX_INC_DEPTH:
+        return text, ["include depth limit exceeded"]
+    for line in text.splitlines():
+        m = _INC_RE.match(line)
+        lib = None if m else _LIB_RE.match(line)
+        if not m and not lib:
+            out.append(line)
+            continue
+        raw = (m.group(1) if m else lib.group(1)).strip().strip('"\'')
+        section = lib.group(2) if lib else None
+        path = raw if os.path.isabs(raw) else os.path.join(basedir, raw)
+        path = os.path.normpath(path)
+        if path in seen:
+            warnings.append(f"include cycle skipped: {raw}")
+            continue
+        if not os.path.exists(path):
+            warnings.append(f"include not found: {raw}")
+            out.append(f"* [missing include: {raw}]")
+            continue
+        try:
+            if os.path.getsize(path) > _MAX_INC_BYTES:
+                warnings.append(f"include too large, skipped: {raw}")
+                continue
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                inc = fh.read()
+        except OSError as e:
+            warnings.append(f"include unreadable {raw}: {e}")
+            continue
+        if section:
+            inc = _lib_section(inc, section)
+        exp, w = _expand_includes(inc, os.path.dirname(path),
+                                  seen | {path}, depth + 1)
+        warnings.extend(w)
+        out.append(f"* >>> include {raw}"
+                   + (f" [{section}]" if section else ""))
+        out.append(exp)
+        out.append(f"* <<< end {raw}")
+    return "\n".join(out), warnings
 
 # ---------------------------------------------------------------- sections
 
@@ -123,7 +192,11 @@ _IGNORED_DOTS = (".option", ".options", ".param", ".include", ".lib", ".model",
 def parse_file(path: str) -> Design:
     with open(path, encoding="utf-8", errors="replace") as fh:
         text = fh.read()
-    return parse_text(text, path)
+    text, inc_warn = _expand_includes(
+        text, os.path.dirname(os.path.abspath(path)))
+    design = parse_text(text, path)
+    design.warnings.extend(inc_warn)
+    return design
 
 
 def parse_text(text: str, path: str = "<string>") -> Design:
