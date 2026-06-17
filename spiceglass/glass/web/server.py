@@ -236,14 +236,28 @@ def find_in(text: str, query: str) -> dict:
     return {"query": query, "instances": insts, "flags": flags, "net": net}
 
 
+_OPT_MAX_DEVICES = 120      # above this, skip the verify-gated candidate
+                            # search — its ordering search is super-linear;
+                            # plain placement stays sub-second and verifies
+
+
 def _best_placement(sub, max_rank: int = 6):
     """Verify-gated optimization: try the optimizer's top-ranked orderings
     and keep the best one that BOTH verifies and beats the seed; never
-    trade correctness for looks. Returns (sheet, routing, note)."""
+    trade correctness for looks. Returns (sheet, routing, note).
+
+    For large blocks the candidate search is skipped (performance budget):
+    a single plain placement is sub-second where the search would take
+    minutes, so it stays responsive at scale."""
     from ..engine.place import place
     from ..engine.route import route
     from ..engine.score import score
     from ..engine.verify import verify
+
+    if len(sub.devices) > _OPT_MAX_DEVICES:
+        sh = place(sub)
+        return sh, route(sh), (f"large block ({len(sub.devices)} devices): "
+                               "fast placement, optimizer skipped")
 
     seed = place(sub); seed_r = route(seed)
     s0 = score(seed, seed_r)
