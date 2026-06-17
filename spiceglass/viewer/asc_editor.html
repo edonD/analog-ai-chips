@@ -106,7 +106,7 @@
   <div class="drag" id="dragbar"></div>
   <div id="right">
     <canvas id="cv" tabindex="0"></canvas>
-    <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · dbl-click a block = open it · Esc = up a level · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
+    <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · dbl-click a block = open it · Esc = up a level · Ctrl+click = highlight net (toggle) · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
     <div id="warns"></div>
     <div id="hud"></div>
     <div id="drc"></div>
@@ -987,7 +987,10 @@ cv.addEventListener("pointerdown",e=>{
   }
   const own = scene?hitOwner(wx,wy):null;
   ptr={x:e.clientX,y:e.clientY,wx,wy,moved:false};
-  if(scene && !e.shiftKey) highlightAt(wx,wy);   // light up the net under the click
+  // Ctrl/Cmd + click = toggle net highlight (and nothing else — so plain
+  // clicks, double-clicks, wheel-clicks never disturb the highlight)
+  if(scene && (e.ctrlKey||e.metaKey) && e.button===0){
+    toggleHiliteAt(wx,wy); drag=null; ptr=null; return; }
   // Shift = multi-select: toggle an item, or rubber-band over empty space
   if(e.shiftKey){
     if(own){ toggleSel(own); drag=null; ptr=null; return; }
@@ -1373,16 +1376,27 @@ function setHilite(d){
   hilite=d.segments||[]; hiliteName=d.name||null; hilitePorts=d.ports||[];
   render();
 }
-function clearHilite(){ hilite=null; hiliteName=null; hilitePorts=[]; pendingHilite=null; }
+let hiliteKey=null;
+function clearHilite(){ hilite=null; hiliteName=null; hilitePorts=[];
+  hiliteKey=null; pendingHilite=null; }
 function _netReq(body,then){
   fetch("/api/net",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify(Object.assign({text:ta.value},body))})
     .then(r=>r.json()).then(then).catch(()=>{});
 }
-// highlight the net under a clicked world point (clears if none)
-function highlightAt(wx,wy){ _netReq({x:Math.round(wx),y:Math.round(wy)},setHilite); }
+function _netKey(d){ return (d.name||"")+"#"+
+  (d.segments||[]).map(s=>s.join(",")).sort().join(";"); }
+// Ctrl+click: toggle the net under the cursor (same net -> off, empty -> off)
+function toggleHiliteAt(wx,wy){
+  _netReq({x:Math.round(wx),y:Math.round(wy)}, d=>{
+    const empty = !d || (!d.segments.length && !d.name && !(d.ports||[]).length);
+    if(empty || _netKey(d)===hiliteKey){ clearHilite(); render(); return; }
+    hiliteKey=_netKey(d); setHilite(d);
+  });
+}
 // highlight a net by name (used when following a net into a child block)
-function highlightName(name){ _netReq({name},setHilite); }
+function highlightName(name){ _netReq({name}, d=>{ hiliteKey=_netKey(d);
+  setHilite(d); }); }
 
 //============================================================ boot
 function applyBootstrap(data){
