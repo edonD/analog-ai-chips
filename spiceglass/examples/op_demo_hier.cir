@@ -1,0 +1,18 @@
+* OP hierarchical demo — top instantiates a 5T OTA block (generic models).
+* Open it, click ⚡ OP, then double-click the X1 block to see internal
+* node voltages + transistor regions inside.
+.model nm nmos (level=1 vto=0.5 kp=120u lambda=0.02)
+.model pm pmos (level=1 vto=-0.5 kp=40u lambda=0.04)
+.subckt ota5t inp inn out vdd vss vbias
+M1 d1  inp tail vss nm W=10u L=0.5u
+M2 out inn tail vss nm W=10u L=0.5u
+M3 d1  d1  vdd vdd pm W=10u L=0.5u
+M4 out d1  vdd vdd pm W=10u L=0.5u
+M5 tail vbias vss vss nm W=20u L=0.5u
+.ends
+Vdd vdd 0 1.8
+Vcm inp 0 0.9
+Vfb inn 0 0.9
+Vbias vbias 0 0.7
+X1 inp inn out vdd 0 vbias ota5t
+RL out 0 100k

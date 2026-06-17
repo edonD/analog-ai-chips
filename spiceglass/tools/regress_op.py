@@ -72,7 +72,7 @@ def main() -> int:
     if not r3.ok:
         fails.append(("O3", f"regions deck failed: {r3.error}"))
     else:
-        want = {"Msat": "sat", "Mtri": "triode", "Moff": "off"}
+        want = {"msat": "sat", "mtri": "triode", "moff": "off"}  # lowercase keys
         for name, exp in want.items():
             got = r3.mos.get(name, {}).get("region")
             if got != exp:

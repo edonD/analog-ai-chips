@@ -488,8 +488,10 @@ function draw(){
   }
 
   // OP back-annotation: tint each MOSFET by region + node voltages on labels
+  // (mapped through the current hierarchy instance path)
   if(opData){
-    scene.ast.insts.forEach(d=>{ const r=opData.mos[d.attrs.InstName]; if(!r)return;
+    scene.ast.insts.forEach(d=>{ const r=opData.mos[opDevKey(d.attrs.InstName)];
+      if(!r)return;
       const bb=d._bbox; if(!bb)return; const [bx,by,ex,ey]=bb;
       ctx.fillStyle=OP_FILL[r.region]||"rgba(120,120,120,0.15)";
       ctx.fillRect(bx-2,by-2,ex-bx+4,ey-by+4);
@@ -498,8 +500,9 @@ function draw(){
     if(showText){ ctx.fillStyle="#0a7a3a";
       ctx.font="600 "+(fsize-1)+"px Segoe UI,Arial";
       for(const f of scene.ast.flags){
-        const v = f.name==="0" ? 0 : opData.nodes[f.name.toLowerCase()];
-        if(v===undefined) continue;
+        let v = f.name==="0" ? 0 : opData.nodes[opNodeKey(f.name)];
+        if(v===undefined && f.name!=="0") v=opData.nodes[f.name.toLowerCase()];
+        if(v===undefined) continue;       // child port maps to a top net
         ctx.fillText(v.toFixed(2)+"V", f.x+11, f.y+8); } }
   }
 
@@ -1368,6 +1371,7 @@ async function descendBlock(name,instName){
       body:JSON.stringify({name})})).json();
     if(d.error){ setStatus(d.error,true); return; }
     navStack.push(frame);
+    instPath.push((instName||name||"").toLowerCase());   // hierarchy for OP
     clearHilite(); pendingHilite=carry;
     _descending=true; applyBootstrap(d); _descending=false;
     updateCrumb();
@@ -1389,6 +1393,7 @@ async function navTo(j){
   if(j>=navStack.length) return;          // already current
   const f=navStack[j];
   navStack=navStack.slice(0,j);           // discard deeper levels
+  instPath=instPath.slice(0,j);           // keep OP mapping in sync
   try{ await fetch("/api/setpath",{method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({path:f.file})}); }catch(e){}
@@ -1427,6 +1432,18 @@ function highlightName(name){ _netReq({name}, d=>{ hiliteKey=_netKey(d);
 
 //============================================================ OP back-annotation
 let opData=null;
+let instPath=[];   // instance names (lowercase) of the current descent
+// ngspice hierarchical keys: node = <inst.path>.net ; device = m.<path>.dev
+// (top level: bare net / bare device), all lowercase
+function opNodeKey(net){
+  if(net==="0") return "0";
+  const n=net.toLowerCase();
+  return instPath.length ? instPath.join(".")+"."+n : n;
+}
+function opDevKey(inst){
+  const d=(inst||"").toLowerCase();
+  return instPath.length ? "m."+instPath.join(".")+"."+d : d;
+}
 const OP_FILL={sat:"rgba(40,160,80,0.18)",triode:"rgba(225,150,30,0.22)",
                off:"rgba(215,55,55,0.22)"};
 const OP_EDGE={sat:"#28a050",triode:"#e1962a",off:"#d33838"};
@@ -1457,7 +1474,7 @@ async function runOp(){
 function applyBootstrap(data){
   raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
   ta.value=raw; symlib=data.symbols||{}; selSet.clear();
-  opData=null; setOpLegend(false);              // OP overlay is per-sheet
+  if(!_descending){ opData=null; setOpLegend(false); instPath=[]; }  // new file
   curName=data.subckt||null; curFile=data.file||null;
   if(!_descending){ navStack=[]; clearHilite(); updateCrumb(); }
   const note=document.getElementById("srcnote");

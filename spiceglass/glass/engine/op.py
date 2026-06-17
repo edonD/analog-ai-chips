@@ -64,6 +64,38 @@ def _mos_names(text: str) -> list[str]:
     return out
 
 
+def _enumerate_mos(text: str) -> list[str]:
+    """ngspice op-vector names for every MOSFET, including those inside
+    subckt instances: top-level `m1`, nested `m.<instpath>.<dev>` (dotted
+    instance path, matching ngspice's @device addressing). Falls back to a
+    flat scan if the deck won't structurally parse."""
+    from .parser import parse_text
+    from .classify import classify_design
+    try:
+        d = parse_text(text)
+        classify_design(d)
+    except Exception:
+        return _mos_names(text)
+    out: list[str] = []
+
+    def walk(subname, path, seen):
+        sub = d.subckts.get(subname)
+        if not sub or subname in seen:
+            return
+        for dev in sub.devices:
+            if dev.kind in ("nmos", "pmos"):
+                out.append(f"m.{path}.{dev.name}".lower())
+            elif dev.kind == "sub":
+                walk(dev.model, f"{path}.{dev.name}", seen | {subname})
+
+    for dev in d.top_devices:
+        if dev.kind in ("nmos", "pmos"):
+            out.append(dev.name.lower())
+        elif dev.kind == "sub":
+            walk(dev.model, dev.name, set())
+    return out or _mos_names(text)
+
+
 def _strip_control_end(text: str) -> str:
     """Drop any existing .control…​.endc block and bare .end (keep .ends),
     so we can append our own deterministic control section."""
@@ -104,7 +136,7 @@ def run_op(text: str, timeout: int = 30) -> OpResult:
         body = "* spiceglass op\n" + body      # ngspice eats line 1 as title
 
     ctrl = [".control", "op", "print all"]
-    mos = _mos_names(body)
+    mos = _enumerate_mos(body)               # incl. devices inside subckts
     for m in mos:
         ctrl.append(f"print @{m}[vgs] @{m}[vds] @{m}[vdsat] @{m}[id]")
     ctrl += [".endc", ".end"]
@@ -130,7 +162,7 @@ def run_op(text: str, timeout: int = 30) -> OpResult:
     res = OpResult()
     raw: dict[str, dict] = {}
     for ln in out.splitlines():
-        m = re.match(rf"@(\w+)\[(\w+)\]\s*=\s*({_NUM})\s*$", ln.strip())
+        m = re.match(rf"@([\w.]+)\[(\w+)\]\s*=\s*({_NUM})\s*$", ln.strip())
         if m:
             raw.setdefault(m.group(1).lower(), {})[m.group(2)] = \
                 float(m.group(3))
