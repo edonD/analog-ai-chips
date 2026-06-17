@@ -32,6 +32,7 @@ from glass.web.server import _best_placement, _register_top  # noqa: E402
 
 
 def record(name, topology, sub, sheet, routing, ok) -> dict:
+    from glass.engine.structure import structure_kinds
     devs = []
     for d in sub.devices:
         p = sheet.placed.get(d.name)
@@ -48,6 +49,7 @@ def record(name, topology, sub, sheet, routing, ok) -> dict:
         "name": name, "topology": topology,
         "ports": list(sub.ports), "nets": sorted(sub.nets()),
         "devices": devs, "wires": wires,
+        "structures": structure_kinds(sub),      # recognition labels
         "verified": bool(ok),
         "n_devices": len(sub.devices), "n_nets": len(sub.nets()),
     }

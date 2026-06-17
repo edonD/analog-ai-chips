@@ -117,6 +117,11 @@ def main(argv: list[str] | None = None) -> int:
     ep.add_argument("--port", type=int, default=8137)
     ep.add_argument("--no-browser", action="store_true")
 
+    rp2 = sp.add_parser("recognize", help="name the analog/digital "
+                        "structures in each subckt (diff pair, mirror, "
+                        "cascode, inverter/NAND/NOR, …)")
+    rp2.add_argument("file")
+
     bp = sp.add_parser("op", help="operating-point back-annotation: node "
                        "voltages + MOSFET regions (needs a simulatable deck)")
     bp.add_argument("file")
@@ -203,6 +208,24 @@ def main(argv: list[str] | None = None) -> int:
         ok = _render_one(design, name, out, args.png, args.physical,
                          sheet=sheet, asc=args.asc)
         return 0 if ok else 1
+
+    if args.cmd == "recognize":
+        from .engine.parser import parse_file
+        from .engine.classify import classify_design
+        from .engine.structure import recognize_structures
+        design = parse_file(args.file)
+        classify_design(design)
+        for name in design.order:
+            sub = design.subckts[name]
+            if not sub.devices:
+                continue
+            structs = recognize_structures(sub)
+            print(f"  {name}  ({len(sub.devices)} devices):")
+            if not structs:
+                print("    (no named structure)")
+            for s in structs:
+                print(f"    {s['kind']:16} {', '.join(s['devices'])}")
+        return 0
 
     if args.cmd == "op":
         from .engine.op import run_op_file
