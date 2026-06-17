@@ -215,6 +215,22 @@ _DIR_CAP = 20       # max netlists listed per directory — generated
                     # all makes the file dropdown unusably slow.
 
 
+_SRC_EXT = (".cir", ".spice", ".sp", ".plan")
+
+
+def _netlist_for(asc_path: str) -> str | None:
+    """If `asc_path` is a converter sidecar `<base>.<subckt>.asc`, return the
+    original netlist `<base>.<ext>` it was generated from (else None)."""
+    stem = asc_path[:-4] if asc_path.lower().endswith(".asc") else asc_path
+    if "." not in os.path.basename(stem):
+        return None
+    head = stem.rsplit(".", 1)[0]
+    for ext in _SRC_EXT:
+        if os.path.exists(head + ext):
+            return head + ext
+    return None
+
+
 def discover() -> list[str]:
     """Repo files worth one click: schematics, netlists, plans. Each
     directory contributes at most _DIR_CAP netlists so a bulk generated
@@ -229,9 +245,13 @@ def discover() -> list[str]:
                    if not d.startswith((".", "__", "tmp"))
                    and d not in skip and not d.endswith("_results")]
         for f in files:
-            if f.endswith((".asc", ".plan", ".cir", ".spice", ".sp")):
-                by_dir.setdefault(root, []).append(
-                    os.path.relpath(os.path.join(root, f), REPO))
+            if not f.endswith((".asc", ".plan", ".cir", ".spice", ".sp")):
+                continue
+            full = os.path.join(root, f)
+            # hide converter sidecars (<base>.<subckt>.asc) — open the .cir
+            if f.endswith(".asc") and _netlist_for(full):
+                continue
+            by_dir.setdefault(root, []).append(os.path.relpath(full, REPO))
     out: list[str] = []
     for paths in by_dir.values():
         # keep .asc/.plan first, then a capped sample of netlists
@@ -255,8 +275,11 @@ class AppState:
         # the netlist/plan that defines the whole hierarchy — kept across
         # block descents so any subckt can be resolved from the original
         self.root_src = self.src
-        self.path = self.src if self.src.lower().endswith(".asc") \
-            else convert_to_asc(self.src)
+        if self.src.lower().endswith(".asc"):
+            self.path = self.src
+            self.root_src = _netlist_for(self.src) or self.src
+        else:
+            self.path = convert_to_asc(self.src)
 
     def dir(self) -> str:
         return os.path.dirname(self.path) if self.path else REPO
