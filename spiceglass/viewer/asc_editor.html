@@ -34,9 +34,13 @@
        background:var(--panel); color:#d8dee7; padding:10px 12px;
        font:13px/1.45 Consolas,"Cascadia Mono",monospace; tab-size:4;
        white-space:pre; overflow:auto; }
-  #right{ flex:1; position:relative; background:#fff; }
+  #right{ flex:1; position:relative; background:#fbfcfe; }
   #cv{ position:absolute; inset:0; width:100%; height:100%; display:block;
-       cursor:default; touch-action:none; outline:none; }
+       cursor:crosshair; touch-action:none; outline:none; }
+  #hud{ position:absolute; right:10px; bottom:8px; font-size:11px;
+        color:#5b6675; background:#ffffffd0; border:1px solid #e2e6ec;
+        padding:2px 8px; border-radius:4px; pointer-events:none;
+        font-family:Consolas,"Cascadia Mono",monospace; }
   #hint{ position:absolute; left:10px; bottom:8px; font-size:11px;
          color:#7a8290; background:#ffffffcc; padding:2px 7px;
          border-radius:4px; pointer-events:none; }
@@ -104,6 +108,7 @@
     <canvas id="cv" tabindex="0"></canvas>
     <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · dbl-click a block = open it · Esc = up a level · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
     <div id="warns"></div>
+    <div id="hud"></div>
     <div id="drc"></div>
   </div>
 </div>
@@ -288,6 +293,7 @@ function buildScene(ast, symlib){
 //============================================================ camera + render
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d",{alpha:false});
 let cam={scale:1,tx:0,ty:0}, scene=null, dpr=1;
+let cursorW=null, hoverOwner=null;  // schematic-editor crosshair + hover
 let selSet=new Set();               // selected owner ids (multi-select)
 let marquee=null;                   // rubber-band rect in world coords
 let drag=null;                      // active drag descriptor
@@ -360,6 +366,20 @@ function draw(){
   const [wl,wt]=S2W(0,0), [wr,wb]=S2W(W,H);
   const vl=wl-CELL,vt=wt-CELL,vr=wr+CELL,vb=wb+CELL;
   const lw=1.6/cam.scale;
+
+  // schematic grid: minor 1mm dots, major 5mm dots (level-of-detail)
+  function gridDots(step, color, r){
+    if(step*cam.scale < 7) return;                 // too dense → skip
+    const x0=Math.ceil(wl/step)*step, y0=Math.ceil(wt/step)*step;
+    const nx=Math.floor((wr-x0)/step)+1, ny=Math.floor((wb-y0)/step)+1;
+    if(nx*ny > 12000 || nx<0 || ny<0) return;      // safety cap
+    ctx.fillStyle=color;
+    for(let x=x0;x<=wr;x+=step) for(let y=y0;y<=wb;y+=step)
+      ctx.fillRect(x-r,y-r,2*r,2*r);
+  }
+  const px=1/cam.scale;
+  gridDots(SNAP,   "#e9edf3", 0.55*px);             // minor (1 mm)
+  gridDots(SNAP*5, "#cdd4de", 1.05*px);             // major (5 mm)
   const fsize=13;                                 // world units, LOD below
   const showText=fsize*cam.scale>6.5;
 
@@ -437,6 +457,15 @@ function draw(){
       else { ctx.fillStyle="#666"; ctx.font=(fsize-1)+"px Segoe UI,Arial"; }
       ctx.fillText(p.text,p.x,p.y);
     }
+  }
+
+  // hover highlight: faint outline of the symbol under the cursor
+  if(hoverOwner && hoverOwner[0]==="s" && !selSet.has(hoverOwner)){
+    const d=scene.ast.insts[+hoverOwner.slice(1)];
+    if(d&&d._bbox){ const [bx,by,ex,ey]=d._bbox;
+      ctx.save(); ctx.strokeStyle="rgba(61,122,214,0.45)";
+      ctx.lineWidth=1.4/cam.scale;
+      ctx.strokeRect(bx-3,by-3,ex-bx+6,ey-by+6); ctx.restore(); }
   }
 
   // overlay: selection highlight (world coords, accent) — every selected item
@@ -518,6 +547,28 @@ function draw(){
       ctx.beginPath(); ctx.arc(x,y,9,0,Math.PI*2); ctx.stroke(); }
     ctx.restore();
   }
+
+  // crosshair at the snapped cursor (where a click/place would land)
+  if(cursorW && !drag && mode!=="place" && mode!=="wire"){
+    const [sx,sy]=cursorW;
+    ctx.save();
+    ctx.strokeStyle="rgba(61,122,214,0.28)"; ctx.lineWidth=1/cam.scale;
+    ctx.setLineDash([5/cam.scale,4/cam.scale]); ctx.beginPath();
+    ctx.moveTo(vl,sy); ctx.lineTo(vr,sy);
+    ctx.moveTo(sx,vt); ctx.lineTo(sx,vb); ctx.stroke();
+    ctx.setLineDash([]); ctx.strokeStyle="#3d7ad6"; ctx.lineWidth=1.3/cam.scale;
+    const m=3.5/cam.scale; ctx.strokeRect(sx-m,sy-m,2*m,2*m);
+    ctx.restore();
+  }
+  updateHud();
+}
+
+function updateHud(){
+  const el=document.getElementById("hud"); if(!el) return;
+  let s="";
+  if(cursorW) s+=`x ${(cursorW[0]/8).toFixed(1)}  y ${(cursorW[1]/8).toFixed(1)} mm   `;
+  s+=`zoom ${Math.round(cam.scale*100)}%   grid 1 mm`;
+  el.textContent=s;
 }
 
 //============================================================ hit-testing
@@ -923,7 +974,8 @@ cv.addEventListener("pointermove",e=>{
   const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
   if(mode==="place"){ placeCur=nearestSnap(wx,wy); render(); return; }
   if(mode==="wire"){ drawCur=nearestSnap(wx,wy); if(drawStart) render(); return; }
-  if(!drag){ if(scene) cv.style.cursor=hitOwner(wx,wy)?"grab":"default"; return; }
+  if(!drag){ if(scene){ cursorW=nearestSnap(wx,wy); hoverOwner=hitOwner(wx,wy);
+      cv.style.cursor=hoverOwner?"grab":"crosshair"; render(); } return; }
   ptr.moved=true;
   if(drag.kind==="pan"){
     cam.tx=drag.tx+(e.clientX-drag.sx); cam.ty=drag.ty+(e.clientY-drag.sy);
@@ -990,6 +1042,7 @@ cv.addEventListener("dblclick",e=>{
   }
   else if(own&&own[0]==="f") editFlag(+own.slice(1));
 });
+cv.addEventListener("pointerleave",()=>{ cursorW=null; hoverOwner=null; render(); });
 cv.addEventListener("contextmenu",e=>{ if(mode==="wire"){
   e.preventDefault(); drawStart=null; render(); } });
 // live rebuild during drag (cheap: same scene rebuild, culled draw)
