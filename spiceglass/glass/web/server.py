@@ -302,7 +302,7 @@ _DIR_CAP = 20       # max netlists listed per directory — generated
                     # all makes the file dropdown unusably slow.
 
 
-_SRC_EXT = (".cir", ".spice", ".sp", ".plan")
+_SRC_EXT = (".cir", ".spice", ".sp", ".cdl", ".plan")
 
 
 def _netlist_for(asc_path: str) -> str | None:
@@ -332,7 +332,8 @@ def discover() -> list[str]:
                    if not d.startswith((".", "__", "tmp"))
                    and d not in skip and not d.endswith("_results")]
         for f in files:
-            if not f.endswith((".asc", ".plan", ".cir", ".spice", ".sp")):
+            if not f.endswith((".asc", ".plan", ".cir", ".spice", ".sp",
+                               ".cdl")):
                 continue
             full = os.path.join(root, f)
             # hide converter sidecars (<base>.<subckt>.asc) — open the .cir

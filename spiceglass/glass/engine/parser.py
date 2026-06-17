@@ -68,6 +68,18 @@ def _tokens(line: str) -> list[str]:
     return toks
 
 
+def _strip_inline(s: str) -> str:
+    """Drop HSPICE/CDL inline comments and layout properties: everything
+    from a whitespace-delimited '$' or '//' to end of line (e.g. device
+    lines like `... l=1u $X=0 $SUB=vss`). Leaves normal cards untouched."""
+    cut = len(s)
+    for tok in (" $", "\t$", " //", "\t//"):
+        i = s.find(tok)
+        if 0 <= i < cut:
+            cut = i
+    return s[:cut].rstrip()
+
+
 def _split_params(tokens: list[str]) -> tuple[list[str], dict[str, str]]:
     """Separate positional tokens from key=value parameters."""
     pos, params = [], {}
@@ -111,11 +123,14 @@ def parse_text(text: str, path: str = "<string>") -> Design:
                 items.append(("l", logical[0], " ".join(logical[1])))
                 logical = None
             continue
-        if s.startswith("*"):
+        if s.startswith(("*", "$")):          # '$'-first line = CDL/HSPICE comment
             if logical:
                 items.append(("l", logical[0], " ".join(logical[1])))
                 logical = None
             items.append(("c", no, s))
+            continue
+        s = _strip_inline(s)                  # drop ' $...' / ' //...' tails
+        if not s:
             continue
         if s.startswith("+"):
             if logical:
