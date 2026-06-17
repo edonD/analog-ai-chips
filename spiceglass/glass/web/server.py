@@ -217,6 +217,25 @@ def net_at(text: str, asc_dir: str, x: int | None = None,
             "ports": [[i, p] for i, p in ports]}
 
 
+def find_in(text: str, query: str) -> dict:
+    """Find a net or instance by name on the current sheet. Exact,
+    case-insensitive: instances by InstName, nets by flag label. Returns
+    matched instance boxes (name,x,y) and flag points so the editor can
+    select, highlight and zoom to them."""
+    from ..asc.parse import parse_asc_text
+    q = (query or "").strip().lower()
+    if not q:
+        return {"query": query, "instances": [], "flags": [], "net": None}
+    sheet = parse_asc_text(text)
+    insts = [{"name": i.attrs.get("InstName", ""), "x": i.x, "y": i.y}
+             for i in sheet.insts
+             if i.attrs.get("InstName", "").lower() == q]
+    flags = [{"x": fx, "y": fy, "name": nm}
+             for (fx, fy, nm) in sheet.flags if nm.lower() == q]
+    net = flags[0]["name"] if flags else None
+    return {"query": query, "instances": insts, "flags": flags, "net": net}
+
+
 def _best_placement(sub, max_rank: int = 6):
     """Verify-gated optimization: try the optimizer's top-ranked orderings
     and keep the best one that BOTH verifies and beats the seed; never
@@ -553,6 +572,9 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as exc:
                     return self._json(
                         {"error": f"could not open: {exc}"}, 400)
+            if url.path == "/api/find":
+                txt = body.get("text") or self.state.text()
+                return self._json(find_in(txt, body.get("query", "")))
             if url.path == "/api/net":
                 txt = body.get("text") or self.state.text()
                 return self._json(net_at(
