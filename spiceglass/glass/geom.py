@@ -42,9 +42,9 @@ BOX_PIN_DY = 2       # vertical pin spacing on box edges, units
 
 
 def box_height(nports: int) -> int:
-    """Box height in units (even, pins on-grid)."""
+    """Box height in units, sized to hug the pin column + margin."""
     side = (nports + 1) // 2
-    return max(8, 2 * side + 4)
+    return max(6, (side - 1) * BOX_PIN_DY + 4)
 
 
 TILE_PITCH = 10      # member spacing inside composite tiles, units
@@ -115,16 +115,19 @@ def pin_offsets(dev: Device, orient: str = "R0") -> dict[str, tuple[int, int]]:
         pins = _orient({"c": (0, -4), "b": (-3, 0), "e": (0, 4), "s": (3, 1)},
                        orient)
         return {r: pins.get(r, (2, 0)) for r in dev.roles}
-    # subckt box / unknown: half the pins left, half right, on-grid
+    # subckt box / unknown: half the pins left, half right, each column
+    # vertically CENTRED about the origin so the box looks balanced
     n = len(dev.roles)
-    side = (n + 1) // 2
-    h = box_height(n)
+    side = (n + 1) // 2          # left column count (rest go right)
+
+    def col_ys(count: int) -> list[int]:
+        start = -((count - 1) * BOX_PIN_DY) // 2
+        return [start + i * BOX_PIN_DY for i in range(count)]
+    lys, rys = col_ys(side), col_ys(n - side)
     out: dict[str, tuple[int, int]] = {}
     for i, role in enumerate(dev.roles):
-        if i < side:
-            out[role] = (-BOX_W // 2, -h // 2 + 2 + i * BOX_PIN_DY)
-        else:
-            out[role] = (BOX_W // 2, -h // 2 + 2 + (i - side) * BOX_PIN_DY)
+        out[role] = ((-BOX_W // 2, lys[i]) if i < side
+                     else (BOX_W // 2, rys[i - side]))
     return out
 
 

@@ -110,21 +110,29 @@ def _safe_sym(name: str) -> str:
 
 
 def _box_asy(dev) -> str:
-    """A block-instance box symbol (.asy): rectangle bounding the pins,
-    pins on the left/right edges at pin_offsets, model name as the value.
-    Same scale convention as primitive symbols (pins at offset * S)."""
+    """A block-instance box symbol (.asy): an INSET rectangle with a short
+    stub line out to every pin (so wires meet a pin, not the box edge), pin
+    names on the symbol, model name below. Pins stay exactly at pin_offsets
+    so the router/verifier are unaffected."""
     offs = pin_offsets(dev, "R0")
-    hw, hh = (BOX_W // 2) * S, (box_height(len(dev.roles)) // 2) * S
+    xs = [offs[r][0] for r in dev.roles]
+    ys = [offs[r][1] for r in dev.roles]
+    hw = max(abs(min(xs)), abs(max(xs))) * S          # pin x extent
+    ytop, ybot = (min(ys) - 2) * S, (max(ys) + 2) * S  # +2u vertical margin
+    stub = 12                                          # stub length (LTspice u)
+    rl, rr = -hw + stub, hw - stub                     # inset rectangle edges
     out = ["Version 4", "SymbolType CELL",
-           f"LINE Normal {-hw} {-hh} {hw} {-hh}",
-           f"LINE Normal {hw} {-hh} {hw} {hh}",
-           f"LINE Normal {hw} {hh} {-hw} {hh}",
-           f"LINE Normal {-hw} {hh} {-hw} {-hh}",
-           f"WINDOW 0 0 {-hh - 4} Center 2",
-           f"WINDOW 3 0 {hh + 4} Center 2"]
+           f"LINE Normal {rl} {ytop} {rr} {ytop}",
+           f"LINE Normal {rr} {ytop} {rr} {ybot}",
+           f"LINE Normal {rr} {ybot} {rl} {ybot}",
+           f"LINE Normal {rl} {ybot} {rl} {ytop}",
+           f"WINDOW 0 0 {ytop - 8} Center 2",
+           f"WINDOW 3 0 {ybot + 8} Center 2"]
     for i, r in enumerate(dev.roles, 1):
-        dx, dy = offs[r]
-        out += [f"PIN {dx * S} {dy * S} NONE 8",
+        x, y = offs[r][0] * S, offs[r][1] * S
+        sx = rl if x < 0 else rr
+        out += [f"LINE Normal {sx} {y} {x} {y}",       # pin stub
+                f"PIN {x} {y} NONE 8",
                 f"PINATTR PinName {r}", f"PINATTR SpiceOrder {i}"]
     return "\n".join(out) + "\n"
 

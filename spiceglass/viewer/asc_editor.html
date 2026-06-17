@@ -241,9 +241,9 @@ function buildScene(ast, symlib){
       for(const pn of (sym.pins||[])){ const [wx,wy]=tf(pn[0],pn[1]);
         pinPts.push([wx,wy]);
         if(isBlk && pn[2]){                  // pin name inside the block box
-          const left = wx < d.x;
+          const left = wx < d.x;             // sits inside, clear of the stub
           push({t:"label",cls:"pin",text:pn[2],
-                x: left ? wx+6 : wx-6-6*pn[2].length, y: wy+4,
+                x: left ? wx+14 : wx-14-6*pn[2].length, y: wy+4,
                 bx:wx-3,by:wy-8,ex:wx+3,ey:wy+6,own});
         }
       }
