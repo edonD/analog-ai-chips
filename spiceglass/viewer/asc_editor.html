@@ -110,7 +110,10 @@ const ROT = {
   R0:(x,y)=>[x,y],   R90:(x,y)=>[-y,x],  R180:(x,y)=>[-x,-y], R270:(x,y)=>[y,-x],
   M0:(x,y)=>[-x,y],  M90:(x,y)=>[y,x],   M180:(x,y)=>[x,-y],  M270:(x,y)=>[-y,-x],
 };
-const SNAP = 16;                 // LTspice placement grid
+const SNAP = 8;                  // SpiceGlass emits on an 8-unit grid
+                                 // (1 mm = 8 LTspice units); the drag/place
+                                 // snap MUST match it, or parts land 8u off
+                                 // the wires/pins and can never be aligned.
 const snap = v => Math.round(v/SNAP)*SNAP;
 
 //============================================================ .asc parser
