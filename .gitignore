@@ -3,22 +3,3 @@ vibrosense/07_adc_v3/v3_tb4_enob.dat
 pvdd_regulator/09_startup/prompt.md
 pvdd_regulator/10_top_integration/schematics/__pycache__/
 __pycache__/
-# third-party ngspice example netlists (BSD/GPL mix) — used as a local
-# converter stress corpus, not part of this repo
-spiceglass/Spice64/
-# generated converter artifacts
-spiceglass/uploads/
-*.seed.svg
-*.seed.png
-*.optimized.svg
-*.optimized.png
-# bulk procedurally-generated benchmark corpora (regenerate via tools/gen_netlists.py)
-spiceglass/benchmark/gen1000/
-spiceglass/benchmark/gen[0-9]*/
-spiceglass/benchmark/real/
-spiceglass/benchmark/hier/
-spiceglass/examples/sg_sym/
-spiceglass/examples/*.*.asc
-spiceglass/_srv.log
-spiceglass/sg_sym/
-spiceglass/dataset/
