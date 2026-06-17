@@ -117,6 +117,13 @@ def main(argv: list[str] | None = None) -> int:
     ep.add_argument("--port", type=int, default=8137)
     ep.add_argument("--no-browser", action="store_true")
 
+    dp2 = sp.add_parser("doc", help="README-grade markdown report: ports, "
+                        "recognized structures, device table, OP bias")
+    dp2.add_argument("file")
+    dp2.add_argument("-o", "--out", default=None, help="write to file")
+    dp2.add_argument("--op", action="store_true",
+                     help="include DC operating point (needs a simulatable deck)")
+
     rp2 = sp.add_parser("recognize", help="name the analog/digital "
                         "structures in each subckt (diff pair, mirror, "
                         "cascode, inverter/NAND/NOR, …)")
@@ -208,6 +215,28 @@ def main(argv: list[str] | None = None) -> int:
         ok = _render_one(design, name, out, args.png, args.physical,
                          sheet=sheet, asc=args.asc)
         return 0 if ok else 1
+
+    if args.cmd == "doc":
+        from .engine.parser import parse_file
+        from .engine.classify import classify_design
+        from .engine.report import markdown_report
+        design = parse_file(args.file)
+        classify_design(design)
+        op = None
+        if args.op:
+            from .engine.op import run_op_file
+            r = run_op_file(args.file)
+            op = r if r.ok else None
+            if not r.ok:
+                print(f"  (op skipped: {r.error})")
+        md = markdown_report(design, op=op, title=os.path.basename(args.file))
+        if args.out:
+            with open(args.out, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(md)
+            print(f"  wrote {args.out}")
+        else:
+            print(md)
+        return 0
 
     if args.cmd == "recognize":
         from .engine.parser import parse_file
