@@ -104,6 +104,32 @@ def convert_to_asc(path: str) -> str:
     return export_asc(sheet, routing, out)
 
 
+def convert_subckt(srcpath: str, name: str) -> str:
+    """Convert a NAMED subckt of a netlist to .asc — the engine behind
+    hierarchy navigation (open a block instance's child sheet). Uses the
+    exact same place/route/emit path as convert_to_asc's root branch, so a
+    descended child is byte-identical to converting that subckt directly."""
+    from ..engine.classify import classify_design
+    from ..asc.emit import export_asc
+    from ..engine.parser import parse_file
+    design = parse_file(srcpath)
+    classify_design(design)
+    _register_top(design)
+    if name not in design.subckts:
+        raise ValueError(f"no subckt '{name}' in "
+                         f"{os.path.basename(srcpath)}")
+    sub = design.subckts[name]
+    if not sub.devices:
+        raise ValueError(f"subckt '{name}' has no devices")
+    sheet, routing, note = _best_placement(sub)
+    base = os.path.splitext(srcpath)[0]
+    out = export_asc(sheet, routing, f"{base}.{name}.asc")
+    if note:
+        with open(out, "a", encoding="utf-8") as fh:
+            fh.write(f"TEXT 64 {(sheet.height + 4) * 8} Left 1 ;{note}\n")
+    return out
+
+
 def _best_placement(sub, max_rank: int = 6):
     """Verify-gated optimization: try the optimizer's top-ranked orderings
     and keep the best one that BOTH verifies and beats the seed; never
@@ -220,11 +246,15 @@ class AppState:
     def __init__(self, path: str | None = None):
         self.src: str | None = None       # what the user opened
         self.path: str | None = None      # the .asc actually edited
+        self.root_src: str | None = None  # netlist defining the hierarchy
         if path:
             self.set_file(path)
 
     def set_file(self, path: str) -> None:
         self.src = os.path.abspath(path)
+        # the netlist/plan that defines the whole hierarchy — kept across
+        # block descents so any subckt can be resolved from the original
+        self.root_src = self.src
         self.path = self.src if self.src.lower().endswith(".asc") \
             else convert_to_asc(self.src)
 
@@ -250,10 +280,13 @@ class AppState:
             rel = os.path.relpath(self.src, REPO)
         except ValueError:
             rel = None
+        import re
+        m = re.search(r";(\S+).*exported by SpiceGlass", text)
         return {"file": os.path.basename(self.path),
                 "source": os.path.basename(self.src) if self.src else None,
                 "rel": rel,
                 "converted": self.src != self.path,
+                "subckt": m.group(1) if m else None,
                 "text": text, "w": sheet.w, "h": sheet.h,
                 "symbols": self.lib(_symbols_in(text))}
 
@@ -262,6 +295,31 @@ class AppState:
             path = os.path.join(REPO, path)
         self.set_file(path)
         return self.bootstrap()
+
+    def descend(self, name: str) -> dict:
+        """Open a child subckt's sheet (block-instance navigation). The
+        hierarchy root (root_src) defines every subckt, so descent works
+        at any depth. Save target follows the displayed child."""
+        if not self.root_src:
+            raise ValueError("nothing open")
+        if not name:
+            raise ValueError("no subckt name")
+        self.path = convert_subckt(self.root_src, name)
+        return self.bootstrap()
+
+    def set_path(self, name: str) -> dict:
+        """Point the save target back at an already-built sheet (used when
+        climbing back up the hierarchy). Restricted to .asc files beside
+        the root, so it can't be used to write arbitrary paths."""
+        base = os.path.dirname(self.root_src) if self.root_src else REPO
+        path = name if os.path.isabs(name) else os.path.join(base, name)
+        path = os.path.abspath(path)
+        if (not path.lower().endswith(".asc")
+                or os.path.dirname(path) != os.path.abspath(base)
+                or not os.path.exists(path)):
+            raise ValueError("not a known sheet")
+        self.path = path
+        return {"ok": True, "file": os.path.basename(path)}
 
     def upload(self, name: str, content: str) -> dict:
         updir = os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
@@ -370,6 +428,19 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as exc:
                     return self._json(
                         {"error": f"could not open: {exc}"}, 400)
+            if url.path == "/api/descend":
+                try:
+                    return self._json(self.state.descend(
+                        body.get("name", "")))
+                except Exception as exc:
+                    return self._json(
+                        {"error": f"cannot open block: {exc}"}, 400)
+            if url.path == "/api/setpath":
+                try:
+                    return self._json(self.state.set_path(
+                        body.get("path", "")))
+                except Exception as exc:
+                    return self._json({"error": f"{exc}"}, 400)
             if url.path == "/api/upload":
                 try:
                     return self._json(self.state.upload(

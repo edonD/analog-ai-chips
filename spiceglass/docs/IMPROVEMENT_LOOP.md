@@ -178,7 +178,7 @@ ADVERSARIAL: <what was attempted to break it, and the outcome>
 
 | Improvement | Status | Gates green | Evidence commit |
 |-------------|--------|-------------|-----------------|
-| 1. Hierarchy navigation | ⬜ not started | 0/9 | — |
+| 1. Hierarchy navigation | 🟡 awaiting manual UX sign-off | 8/9 (N4 needs browser confirm) | `<pending>` |
 | 2. Net highlighting | ⬜ not started | 0/8 | — |
 | 3. OP back-annotation | ⬜ not started | 0/8 | — |
 | 4. Search / find | ⬜ not started | 0/5 | — |

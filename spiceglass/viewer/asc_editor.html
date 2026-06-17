@@ -23,6 +23,10 @@
   #palette{ background:#3d434d; color:var(--ink); border:0; border-radius:5px;
             padding:5px 8px; font-size:12px; }
   #srcnote{ font-size:11px; color:#caa23a; }
+  #crumb{ font-size:12px; color:#9fb6a3; }
+  #crumb a{ color:#6fa8dc; text-decoration:none; }
+  #crumb a:hover{ text-decoration:underline; }
+  #crumb b{ color:#cfe3d4; }
   #wrap{ display:flex; height:calc(100% - 37px); }
   #left{ width:42%; min-width:240px; display:flex; flex-direction:column;
          border-right:1px solid #11131699; }
@@ -62,6 +66,7 @@
   <button id="upload">Upload…</button>
   <input id="fileinput" type="file" accept=".asc,.cir,.spice,.sp,.plan" hidden>
   <span id="srcnote"></span>
+  <span id="crumb" title="hierarchy path — double-click a block to descend, Esc to go up"></span>
   <span class="sp"></span>
   <select id="palette" title="place a component (click on canvas; R rotates)">
     <option value="">+ Component ▾</option>
@@ -97,7 +102,7 @@
   <div class="drag" id="dragbar"></div>
   <div id="right">
     <canvas id="cv" tabindex="0"></canvas>
-    <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
+    <div id="hint">drag · Shift+click / Shift+drag = multi-select · Space/R rotate · dbl-click edit · dbl-click a block = open it · Esc = up a level · Ctrl-D duplicate · W+drag wire · Del delete · Ctrl-Z undo</div>
     <div id="warns"></div>
     <div id="drc"></div>
   </div>
@@ -975,7 +980,14 @@ cv.addEventListener("dblclick",e=>{
   const r=cv.getBoundingClientRect();
   const [wx,wy]=S2W(e.clientX-r.left,e.clientY-r.top);
   const own=hitOwner(wx,wy);
-  if(own&&own[0]==="s") editSymbol(+own.slice(1));
+  if(own&&own[0]==="s"){
+    const inst=scene.ast.insts[+own.slice(1)];
+    if(inst && inst.sym && inst.sym.indexOf("sg_blk_")>=0){   // a block box
+      descendBlock(inst.attrs.Value || inst.sym.split("sg_blk_")[1]);
+      return;
+    }
+    editSymbol(+own.slice(1));
+  }
   else if(own&&own[0]==="f") editFlag(+own.slice(1));
 });
 cv.addEventListener("contextmenu",e=>{ if(mode==="wire"){
@@ -1107,7 +1119,8 @@ window.addEventListener("keydown",e=>{
   else if(k==="r"){ applyOrient(rotCW); }
   else if(k==="m"){ applyOrient(mirror); }
   else if(k==="escape"){ if(mode!=="select") setMode("select");
-                         else selectOwner(null,false); }
+                         else if(selSet.size) selectOwner(null,false);
+                         else if(navStack.length) navBack(); }
   else if(k==="delete"||k==="backspace"){ e.preventDefault(); deleteSel(); }
 });
 
@@ -1194,9 +1207,66 @@ async function refreshLibrary(){
 }
 
 //============================================================ boot
+//============================================================ hierarchy nav
+let navStack=[];               // ancestor frames {name,file,text,cam,symlib}
+let curName=null, curFile=null, _descending=false;
+
+function escHtml(s){ return (s||"").replace(/[&<>]/g,
+  c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+function updateCrumb(){
+  const el=document.getElementById("crumb");
+  const names=[...navStack.map(f=>f.name||"?"), curName||"?"];
+  if(names.length<=1 || !curName){ el.innerHTML=""; return; }
+  el.innerHTML = "&nbsp;"+names.map((n,i)=> i===names.length-1
+    ? `<b>${escHtml(n)}</b>`
+    : `<a href="#" data-i="${i}">${escHtml(n)}</a>`).join(" › ");
+  el.querySelectorAll("a").forEach(a=>a.onclick=ev=>{
+    ev.preventDefault(); navTo(+a.dataset.i); });
+}
+
+async function descendBlock(name){
+  if(!name) return;
+  const frame={name:curName,file:curFile,text:ta.value,
+               cam:{...cam},symlib};
+  setStatus("opening "+name+"…",false);
+  try{
+    const d=await (await fetch("/api/descend",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name})})).json();
+    if(d.error){ setStatus(d.error,true); return; }
+    navStack.push(frame);
+    _descending=true; applyBootstrap(d); _descending=false;
+    updateCrumb();
+  }catch(e){ setStatus("open block failed",true); }
+}
+
+function restoreFrame(f){
+  raw=f.text; origin="graphics"; ta.value=raw; origin=null;
+  symlib=f.symlib||symlib; selSet.clear();
+  curName=f.name; curFile=f.file;
+  scene=buildScene(parseAsc(raw),symlib);
+  cam={...f.cam}; showWarnings(scene.ast); render();
+  setStatus("ready",false);
+}
+
+async function navTo(j){
+  if(j>=navStack.length) return;          // already current
+  const f=navStack[j];
+  navStack=navStack.slice(0,j);           // discard deeper levels
+  try{ await fetch("/api/setpath",{method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({path:f.file})}); }catch(e){}
+  restoreFrame(f); updateCrumb();
+}
+function navBack(){ if(navStack.length) navTo(navStack.length-1); }
+
+//============================================================ boot
 function applyBootstrap(data){
   raw=(data.text||"").replace(/\r\n?/g,"\n");   // normalize so offsets are exact
   ta.value=raw; symlib=data.symbols||{}; selSet.clear();
+  curName=data.subckt||null; curFile=data.file||null;
+  if(!_descending){ navStack=[]; updateCrumb(); }
   const note=document.getElementById("srcnote");
   note.textContent = (data.converted && data.source)
     ? `converted from ${data.source} → ${data.file}` : "";
