@@ -154,9 +154,10 @@ def export_asc(sheet: Sheet, routing: Routing, out_path: str) -> str:
         p = sheet.pos(d)
         kind = d.kind if d.kind in _ART else None
         if kind is None:           # block instance / unknown multi-pin device
-            # draw it as a box symbol (one .asy per block model) AND keep a
-            # net-label flag on each pin, so the editor shows the block body
-            # while connectivity stays exactly as before.
+            # draw the block as a box symbol (one .asy per block model). Pin
+            # names live on the symbol; rails/ports are already labelled by
+            # the stub flags above and signals ride the wires — so NO per-pin
+            # net labels here (that was the clutter).
             if len(d.roles) >= 2:
                 bsym = "sg_blk_" + _safe_sym(d.model or f"box{len(d.roles)}")
                 if bsym not in written:
@@ -170,11 +171,6 @@ def export_asc(sheet: Sheet, routing: Routing, out_path: str) -> str:
                 lines.append(f"SYMATTR InstName {d.name}")
                 if d.model:
                     lines.append(f"SYMATTR Value {d.model}")
-            for role, net in zip(d.roles, d.nets):
-                from ..geom import pin_pos
-                x, y = pin_pos(d, role, p.x, p.y, p.orient)
-                lines.append(f"FLAG {x * S} {y * S} "
-                             f"{'0' if net in sheet.rails and sheet.rails[net] == 'gnd' else net}")
             continue
         sym = f"sg_{kind}{len(d.roles)}"
         if sym not in written:

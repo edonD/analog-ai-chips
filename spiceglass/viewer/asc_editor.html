@@ -237,20 +237,38 @@ function buildScene(ast, symlib){
         push({t:"arc",cx,cy,rx,ry,xs:XS,ys:YS,xe:XE,ye:YE,
               bx:cx-rx,by:cy-ry,ex:cx+rx,ey:cy+ry,own});
       }
+      const isBlk = (d.sym||"").indexOf("sg_blk_")>=0;
       for(const pn of (sym.pins||[])){ const [wx,wy]=tf(pn[0],pn[1]);
-        pinPts.push([wx,wy]); }
+        pinPts.push([wx,wy]);
+        if(isBlk && pn[2]){                  // pin name inside the block box
+          const left = wx < d.x;
+          push({t:"label",cls:"pin",text:pn[2],
+                x: left ? wx+6 : wx-6-6*pn[2].length, y: wy+4,
+                bx:wx-3,by:wy-8,ex:wx+3,ey:wy+6,own});
+        }
+      }
       if(bx>ex){ bx=d.x-24;by=d.y-24;ex=d.x+24;ey=d.y+24; }
+      d._blk = isBlk;
     }else{
       push({t:"miss",x:d.x-24,y:d.y-24,w:48,h:48,
             bx:d.x-24,by:d.y-24,ex:d.x+24,ey:d.y+24,own});
     }
     d._bbox=[bx,by,ex,ey];
-    // instance labels
+    // instance labels: blocks get name above / model below, CENTERED, so
+    // long subckt names don't run into neighbouring blocks
     const nm=d.attrs.InstName, val=d.attrs.Value;
-    if(nm) push({t:"label",x:ex+6,y:by+14,text:nm,cls:"nm",
-                 bx:ex+6,by:by,ex:ex+6+9*nm.length,ey:by+16,own});
-    if(val) push({t:"label",x:ex+6,y:by+30,text:val,cls:"val",
-                 bx:ex+6,by:by+16,ex:ex+6+8*val.length,ey:by+32,own});
+    if(d._blk){
+      const cx=(bx+ex)/2;
+      if(nm) push({t:"label",x:cx-4.2*nm.length,y:by-7,text:nm,cls:"nm",
+                   bx:bx,by:by-18,ex:ex,ey:by-2,own});
+      if(val) push({t:"label",x:cx-3.4*val.length,y:ey+15,text:val,cls:"val",
+                    bx:bx,by:ey+3,ex:ex,ey:ey+18,own});
+    }else{
+      if(nm) push({t:"label",x:ex+6,y:by+14,text:nm,cls:"nm",
+                   bx:ex+6,by:by,ex:ex+6+9*nm.length,ey:by+16,own});
+      if(val) push({t:"label",x:ex+6,y:by+30,text:val,cls:"val",
+                    bx:ex+6,by:by+16,ex:ex+6+8*val.length,ey:by+32,own});
+    }
   });
   // free text
   ast.texts.forEach((tx,ti)=>{
@@ -454,6 +472,7 @@ function draw(){
     for(const i of vis){ const p=scene.P[i]; if(p.t!=="label")continue;
       if(p.cls==="flag"){ ctx.fillStyle="#0b4ea2"; ctx.font="600 "+fsize+"px Segoe UI,Arial"; }
       else if(p.cls==="nm"){ ctx.fillStyle="#222"; ctx.font="600 "+fsize+"px Segoe UI,Arial"; }
+      else if(p.cls==="pin"){ ctx.fillStyle="#7a8aa0"; ctx.font=(fsize-4)+"px Segoe UI,Arial"; }
       else { ctx.fillStyle="#666"; ctx.font=(fsize-1)+"px Segoe UI,Arial"; }
       ctx.fillText(p.text,p.x,p.y);
     }
